@@ -113,6 +113,16 @@ point, Tailscale provides the network and certificates.
 
 You need a clean Ubuntu 22.04+ (tested on 26.04), 8 GB of RAM or more, preferably a separate disk for ZFS, and a Tailscale account.
 
+From the [release package](https://github.com/agentverse-os/AgentVerse-OS/releases), nothing to build:
+
+```bash
+curl -LO https://github.com/agentverse-os/AgentVerse-OS/releases/download/v0.2.0/agentverse-os-0.2.0-x86_64.tar.gz
+mkdir agentverse-os && tar xzf agentverse-os-0.2.0-x86_64.tar.gz -C agentverse-os && cd agentverse-os
+sudo DISKS="/dev/disk/by-id/<disk for ZFS>" bootstrap/install.sh
+```
+
+Or from source:
+
 ```bash
 git clone https://github.com/<owner>/agentverse-os && cd agentverse-os
 cd desktop && npm install && npm run build && cd ..        # Desktop → cloudd/static
@@ -122,11 +132,12 @@ sudo DISKS="/dev/disk/by-id/<disk for ZFS>" bootstrap/install.sh
 
 The installer goes step by step: host checks → ZFS → Docker and Incus → **Tailscale** (a link and QR code to authorize the node, waits
 for your confirmation, checks MagicDNS and HTTPS Certificates) → Coder → Komodo → edge → core → catalog → template → summary with
-addresses. Without a locally built binary, install from a package: `PACKAGE=agentverse-os-<version>-<arch>.tar.gz` (a file or an
-https URL); packages are built by `scripts/release.sh`.
+addresses. A checkout can also install from a package instead of a locally built binary: `PACKAGE=agentverse-os-<version>-<arch>.tar.gz`
+(a file or an https URL); packages are built by `scripts/release.sh`.
 
 When it finishes, open `https://<node>.<tailnet>.ts.net/` and the first-run wizard completes the setup in the browser. Updates come
-from the Updates window or `sudo agentverse-update`.
+from the Updates window or `sudo agentverse-update`; the update channel is the `stable.json` of the latest release, e.g.
+`https://github.com/agentverse-os/AgentVerse-OS/releases/download/v0.2.0/stable.json`.
 
 ## Repository
 
@@ -160,8 +171,8 @@ test box inside a Playwright container; see the headers of the tests in `desktop
 |---|---|---|
 | core, projects, workspaces, capabilities, gate | voice: the assistant talks but does not control the system | user accounts and permissions, a second user |
 | Store, install, links, logs, permission repair, snapshots, app updates | backups: no remote repository, no whole-system restore | a Host section in the UI: reboot, disks, core logs |
-| Desktop on three devices and three browser engines, themes, wallpapers | a from-scratch install has been verified step by step, not in one run | a published update channel |
-| Tailscale, first-run wizard, self-update with rollback | UI in four languages; messages from the core (events, API errors) are Russian only | |
+| Desktop on three devices and three browser engines, themes, wallpapers | a from-scratch install has been verified step by step, not in one run | |
+| Tailscale, first-run wizard, self-update with rollback, update channel on GitHub Releases | UI in four languages; messages from the core (events, API errors) are Russian only | |
 
 ## License
 
