@@ -1,0 +1,17 @@
+# maintainerr: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  maintainerr:
+    environment:
+      TZ: ${TZ}
+    image: ghcr.io/maintainerr/maintainerr:3.25.0
+    networks:
+      appnet:
+        aliases:
+        - maintainerr_maintainerr_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/opt/data

@@ -1,0 +1,201 @@
+# windmill-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  db:
+    environment:
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-windmill-db}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 5s
+    image: postgres:16
+    networks:
+      appnet:
+        aliases:
+        - windmill-coolify_db_1
+    restart: unless-stopped
+    shm_size: 1g
+    volumes:
+    - db-data:/var/lib/postgresql/data
+  lsp:
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - exit 0
+      timeout: 10s
+    image: ghcr.io/windmill-labs/windmill-lsp:latest
+    networks:
+      appnet:
+        aliases:
+        - windmill-coolify_lsp_1
+    restart: unless-stopped
+    volumes:
+    - lsp-cache:/root/.cache
+  windmill-server:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_WINDMILL_8000=${SERVICE_URL_WINDMILL_8000}
+    - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@db/${POSTGRES_DB:-windmill-db}
+    - MODE=server
+    - BASE_URL=${SERVICE_URL_WINDMILL}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/health
+      timeout: 10s
+    image: ghcr.io/windmill-labs/windmill:main
+    networks:
+      appnet:
+        aliases:
+        - windmill-coolify_windmill-server_1
+    restart: unless-stopped
+    volumes:
+    - worker-logs:/tmp/windmill/logs
+  windmill-worker-1:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+    - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@db/${POSTGRES_DB:-windmill-db}
+    - MODE=worker
+    - WORKER_GROUP=default
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - exit 0
+      timeout: 10s
+    image: ghcr.io/windmill-labs/windmill:main
+    networks:
+      appnet:
+        aliases:
+        - windmill-coolify_windmill-worker-1_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - worker-dependency-cache:/tmp/windmill/cache
+    - worker-logs:/tmp/windmill/logs
+  windmill-worker-2:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+    - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@db/${POSTGRES_DB:-windmill-db}
+    - MODE=worker
+    - WORKER_GROUP=default
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - exit 0
+      timeout: 10s
+    image: ghcr.io/windmill-labs/windmill:main
+    networks:
+      appnet:
+        aliases:
+        - windmill-coolify_windmill-worker-2_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - worker-dependency-cache:/tmp/windmill/cache
+    - worker-logs:/tmp/windmill/logs
+  windmill-worker-3:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+    - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@db/${POSTGRES_DB:-windmill-db}
+    - MODE=worker
+    - WORKER_GROUP=default
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - exit 0
+      timeout: 10s
+    image: ghcr.io/windmill-labs/windmill:main
+    networks:
+      appnet:
+        aliases:
+        - windmill-coolify_windmill-worker-3_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - worker-dependency-cache:/tmp/windmill/cache
+    - worker-logs:/tmp/windmill/logs
+  windmill-worker-native:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+    - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@db/${POSTGRES_DB:-windmill-db}
+    - MODE=worker
+    - WORKER_GROUP=native
+    - NUM_WORKERS=8
+    - SLEEP_QUEUE=200
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - exit 0
+      timeout: 10s
+    image: ghcr.io/windmill-labs/windmill:main
+    networks:
+      appnet:
+        aliases:
+        - windmill-coolify_windmill-worker-native_1
+    restart: unless-stopped
+    volumes:
+    - worker-logs:/tmp/windmill/logs
+volumes:
+  db-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/db-data
+      o: bind
+      type: none
+  lsp-cache:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/lsp-cache
+      o: bind
+      type: none
+  worker-dependency-cache:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/worker-dependency-cache
+      o: bind
+      type: none
+  worker-logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/worker-logs
+      o: bind
+      type: none

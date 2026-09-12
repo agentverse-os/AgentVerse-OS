@@ -1,0 +1,208 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/documenso-coolify
+description: Document signing, finally open source
+endpoint:
+  port: 3000
+  service: documenso
+env:
+  CERT_INFO_COUNTRY_NAME: DO
+  CERT_INFO_EMAIL: example@gmail.com
+  CERT_INFO_LOCALITY_NAME: Santiago
+  CERT_INFO_ORGANIZATIONAL_UNIT: IT Department
+  CERT_INFO_ORGANIZATION_NAME: Example INC
+  CERT_INFO_STATE_OR_PROVIDENCE: Santiago
+  CERT_VALID_DAYS: '365'
+  DISABLE_LOGIN: 'false'
+  NEXT_PRIVATE_RESEND_API_KEY: ''
+  NEXT_PRIVATE_SIGNING_LOCAL_FILE_PASSPHRASE: ''
+  NEXT_PRIVATE_SMTP_FROM_ADDRESS: ''
+  NEXT_PRIVATE_SMTP_FROM_NAME: ''
+  NEXT_PRIVATE_SMTP_HOST: ''
+  NEXT_PRIVATE_SMTP_PASSWORD: ''
+  NEXT_PRIVATE_SMTP_PORT: ''
+  NEXT_PRIVATE_SMTP_TRANSPORT: ''
+  NEXT_PRIVATE_SMTP_USERNAME: ''
+  POSTGRES_DB: documenso-db
+  POSTGRES_USER: ''
+  SERVICE_BASE64_AUTHSECRET:
+    generate: hex64
+  SERVICE_BASE64_ENCRYPTIONKEY:
+    generate: hex64
+  SERVICE_BASE64_SECONDARYENCRYPTIONKEY:
+    generate: hex64
+  SERVICE_PASSWORD_DOCUMENSO:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_DOCUMENSO: https://${APP_DOMAIN}
+  SERVICE_URL_DOCUMENSO_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: documenso-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NEXT_PRIVATE_RESEND_API_KEY
+  hint: null
+  label: next private resend api key
+  options: null
+  required: false
+  type: password
+- env: NEXT_PRIVATE_SMTP_TRANSPORT
+  hint: null
+  label: next private smtp transport
+  options: null
+  required: false
+  type: text
+- env: NEXT_PRIVATE_SMTP_HOST
+  hint: null
+  label: next private smtp host
+  options: null
+  required: false
+  type: text
+- env: NEXT_PRIVATE_SMTP_PORT
+  hint: null
+  label: next private smtp port
+  options: null
+  required: false
+  type: text
+- env: NEXT_PRIVATE_SMTP_USERNAME
+  hint: null
+  label: next private smtp username
+  options: null
+  required: false
+  type: text
+- env: NEXT_PRIVATE_SMTP_PASSWORD
+  hint: null
+  label: next private smtp password
+  options: null
+  required: false
+  type: password
+- env: NEXT_PRIVATE_SMTP_FROM_NAME
+  hint: null
+  label: next private smtp from name
+  options: null
+  required: false
+  type: text
+- env: NEXT_PRIVATE_SMTP_FROM_ADDRESS
+  hint: null
+  label: next private smtp from address
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: documenso-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: CERT_VALID_DAYS
+  hint: 'по умолчанию: 365'
+  label: cert valid days
+  options: null
+  required: false
+  type: text
+- env: CERT_INFO_COUNTRY_NAME
+  hint: 'по умолчанию: DO'
+  label: cert info country name
+  options: null
+  required: false
+  type: text
+- env: CERT_INFO_STATE_OR_PROVIDENCE
+  hint: 'по умолчанию: Santiago'
+  label: cert info state or providence
+  options: null
+  required: false
+  type: text
+- env: CERT_INFO_LOCALITY_NAME
+  hint: 'по умолчанию: Santiago'
+  label: cert info locality name
+  options: null
+  required: false
+  type: text
+- env: CERT_INFO_ORGANIZATION_NAME
+  hint: 'по умолчанию: Example INC'
+  label: cert info organization name
+  options: null
+  required: false
+  type: text
+- env: CERT_INFO_ORGANIZATIONAL_UNIT
+  hint: 'по умолчанию: IT Department'
+  label: cert info organizational unit
+  options: null
+  required: false
+  type: text
+- env: CERT_INFO_EMAIL
+  hint: 'по умолчанию: example@gmail.com'
+  label: cert info email
+  options: null
+  required: false
+  type: text
+- env: DISABLE_LOGIN
+  hint: 'по умолчанию: false'
+  label: disable login
+  options: null
+  required: false
+  type: text
+- env: NEXT_PRIVATE_SIGNING_LOCAL_FILE_PASSPHRASE
+  hint: null
+  label: next private signing local file passphrase
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- signing
+- opensource
+- document
+- pdf
+- e-signature
+- digital-signature
+- document-signing
+- pdf-signing
+- docusign
+title: Documenso
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.documenso.com/
+  tags:
+  - signing
+  - opensource
+  - document
+  - pdf
+  - e-signature
+  - digital-signature
+  - document-signing
+  - pdf-signing
+  - docusign
+  template: documenso.yaml
+website: https://docs.documenso.com/

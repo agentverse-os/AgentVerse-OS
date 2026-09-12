@@ -1,0 +1,25 @@
+# gladys: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  gladys:
+    environment:
+      DOCKER_HOST: tcp://cloudos-docker-ro:2375
+      NODE_ENV: production
+      SERVER_PORT: '8270'
+      SQLITE_FILE_PATH: /var/lib/gladysassistant/gladys-production.db
+      TZ: ${TZ}
+    image: gladysassistant/gladys:v4.86.1
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/gladysassistant:/var/lib/gladysassistant
+    - /dev:/dev
+    - /run/udev:/run/udev:ro

@@ -1,0 +1,37 @@
+# libreoffice-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  libreoffice:
+    environment:
+    - SERVICE_URL_LIBREOFFICE_3000=${SERVICE_URL_LIBREOFFICE_3000}
+    - PUID=${PUID:-1000}
+    - PGID=${PGID:-1000}
+    - TZ=${TZ:-Etc/UTC}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://localhost:3000
+      timeout: 10s
+    image: lscr.io/linuxserver/libreoffice:latest
+    networks:
+      appnet:
+        aliases:
+        - libreoffice-coolify_libreoffice_1
+    restart: unless-stopped
+    volumes:
+    - libreoffice-config:/config
+volumes:
+  libreoffice-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/libreoffice-config
+      o: bind
+      type: none

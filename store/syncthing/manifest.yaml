@@ -1,0 +1,54 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/syncthing
+description: Peer-to-peer file synchronization between your devices
+endpoint:
+  port: 8384
+  service: syncthing
+env:
+  SYNCTHING_HOSTNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: syncthing
+notes:
+- 'порт 22000→22000 (syncthing) не публикуется: доступ только через edge/gate'
+- 'порт 21027→21027 (syncthing) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SYNCTHING_HOSTNAME
+  hint: Set a hostname for the Syncthing instance
+  label: Hostname
+  options: null
+  required: false
+  type: text
+tags: []
+title: Syncthing
+type: app
+upstream:
+  author: The Syncthing Foundation
+  categories:
+  - data
+  - utilities
+  source: https://github.com/syncthing
+  tipi_version: 36
+  version: 2.1.3
+website: https://github.com/syncthing

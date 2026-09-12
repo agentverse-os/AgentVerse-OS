@@ -1,0 +1,49 @@
+# gitea-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  gitea:
+    environment:
+    - SERVICE_URL_GITEA_3000=${SERVICE_URL_GITEA_3000}
+    - USER_UID=1000
+    - USER_GID=1000
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000
+      timeout: 10s
+    image: gitea/gitea:latest
+    networks:
+      appnet:
+        aliases:
+        - gitea-coolify_gitea_1
+    restart: unless-stopped
+    volumes:
+    - gitea-data:/data
+    - gitea-timezone:/etc/timezone:ro
+    - gitea-localtime:/etc/localtime:ro
+volumes:
+  gitea-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/gitea-data
+      o: bind
+      type: none
+  gitea-localtime:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/gitea-localtime
+      o: bind
+      type: none
+  gitea-timezone:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/gitea-timezone
+      o: bind
+      type: none

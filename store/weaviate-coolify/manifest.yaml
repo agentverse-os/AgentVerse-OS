@@ -1,0 +1,144 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/weaviate-coolify
+description: Weaviate is an open-source vector database that stores both objects and vectors, allowing for combining vector search with structured filtering.
+endpoint:
+  port: 8080
+  service: weaviate
+env:
+  AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'false'
+  AUTHENTICATION_APIKEY_ENABLED: 'true'
+  AUTHENTICATION_APIKEY_USERS: admin@example.com
+  AUTHORIZATION_ADMINLIST_USERS: admin@example.com
+  CLUSTER_HOSTNAME: node1
+  DEFAULT_VECTORIZER_MODULE: none
+  DISABLE_TELEMETRY: 'true'
+  ENABLE_MODULES: text2vec-openai,generative-openai,qna-openai
+  GOMAXPROCS: '2'
+  GOMEMLIMIT: 1024MiB
+  LOG_LEVEL: info
+  QUERY_DEFAULTS_LIMIT: '1000'
+  SERVICE_PASSWORD_APIKEYS:
+    generate: password
+  SERVICE_URL_WEAVIATE_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_APIKEYS
+  path: null
+  user: null
+name: weaviate-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DISABLE_TELEMETRY
+  hint: 'по умолчанию: true'
+  label: disable telemetry
+  options: null
+  required: false
+  type: text
+- env: QUERY_DEFAULTS_LIMIT
+  hint: 'по умолчанию: 1000'
+  label: query defaults limit
+  options: null
+  required: false
+  type: text
+- env: LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: GOMEMLIMIT
+  hint: 'по умолчанию: 1024MiB'
+  label: gomemlimit
+  options: null
+  required: false
+  type: text
+- env: GOMAXPROCS
+  hint: 'по умолчанию: 2'
+  label: gomaxprocs
+  options: null
+  required: false
+  type: text
+- env: AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED
+  hint: 'по умолчанию: false'
+  label: authentication anonymous access enabled
+  options: null
+  required: false
+  type: text
+- env: AUTHORIZATION_ADMINLIST_USERS
+  hint: 'по умолчанию: admin@example.com'
+  label: authorization adminlist users
+  options: null
+  required: false
+  type: text
+- env: AUTHENTICATION_APIKEY_USERS
+  hint: 'по умолчанию: admin@example.com'
+  label: authentication apikey users
+  options: null
+  required: false
+  type: password
+- env: AUTHENTICATION_APIKEY_ENABLED
+  hint: 'по умолчанию: true'
+  label: authentication apikey enabled
+  options: null
+  required: false
+  type: password
+- env: DEFAULT_VECTORIZER_MODULE
+  hint: 'по умолчанию: none'
+  label: default vectorizer module
+  options: null
+  required: false
+  type: text
+- env: ENABLE_MODULES
+  hint: 'по умолчанию: text2vec-openai,generative-openai,qna-openai'
+  label: enable modules
+  options: null
+  required: false
+  type: text
+- env: CLUSTER_HOSTNAME
+  hint: 'по умолчанию: node1'
+  label: cluster hostname
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- vector-database
+- semantic-search
+- machine-learning
+- bm25
+- embeddings
+- llm
+title: Weaviate
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://weaviate.io/developers/weaviate
+  tags:
+  - ai
+  - vector-database
+  - semantic-search
+  - machine-learning
+  - bm25
+  - embeddings
+  - llm
+  template: weaviate.yaml
+website: https://weaviate.io/developers/weaviate

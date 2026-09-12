@@ -1,0 +1,64 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/blinko-umbrel
+description: An AI-powered hub for your ideas and notes
+endpoint:
+  port: 1111
+  service: app
+env:
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/blinko/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/blinko/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/blinko/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/blinko/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/blinko/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/blinko/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: blinko-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Blinko
+type: app
+upstream:
+  author: Blinko
+  categories:
+  - files
+  release_notes: |-
+    This update includes new features, bug fixes, and improvements.
+
+    Key highlights in this version:
+      - Added LiteLLM as an AI gateway provider option
+      - Added streamable HTTP MCP support
+      - Upgraded MiniMax provider models to M3 and removed older M2.5 options
+      - Fixed note editor behavior, chat state resets, embedding delete errors, and Qwen prompt compatibility
+      - Added Ukrainian localization and refreshed Japanese and German translations
+
+
+    Full release notes are available at https://github.com/blinko-space/blinko/releases/tag/1.8.8
+  source: https://github.com/blinko-space/blinko
+  version: 1.8.8
+  website: https://blinko-demo.vercel.app/
+website: https://blinko-demo.vercel.app/

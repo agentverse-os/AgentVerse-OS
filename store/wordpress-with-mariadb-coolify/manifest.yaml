@@ -1,0 +1,60 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wordpress-with-mariadb-coolify
+description: WordPress is open source software you can use to create a beautiful website, blog, or app.
+endpoint:
+  port: 80
+  service: wordpress
+env:
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_PASSWORD_WORDPRESS:
+    generate: password
+  SERVICE_URL_WORDPRESS: https://${APP_DOMAIN}
+  SERVICE_USER_WORDPRESS:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wordpress-with-mariadb-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- cms
+- blog
+- content
+- management
+- mariadb
+title: Wordpress With Mariadb
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://wordpress.org
+  tags:
+  - cms
+  - blog
+  - content
+  - management
+  - mariadb
+  template: wordpress-with-mariadb.yaml
+website: https://wordpress.org

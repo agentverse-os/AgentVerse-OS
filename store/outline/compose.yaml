@@ -1,0 +1,90 @@
+# outline: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  outline:
+    depends_on:
+    - outline-postgres
+    - outline-redis
+    environment:
+      DATABASE_URL: postgres://outline:${OUTLINE_PG_PASSWORD}@outline-postgres:5432/outline
+      FILE_STORAGE: local
+      FILE_STORAGE_UPLOAD_MAX_SIZE: '26214400'
+      FORCE_HTTPS: 'false'
+      OIDC_AUTH_URI: https://${APP_DOMAIN}/uc/oauth/authorize/
+      OIDC_CLIENT_ID: ${OUTLINE_OIDC_CLID}
+      OIDC_CLIENT_SECRET: ${OUTLINE_OIDC_CLKEY}
+      OIDC_DISPLAY_NAME: OpenID
+      OIDC_SCOPES: openid profile email
+      OIDC_TOKEN_URI: http://outline-oidc:8000/oauth/token/
+      OIDC_USERINFO_URI: http://outline-oidc:8000/oauth/userinfo/
+      OIDC_USERNAME_CLAIM: preferred_username
+      PGSSLMODE: disable
+      REDIS_URL: redis://outline-redis:6379
+      SECRET_KEY: ${OUTLINE_SECRET_KEY}
+      URL: https://${APP_DOMAIN}
+      UTILS_SECRET: ${OUTLINE_UTILS_SECRET}
+    image: outlinewiki/outline:1.9.2
+    networks:
+      appnet:
+        aliases:
+        - outline_outline_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/outline:/var/lib/outline/data
+  outline-nginx:
+    depends_on:
+    - outline
+    - outline-oidc
+    image: nginx:alpine
+    networks:
+      appnet:
+        aliases:
+        - outline_outline-nginx_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/nginx/:/etc/nginx/conf.d/:ro
+    - ${APP_DATA_DIR}/data/uc/static_root:/uc/static_root:ro
+  outline-oidc:
+    environment:
+      DJANGO_SUPERUSER_EMAIL: user@outline.localhost
+      DJANGO_SUPERUSER_PASSWORD: ${OUTLINE_PASSWORD}
+      DJANGO_SUPERUSER_USERNAME: ${OUTLINE_USER}
+      DOMAIN: https://${APP_DOMAIN}
+      FORCE_SCRIPT_NAME: /uc
+      INITIAL_DATA: oidc-config.json
+      LANGUAGE_CODE: en-us
+      SECRET_KEY: ${OUTLINE_OIDC_SECRET}
+      TIME_ZONE: UTC
+    image: ghcr.io/sergi0g/oidc-provider:v0.2.0
+    networks:
+      appnet:
+        aliases:
+        - outline_outline-oidc_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/oidc-config.json:/app/oidc-config.json:ro
+    - ${APP_DATA_DIR}/data/uc/db:/app/db
+    - ${APP_DATA_DIR}/data/uc/static_root:/app/static_root
+  outline-postgres:
+    environment:
+      POSTGRES_DB: outline
+      POSTGRES_PASSWORD: ${OUTLINE_PG_PASSWORD}
+      POSTGRES_USER: outline
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - outline_outline-postgres_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  outline-redis:
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - outline_outline-redis_1
+    restart: unless-stopped

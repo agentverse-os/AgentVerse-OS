@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/donetick-umbrel
+description: An intelligent way to organize tasks and chores
+endpoint:
+  port: 2021
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/donetick/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/donetick/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/donetick/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/donetick/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/donetick/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/donetick/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: donetick-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Donetick
+type: app
+upstream:
+  author: Donetick
+  categories:
+  - files
+  release_notes: |-
+    Donetick 0.1.79 improves offline use, storage handling, and chore sync behavior:
+      - Added offline synchronization and versioning support
+      - Improved storage handling, including S3 path-style support and signed URL fixes
+      - Improved API input validation and warning handling
+      - Fixed reminders and assignment behavior for chores assigned to Anyone
+      - Fixed label and notification migrations for existing databases
+
+
+    Full release notes can be found at https://github.com/donetick/donetick/releases/tag/v0.1.79
+  source: https://github.com/donetick/donetick
+  version: 0.1.79
+  website: https://donetick.com/
+website: https://donetick.com/

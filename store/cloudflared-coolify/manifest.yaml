@@ -1,0 +1,50 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cloudflared-coolify
+description: Client for Cloudflare Tunnel, a daemon that exposes private services through the Cloudflare edge.
+endpoint:
+  port: 80
+  service: cloudflared
+env:
+  CLOUDFLARE_TUNNEL_TOKEN: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cloudflared-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CLOUDFLARE_TUNNEL_TOKEN
+  hint: null
+  label: cloudflare tunnel token
+  options: null
+  required: false
+  type: password
+tags: []
+title: Cloudflared
+type: app
+upstream:
+  categories:
+  - proxy
+  source: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
+  tags: []
+  template: cloudflared.yaml
+website: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/

@@ -1,0 +1,71 @@
+# sftpgo-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_64_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DATABASE:-sftpgo-db}
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 10s
+    image: postgres:17-alpine
+    networks:
+      appnet:
+        aliases:
+        - sftpgo-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+  sftpgo:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_FQDN_SFTPGO_8080=${SERVICE_FQDN_SFTPGO_8080}
+    - SFTPGO_DATA_PROVIDER__DRIVER=postgresql
+    - SFTPGO_DATA_PROVIDER__CONNECTION_STRING=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_64_POSTGRES}@postgresql:5432/${POSTGRES_DATABASE:-sftpgo-db}
+    - SFTPGO_SFTPD__BINDINGS__0__PORT=${PORT_SFTPGO:-2222}
+    - SFTPGO_LOG_LEVEL=${LOG_LEVEL:-info}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:8080/
+      timeout: 20s
+    image: ghcr.io/drakkan/sftpgo:v2.7-alpine
+    networks:
+      appnet:
+        aliases:
+        - sftpgo-coolify_sftpgo_1
+    restart: unless-stopped
+    volumes:
+    - sftpgo-data:/srv/sftpgo/data
+    - sftpgo-keys:/var/lib/sftpgo
+volumes:
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none
+  sftpgo-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sftpgo-data
+      o: bind
+      type: none
+  sftpgo-keys:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sftpgo-keys
+      o: bind
+      type: none

@@ -1,0 +1,161 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/signoz-coolify
+description: An observability platform native to OpenTelemetry with logs, traces and metrics.
+endpoint:
+  port: 8080
+  service: clickhouse
+env:
+  SERVICE_REALBASE64_JWTSECRET:
+    generate: hex64
+  SERVICE_URL_OTELCOLLECTORHTTP_4318: https://${APP_DOMAIN}
+  SERVICE_URL_SIGNOZ_8080: https://${APP_DOMAIN}
+  SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__AUTH__PASSWORD: ''
+  SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__AUTH__USERNAME: ''
+  SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__FROM: ''
+  SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__SMARTHOST: ''
+  SIGNOZ_EMAILING_ENABLED: 'false'
+  SIGNOZ_EMAILING_SMTP_ADDRESS: ''
+  SIGNOZ_EMAILING_SMTP_AUTH_PASSWORD: ''
+  SIGNOZ_EMAILING_SMTP_AUTH_USERNAME: ''
+  SIGNOZ_EMAILING_SMTP_FROM: ''
+  SIGNOZ_STATSREPORTER_ENABLED: 'true'
+  ZOO_ALLOW_ANONYMOUS_LOGIN: yes
+  ZOO_AUTOPURGE_INTERVAL: '1'
+  ZOO_ENABLE_PROMETHEUS_METRICS: yes
+  ZOO_PROMETHEUS_METRICS_PORT_NUMBER: '9141'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: ZOO_ALLOW_ANONYMOUS_LOGIN
+name: signoz-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ZOO_ALLOW_ANONYMOUS_LOGIN
+  hint: 'по умолчанию: yes'
+  label: zoo allow anonymous login
+  options: null
+  required: false
+  type: text
+- env: ZOO_AUTOPURGE_INTERVAL
+  hint: 'по умолчанию: 1'
+  label: zoo autopurge interval
+  options: null
+  required: false
+  type: text
+- env: ZOO_ENABLE_PROMETHEUS_METRICS
+  hint: 'по умолчанию: yes'
+  label: zoo enable prometheus metrics
+  options: null
+  required: false
+  type: text
+- env: ZOO_PROMETHEUS_METRICS_PORT_NUMBER
+  hint: 'по умолчанию: 9141'
+  label: zoo prometheus metrics port number
+  options: null
+  required: false
+  type: text
+- env: SIGNOZ_STATSREPORTER_ENABLED
+  hint: 'по умолчанию: true'
+  label: signoz statsreporter enabled
+  options: null
+  required: false
+  type: text
+- env: SIGNOZ_EMAILING_ENABLED
+  hint: 'по умолчанию: false'
+  label: signoz emailing enabled
+  options: null
+  required: false
+  type: text
+- env: SIGNOZ_EMAILING_SMTP_ADDRESS
+  hint: null
+  label: signoz emailing smtp address
+  options: null
+  required: false
+  type: text
+- env: SIGNOZ_EMAILING_SMTP_FROM
+  hint: null
+  label: signoz emailing smtp from
+  options: null
+  required: false
+  type: text
+- env: SIGNOZ_EMAILING_SMTP_AUTH_USERNAME
+  hint: null
+  label: signoz emailing smtp auth username
+  options: null
+  required: false
+  type: text
+- env: SIGNOZ_EMAILING_SMTP_AUTH_PASSWORD
+  hint: null
+  label: signoz emailing smtp auth password
+  options: null
+  required: false
+  type: password
+- env: SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__AUTH__PASSWORD
+  hint: null
+  label: signoz alertmanager signoz global smtp  auth  password
+  options: null
+  required: false
+  type: password
+- env: SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__AUTH__USERNAME
+  hint: null
+  label: signoz alertmanager signoz global smtp  auth  username
+  options: null
+  required: false
+  type: text
+- env: SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__FROM
+  hint: null
+  label: signoz alertmanager signoz global smtp  from
+  options: null
+  required: false
+  type: text
+- env: SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__SMARTHOST
+  hint: null
+  label: signoz alertmanager signoz global smtp  smarthost
+  options: null
+  required: false
+  type: text
+tags:
+- telemetry
+- server
+- applications
+- interface
+- logs
+- monitoring
+- traces
+- metrics
+title: Signoz
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://signoz.io/docs/introduction/
+  tags:
+  - telemetry
+  - server
+  - applications
+  - interface
+  - logs
+  - monitoring
+  - traces
+  - metrics
+  template: signoz.yaml
+website: https://signoz.io/docs/introduction/

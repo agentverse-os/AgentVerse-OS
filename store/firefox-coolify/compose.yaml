@@ -1,0 +1,34 @@
+# firefox-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  firefox:
+    environment:
+    - SERVICE_URL_FIREFOX_5800=${SERVICE_URL_FIREFOX_5800}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:5800/
+      timeout: 20s
+    image: jlesage/firefox
+    networks:
+      appnet:
+        aliases:
+        - firefox-coolify_firefox_1
+    restart: unless-stopped
+    volumes:
+    - firefox_config:/config
+volumes:
+  firefox_config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/firefox_config
+      o: bind
+      type: none

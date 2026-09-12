@@ -1,0 +1,31 @@
+# ntfy-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    entrypoint:
+    - /bin/sh
+    - /entrypoint.sh
+    environment:
+      NTFY_AUTH_DEFAULT_ACCESS: deny-all
+      NTFY_AUTH_FILE: /var/lib/ntfy/user.db
+      NTFY_BASE_URL: http://${DEVICE_DOMAIN_NAME}:${APP_PROXY_PORT}
+      NTFY_CACHE_FILE: /var/cache/ntfy/cache.db
+      NTFY_ENABLE_LOGIN: 'true'
+      NTFY_PASSWORD: ${APP_PASSWORD}
+      NTFY_UPSTREAM_BASE_URL: https://ntfy.sh
+    image: binwiederhier/ntfy:v2.28.0@sha256:6ef4b819f722fccdc036af611c4774cfdc2de821ab74fdd48bbf4c9d6f8973da
+    networks:
+      appnet:
+        aliases:
+        - ntfy_app_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/entrypoint.sh:/entrypoint.sh
+    - ${APP_DATA_DIR}/data/cache:/var/cache/ntfy
+    - ${APP_DATA_DIR}/data/data:/etc/ntfy
+    - ${APP_DATA_DIR}/data/lib:/var/lib/ntfy

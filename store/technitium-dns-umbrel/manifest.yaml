@@ -1,0 +1,63 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/technitium-dns-umbrel
+description: Block ads & malware at the DNS level for your entire network
+endpoint:
+  port: 5380
+  service: dns-server
+env:
+  APP_PASSWORD:
+    generate: password
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/technitium-dns/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/technitium-dns/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/technitium-dns/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/technitium-dns/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: technitium-dns-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Technitium DNS Server
+type: app
+upstream:
+  author: Technitium
+  categories:
+  - networking
+  release_notes: |-
+    ⚠️ Security note from 15.3: Technitium DNS Server removed the default Delete permission from DNS Administrators in the Apps and Settings sections. Existing installations should manually remove that permission from DNS Administrators in those sections.
+
+    If you're updating from a pre-15 version, Technitium DNS Server 15.x runs on .NET 10. Most Umbrel users do not need to take action, but if you use Technitium clustering, upgrade all cluster nodes together for compatibility.
+
+    Key highlights include:
+      - Fixed UDP socket binding issues that could affect response routing in some deployments
+      - Fixed RFC compliance checks that could affect DNS resolution and zone transfers
+      - Added Unix Domain Socket support for Web Service over HTTPS and DNS-over-HTTPS
+      - Included other minor bug fixes and improvements
+
+
+    Full release notes can be found at https://github.com/TechnitiumSoftware/DnsServer/releases/tag/v15.4.0
+  source: https://github.com/TechnitiumSoftware/DnsServer
+  version: 15.4.0
+  website: https://technitium.com/dns/
+website: https://technitium.com/dns/

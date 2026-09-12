@@ -1,0 +1,20 @@
+# file-drop-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+    - NODE_ENV=production
+    - IPFS_TELEMETRY=off
+    image: ghcr.io/besoeasy/file-drop:1.4.3@sha256:f46389e22243a3a3cd6a371f9b46cd8428bcfa23030c9303509110fcd899a0b2
+    networks:
+      appnet:
+        aliases:
+        - file-drop_app_1
+    restart: on-failure
+    stop_grace_period: 5m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

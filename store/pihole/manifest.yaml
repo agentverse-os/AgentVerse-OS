@@ -1,0 +1,61 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pihole
+description: A black hole for Internet advertisements
+endpoint:
+  port: 80
+  service: pihole
+env:
+  APP_PASSWORD:
+    generate: password
+  NETWORK_INTERFACE: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pihole
+notes:
+- 'порт 53→53 (pihole) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_PASSWORD
+  hint: null
+  label: Password
+  options: null
+  required: true
+  type: password
+- env: NETWORK_INTERFACE
+  hint: null
+  label: 'Network Interface (default: 0.0.0.0)'
+  options: null
+  required: false
+  type: ip
+tags: []
+title: Pi-hole
+type: app
+upstream:
+  author: pi-hole.net
+  categories:
+  - network
+  - security
+  source: https://github.com/pi-hole/pi-hole
+  tipi_version: 46
+  version: 2026.07.2
+website: https://github.com/pi-hole/pi-hole

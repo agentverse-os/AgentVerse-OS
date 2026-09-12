@@ -1,0 +1,37 @@
+# bitaxe-sentry-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  sentry:
+    environment:
+      DB_DATA_DIR: /var/lib/bitaxe
+      DB_PATH: /var/lib/bitaxe/bitaxe_sentry.db
+    image: zachprice105/bitaxe-sentry:v0.8.0@sha256:c50dc141896314293ab4afc4fb4e1ce885cb5737c832b80adfc9cd5eb6f706cb
+    networks:
+      appnet:
+        aliases:
+        - bitaxe-sentry_sentry_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/sentry:/var/lib/bitaxe
+  web:
+    command: uvicorn bitaxe_sentry.sentry.webapp:app --host 0.0.0.0 --port 7070
+    depends_on:
+    - sentry
+    environment:
+      DB_DATA_DIR: /var/lib/bitaxe
+      DB_PATH: /var/lib/bitaxe/bitaxe_sentry.db
+    image: zachprice105/bitaxe-sentry:v0.8.0@sha256:c50dc141896314293ab4afc4fb4e1ce885cb5737c832b80adfc9cd5eb6f706cb
+    networks:
+      appnet:
+        aliases:
+        - bitaxe-sentry_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/sentry:/var/lib/bitaxe

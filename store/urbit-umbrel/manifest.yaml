@@ -1,0 +1,65 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/urbit-umbrel
+description: Run Urbit on your Umbrel
+endpoint:
+  port: 8090
+  service: manager
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/urbit/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/urbit/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/urbit/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/urbit/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: umbrel
+name: urbit-umbrel
+notes:
+- 'порт 34343:34343 (manager) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Urbit
+type: app
+upstream:
+  author: ~mopfel-winrux & ~sitful-hatred
+  categories:
+  - networking
+  release_notes: |-
+    vere-v4.6 is a minor release aimed at fixing several issues that were discovered during the 408k pre-release testing process:
+    -   A directed messaging driver bug caused sporadic crashes, mainly on
+        busy distribution ships.
+    -   The spin hint kubernetes fix in vere-v4.6 caused the spin hint to be
+        unavailable on macos.
+    -   The directed messaging packet queue was uncapped, causing
+        bufferbloat on heavy traffic.
+    -   Each directed messaging flow in the driver had nine retries once
+        every second until the first response packet was heard, this caused
+        unnecessary amplification on the receiver. We have reduced the retry
+        count to two.
+
+
+    Full release notes here: https://github.com/urbit/vere/releases/tag/vere-v4.6
+  source: https://github.com/mopfel-winrux/urbit-umbrel
+  version: v4.6
+  website: https://github.com/mopfel-winrux/urbit-umbrel
+website: https://github.com/mopfel-winrux/urbit-umbrel

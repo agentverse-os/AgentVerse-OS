@@ -1,0 +1,18 @@
+# databag-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      ADMIN: $APP_PASSWORD
+    image: balzack/databag:0.1.18@sha256:37c4ab38f64842afa44ed8aea0e47271112795180708f0cb7be8ee7c7defebac
+    networks:
+      appnet:
+        aliases:
+        - databag_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/databag:/var/lib/databag

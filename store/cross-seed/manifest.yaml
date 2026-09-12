@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cross-seed
+description: Fully-automatic cross-seeding with Torznab.
+endpoint:
+  port: 80
+  service: cross-seed
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cross-seed
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Cross-Seed
+type: app
+upstream:
+  author: Cross-Seed Team
+  categories:
+  - media
+  - utilities
+  source: https://github.com/cross-seed/cross-seed
+  tipi_version: 56
+  version: 6.13.7
+website: https://github.com/cross-seed/cross-seed

@@ -1,0 +1,76 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/activepieces
+description: True zapier alternative.
+endpoint:
+  port: 80
+  service: activepieces
+env:
+  AP_API_KEY:
+    generate: token
+  AP_ENCRYPTION_KEY:
+    generate: token
+  AP_JWT_SECRET:
+    generate: token
+  AP_POSTGRES_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: activepieces
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: AP_POSTGRES_PASSWORD
+  hint: null
+  label: Activepieces postgres password.
+  options: null
+  required: false
+  type: random
+- env: AP_API_KEY
+  hint: null
+  label: Activepieces api key.
+  options: null
+  required: false
+  type: random
+- env: AP_ENCRYPTION_KEY
+  hint: null
+  label: Activepieces encryption key.
+  options: null
+  required: false
+  type: random
+- env: AP_JWT_SECRET
+  hint: null
+  label: Activepieces jwt secret.
+  options: null
+  required: false
+  type: random
+tags: []
+title: Activepieces
+type: app
+upstream:
+  author: Activepieces
+  categories:
+  - automation
+  source: https://github.com/activepieces/activepieces
+  tipi_version: 172
+  version: 0.88.4
+website: https://github.com/activepieces/activepieces

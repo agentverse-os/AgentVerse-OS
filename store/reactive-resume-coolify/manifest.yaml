@@ -1,0 +1,82 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/reactive-resume-coolify
+description: A one-of-a-kind resume builder that keeps your privacy in mind.
+endpoint:
+  port: 3000
+  service: reactive-resume
+env:
+  POSTGRES_DB: postgres
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_ACCESSTOKEN:
+    generate: password
+  SERVICE_PASSWORD_CHROMETOKEN:
+    generate: password
+  SERVICE_PASSWORD_MINIO:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REFRESHTOKEN:
+    generate: password
+  SERVICE_URL_MINIO: https://${APP_DOMAIN}
+  SERVICE_URL_REACTIVERESUME: https://${APP_DOMAIN}
+  SERVICE_URL_REACTIVERESUME_3000: https://${APP_DOMAIN}
+  SERVICE_USER_MINIO:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: reactive-resume-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: postgres'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- reactive-resume
+- resume-builder
+- open-source
+- 2fa
+title: Reactive Resume
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://rxresu.me/
+  tags:
+  - reactive-resume
+  - resume-builder
+  - open-source
+  - 2fa
+  template: reactive-resume.yaml
+website: https://rxresu.me/

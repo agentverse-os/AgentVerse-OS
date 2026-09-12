@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/skybro-umbrel
+description: Live aircraft, satellite, weather & astronomy tracker
+endpoint:
+  port: 5000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/skybro/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/skybro/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/skybro/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/skybro/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: skybro-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: SkyBro
+type: app
+upstream:
+  author: xDeeKay
+  categories:
+  - networking
+  release_notes: null
+  source: https://github.com/xDeeKay/SkyBro
+  version: 1.5.7
+  website: https://github.com/xDeeKay/SkyBro
+website: https://github.com/xDeeKay/SkyBro

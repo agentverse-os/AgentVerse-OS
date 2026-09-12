@@ -1,0 +1,28 @@
+# nginx-proxy-manager-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  docker-host:
+    cap_add:
+    - NET_ADMIN
+    - NET_RAW
+    hostname: $DEVICE_DOMAIN_NAME
+    image: qoomon/docker-host:3.3.1@sha256:ec9d214d7fa88932e9186ca2f4419d44661376929931248525b08e7fa9e270f7
+    networks:
+      appnet:
+        aliases:
+        - nginx-proxy-manager_docker-host_1
+    restart: on-failure
+  web:
+    hostname: nginx-proxy-manager_web_1
+    image: jc21/nginx-proxy-manager:2.15.1@sha256:52b2c59994f3d36acfcf70a1626f29734df0ed8c71bacc0269f78b6f939858bb
+    networks:
+      appnet:
+        aliases:
+        - nginx-proxy-manager_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/npm-data:/data
+    - ${APP_DATA_DIR}/data/letsencrypt:/etc/letsencrypt

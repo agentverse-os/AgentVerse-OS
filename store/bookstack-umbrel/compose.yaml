@@ -1,0 +1,54 @@
+# bookstack-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      MARIADB_DATABASE: bookstack
+      MARIADB_PASSWORD: ${APP_BOOKSTACK_DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${APP_BOOKSTACK_DB_ROOT_PASSWORD}
+      MARIADB_USER: bookstack
+    healthcheck:
+      interval: 10s
+      retries: 10
+      start_period: 45s
+      test:
+      - CMD-SHELL
+      - mariadb-admin ping -h 127.0.0.1 -P 3306 --protocol=tcp -u root -p$${MARIADB_ROOT_PASSWORD} --silent
+      timeout: 5s
+    image: mariadb:11.4.5@sha256:49117dcc565cf51aa57ac5fca59ab31213402ff0eae6ffc13c46a37b938f7e4b
+    networks:
+      appnet:
+        aliases:
+        - bookstack_db_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql
+  server:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=Etc/UTC
+    - APP_URL=http://bookstack.dev
+    - APP_KEY=${APP_BOOKSTACK_APP_KEY}
+    - DB_HOST=bookstack_db_1
+    - DB_PORT=3306
+    - DB_USERNAME=bookstack
+    - DB_PASSWORD=${APP_BOOKSTACK_DB_PASSWORD}
+    - DB_DATABASE=bookstack
+    image: linuxserver/bookstack:version-v26.05.4@sha256:3e1aea5d8dd3bb3a5cf16fa7e3b847e2889eedd8516b2825ac379d365b07ba6f
+    networks:
+      appnet:
+        aliases:
+        - bookstack_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config

@@ -1,0 +1,105 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/executor-coolify
+description: Self-hosted AI agent integrations and code execution server.
+endpoint:
+  port: 4788
+  service: executor
+env:
+  EXECUTOR_ALLOW_LOCAL_NETWORK: 'false'
+  EXECUTOR_DB_PATH: /data/data.db
+  EXECUTOR_HOST: 0.0.0.0
+  EXECUTOR_ORG_NAME: Default
+  EXECUTOR_ORG_SLUG: default
+  EXECUTOR_VERSION: latest
+  PORT: '4788'
+  SERVICE_URL_EXECUTOR_4788: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: executor-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: EXECUTOR_VERSION
+  hint: 'по умолчанию: latest'
+  label: executor version
+  options: null
+  required: false
+  type: text
+- env: EXECUTOR_HOST
+  hint: 'по умолчанию: 0.0.0.0'
+  label: executor host
+  options: null
+  required: false
+  type: text
+- env: PORT
+  hint: 'по умолчанию: 4788'
+  label: port
+  options: null
+  required: false
+  type: text
+- env: EXECUTOR_DB_PATH
+  hint: 'по умолчанию: /data/data.db'
+  label: executor db path
+  options: null
+  required: false
+  type: text
+- env: EXECUTOR_ORG_NAME
+  hint: 'по умолчанию: Default'
+  label: executor org name
+  options: null
+  required: false
+  type: text
+- env: EXECUTOR_ORG_SLUG
+  hint: 'по умолчанию: default'
+  label: executor org slug
+  options: null
+  required: false
+  type: text
+- env: EXECUTOR_ALLOW_LOCAL_NETWORK
+  hint: 'по умолчанию: false'
+  label: executor allow local network
+  options: null
+  required: false
+  type: text
+tags:
+- executor
+- ai
+- agents
+- mcp
+- automation
+- development
+title: Executor
+type: app
+upstream:
+  categories:
+  - development
+  source: https://executor.sh/docs/hosted/docker
+  tags:
+  - executor
+  - ai
+  - agents
+  - mcp
+  - automation
+  - development
+  template: executor.yaml
+website: https://executor.sh/docs/hosted/docker

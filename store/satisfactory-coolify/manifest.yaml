@@ -1,0 +1,142 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/satisfactory-coolify
+description: Satisfactory Dedicated Server for hosting your own Satisfactory game sessions.
+endpoint:
+  port: 80
+  service: satisfactory-server
+env:
+  AUTOSAVE_NUM: '5'
+  DEBUG: 'false'
+  DISABLE_SEASONAL_EVENTS: 'false'
+  LOG: 'false'
+  MAX_TICK_RATE: '30'
+  MULTI_HOME: '::'
+  SERVER_GAME_PORT: ''
+  SERVER_MESSAGING_PORT: ''
+  SERVER_STREAMING: 'true'
+  SKIP_UPDATE: 'false'
+  STEAM_BETA: 'false'
+  TIMEOUT: '30'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: satisfactory-coolify
+notes:
+- 'порт ${SERVER_GAME_PORT}:7777/tcp (satisfactory-server) не публикуется: доступ только через edge/gate'
+- 'порт ${SERVER_GAME_PORT}:7777/udp (satisfactory-server) не публикуется: доступ только через edge/gate'
+- 'порт ${SERVER_MESSAGING_PORT}:8888/tcp (satisfactory-server) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SERVER_GAME_PORT
+  hint: null
+  label: server game port
+  options: null
+  required: false
+  type: text
+- env: SERVER_MESSAGING_PORT
+  hint: null
+  label: server messaging port
+  options: null
+  required: false
+  type: text
+- env: AUTOSAVE_NUM
+  hint: 'по умолчанию: 5'
+  label: autosave num
+  options: null
+  required: false
+  type: text
+- env: DEBUG
+  hint: 'по умолчанию: false'
+  label: debug
+  options: null
+  required: false
+  type: text
+- env: DISABLE_SEASONAL_EVENTS
+  hint: 'по умолчанию: false'
+  label: disable seasonal events
+  options: null
+  required: false
+  type: text
+- env: LOG
+  hint: 'по умолчанию: false'
+  label: log
+  options: null
+  required: false
+  type: text
+- env: MAX_TICK_RATE
+  hint: 'по умолчанию: 30'
+  label: max tick rate
+  options: null
+  required: false
+  type: text
+- env: MULTI_HOME
+  hint: 'по умолчанию: ::'
+  label: multi home
+  options: null
+  required: false
+  type: text
+- env: SERVER_STREAMING
+  hint: 'по умолчанию: true'
+  label: server streaming
+  options: null
+  required: false
+  type: text
+- env: SKIP_UPDATE
+  hint: 'по умолчанию: false'
+  label: skip update
+  options: null
+  required: false
+  type: text
+- env: STEAM_BETA
+  hint: 'по умолчанию: false'
+  label: steam beta
+  options: null
+  required: false
+  type: text
+- env: TIMEOUT
+  hint: 'по умолчанию: 30'
+  label: timeout
+  options: null
+  required: false
+  type: text
+tags:
+- satisfactory
+- game-server
+- dedicated-server
+- steam
+- self-hosted
+- gaming
+title: Satisfactory
+type: app
+upstream:
+  categories:
+  - games
+  source: https://github.com/wolveix/satisfactory-server
+  tags:
+  - satisfactory
+  - game-server
+  - dedicated-server
+  - steam
+  - self-hosted
+  - gaming
+  template: satisfactory.yaml
+website: https://github.com/wolveix/satisfactory-server

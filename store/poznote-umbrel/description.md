@@ -1,0 +1,7 @@
+📝 Poznote is a clean and focused application designed to help users capture, structure, and refine information in a flexible workspace. It combines a rich text editor with Markdown formatting to support both quick jotting and long form writing, allowing thoughts to grow and change without friction.
+
+The interface encourages fluid organization through tags, search, and customizable workspaces so ideas remain easy to find even as the collection expands. Poznote supports attachments for images, documents, and other files, making it possible to keep related material together within a single note.
+
+It includes tools for creating checklists, tasks, and reminders that integrate directly into the writing flow rather than feeling like separate modules. A built in drawing and diagramming tool powered by an Excalidraw integration allows users to sketch concepts, create charts, or visualize ideas alongside text.
+
+Notes can be edited, restored from the trash, exported for safekeeping, or duplicated to act as templates for recurring structures. Poznote aims to create a writing environment where text, media, ideas, and tasks coexist naturally, offering a streamlined way to manage information with clarity and continuity.

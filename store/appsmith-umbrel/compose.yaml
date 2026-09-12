@@ -1,0 +1,18 @@
+# appsmith-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+      APPSMITH_ENCRYPTION_PASSWORD: ${APP_PASSWORD}
+      APPSMITH_ENCRYPTION_SALT: ${APP_PASSWORD}
+    image: appsmith/appsmith-ce:v2.3@sha256:6e6ff29dc25f359793a6031f1ec7acf6bbdbb95e36f3a33e366ba4c14a929b3a
+    networks:
+      appnet:
+        aliases:
+        - appsmith_app_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/appsmith-stacks

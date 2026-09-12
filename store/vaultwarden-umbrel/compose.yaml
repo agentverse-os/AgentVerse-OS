@@ -1,0 +1,33 @@
+# vaultwarden-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    command:
+    - -c
+    - |
+      set -e
+      web_vault="/tmp/web-vault-patched"
+      rm -rf "$$web_vault"
+      cp -R /web-vault "$$web_vault"
+      main_js="$$(ls "$$web_vault"/app/main.*.js)"
+      grep -Fq '&&!this.platformUtilsService.isDev()' "$$main_js"
+      sed -i 's/&&!this\.platformUtilsService\.isDev()/\&\&!this.platformUtilsService.isDev()\&\&!location.hostname.endsWith(".onion")/g' "$$main_js"
+      grep -Fq '&&!this.platformUtilsService.isDev()&&!location.hostname.endsWith(".onion")' "$$main_js"
+      export WEB_VAULT_FOLDER="$$web_vault"
+      exec /start.sh
+    entrypoint: /bin/sh
+    environment:
+      ROCKET_PORT: 8089
+    image: vaultwarden/server:1.37.2@sha256:094b5689ed81549bd293418395c7cf495ae9d960fc2d4928cef2083ef913d912
+    networks:
+      appnet:
+        aliases:
+        - vaultwarden_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

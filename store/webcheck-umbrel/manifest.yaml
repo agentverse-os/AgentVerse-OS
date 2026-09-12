@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/webcheck-umbrel
+description: An all-in-one Open Source Intelligence tool for analyzing any website
+endpoint:
+  port: 3000
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/webcheck/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: webcheck-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: WebCheck
+type: app
+upstream:
+  author: Alicia Sykes
+  categories:
+  - networking
+  release_notes: |-
+    This update improves website analysis accuracy and adds new checks:
+      - Added an advisory panel and a new vulnerabilities panel
+      - Improved subdomain lookup, WAF detection, and UI result accuracy
+      - Fixed IPv6 DNS record display issues
+      - Shows OCSP stapling as informational instead of pass/fail
+
+
+    Full release notes can be found at https://github.com/lissy93/web-check/releases/tag/2.2.0
+  source: https://github.com/Lissy93/web-check
+  version: 2.2.0
+  website: https://web-check.xyz/
+website: https://web-check.xyz/

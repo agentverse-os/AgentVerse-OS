@@ -1,0 +1,107 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/outline
+description: A home for all your docs
+endpoint:
+  port: 80
+  service: outline-nginx
+env:
+  OUTLINE_OIDC_CLID:
+    generate: token
+  OUTLINE_OIDC_CLKEY:
+    generate: token
+  OUTLINE_OIDC_SECRET:
+    generate: token
+  OUTLINE_PASSWORD:
+    generate: password
+  OUTLINE_PG_PASSWORD:
+    generate: token
+  OUTLINE_SECRET_KEY:
+    generate: hex64
+  OUTLINE_USER: ''
+  OUTLINE_UTILS_SECRET:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: OUTLINE_PASSWORD
+  path: null
+  user: user@outline.localhost
+name: outline
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: OUTLINE_SECRET_KEY
+  hint: null
+  label: Outline secret key
+  options: null
+  required: false
+  type: random
+- env: OUTLINE_UTILS_SECRET
+  hint: null
+  label: Outline utils secret
+  options: null
+  required: false
+  type: random
+- env: OUTLINE_OIDC_CLID
+  hint: null
+  label: OIDC client ID
+  options: null
+  required: false
+  type: random
+- env: OUTLINE_OIDC_CLKEY
+  hint: null
+  label: OIDC client secret
+  options: null
+  required: false
+  type: random
+- env: OUTLINE_PG_PASSWORD
+  hint: null
+  label: Database password
+  options: null
+  required: false
+  type: random
+- env: OUTLINE_OIDC_SECRET
+  hint: null
+  label: OIDC secret
+  options: null
+  required: false
+  type: random
+- env: OUTLINE_USER
+  hint: null
+  label: Username
+  options: null
+  required: true
+  type: text
+- env: OUTLINE_PASSWORD
+  hint: null
+  label: Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Outline
+type: app
+upstream:
+  author: outline
+  categories:
+  - utilities
+  source: https://github.com/outline/outline
+  tipi_version: 46
+  version: 1.9.2
+website: https://github.com/outline/outline

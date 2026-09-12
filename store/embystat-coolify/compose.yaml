@@ -1,0 +1,36 @@
+# embystat-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  embystat:
+    environment:
+    - SERVICE_URL_EMBYSTAT_6555=${SERVICE_URL_EMBYSTAT_6555}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:6555
+      timeout: 10s
+    image: lscr.io/linuxserver/embystat:latest
+    networks:
+      appnet:
+        aliases:
+        - embystat-coolify_embystat_1
+    restart: unless-stopped
+    volumes:
+    - embystat-config:/config
+volumes:
+  embystat-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/embystat-config
+      o: bind
+      type: none

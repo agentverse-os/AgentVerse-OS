@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tailscale-umbrel
+description: Zero config VPN to access your Umbrel from anywhere
+endpoint:
+  port: 8240
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/tailscale/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/tailscale/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/tailscale/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/tailscale/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: tailscale-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Tailscale
+type: app
+upstream:
+  author: Tailscale Inc.
+  categories:
+  - networking
+  release_notes: |-
+    This update upgrades Tailscale to v1.102.3 with a security fix preventing access to host-scoped IPv4 destinations through 4via6 subnet routing.
+
+    It also fixes DNS forwarding when MagicDNS is disabled, resolves Tailnet Lock startup failures on large tailnets, and updates Go.
+
+    Full release notes can be found at https://tailscale.com/changelog#2026-08-19-client
+
+    Tip: You can use Tailscale to back up one Umbrel to another. When adding the backup destination, enter its Tailscale IP address shown in the Tailscale app; device names aren't currently supported.
+  source: https://github.com/tailscale/tailscale
+  version: v1.102.3
+  website: https://tailscale.com
+website: https://tailscale.com

@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/opencode-umbrel
+description: The open source AI coding agent
+endpoint:
+  port: 4096
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/opencode/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/opencode/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/opencode/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/opencode/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/opencode/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: opencode-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: OpenCode
+type: app
+upstream:
+  author: Anomaly
+  categories:
+  - ai
+  release_notes: |-
+    This update improves reliability for Claude, Bedrock, Azure, and tool-call workflows.
+
+    Claude 5 sessions now tolerate stale thinking blocks after prompt or tool changes, and Bedrock reasoning/replay handling is more reliable.
+
+    Azure CLI sign-in now asks for the resource name directly instead of querying Azure management APIs, tool-call timing stays accurate when metadata changes, and apply_patch permission metadata no longer includes empty move paths.
+
+    Full release notes can be found at https://github.com/anomalyco/opencode/releases/tag/v1.18.26
+  source: https://github.com/anomalyco/opencode
+  version: 1.18.26
+  website: https://opencode.ai/
+website: https://opencode.ai/

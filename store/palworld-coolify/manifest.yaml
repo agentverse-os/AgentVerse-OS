@@ -1,0 +1,115 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/palworld-coolify
+description: null
+endpoint:
+  port: 80
+  service: palworld
+env:
+  ADMIN_PASSWORD: adminPassword
+  BOX64_DYNAREC_BIGBLOCK: ''
+  BOX64_DYNAREC_FASTNAN: ''
+  BOX64_DYNAREC_FASTROUND: ''
+  BOX64_DYNAREC_SAFEFLAGS: ''
+  BOX64_DYNAREC_STRONGMEM: ''
+  BOX64_DYNAREC_X87DOUBLE: ''
+  PUBLIC_IP: ''
+  RANDOMIZER_TYPE: ''
+  REGION: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: generated
+  note: null
+  password: ADMIN_PASSWORD
+  path: null
+  user: null
+name: palworld-coolify
+notes:
+- 'порт 8211:8211/udp (palworld) не публикуется: доступ только через edge/gate'
+- 'порт 27015:27015/udp (palworld) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ADMIN_PASSWORD
+  hint: 'по умолчанию: adminPassword'
+  label: admin password
+  options: null
+  required: false
+  type: password
+- env: PUBLIC_IP
+  hint: null
+  label: public ip
+  options: null
+  required: false
+  type: text
+- env: RANDOMIZER_TYPE
+  hint: null
+  label: randomizer type
+  options: null
+  required: false
+  type: text
+- env: REGION
+  hint: null
+  label: region
+  options: null
+  required: false
+  type: text
+- env: BOX64_DYNAREC_STRONGMEM
+  hint: null
+  label: box64 dynarec strongmem
+  options: null
+  required: false
+  type: text
+- env: BOX64_DYNAREC_BIGBLOCK
+  hint: null
+  label: box64 dynarec bigblock
+  options: null
+  required: false
+  type: text
+- env: BOX64_DYNAREC_SAFEFLAGS
+  hint: null
+  label: box64 dynarec safeflags
+  options: null
+  required: false
+  type: text
+- env: BOX64_DYNAREC_FASTROUND
+  hint: null
+  label: box64 dynarec fastround
+  options: null
+  required: false
+  type: text
+- env: BOX64_DYNAREC_FASTNAN
+  hint: null
+  label: box64 dynarec fastnan
+  options: null
+  required: false
+  type: text
+- env: BOX64_DYNAREC_X87DOUBLE
+  hint: null
+  label: box64 dynarec x87double
+  options: null
+  required: false
+  type: text
+tags: []
+title: Palworld
+type: app
+upstream:
+  categories:
+  - games
+  source: null
+  tags: []
+  template: palworld.yaml
+website: null

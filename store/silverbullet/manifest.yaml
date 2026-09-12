@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/silverbullet
+description: SilverBullet is a creative space where you collect, create and expand your personal knowledge, while also letting you constantly evolve the tools you use to do so.
+endpoint:
+  port: 3000
+  service: silverbullet
+env:
+  SB_PASSWORD:
+    generate: password
+  SB_USER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: SB_PASSWORD
+  path: null
+  user: SB_USER
+name: silverbullet
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SB_USER
+  hint: null
+  label: Username
+  options: null
+  required: true
+  type: text
+- env: SB_PASSWORD
+  hint: null
+  label: Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Silverbullet
+type: app
+upstream:
+  author: zefhemel
+  categories:
+  - utilities
+  source: https://github.com/silverbulletmd/silverbullet
+  tipi_version: 42
+  version: 2.10.0
+website: https://github.com/silverbulletmd/silverbullet

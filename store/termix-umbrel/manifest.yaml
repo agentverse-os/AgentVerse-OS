@@ -1,0 +1,66 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/termix-umbrel
+description: Manage your servers with built-in SSH, tunnels, and file access
+endpoint:
+  port: 8080
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/termix/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/termix/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/termix/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/termix/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/termix/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/termix/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: termix-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Termix
+type: app
+upstream:
+  author: LukeGus
+  categories:
+  - developer
+  release_notes: |-
+    Important for skipped-version updates: if you are updating from before Termix 2.5.1, avoid downgrading after this update because the database-layer refactor can cause data loss on downgrade. If you must revert, restore a pre-refactor backup from your data folder.
+
+    New features and improvements:
+      - Added credential cloning, WSL local terminals, Helm and GitOps deployment options, and editable AI provider model settings
+      - Improved the file manager with an editable path bar, download progress bars, and more reliable folder uploads
+      - Improved tmux monitor performance and Linux packaging icons
+      - This Umbrel package keeps upstream telemetry disabled
+
+
+    Bug fixes:
+      - Fixed passkey sign-in, jump-host connections, synced remote desktop hosts, malformed websocket crashes, and SSH agent forwarding
+      - Fixed OIDC recovery, two-factor code handling, Tailscale requests on some setups, runtime SSL settings, and remote sync certificate probing
+      - Fixed file manager key prompts, RDP file drops, portable imports on remote databases, and several host/sidebar layout issues
+
+
+    Full release notes can be found at https://github.com/Termix-SSH/Termix/releases/tag/release-2.7.1-tag
+  source: https://github.com/Termix-SSH/Termix/
+  version: 2.7.1
+  website: https://docs.termix.site/
+website: https://docs.termix.site/

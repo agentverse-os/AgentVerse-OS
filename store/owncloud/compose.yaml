@@ -1,0 +1,75 @@
+# owncloud: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  owncloud:
+    depends_on:
+    - owncloud-db
+    - owncloud-redis
+    environment:
+      OWNCLOUD_ADMIN_PASSWORD: ${OWNCLOUD_PASSWORD}
+      OWNCLOUD_ADMIN_USERNAME: ${OWNCLOUD_USERNAME}
+      OWNCLOUD_DB_HOST: owncloud-db
+      OWNCLOUD_DB_NAME: owncloud
+      OWNCLOUD_DB_PASSWORD: ${OWNCLOUD_DB_PASSWORD}
+      OWNCLOUD_DB_TYPE: mysql
+      OWNCLOUD_DB_USERNAME: tipi
+      OWNCLOUD_DOMAIN: ${APP_DOMAIN}
+      OWNCLOUD_MYSQL_UTF8MB4: 'true'
+      OWNCLOUD_REDIS_ENABLED: 'true'
+      OWNCLOUD_REDIS_HOST: owncloud-redis
+      OWNCLOUD_TRUSTED_DOMAINS: ${APP_DOMAIN}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test: /usr/bin/healthcheck
+      timeout: 10s
+    image: owncloud/server:11.0.0
+    networks:
+      appnet:
+        aliases:
+        - owncloud_owncloud_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/owncloud:/mnt/data
+  owncloud-db:
+    command:
+    - --max-allowed-packet=128M
+    - --innodb-log-file-size=64M
+    environment:
+      MYSQL_DATABASE: owncloud
+      MYSQL_PASSWORD: ${OWNCLOUD_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${OWNCLOUD_DB_PASSWORD}
+      MYSQL_USER: tipi
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test: mysqladmin ping -u root --password=${OWNCLOUD_DB_PASSWORD}
+      timeout: 5s
+    image: mariadb:10.6
+    networks:
+      appnet:
+        aliases:
+        - owncloud_owncloud-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mysql:/var/lib/mysql
+  owncloud-redis:
+    command:
+    - --databases
+    - '1'
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test: redis-cli ping
+      timeout: 5s
+    image: redis:6
+    networks:
+      appnet:
+        aliases:
+        - owncloud_owncloud-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

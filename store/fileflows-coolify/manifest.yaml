@@ -1,0 +1,53 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/fileflows-coolify
+description: FileFlows can drastically reduce your files, up to 90%, saving you space and money. No need to buy more hard drives, just shrink your files and start saving.
+endpoint:
+  port: 5000
+  service: fileflows
+env:
+  SERVICE_URL_FILE: https://${APP_DOMAIN}
+  SERVICE_URL_FILEFLOWS_5000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: fileflows-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- media
+- transcode
+- convert
+- h265
+title: Fileflows
+type: app
+upstream:
+  categories:
+  - media
+  source: https://fileflows.com/docs/
+  tags:
+  - media
+  - transcode
+  - convert
+  - h265
+  template: fileflows.yaml
+website: https://fileflows.com/docs/

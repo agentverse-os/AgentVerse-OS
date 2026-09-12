@@ -1,0 +1,18 @@
+# emulatorjs: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  emulatorjs:
+    environment:
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/emulatorjs:1.9.2
+    networks:
+      appnet:
+        aliases:
+        - emulatorjs_emulatorjs_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/emulatorjs-config:/config
+    - ${APP_DATA_DIR}/data/emulatorjs:/data

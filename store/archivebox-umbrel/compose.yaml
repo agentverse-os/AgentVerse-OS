@@ -1,0 +1,32 @@
+# archivebox-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  archivebox:
+    environment:
+      ADMIN_PASSWORD: ${APP_PASSWORD}
+      ADMIN_USERNAME: admin
+      ALLOWED_HOSTS: '*'
+      PUBLIC_ADD_VIEW: 'False'
+      PUBLIC_INDEX: 'True'
+      PUBLIC_SNAPSHOTS: 'True'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 180s
+      test:
+      - CMD-SHELL
+      - wget -q -O /dev/null http://127.0.0.1:8000/public/ || exit 1
+      timeout: 10s
+    image: archivebox/archivebox:0.7.4@sha256:1a5a37331091d9df865ead2b9c231aa5a892fc26fe0422ce6140d9e2d9532327
+    networks:
+      appnet:
+        aliases:
+        - archivebox_archivebox_1
+    restart: on-failure
+    shm_size: 1gb
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

@@ -1,0 +1,31 @@
+# rustdesk-server-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  hbbr:
+    command: hbbr
+    image: rustdesk/rustdesk-server:1.1.16@sha256:8ecdab65deb7c84652a626380e31d11a8f1fbafd97916d57f95c20628f943c00
+    network_mode: host
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/hbbr:/root
+  hbbs:
+    command: hbbs
+    depends_on:
+    - hbbr
+    image: rustdesk/rustdesk-server:1.1.16@sha256:8ecdab65deb7c84652a626380e31d11a8f1fbafd97916d57f95c20628f943c00
+    network_mode: host
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/hbbs:/root
+  web:
+    image: nginx:1.27@sha256:124b44bfc9ccd1f3cedf4b592d4d1e8bddb78b51ec2ed5056c52d3692baebc19
+    networks:
+      appnet:
+        aliases:
+        - rustdesk-server_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/www:/usr/share/nginx/html:ro

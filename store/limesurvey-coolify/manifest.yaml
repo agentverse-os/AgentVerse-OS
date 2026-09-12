@@ -1,0 +1,123 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/limesurvey-coolify
+description: Simple, quick and anonymous online survey tool that's bursting with juicy insights.
+endpoint:
+  port: 80
+  service: limesurvey
+env:
+  LIMESURVEY_ADMIN_EMAIL: admin@example.com
+  LIMESURVEY_ADMIN_NAME: Admin
+  LIMESURVEY_ADMIN_USER: admin
+  LIMESURVEY_FROM_EMAIL: ''
+  LIMESURVEY_SMTP_HOST: ''
+  LIMESURVEY_SMTP_PASSWORD: ''
+  LIMESURVEY_SMTP_SSL: ''
+  LIMESURVEY_SMTP_USER: ''
+  MYSQL_DATABASE: limesurvey-db
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_LIMESURVEY_80: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: LIMESURVEY_ADMIN_USER
+name: limesurvey-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: limesurvey-db'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: LIMESURVEY_ADMIN_USER
+  hint: 'по умолчанию: admin'
+  label: limesurvey admin user
+  options: null
+  required: false
+  type: text
+- env: LIMESURVEY_ADMIN_NAME
+  hint: 'по умолчанию: Admin'
+  label: limesurvey admin name
+  options: null
+  required: false
+  type: text
+- env: LIMESURVEY_ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: limesurvey admin email
+  options: null
+  required: false
+  type: text
+- env: LIMESURVEY_FROM_EMAIL
+  hint: null
+  label: limesurvey from email
+  options: null
+  required: false
+  type: text
+- env: LIMESURVEY_SMTP_HOST
+  hint: null
+  label: limesurvey smtp host
+  options: null
+  required: false
+  type: text
+- env: LIMESURVEY_SMTP_USER
+  hint: null
+  label: limesurvey smtp user
+  options: null
+  required: false
+  type: text
+- env: LIMESURVEY_SMTP_PASSWORD
+  hint: null
+  label: limesurvey smtp password
+  options: null
+  required: false
+  type: password
+- env: LIMESURVEY_SMTP_SSL
+  hint: null
+  label: limesurvey smtp ssl
+  options: null
+  required: false
+  type: text
+tags:
+- online survey
+- forms
+- no code
+- open source
+title: Limesurvey
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://www.limesurvey.org/manual/
+  tags:
+  - online survey
+  - forms
+  - no code
+  - open source
+  template: limesurvey.yaml
+website: https://www.limesurvey.org/manual/

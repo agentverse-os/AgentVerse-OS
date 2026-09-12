@@ -1,0 +1,19 @@
+# palmr-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+      PALMR_GID: 1000
+      PALMR_UID: 1000
+    image: kyantech/palmr:v3.3.2-beta@sha256:043dd6cdbb4d9985b376915020fb26c2037b19876674273eac310ab04cdf16f4
+    networks:
+      appnet:
+        aliases:
+        - palmr_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/server

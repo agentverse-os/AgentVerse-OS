@@ -1,0 +1,17 @@
+# mind: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mind:
+    environment:
+      TZ: ${TZ}
+    image: mrcas/mind:v1.4.1
+    networks:
+      appnet:
+        aliases:
+        - mind_mind_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mind-db:/app/db

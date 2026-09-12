@@ -1,0 +1,59 @@
+# soju-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  soju-inline-1:
+    content: |
+      db sqlite3 /db/main.db
+      message-store db
+      file-upload fs /uploads/
+      listen irc+insecure://0.0.0.0:6667
+      listen ws+insecure://0.0.0.0:80
+      listen unix+admin:///run/soju/admin
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  gamja:
+    depends_on:
+    - soju
+    environment:
+    - SERVICE_FQDN_GAMJA_80=${SERVICE_FQDN_GAMJA_80}
+    image: codeberg.org/emersion/gamja:latest
+    networks:
+      appnet:
+        aliases:
+        - soju-coolify_gamja_1
+    restart: unless-stopped
+  soju:
+    configs:
+    - source: soju-inline-1
+      target: /soju-config
+    image: codeberg.org/emersion/soju:latest
+    networks:
+      appnet:
+        aliases:
+        - soju-coolify_soju_1
+    restart: unless-stopped
+    volumes:
+    - soju-db:/db
+    - soju-uploads:/uploads
+    - soju-run:/run/soju
+volumes:
+  soju-db:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/soju-db
+      o: bind
+      type: none
+  soju-run:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/soju-run
+      o: bind
+      type: none
+  soju-uploads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/soju-uploads
+      o: bind
+      type: none

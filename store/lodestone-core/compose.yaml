@@ -1,0 +1,16 @@
+# lodestone-core: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  lodestone-core:
+    image: ghcr.io/lodestone-team/lodestone_core:0.5.1
+    networks:
+      appnet:
+        aliases:
+        - lodestone-core_lodestone-core_1
+    restart: unless-stopped
+    user: 0:0
+    volumes:
+    - ${APP_DATA_DIR}/data/lodestone-data:/root/.lodestone

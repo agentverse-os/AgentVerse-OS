@@ -1,0 +1,15 @@
+# privatebin: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  privatebin:
+    image: privatebin/nginx-fpm-alpine:2.0.6
+    networks:
+      appnet:
+        aliases:
+        - privatebin_privatebin_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/srv/data

@@ -1,0 +1,11 @@
+⚠️ Removal Notice: The Firefox app has been disabled as there are no more updates that work without HTTPS.
+
+Get the browser that protects what is important.
+
+No shady privacy policies or back doors for advertisers. Just a lightning fast browser that does not sell you out.
+
+Get all the speed and tools with none of the invasions of privacy. Firefox Browser collects so little data about you, we do not even require your email address to download. That is because unlike other browsers, we have no financial stake in following you around the web.
+
+Firefox is for everyone:
+
+Available in over 90 languages, and compatible with Windows, Mac and Linux machines, Firefox works no matter what you are using or where you are. Make sure your operating system is up to date for the best experience.

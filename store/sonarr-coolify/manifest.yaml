@@ -1,0 +1,51 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sonarr-coolify
+description: Sonarr⁠ (formerly NZBdrone) is a PVR for usenet and bittorrent users. It can monitor multiple RSS feeds for new episodes of your favorite shows and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
+endpoint:
+  port: 8989
+  service: sonarr
+env:
+  SERVICE_URL_SONARR: https://${APP_DOMAIN}
+  SERVICE_URL_SONARR_8989: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: sonarr-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- media
+- server
+- tv
+title: Sonarr
+type: app
+upstream:
+  categories:
+  - media
+  source: https://hub.docker.com/r/linuxserver/sonarr
+  tags:
+  - media
+  - server
+  - tv
+  template: sonarr.yaml
+website: https://hub.docker.com/r/linuxserver/sonarr

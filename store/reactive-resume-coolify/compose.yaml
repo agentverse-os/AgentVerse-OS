@@ -1,0 +1,149 @@
+# reactive-resume-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  chrome:
+    environment:
+    - HEALTH=true
+    - TIMEOUT=10000
+    - CONCURRENT=10
+    - TOKEN=$SERVICE_PASSWORD_CHROMETOKEN
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000/
+      timeout: 3s
+    image: ghcr.io/browserless/chrome:latest
+    networks:
+      appnet:
+        aliases:
+        - reactive-resume-coolify_chrome_1
+    platform: linux/amd64
+    restart: unless-stopped
+  minio:
+    command: server /data --console-address ":9001"
+    environment:
+    - MINIO_SERVER_URL=$MINIO_SERVER_URL
+    - MINIO_BROWSER_REDIRECT_URL=$MINIO_BROWSER_REDIRECT_URL
+    - MINIO_ROOT_USER=$SERVICE_USER_MINIO
+    - MINIO_ROOT_PASSWORD=$SERVICE_PASSWORD_MINIO
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - mc
+      - ready
+      - local
+      timeout: 20s
+    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    networks:
+      appnet:
+        aliases:
+        - reactive-resume-coolify_minio_1
+    restart: unless-stopped
+    volumes:
+    - minio-data:/data
+  postgres:
+    environment:
+    - POSTGRES_DB=${POSTGRES_DB:-postgres}
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - reactive-resume-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - postgres-data:/var/lib/postgresql/data
+  reactive-resume:
+    depends_on:
+    - postgres
+    - minio
+    - chrome
+    environment:
+    - SERVICE_URL_REACTIVERESUME_3000=${SERVICE_URL_REACTIVERESUME_3000}
+    - PUBLIC_URL=$SERVICE_URL_REACTIVERESUME
+    - STORAGE_URL=${SERVICE_URL_MINIO}/default
+    - DATABASE_URL=postgresql://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/${POSTGRES_DB:-postgres}
+    - ACCESS_TOKEN_SECRET=$SERVICE_PASSWORD_ACCESSTOKEN
+    - REFRESH_TOKEN_SECRET=$SERVICE_PASSWORD_REFRESHTOKEN
+    - CHROME_TOKEN=$SERVICE_PASSWORD_CHROMETOKEN
+    - CHROME_URL=ws://chrome:3000/chrome
+    - REDIS_URL=redis://redis:6379
+    - STORAGE_ENDPOINT=minio
+    - STORAGE_PORT=9000
+    - STORAGE_REGION=us-east-1
+    - STORAGE_BUCKET=default
+    - STORAGE_ACCESS_KEY=$SERVICE_USER_MINIO
+    - STORAGE_SECRET_KEY=$SERVICE_PASSWORD_MINIO
+    - STORAGE_USE_SSL=false
+    - DISABLE_SIGNUPS=${SERVICE_DISABLE_SIGNUPS:-false}
+    - DISABLE_EMAIL_AUTH=${SERVICE_DISABLE_EMAIL_AUTH:-false}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      test:
+      - CMD
+      - node
+      - -e
+      - 'require(''http'').get(''http://127.0.0.1:3000'', res => process.exit(res.statusCode === 200 ? 0 : 1)).on(''error'', () => process.exit(1))'
+      timeout: 3s
+    image: amruthpillai/reactive-resume:v4.3.7
+    networks:
+      appnet:
+        aliases:
+        - reactive-resume-coolify_reactive-resume_1
+    restart: unless-stopped
+  redis:
+    command: redis-server
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 20s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - reactive-resume-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - redis_data:/data
+volumes:
+  minio-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/minio-data
+      o: bind
+      type: none
+  postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgres-data
+      o: bind
+      type: none
+  redis_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis_data
+      o: bind
+      type: none

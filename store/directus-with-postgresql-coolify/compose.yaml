@@ -1,0 +1,122 @@
+# directus-with-postgresql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  directus:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_DIRECTUS_8055=${SERVICE_URL_DIRECTUS_8055}
+    - KEY=$SERVICE_BASE64_64_KEY
+    - SECRET=$SERVICE_BASE64_64_SECRET
+    - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
+    - ADMIN_PASSWORD=$SERVICE_PASSWORD_ADMIN
+    - DB_CLIENT=postgres
+    - DB_HOST=postgresql
+    - DB_PORT=5432
+    - DB_DATABASE=${POSTGRESQL_DATABASE:-directus}
+    - DB_USER=$SERVICE_USER_POSTGRESQL
+    - DB_PASSWORD=$SERVICE_PASSWORD_POSTGRESQL
+    - REDIS_HOST=redis
+    - REDIS_PORT=6379
+    - WEBSOCKETS_ENABLED=true
+    - CORS_ENABLED=${CORS_ENABLED:-true}
+    - CORS_ORIGIN=${CORS_ORIGIN}
+    - CORS_METHODS=${CORS_METHODS:-GET,POST,PATCH,DELETE,OPTIONS}
+    - CORS_ALLOWED_HEADERS=${CORS_ALLOWED_HEADERS:-Content-Type,Authorization}
+    - CORS_CREDENTIALS=${CORS_CREDENTIALS:-true}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:8055/admin/login
+      timeout: 20s
+    image: directus/directus:11
+    networks:
+      appnet:
+        aliases:
+        - directus-with-postgresql-coolify_directus_1
+    restart: unless-stopped
+    volumes:
+    - directus-uploads:/directus/uploads
+    - directus-extensions:/directus/extensions
+    - directus-templates:/directus/templates
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-directus}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgis/postgis:16-3.4-alpine
+    networks:
+      appnet:
+        aliases:
+        - directus-with-postgresql-coolify_postgresql_1
+    platform: linux/amd64
+    restart: unless-stopped
+    volumes:
+    - directus-postgresql-data:/var/lib/postgresql/data
+  redis:
+    command: redis-server --appendonly yes
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 20s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - directus-with-postgresql-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - directus-redis-data:/data
+volumes:
+  directus-extensions:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/directus-extensions
+      o: bind
+      type: none
+  directus-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/directus-postgresql-data
+      o: bind
+      type: none
+  directus-redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/directus-redis-data
+      o: bind
+      type: none
+  directus-templates:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/directus-templates
+      o: bind
+      type: none
+  directus-uploads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/directus-uploads
+      o: bind
+      type: none

@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/it-tools
+description: Collection of handy online tools for developers, with great UX.
+endpoint:
+  port: 80
+  service: it-tools
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: it-tools
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: IT-Tools
+type: app
+upstream:
+  author: CorentinTh
+  categories:
+  - development
+  source: https://github.com/CorentinTh/it-tools
+  tipi_version: 6
+  version: latest
+website: https://github.com/CorentinTh/it-tools

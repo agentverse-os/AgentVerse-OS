@@ -1,0 +1,24 @@
+# stirling-pdf-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+      DOCKER_ENABLE_SECURITY: 'false'
+      INSTALL_BOOK_AND_ADVANCED_HTML_OPS: 'true'
+      LANGS: ALL
+      SECURITY_ENABLELOGIN: 'false'
+    image: stirlingtools/stirling-pdf:2.14.3@sha256:3b3670fce70b396ec56ba380a3cc7858e0abf83fe13f31c88f7737847763a396
+    networks:
+      appnet:
+        aliases:
+        - stirling-pdf_app_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/tessdata:/usr/share/tessdata
+    - ${APP_DATA_DIR}/data/configs:/configs
+    - ${APP_DATA_DIR}/data/logs:/logs
+    - ${APP_DATA_DIR}/data/pipeline:/pipeline

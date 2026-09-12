@@ -1,0 +1,34 @@
+# cloudbeaver-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cloudbeaver:
+    environment:
+    - SERVICE_URL_CLOUDBEAVER_8978=${SERVICE_URL_CLOUDBEAVER_8978}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:8978/
+      timeout: 20s
+    image: dbeaver/cloudbeaver:24
+    networks:
+      appnet:
+        aliases:
+        - cloudbeaver-coolify_cloudbeaver_1
+    restart: unless-stopped
+    volumes:
+    - cloudbeaver-data:/opt/cloudbeaver/workspace
+volumes:
+  cloudbeaver-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/cloudbeaver-data
+      o: bind
+      type: none

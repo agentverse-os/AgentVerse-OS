@@ -1,0 +1,35 @@
+# netbird-client-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  netbird-client:
+    cap_add:
+    - NET_ADMIN
+    - SYS_ADMIN
+    - SYS_RESOURCE
+    environment:
+    - NB_SETUP_KEY=${NB_SETUP_KEY}
+    - NB_ENABLE_ROSENPASS=${NB_ENABLE_ROSENPASS:-false}
+    - NB_ENABLE_EXPERIMENTAL_LAZY_CONN=${NB_ENABLE_EXPERIMENTAL_LAZY_CONN:-false}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - netbird
+      - version
+      timeout: 20s
+    image: netbirdio/netbird:latest
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+    - netbird-client:/var/lib/netbird
+volumes:
+  netbird-client:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/netbird-client
+      o: bind
+      type: none

@@ -1,0 +1,14 @@
+Alby Hub is an open-source, self-custodial Bitcoin Lightning wallet, with the easiest-to-use Lightning Network node for everyone. Whether you're an individual, creator, or developer, Alby Hub is your centre for seamless Bitcoin payments.
+
+Effortlessly connect to a variety of apps like the Alby Browser Extension or Alby Go mobile app, create sub-wallets for family and friends, and take full control of your funds—all within an intuitive interface and developer-ready APIs.
+
+🛠️ SET-UP INSTRUCTIONS
+
+Alby Hub can be set up in two ways:
+1) As a standalone app without Lightning Node (LND) installed: On install, choose to "Get Started (LDK)" to start using the embedded LDK based Lightning node.
+2) Connected to the Lightning Node app (LND) running on your Umbrel: Make sure to first install and set up Lightning Node on your Umbrel. Then install Alby Hub, which will automatically configure itself to connect to the Lightning Node app running on your Umbrel.
+
+USEFUL LINKS
+  - Feature requests, bug reports, feedback board - https://feedback.getalby.com/-alby-hub-request-a-feature
+  - Community of users and developers - https://discord.getalby.com/
+  - List of apps and projects that use NWC protocol - https://github.com/getAlby/awesome-nwc

@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/l-town-umbrel
+description: Open source multiplayer FPS browser game
+endpoint:
+  port: 30300
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/l-town/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/l-town/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/l-town/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/l-town/4.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/l-town/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: l-town-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: L-Town
+type: app
+upstream:
+  author: besoeasy
+  categories:
+  - social
+  release_notes: |-
+    This update expands L-Town with a redesigned lobby, new character cards, and a larger playable roster.
+
+    - Adds new character abilities including Jinx, Gambler, Parasite, and Berserker
+    - Improves game feel with muzzle flashes, impact rings, movement animations, and kill feed distance
+    - Adds a respawn health penalty and updates character scaling/visuals
+    - Updates the WebSocket package for stability
+  source: https://github.com/besoeasy/l-town
+  version: '20260621'
+  website: https://yantr.org/apps/l-town/
+website: https://yantr.org/apps/l-town/

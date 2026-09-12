@@ -1,0 +1,18 @@
+# ghost-dev: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  ghost-dev:
+    environment:
+      NODE_ENV: development
+      database__connection__filename: /var/lib/ghost/content/data/ghost.db
+    image: ghost:5.130.6
+    networks:
+      appnet:
+        aliases:
+        - ghost-dev_ghost-dev_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/var/lib/ghost/content

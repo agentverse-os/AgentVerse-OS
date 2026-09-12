@@ -1,0 +1,36 @@
+# meilisearch-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  meilisearch:
+    environment:
+    - SERVICE_URL_MEILISEARCH_7700=${SERVICE_URL_MEILISEARCH_7700}
+    - MEILI_NO_ANALYTICS=${MEILI_NO_ANALYTICS:-true}
+    - MEILI_ENV=${MEILI_ENV:-production}
+    - MEILI_MASTER_KEY=${SERVICE_PASSWORD_MEILISEARCH}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:7700/health
+      timeout: 10s
+    image: getmeili/meilisearch:latest
+    networks:
+      appnet:
+        aliases:
+        - meilisearch-coolify_meilisearch_1
+    restart: unless-stopped
+    volumes:
+    - meilisearch-data:/meili_data
+volumes:
+  meilisearch-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/meilisearch-data
+      o: bind
+      type: none

@@ -1,0 +1,17 @@
+# ittools-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    cpu_shares: 768
+    image: corentinth/it-tools:2024.10.22-7ca5933@sha256:8b8128748339583ca951af03dfe02a9a4d7363f61a216226fc28030731a5a61f
+    mem_limit: 2g
+    networks:
+      appnet:
+        aliases:
+        - ittools_app_1
+    restart: on-failure
+    security_opt:
+    - no-new-privileges:true

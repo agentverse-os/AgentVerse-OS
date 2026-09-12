@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kiwix-umbrel
+description: Access knowledge anytime, anywhere without an internet connection
+endpoint:
+  port: 8080
+  service: web
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/kiwix/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: kiwix-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Kiwix
+type: app
+upstream:
+  author: Kiwix
+  categories:
+  - files
+  release_notes: null
+  source: https://github.com/kiwix/kiwix-tools
+  version: 3.8.2
+  website: https://kiwix.org
+website: https://kiwix.org

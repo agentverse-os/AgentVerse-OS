@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/route96-umbrel
+description: Blossom/NIP-96 media server for Nostr
+endpoint:
+  port: 8002
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/route96/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/route96/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/route96/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/route96/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: route96-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Route96
+type: app
+upstream:
+  author: v0l
+  categories:
+  - social
+  release_notes: null
+  source: https://github.com/v0l/route96
+  version: 0.7.0
+  website: https://github.com/v0l/route96
+website: https://github.com/v0l/route96

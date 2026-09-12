@@ -1,0 +1,40 @@
+# linkwarden-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - DATABASE_URL=postgresql://postgres:linkwarden@linkwarden_postgres_1:5432/postgres
+    - NEXTAUTH_URL=http://${DEVICE_DOMAIN_NAME}:8233/api/v1/auth
+    - NEXTAUTH_SECRET=linkwarden
+    image: ghcr.io/linkwarden/linkwarden:v2.16.2@sha256:f4dd1790cef8de5b923dd5c0239e8861c3600500e3d234dab655dad0303d3a7f
+    networks:
+      appnet:
+        aliases:
+        - linkwarden_app_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/data/data
+  postgres:
+    environment:
+    - POSTGRES_PASSWORD=linkwarden
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres
+      timeout: 5s
+    image: postgres:16-alpine@sha256:0366402213df5db03c47ff80bcc697e92c8be0c213d03c941df1fc42d1ba9560
+    networks:
+      appnet:
+        aliases:
+        - linkwarden_postgres_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data

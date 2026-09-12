@@ -1,0 +1,74 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gitingest-umbrel
+description: An effortless way to make Git repositories LLM-friendly
+endpoint:
+  port: 8000
+  service: app
+env:
+  APP_GITINGEST_LOCAL_IPS: ${local_ips}
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  DEVICE_HOSTNAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/gitingest/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/gitingest/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/gitingest/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/gitingest/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: gitingest-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Gitingest
+type: app
+upstream:
+  author: Romain Courtois
+  categories:
+  - developer
+  release_notes: |-
+    This release brings new features and improvements to Gitingest.
+
+    New features include:
+      - Support for Git submodules
+      - Caching system to serve previously generated digests faster
+      - Enhanced logging for better troubleshooting
+
+
+    Key improvements:
+      - Better handling of large files with improved size processing
+      - Improved cleanup of temporary files after processing
+      - Better error handling for network issues during token estimation
+      - Enhanced pattern matching for include and exclude rules
+
+
+    Bug fixes include:
+      - Fixed cache handling for repository subpaths
+      - Fixed directory tree display issues
+      - Resolved container launch problems
+      - Better processing of gitignore and gitingestignore files
+
+
+    Full release notes are found at https://github.com/cyclotruc/gitingest/releases
+  source: https://github.com/cyclotruc/gitingest
+  version: 0.3.1
+  website: https://gitingest.com/
+website: https://gitingest.com/

@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/librechat-umbrel
+description: Enhanced ChatGPT Clone
+endpoint:
+  port: 3080
+  service: api
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/librechat/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librechat/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librechat/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/librechat/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: umbrel@umbrel.local
+name: librechat-umbrel
+notes:
+- 'api: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'rag_api: env_file из каталога проигнорирован (значения — через настройки приложения)'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LibreChat
+type: app
+upstream:
+  author: Danny Avila
+  categories:
+  - ai
+  release_notes: |-
+    This update adds chat projects for organizing conversations, a context-usage gauge for tokens and optional cost tracking, pinned conversations/tools, keyboard shortcuts, and a redesigned settings experience.
+
+    It also improves Agent Skills and subagents, adds GitHub/local skill sync, expands provider support with Claude Fable 5, Anthropic custom endpoints, Google URL Context, and prompt-cache TTL controls, and hardens shared links, OpenID, MCP, and auth flows.
+
+    Full release notes can be found at https://www.librechat.ai/changelog/v0.8.7
+  source: https://github.com/danny-avila/LibreChat
+  version: 0.8.7
+  website: https://librechat.ai/
+website: https://librechat.ai/

@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/budibase-umbrel
+description: The low code platform you'll enjoy using
+endpoint:
+  port: 80
+  service: budibase
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/budibase/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/budibase/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/budibase/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/budibase/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: budibase-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Budibase
+type: app
+upstream:
+  author: Budibase
+  categories:
+  - developer
+  release_notes: |-
+    Key improvements in this release include:
+      - Fixes relationship primary displays in static formulas
+      - Fixes agent tool API rename handling
+      - Improves reverse proxy buffering defaults
+      - Marks Discord and Telegram channels as deprecated
+      - Includes dependency maintenance
+
+
+    Full release notes can be found at https://github.com/Budibase/budibase/releases/tag/3.41.3
+  source: https://github.com/Budibase/budibase
+  version: 3.41.3
+  website: https://budibase.com
+website: https://budibase.com

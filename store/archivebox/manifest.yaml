@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/archivebox
+description: Open source self-hosted web archiving.
+endpoint:
+  port: 8015
+  service: archivebox
+env:
+  ARCHIVEBOX_PASSWORD:
+    generate: password
+  ARCHIVEBOX_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: ARCHIVEBOX_PASSWORD
+  path: null
+  user: ARCHIVEBOX_USERNAME
+name: archivebox
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ARCHIVEBOX_USERNAME
+  hint: null
+  label: ArchiveBox Username
+  options: null
+  required: true
+  type: text
+- env: ARCHIVEBOX_PASSWORD
+  hint: null
+  label: ArchiveBox Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: ArchiveBox
+type: app
+upstream:
+  author: archivebox
+  categories:
+  - media
+  source: https://github.com/ArchiveBox/ArchiveBox
+  tipi_version: 11
+  version: 0.7.4
+website: https://github.com/ArchiveBox/ArchiveBox

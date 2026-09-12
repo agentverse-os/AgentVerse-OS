@@ -1,0 +1,22 @@
+# homebox: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  homebox:
+    environment:
+      HBOX_AUTH_API_KEY_PEPPER: ${HBOX_AUTH_API_KEY_PEPPER}
+      HBOX_LOG_FORMAT: text
+      HBOX_LOG_LEVEL: info
+      HBOX_OPTIONS_ALLOW_REGISTRATION: ${HBOX_OPTIONS_ALLOW_REGISTRATION}
+      HBOX_WEB_MAX_UPLOAD_SIZE: '10'
+    image: ghcr.io/sysadminsmedia/homebox:0.26.2-rootless
+    networks:
+      appnet:
+        aliases:
+        - homebox_homebox_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/homebox-data:/data/

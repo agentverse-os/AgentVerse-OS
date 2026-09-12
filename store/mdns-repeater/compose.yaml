@@ -1,0 +1,13 @@
+# mdns-repeater: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mdns-repeater:
+    environment:
+      dockerNIC: ${MDNS_DOCKER_NIC}
+      hostNIC: ${MDNS_HOST_NIC}
+    image: angelnu/mdns_repeater:latest
+    network_mode: host
+    restart: unless-stopped

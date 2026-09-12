@@ -1,0 +1,60 @@
+# Hermes Agent (Nous Research) — официальный образ последней версии с официальным Web Dashboard: чат-терминал в браузере,
+# сессии, конфиг, ключи API, skills/MCP, cron, логи, каналы мессенджеров. Ручной манифест Cloud OS (в каталогах Runtipi/Coolify/Umbrel
+# только сторонний веб-чат hermes-webui поверх агента трёхмесячной давности). Версии: агент v2026.8.31.
+schema: 1
+origin: manual
+name: hermes-agent
+title: Hermes Agent
+description: "Autonomous AI agent by Nous Research with memory, skills and scheduling; the official dashboard with a chat terminal, a gateway for Telegram, Discord, Slack and WhatsApp, and an OpenAI-compatible API"
+i18n:
+  ru: { description: "Автономный ИИ-агент Nous Research с памятью, скилами и расписанием; официальный дашборд с чатом-терминалом, gateway для Telegram, Discord, Slack, WhatsApp и OpenAI-совместимый API" }
+  uk: { description: "Автономний ШІ-агент Nous Research з пам’яттю, скілами та розкладом; офіційний дашборд із чатом-терміналом, gateway для Telegram, Discord, Slack, WhatsApp і OpenAI-сумісний API" }
+  es: { description: "Agente de IA autónomo de Nous Research con memoria, habilidades y programación; panel oficial con terminal de chat, gateway para Telegram, Discord, Slack y WhatsApp y una API compatible con OpenAI" }
+icon: ./logo.png
+type: app
+compose: ./compose.yaml
+provides: []
+requires: []
+route: { mode: port, open: iframe }
+auth: own
+env:
+  HERMES_DASHBOARD_PASSWORD: { generate: password }   # вход в дашборд (логин admin)
+  HERMES_DASHBOARD_SECRET: { generate: hex64 }        # подпись сессий дашборда, чтобы вход переживал перезапуск
+  HERMES_API_SERVER_KEY: { generate: token }          # ключ OpenAI-совместимого API самого Hermes (порт 8642 внутри сети приложения)
+  OPENROUTER_API_KEY: ""
+  ANTHROPIC_API_KEY: ""
+  OPENAI_API_KEY: ""
+  OPENAI_BASE_URL: ""
+  GOOGLE_API_KEY: ""
+data: [tank/apps/hermes-agent]
+health: null                                           # дашборд отвечает 401 без входа — ждём только running
+endpoint: { service: hermes, port: 9119 }
+hooks: {}
+settings:
+  - { env: HERMES_DASHBOARD_PASSWORD, type: random, label: пароль дашборда, hint: "логин admin; пароль показывает Cloud OS", required: false, options: null }
+  - { env: OPENAI_BASE_URL, type: text, label: OpenAI-совместимый адрес LLM, hint: "например http://litellm:4000/v1 после подключения LLM-шлюза (LiteLLM, Ollama) на вкладке «Связи» — подставится сам", required: false, options: null }
+  - { env: OPENAI_API_KEY, type: password, label: ключ OpenAI-совместимого API, hint: "при связи с LLM-шлюзом подставится сам", required: false, options: null }
+  - { env: ANTHROPIC_API_KEY, type: password, label: ключ Anthropic, hint: null, required: false, options: null }
+  - { env: OPENROUTER_API_KEY, type: password, label: ключ OpenRouter, hint: null, required: false, options: null }
+  - { env: GOOGLE_API_KEY, type: password, label: ключ Google AI, hint: null, required: false, options: null }
+  - { env: HERMES_API_SERVER_KEY, type: random, label: ключ API Hermes, hint: "для приложений, которые ходят к Hermes как к OpenAI-совместимому серверу: http://hermes:8642 внутри Cloud OS", required: false, options: null }
+login:
+  mode: generated
+  user: admin
+  password: HERMES_DASHBOARD_PASSWORD
+  path: null
+  note: "Дашборд Hermes: вкладка Chat — терминал агента в браузере, API Keys и Config — провайдеры и модель, Channels — мессенджеры. Модель и ключ провайдера задаются там же или через «Связи» с LLM-шлюзом (LiteLLM, Ollama)."
+notes:
+  - "Первый запуск: в дашборде на вкладке API Keys укажите ключ провайдера (или подключите LLM-шлюз через «Связи»), затем в Config выберите модель. Без модели чат отвечать не будет."
+  - "Мессенджеры (Telegram, Discord, Slack, WhatsApp, Signal) настраиваются на вкладке Channels; gateway уже запущен в контейнере."
+  - "Обновление: сменить тег образа в compose (nousresearch/hermes-agent:vГГГГ.М.Д); образ сам мигрирует конфиг при старте."
+gallery: []
+readme: ./description.md
+website: https://hermes-agent.nousresearch.com/
+tags: [ai, agent, llm, hermes, nous, telegram, discord, dashboard]
+upstream:
+  source: https://github.com/NousResearch/hermes-agent
+  author: Nous Research
+  version: v2026.8.31
+  categories: [ai]
+  website: https://hermes-agent.nousresearch.com/docs/user-guide/docker

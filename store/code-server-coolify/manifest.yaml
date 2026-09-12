@@ -1,0 +1,56 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/code-server-coolify
+description: Code-Server is a web-based code editor that enables remote coding and collaboration from any device, anywhere.
+endpoint:
+  port: 8443
+  service: code-server
+env:
+  SERVICE_PASSWORD_64_PASSWORDCODESERVER:
+    generate: hex64
+  SERVICE_PASSWORD_SUDOCODESERVER:
+    generate: password
+  SERVICE_URL_CODESERVER_8443: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_64_PASSWORDCODESERVER
+  path: null
+  user: null
+name: code-server-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- code
+- editor
+- remote
+- collaboration
+title: Code Server
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://coder.com/docs/code-server/latest
+  tags:
+  - code
+  - editor
+  - remote
+  - collaboration
+  template: code-server.yaml
+website: https://coder.com/docs/code-server/latest

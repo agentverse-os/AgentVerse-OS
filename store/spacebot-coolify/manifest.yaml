@@ -1,0 +1,123 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/spacebot-coolify
+description: An agentic AI system with specialized processes for thinking, working, and remembering.
+endpoint:
+  port: 19898
+  service: spacebot
+env:
+  ANTHROPIC_API_KEY: ''
+  BRAVE_SEARCH_API_KEY: ''
+  DISCORD_BOT_TOKEN: ''
+  OPENAI_API_KEY: ''
+  OPENROUTER_API_KEY: ''
+  SERVICE_FQDN_SPACEBOT_19898: ${APP_DOMAIN}
+  SLACK_APP_TOKEN: ''
+  SLACK_BOT_TOKEN: ''
+  SPACEBOT_CHANNEL_MODEL: ''
+  SPACEBOT_WORKER_MODEL: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: spacebot-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ANTHROPIC_API_KEY
+  hint: null
+  label: anthropic api key
+  options: null
+  required: false
+  type: password
+- env: OPENAI_API_KEY
+  hint: null
+  label: openai api key
+  options: null
+  required: false
+  type: password
+- env: OPENROUTER_API_KEY
+  hint: null
+  label: openrouter api key
+  options: null
+  required: false
+  type: password
+- env: DISCORD_BOT_TOKEN
+  hint: null
+  label: discord bot token
+  options: null
+  required: false
+  type: password
+- env: SLACK_BOT_TOKEN
+  hint: null
+  label: slack bot token
+  options: null
+  required: false
+  type: password
+- env: SLACK_APP_TOKEN
+  hint: null
+  label: slack app token
+  options: null
+  required: false
+  type: password
+- env: BRAVE_SEARCH_API_KEY
+  hint: null
+  label: brave search api key
+  options: null
+  required: false
+  type: password
+- env: SPACEBOT_CHANNEL_MODEL
+  hint: null
+  label: spacebot channel model
+  options: null
+  required: false
+  type: text
+- env: SPACEBOT_WORKER_MODEL
+  hint: null
+  label: spacebot worker model
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- agent
+- anthropic
+- openai
+- discord
+- slack
+- llm
+- agentic
+title: Spacebot
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://docs.spacebot.sh/docker
+  tags:
+  - ai
+  - agent
+  - anthropic
+  - openai
+  - discord
+  - slack
+  - llm
+  - agentic
+  template: spacebot.yaml
+website: https://docs.spacebot.sh/docker

@@ -1,0 +1,38 @@
+# cloudflared-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  connector:
+    environment:
+      CLOUDFLARED_METRICS_PORT: ${APP_CLOUDFLARED_METRICS_PORT}
+      CLOUDFLARED_TOKEN_FILE: ./data/token
+    extra_hosts:
+    - host.docker.internal:host-gateway
+    - ${APP_DOMAIN}:host-gateway
+    image: ghcr.io/radiokot/umbrel-cloudflared-connector:1.0.1-cf.2026.7.3@sha256:843bf75f58000c352180697e349e939c9e2d1910f05f03b1b033459b7acff3f4
+    networks:
+      appnet:
+        aliases:
+        - cloudflared_connector_1
+    restart: on-failure
+    stop_grace_period: 3s
+    volumes:
+    - ${APP_DATA_DIR}/data:/data
+  web:
+    depends_on:
+    - connector
+    environment:
+      CLOUDFLARED_HOSTNAME: cloudflared_connector_1
+      CLOUDFLARED_METRICS_PORT: ${APP_CLOUDFLARED_METRICS_PORT}
+      CLOUDFLARED_TOKEN_FILE: /app/data/token
+    image: ghcr.io/radiokot/umbrel-cloudflared:1.0.2@sha256:9660fb4e90317036d2b418f1c9437cc2cdb7f7bdd8d820084237a0c37bb94f5b
+    networks:
+      appnet:
+        aliases:
+        - cloudflared_web_1
+    restart: on-failure
+    stop_grace_period: 1s
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data

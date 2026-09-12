@@ -1,0 +1,64 @@
+# coder-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  coder:
+    depends_on:
+      coder-database:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_CODER_7080=${SERVICE_URL_CODER_7080}
+    - CODER_PG_CONNECTION_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@coder-database/${POSTGRES_DB:-coder-db}?sslmode=disable
+    - CODER_HTTP_ADDRESS=0.0.0.0:7080
+    - CODER_ACCESS_URL=${SERVICE_URL_CODER}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://localhost:7080
+      timeout: 20s
+    image: ghcr.io/coder/coder:latest
+    networks:
+      appnet:
+        aliases:
+        - coder-coolify_coder_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes: []
+  coder-database:
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-coder-db}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+      POSTGRES_USER: ${SERVICE_USER_POSTGRES}
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U ${POSTGRES_USER:-username} -d ${POSTGRES_DB:-coder}
+      timeout: 5s
+    image: postgres:16.4-alpine
+    networks:
+      appnet:
+        aliases:
+        - coder-coolify_coder-database_1
+    restart: unless-stopped
+    volumes:
+    - coder-postgres-data:/var/lib/postgresql/data
+volumes:
+  coder-postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/coder-postgres-data
+      o: bind
+      type: none

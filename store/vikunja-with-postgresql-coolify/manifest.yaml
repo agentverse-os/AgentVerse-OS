@@ -1,0 +1,75 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/vikunja-with-postgresql-coolify
+description: The open-source, self-hostable to-do app. Organize everything, on all platforms.
+endpoint:
+  port: 3456
+  service: vikunja
+env:
+  POSTGRESQL_DATABASE: ''
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_JWTSECRET:
+    generate: password
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_VIKUNJA: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: vikunja-with-postgresql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRESQL_DATABASE
+  hint: null
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- productivity
+- todo
+title: Vikunja With Postgresql
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://vikunja.io
+  tags:
+  - productivity
+  - todo
+  template: vikunja-with-postgresql.yaml
+website: https://vikunja.io

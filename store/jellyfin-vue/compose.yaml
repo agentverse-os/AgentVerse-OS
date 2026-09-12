@@ -1,0 +1,13 @@
+# jellyfin-vue: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  jellyfin-vue:
+    image: ghcr.io/jellyfin/jellyfin-vue:unstable.2024-10-14.a47a7d5
+    networks:
+      appnet:
+        aliases:
+        - jellyfin-vue_jellyfin-vue_1
+    restart: unless-stopped

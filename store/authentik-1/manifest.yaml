@@ -1,0 +1,62 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/authentik-1
+description: The authentication glue you need.
+endpoint:
+  port: 9000
+  service: authentik-1
+env:
+  AUTHENTIK_DB_PASSWORD:
+    generate: hex64
+  AUTHENTIK_SECRET_KEY:
+    generate: hex64
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: authentik-1
+notes:
+- 'порт 9443:9443/tcp (authentik-1) не публикуется: доступ только через edge/gate'
+- 'authentik-worker: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: AUTHENTIK_DB_PASSWORD
+  hint: null
+  label: AUTHENTIK_DB_PASSWORD
+  options: null
+  required: false
+  type: random
+- env: AUTHENTIK_SECRET_KEY
+  hint: null
+  label: AUTHENTIK_SECRET_KEY
+  options: null
+  required: false
+  type: random
+tags: []
+title: Authentik
+type: app
+upstream:
+  author: goauthentik
+  categories:
+  - development
+  source: https://github.com/goauthentik/authentik
+  tipi_version: 39
+  version: 2026.8.1
+website: https://github.com/goauthentik/authentik

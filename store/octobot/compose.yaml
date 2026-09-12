@@ -1,0 +1,19 @@
+# octobot: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  octobot:
+    environment:
+      TZ: ${TZ}
+    image: drakkarsoftware/octobot:2.1.13
+    networks:
+      appnet:
+        aliases:
+        - octobot_octobot_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/user:/octobot/user
+    - ${APP_DATA_DIR}/data/tentacles:/octobot/tentacles
+    - ${APP_DATA_DIR}/data/logs:/octobot/logs

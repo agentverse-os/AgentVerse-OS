@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/airtrail-umbrel
+description: A modern, open-source personal flight tracking system
+endpoint:
+  port: 3000
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/airtrail/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/airtrail/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/airtrail/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/airtrail/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: airtrail-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: AirTrail
+type: app
+upstream:
+  author: Johan Ohly
+  categories:
+  - files
+  release_notes: |-
+    This update adds individual flight detail panes, altitude-colored uploaded flight tracks, readsb trace JSON and Miles & More importers, improved flight list grouping, custom passenger field enhancements, and better AeroDataBox conflict handling.
+
+    It also automatically migrates existing seat and flight-reason data to the reworked passenger model, tightens AirTrail backup import permissions, fixes a custom airline icon upload path traversal issue, and includes several map, import, and PWA fixes.
+  source: https://github.com/johanohly/AirTrail
+  version: 3.12.0
+  website: https://airtrail.johan.ohly.dk
+website: https://airtrail.johan.ohly.dk

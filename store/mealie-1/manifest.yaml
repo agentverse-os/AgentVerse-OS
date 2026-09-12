@@ -1,0 +1,50 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mealie-1
+description: Mealie is a self-hosted recipe manager and meal planner.
+endpoint:
+  port: 9000
+  service: mealie-1
+env:
+  MEALIE_ALLOW_SIGNUP: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mealie-1
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MEALIE_ALLOW_SIGNUP
+  hint: null
+  label: Allow user registration
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: Mealie
+type: app
+upstream:
+  author: hay-kot
+  categories: []
+  source: https://github.com/hay-kot/mealie
+  tipi_version: 73
+  version: v3.24.0
+website: https://github.com/hay-kot/mealie

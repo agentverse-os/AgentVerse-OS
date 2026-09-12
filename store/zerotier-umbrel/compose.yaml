@@ -1,0 +1,35 @@
+# zerotier-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    depends_on:
+    - zerotier
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      ZT_AUTHTOKEN: ${APP_PASSWORD}
+      ZT_HOST: $GATEWAY_IP
+      ZT_PORT: '9993'
+    image: ghcr.io/andrijdavid/umbrel-zerotier-web:0.1.1@sha256:0177ec5254860e3ad0c59e174034816496bd0a63cda203a2c663f08b3c205063
+    networks:
+      appnet:
+        aliases:
+        - zerotier_web_1
+    restart: on-failure
+  zerotier:
+    cap_add:
+    - NET_ADMIN
+    devices:
+    - /dev/net/tun
+    environment:
+      ZEROTIER_API_SECRET: ${APP_PASSWORD}
+    image: zerotier/zerotier:1.14.2@sha256:575d150a0e09fbee1a7580625b361040a7f78f46cbfbe5016effe812abe202ff
+    network_mode: host
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/var/lib/zerotier-one
+    - ${APP_DATA_DIR}/local.conf:/var/lib/zerotier-one/local.conf:ro

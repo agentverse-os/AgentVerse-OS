@@ -1,0 +1,43 @@
+# mailpit-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  mailpit-inline-1:
+    content: ''
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mailpit:
+    configs:
+    - source: mailpit-inline-1
+      target: /data/htpasswd
+    environment:
+    - SERVICE_URL_MAILPIT_8025=${SERVICE_URL_MAILPIT_8025}
+    - MP_MAX_MESSAGES=5000
+    - MP_DATABASE=/data/mailpit.db
+    - MP_SMTP_AUTH_ACCEPT_ANY=1
+    - MP_SMTP_AUTH_ALLOW_INSECURE=1
+    - MP_UI_AUTH_FILE=/data/htpasswd
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - /mailpit
+      - readyz
+      timeout: 20s
+    image: axllent/mailpit
+    networks:
+      appnet:
+        aliases:
+        - mailpit-coolify_mailpit_1
+    restart: unless-stopped
+    volumes:
+    - mailpit-data:/data
+volumes:
+  mailpit-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mailpit-data
+      o: bind
+      type: none

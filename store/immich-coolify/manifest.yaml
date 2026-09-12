@@ -1,0 +1,103 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/immich-coolify
+description: Self-hosted photo and video management solution.
+endpoint:
+  port: 2283
+  service: immich
+env:
+  DB_DATABASE_NAME: immich
+  DB_STORAGE_TYPE: SSD
+  IMMICH_VERSION: release
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_IMMICH_2283: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: immich-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: IMMICH_VERSION
+  hint: 'по умолчанию: release'
+  label: immich version
+  options: null
+  required: false
+  type: text
+- env: DB_DATABASE_NAME
+  hint: 'по умолчанию: immich'
+  label: db database name
+  options: null
+  required: false
+  type: text
+- env: DB_STORAGE_TYPE
+  hint: 'по умолчанию: SSD'
+  label: db storage type
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- photo
+- video
+- management
+- server
+- cloud
+- storage
+- sharing
+- metadata
+- face
+- recognition
+title: Immich
+type: app
+upstream:
+  categories:
+  - media
+  source: https://immich.app/docs/overview/introduction
+  tags:
+  - photo
+  - video
+  - management
+  - server
+  - cloud
+  - storage
+  - sharing
+  - metadata
+  - face
+  - recognition
+  template: immich.yaml
+website: https://immich.app/docs/overview/introduction

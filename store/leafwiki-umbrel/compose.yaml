@@ -1,0 +1,19 @@
+# leafwiki-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      LEAFWIKI_ADMIN_PASSWORD: ${APP_PASSWORD}
+      LEAFWIKI_ALLOW_INSECURE: 'true'
+      LEAFWIKI_JWT_SECRET: ${APP_SEED}
+    image: ghcr.io/perber/leafwiki:v0.12.1@sha256:2e70745f69a43eb32a74d7962c1334c57ea56f2487fb3a1b8d4c0d0fa6185209
+    networks:
+      appnet:
+        aliases:
+        - leafwiki_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data

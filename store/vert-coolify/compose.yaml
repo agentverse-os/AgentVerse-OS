@@ -1,0 +1,19 @@
+# vert-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  vert:
+    environment:
+    - SERVICE_URL_VERT_80=${SERVICE_URL_VERT_80}
+    - PUB_VERT_URL=${SERVICE_URL_VERT_80}
+    - PUB_HOSTNAME=${SERVICE_URL_VERT_80}
+    - PUB_PORT=80
+    - PUB_ENV=production
+    image: ghcr.io/vert-sh/vert:latest
+    networks:
+      appnet:
+        aliases:
+        - vert-coolify_vert_1
+    restart: unless-stopped

@@ -1,0 +1,25 @@
+# newt-pangolin-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  newt:
+    environment:
+    - PANGOLIN_ENDPOINT=${PANGOLIN_ENDPOINT:-https://pangolin.domain.tld}
+    - NEWT_ID=
+    - NEWT_SECRET=
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - newt
+      - --version
+      timeout: 20s
+    image: fosrl/newt:latest
+    networks:
+      appnet:
+        aliases:
+        - newt-pangolin-coolify_newt_1
+    restart: unless-stopped

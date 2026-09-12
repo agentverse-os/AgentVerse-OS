@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/plex
+description: Stream Movies & TV Shows
+endpoint:
+  port: 32400
+  service: plex
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: plex
+notes:
+- 'plex: network_mode=host из каталога'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Plex
+type: app
+upstream:
+  author: plexinc
+  categories:
+  - media
+  source: https://github.com/plexinc/pms-docker
+  tipi_version: 51
+  version: 1.43.3
+website: https://github.com/plexinc/pms-docker

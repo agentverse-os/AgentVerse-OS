@@ -1,0 +1,73 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/peppermint-coolify
+description: Open source helpdesk solution designed to enhance the user experience for teams currently utilizing costly software alternatives
+endpoint:
+  port: 3000
+  service: peppermint
+env:
+  POSTGRES_DB: peppermint-db
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_PEPPERMINT:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_PEPPERMINT_3000: https://${APP_DOMAIN}
+  SERVICE_URL_PEPPERMINT_5003: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: peppermint-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: peppermint-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- helpdesk
+- open-source
+- peppermint
+- postgres
+title: Peppermint
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.peppermint.sh/
+  tags:
+  - helpdesk
+  - open-source
+  - peppermint
+  - postgres
+  template: peppermint.yaml
+website: https://docs.peppermint.sh/

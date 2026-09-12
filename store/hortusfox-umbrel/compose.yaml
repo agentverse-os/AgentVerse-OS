@@ -1,0 +1,45 @@
+# hortusfox-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+    - db
+    environment:
+      APP_ADMIN_EMAIL: umbrel@umbrel.local
+      APP_ADMIN_PASSWORD: ${APP_PASSWORD}
+      DB_CHARSET: utf8mb4
+      DB_DATABASE: hortusfox
+      DB_HOST: hortusfox_db_1
+      DB_PASSWORD: password
+      DB_PORT: 3306
+      DB_USERNAME: user
+    image: ghcr.io/danielbrendel/hortusfox-web:v5.9@sha256:0941f553d086d66fe6ceb57502917697dff4fcc2b0d6eee7e854e1273b6bf5c2
+    networks:
+      appnet:
+        aliases:
+        - hortusfox_app_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/images:/var/www/html/public/img
+    - ${APP_DATA_DIR}/data/attachments:/var/www/html/public/attachments
+    - ${APP_DATA_DIR}/data/logs:/var/www/html/app/logs
+    - ${APP_DATA_DIR}/data/backup:/var/www/html/public/backup
+    - ${APP_DATA_DIR}/data/themes:/var/www/html/public/themes
+    - ${APP_DATA_DIR}/data/migrate:/var/www/html/app/migrations
+  db:
+    environment:
+      MYSQL_DATABASE: hortusfox
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_USER: user
+    image: mariadb:11.4.7@sha256:c5c82ddc074b9236fda87127934a1da726ecac68e9de083fd0e0d11a7bedc077
+    networks:
+      appnet:
+        aliases:
+        - hortusfox_db_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/db_data:/var/lib/mysql

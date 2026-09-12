@@ -1,0 +1,16 @@
+# kiwix-serve: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  kiwix-serve:
+    command: '*.zim'
+    image: ghcr.io/kiwix/kiwix-serve:3.7.0-2
+    networks:
+      appnet:
+        aliases:
+        - kiwix-serve_kiwix-serve_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/zim:/data

@@ -1,0 +1,16 @@
+# adguardhome-sync: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  adguardhome-sync:
+    command: run --config /config/adguardhome-sync.yaml
+    image: ghcr.io/bakito/adguardhome-sync:v0.9.2
+    networks:
+      appnet:
+        aliases:
+        - adguardhome-sync_adguardhome-sync_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/adguardhome-sync.yaml:/config/adguardhome-sync.yaml

@@ -1,0 +1,144 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/teable-coolify
+description: Teable is a powerful visual interface built on relational databases (PostgreSQL).
+endpoint:
+  port: 3000
+  service: teable
+env:
+  BACKEND_MAIL_AUTH_PASS: ''
+  BACKEND_MAIL_AUTH_USER: ''
+  BACKEND_MAIL_HOST: ''
+  BACKEND_MAIL_PORT: ''
+  BACKEND_MAIL_SECURE: ''
+  BACKEND_MAIL_SENDER: ''
+  BACKEND_MAIL_SENDER_NAME: ''
+  POSTGRES_DB: ''
+  POSTGRES_PORT: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_64_SECRET:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_URL_TEABLE: https://${APP_DOMAIN}
+  SERVICE_URL_TEABLE_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  TIMEZONE: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: teable-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TIMEZONE
+  hint: null
+  label: timezone
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_PORT
+  hint: null
+  label: postgres port
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: BACKEND_MAIL_HOST
+  hint: null
+  label: backend mail host
+  options: null
+  required: false
+  type: text
+- env: BACKEND_MAIL_PORT
+  hint: null
+  label: backend mail port
+  options: null
+  required: false
+  type: text
+- env: BACKEND_MAIL_SECURE
+  hint: null
+  label: backend mail secure
+  options: null
+  required: false
+  type: text
+- env: BACKEND_MAIL_SENDER
+  hint: null
+  label: backend mail sender
+  options: null
+  required: false
+  type: text
+- env: BACKEND_MAIL_SENDER_NAME
+  hint: null
+  label: backend mail sender name
+  options: null
+  required: false
+  type: text
+- env: BACKEND_MAIL_AUTH_USER
+  hint: null
+  label: backend mail auth user
+  options: null
+  required: false
+  type: text
+- env: BACKEND_MAIL_AUTH_PASS
+  hint: null
+  label: backend mail auth pass
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- airtable
+- teable
+- database
+- visual
+- interface
+- relational
+- postgresql
+title: Teable
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://help.teable.io/
+  tags:
+  - airtable
+  - teable
+  - database
+  - visual
+  - interface
+  - relational
+  - postgresql
+  template: teable.yaml
+website: https://help.teable.io/

@@ -1,0 +1,50 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/it-tools-coolify
+description: IT Tools is a self-hosted solution for managing various IT tasks.
+endpoint:
+  port: 80
+  service: it-tools
+env:
+  SERVICE_URL_ITTOOLS_80: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: it-tools-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- it-tools
+- management
+- self-hosted
+title: It Tools
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://github.com/corentinth/it-tools
+  tags:
+  - it-tools
+  - management
+  - self-hosted
+  template: it-tools.yaml
+website: https://github.com/corentinth/it-tools

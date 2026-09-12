@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/back-that-mac-up-umbrel
+description: Backup your Mac to your Umbrel using Time Machine
+endpoint:
+  port: 80
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/back-that-mac-up/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/back-that-mac-up/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/back-that-mac-up/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/back-that-mac-up/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: back-that-mac-up-umbrel
+notes:
+- 'порт 137:137/udp (timemachine) не публикуется: доступ только через edge/gate'
+- 'порт 138:138/udp (timemachine) не публикуется: доступ только через edge/gate'
+- 'порт 139:139 (timemachine) не публикуется: доступ только через edge/gate'
+- 'порт 445:445 (timemachine) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Back That Mac Up
+type: app
+upstream:
+  author: Umbrel
+  categories:
+  - files
+  release_notes: |-
+    🎉 Widgets are here for umbrelOS 1.0.
+
+    This update brings a new widget for Back That Mac Up, allowing you to see your Time Machine usage at a glance right from your Umbrel's home screen.
+
+    After updating to umbrelOS 1.0, you can add widgets by right-clicking on the home screen and selecting "Edit widgets", or by clicking on Widgets in the Dock.
+  source: https://github.com/getumbrel/umbrel-back-that-mac-up
+  version: 1.1.0
+  website: https://umbrel.com
+website: https://umbrel.com

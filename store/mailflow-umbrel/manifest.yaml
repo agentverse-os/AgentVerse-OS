@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mailflow-umbrel
+description: Unified self-hosted webmail client
+endpoint:
+  port: 80
+  service: frontend
+env:
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/mailflow/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/mailflow/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/mailflow/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/mailflow/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mailflow-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: MailFlow
+type: app
+upstream:
+  author: maathimself
+  categories:
+  - networking
+  release_notes: |-
+    Mailbox Cleanup can now archive selected sender mail instead of only moving it to Trash, and GTD classification actions can be safely undone from the context menu or with Ctrl/Cmd+Z.
+
+    This update also adds a sanitized diagnostics report in Settings > About, makes AI summaries follow the interface language, adds the full per-message menu on mobile, and adds Czech translation support.
+
+    Fixes improve AI provider testing with reasoning models, sidebar folder nesting, context-menu positioning, bulk-move picker positioning, and repeated email-link clicks.
+  source: https://github.com/maathimself/mailflow
+  version: 3.3.0
+  website: https://mailflow.sh
+website: https://mailflow.sh

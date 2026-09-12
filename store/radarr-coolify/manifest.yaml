@@ -1,0 +1,51 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/radarr-coolify
+description: Radarr⁠ - A fork of Sonarr to work with movies à la Couchpotato.
+endpoint:
+  port: 7878
+  service: radarr
+env:
+  SERVICE_URL_RADARR: https://${APP_DOMAIN}
+  SERVICE_URL_RADARR_7878: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: radarr-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- media
+- server
+- movies
+title: Radarr
+type: app
+upstream:
+  categories:
+  - media
+  source: https://hub.docker.com/r/linuxserver/radarr
+  tags:
+  - media
+  - server
+  - movies
+  template: radarr.yaml
+website: https://hub.docker.com/r/linuxserver/radarr

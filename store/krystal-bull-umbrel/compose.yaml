@@ -1,0 +1,48 @@
+# krystal-bull-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  oracleserver:
+    entrypoint:
+    - /opt/docker/bin/bitcoin-s-oracle-server
+    - --datadir
+    - /bitcoin-s
+    - --conf
+    - /opt/docker/docker-application.conf
+    environment:
+      BITCOIN_S_KEYMANAGER_ENTROPY: $APP_SEED
+      BITCOIN_S_ORACLE_RPC_PASSWORD: $APP_PASSWORD
+      DISABLE_JLINK: '1'
+      JAVA_OPTS: -Xmx256m
+    image: bitcoinscala/bitcoin-s-oracle-server:1.9.7@sha256:a7f5dd31bc5afa2a075563433862851d5bea8f894c1634a56426c34648001308
+    networks:
+      appnet:
+        aliases:
+        - krystal-bull_oracleserver_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/oracleserver:/bitcoin-s
+  web:
+    depends_on:
+    - oracleserver
+    environment:
+      BITCOIN_S_HOME: /bitcoin-s/
+      BITCOIN_S_ORACLE_RPC_PASSWORD: $APP_PASSWORD
+      DEFAULT_UI_PASSWORD: none
+      LOG_PATH: /log/
+      ORACLE_SERVER_API_URL: http://krystal-bull_oracleserver_1:9998/
+      TOR_PROXY: socks5://${TOR_PROXY_IP}:${TOR_PROXY_PORT}
+    image: bitcoinscala/oracle-server-ui:1.9.7@sha256:883df7037be517b4dc8155a1bfcd4101b7e47f7825367f53f3ac2bf15ffdc15e
+    networks:
+      appnet:
+        aliases:
+        - krystal-bull_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/oracleserver:/bitcoin-s
+    - ${APP_DATA_DIR}/data/log:/log

@@ -1,0 +1,106 @@
+# nextcloud-with-mariadb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nextcloud:
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_NEXTCLOUD_80=${SERVICE_URL_NEXTCLOUD_80}
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-Europe/Paris}
+    - MYSQL_DATABASE=${MARIADB_DATABASE:-nextcloud}
+    - MYSQL_USER=${SERVICE_USER_MARIADB}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MARIADB}
+    - MYSQL_HOST=nextcloud-db
+    - REDIS_HOST=redis
+    - REDIS_PORT=6379
+    healthcheck:
+      interval: 30s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80/status.php
+      timeout: 10s
+    image: lscr.io/linuxserver/nextcloud:latest
+    networks:
+      appnet:
+        aliases:
+        - nextcloud-with-mariadb-coolify_nextcloud_1
+    restart: unless-stopped
+    volumes:
+    - nextcloud-config:/config
+    - nextcloud-data:/data
+  nextcloud-db:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+    - MYSQL_DATABASE=${MARIADB_DATABASE:-nextcloud}
+    - MYSQL_USER=${SERVICE_USER_MARIADB}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MARIADB}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 20s
+    image: mariadb:11
+    networks:
+      appnet:
+        aliases:
+        - nextcloud-with-mariadb-coolify_nextcloud-db_1
+    restart: unless-stopped
+    volumes:
+    - nextcloud-mariadb-data:/var/lib/mysql
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test:
+      - CMD
+      - redis-cli
+      - PING
+      timeout: 10s
+    image: redis:7.4-alpine
+    networks:
+      appnet:
+        aliases:
+        - nextcloud-with-mariadb-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - nextcloud-redis-data:/data
+volumes:
+  nextcloud-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nextcloud-config
+      o: bind
+      type: none
+  nextcloud-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nextcloud-data
+      o: bind
+      type: none
+  nextcloud-mariadb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nextcloud-mariadb-data
+      o: bind
+      type: none
+  nextcloud-redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nextcloud-redis-data
+      o: bind
+      type: none

@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/duplicati-coolify
+description: Duplicati is a backup solution, allowing you to make scheduled backups with encryption.
+endpoint:
+  port: 8200
+  service: duplicati
+env:
+  SERVICE_PASSWORD_ENCRYPT:
+    generate: password
+  SERVICE_PASSWORD_WEB:
+    generate: password
+  SERVICE_URL_DUPLICATI_8200: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_WEB
+  path: null
+  user: null
+name: duplicati-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- backup
+- encryption
+title: Duplicati
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://duplicati.readthedocs.io
+  tags:
+  - backup
+  - encryption
+  template: duplicati.yaml
+website: https://duplicati.readthedocs.io

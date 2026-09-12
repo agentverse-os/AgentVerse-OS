@@ -1,0 +1,34 @@
+# statusnook-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  statusnook:
+    environment:
+    - SERVICE_URL_STATUSNOOK_8000=${SERVICE_URL_STATUSNOOK_8000}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:8000
+      timeout: 10s
+    image: goksan/statusnook
+    networks:
+      appnet:
+        aliases:
+        - statusnook-coolify_statusnook_1
+    restart: unless-stopped
+    volumes:
+    - statusnook-data:/app/statusnook-data
+volumes:
+  statusnook-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/statusnook-data
+      o: bind
+      type: none

@@ -1,0 +1,11 @@
+A privacy-focused, local-first, open-source, and ready-to-use alternative for Notion & Miro. One hyper-fused platform for wildly creative minds.
+
+To Shape, not to adapt. Tools can impact your lifestyle. AFFiNE is built for individual & teams who care their data, who refuse vendor lock-in, and who want to have control over their essential tools.
+
+🛠️ SET-UP INSTRUCTIONS
+In order to save your data, you need to sign in to your self-hosted Affine instance:
+
+1. When you first open Affine, it will walk you through setting up an admin account.
+2. After setting up your admin account, close the browser window and open up the Affine app again from the umbrelOS homescreen.
+3. In the Affine app select the Demo Workspace from the sidebar and then select "Create cloud workspace"
+4. Follow the steps to create your self-hosted cloud workspace. You are now ready to use Affine with your self-hosted instance!

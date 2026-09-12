@@ -1,0 +1,25 @@
+# bento-pdf-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  bento-pdf:
+    environment:
+    - SERVICE_URL_BENTOPDF_8080=${SERVICE_URL_BENTOPDF_8080}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:8080
+      timeout: 20s
+    image: ghcr.io/alam00000/bentopdf:v1.16.1
+    networks:
+      appnet:
+        aliases:
+        - bento-pdf-coolify_bento-pdf_1
+    restart: unless-stopped

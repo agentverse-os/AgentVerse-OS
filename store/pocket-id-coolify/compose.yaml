@@ -1,0 +1,48 @@
+# pocket-id-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  pocket-id:
+    environment:
+    - SERVICE_URL_POCKETID_1411=${SERVICE_URL_POCKETID_1411}
+    - APP_URL=${SERVICE_URL_POCKETID}
+    - TRUST_PROXY=${TRUST_PROXY:-true}
+    - MAXMIND_LICENSE_KEY=${MAXMIND_LICENSE_KEY}
+    - SMTP_HOST=${SMTP_HOST}
+    - SMTP_PORT=${SMTP_PORT:-587}
+    - SMTP_FROM=${SMTP_FROM}
+    - SMTP_USER=${SMTP_USER}
+    - SMTP_PASSWORD=${SMTP_PASSWORD}
+    - SMTP_TLS=${SMTP_TLS:-starttls}
+    - SMTP_SKIP_CERT_VERIFY=${SMTP_SKIP_CERT_VERIFY:-false}
+    - EMAIL_LOGIN_NOTIFICATION_ENABLED=${EMAIL_LOGIN_NOTIFICATION_ENABLED:-false}
+    - EMAIL_ONE_TIME_ACCESS_AS_ADMIN_ENABLED=${EMAIL_ONE_TIME_ACCESS_AS_ADMIN_ENABLED:-false}
+    - EMAIL_API_KEY_EXPIRATION_ENABLED=${EMAIL_API_KEY_EXPIRATION_ENABLED:-false}
+    - PUID=${PUID:-1000}
+    - PGID=${PGID:-1000}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - /app/pocket-id
+      - healthcheck
+      timeout: 5s
+    image: ghcr.io/pocket-id/pocket-id:v1.13
+    networks:
+      appnet:
+        aliases:
+        - pocket-id-coolify_pocket-id_1
+    restart: unless-stopped
+    volumes:
+    - pocket-id-data:/app/data
+volumes:
+  pocket-id-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pocket-id-data
+      o: bind
+      type: none

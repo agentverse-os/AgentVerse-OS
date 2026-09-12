@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/immich-umbrel
+description: High-performance photo and video backup solution
+endpoint:
+  port: 2283
+  service: server
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/immich/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/immich/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/immich/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/immich/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: immich-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Immich
+type: app
+upstream:
+  author: Alex Tran
+  categories:
+  - files
+  release_notes: |-
+    ⚠️ Immich v3 includes breaking API changes, mostly affecting third-party tools that integrate with Immich. If you're updating from a pre-v3 version, check that your mobile app and any Immich integrations are compatible with this release.
+
+    This release adds web upload wakelock support, undo for archive actions, workflow filters for server file paths and EXIF metadata, and quicker navigation to the maintenance page. It also improves OIDC role-claim syncing, adds an option to invalidate sessions when resetting the admin password, and fixes many web, mobile, upload, and media-viewer issues.
+
+    Note: the new web upload wakelock feature requires HTTPS, and the Immich mobile app no longer supports iOS 14.
+
+    Full release notes can be found at https://github.com/immich-app/immich/releases/tag/v3.1.0
+  source: https://github.com/immich-app/immich
+  version: v3.1.0
+  website: https://www.immich.app
+website: https://www.immich.app

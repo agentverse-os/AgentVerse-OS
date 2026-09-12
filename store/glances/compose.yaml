@@ -1,0 +1,22 @@
+# glances: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  glances:
+    environment:
+      DOCKER_HOST: tcp://cloudos-docker-ro:2375
+      GLANCES_OPT: -w
+      TZ: ${TZ}
+    image: nicolargo/glances:4.5.3.2-full
+    networks:
+      appnet:
+        aliases:
+        - glances_glances_1
+      dockerro: {}
+    pid: host
+    restart: unless-stopped

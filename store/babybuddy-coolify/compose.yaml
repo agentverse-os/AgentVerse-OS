@@ -1,0 +1,37 @@
+# babybuddy-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  babybuddy:
+    environment:
+    - SERVICE_URL_BABYBUDDY=${SERVICE_URL_BABYBUDDY}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    - CSRF_TRUSTED_ORIGINS=$SERVICE_URL_BABYBUDDY
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8000
+      timeout: 10s
+    image: lscr.io/linuxserver/babybuddy:latest
+    networks:
+      appnet:
+        aliases:
+        - babybuddy-coolify_babybuddy_1
+    restart: unless-stopped
+    volumes:
+    - babybuddy-config:/config
+volumes:
+  babybuddy-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/babybuddy-config
+      o: bind
+      type: none

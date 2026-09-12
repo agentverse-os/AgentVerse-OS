@@ -1,0 +1,42 @@
+# hermitstash-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    cap_drop:
+    - ALL
+    environment:
+      EMAIL_VERIFICATION: 'false'
+      NODE_ENV: production
+      RP_ORIGIN: http://${DEVICE_DOMAIN_NAME}:3081
+      TRUST_PROXY: 10.21.0.0/16
+      TZ: Etc/UTC
+      UMASK: '022'
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 30s
+      test:
+      - CMD
+      - node
+      - -e
+      - require('http').get('http://localhost:3000/health',function(r){process.exit(r.statusCode===200?0:1)}).on('error',function(){process.exit(1)})
+      timeout: 5s
+    image: ghcr.io/dotcoocoo/hermitstash:1.15.3@sha256:9069415e620760d860275f25b6e2ac0069a624a7552119df0dfd8d33faae0dcd
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - hermitstash_web_1
+    restart: on-failure
+    security_opt:
+    - no-new-privileges:true
+    shm_size: 256m
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/app/data
+    - ${APP_DATA_DIR}/data/uploads:/app/uploads
+    - ${APP_DATA_DIR}/data/custom:/app/public/img/custom

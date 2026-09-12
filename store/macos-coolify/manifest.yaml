@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/macos-coolify
+description: Run macOS in a containerized environment.
+endpoint:
+  port: 8006
+  service: macos
+env:
+  SERVICE_URL_MACOS_8006: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: macos-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- macos
+- virtualization
+- container
+- os
+title: Macos
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/dockur/macos
+  tags:
+  - macos
+  - virtualization
+  - container
+  - os
+  template: macos.yaml
+website: https://github.com/dockur/macos

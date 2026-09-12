@@ -1,0 +1,16 @@
+# flaresolverr: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  flaresolverr:
+    environment:
+      LOG_LEVEL: ${FLARESOLVERR_LOG_LEVEL-info}
+      TZ: ${TZ}
+    image: ghcr.io/flaresolverr/flaresolverr:v3.5.0
+    networks:
+      appnet:
+        aliases:
+        - flaresolverr_flaresolverr_1
+    restart: unless-stopped

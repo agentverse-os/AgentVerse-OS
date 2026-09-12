@@ -1,0 +1,35 @@
+# wekan: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  wekan:
+    depends_on:
+    - wekan-db
+    environment:
+      MAIL_FROM: Wekan Notifications <noreply.wekan@${APP_DOMAIN}>
+      MAIL_URL: smtp://${MAIL_ADDRESS}:${MAIL_PASSWORD}@smtp.gmail.com:587
+      MONGO_URL: mongodb://wekan-db:27017/wekan
+      ROOT_URL: https://${APP_DOMAIN}
+    image: ghcr.io/wekan/wekan:v11.16
+    networks:
+      appnet:
+        aliases:
+        - wekan_wekan_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${APP_DATA_DIR}/data/wekan:/data
+  wekan-db:
+    command: mongod --logpath /dev/null --oplogSize 128 --quiet
+    image: mongo:6
+    networks:
+      appnet:
+        aliases:
+        - wekan_wekan-db_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${APP_DATA_DIR}/data/mongo:/data/db
+    - ${APP_DATA_DIR}/data/dump:/dump

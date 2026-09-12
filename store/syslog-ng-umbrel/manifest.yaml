@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/syslog-ng-umbrel
+description: Centralized syslog server with real-time web UI
+endpoint:
+  port: 8080
+  service: web
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/syslog-ng/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/syslog-ng/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/syslog-ng/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/syslog-ng/4.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/syslog-ng/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: null
+name: syslog-ng-umbrel
+notes:
+- 'порт 514:5514/udp (syslog) не публикуется: доступ только через edge/gate'
+- 'порт 601:6601/tcp (syslog) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Syslog-ng
+type: app
+upstream:
+  author: syslog-ng team
+  categories:
+  - networking
+  release_notes: Fixed an issue where the web log viewer could show 0 logs on fresh installs until the app was restarted.
+  source: https://github.com/syslog-ng/syslog-ng
+  version: 4.10.2-1
+  website: https://www.syslog-ng.com/
+website: https://www.syslog-ng.com/

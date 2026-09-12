@@ -1,0 +1,176 @@
+# swetrix-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  clickhouse-inline-1:
+    content: |
+      <clickhouse>
+        <profiles>
+          <default>
+            <log_queries>0</log_queries>
+            <log_query_threads>0</log_query_threads>
+          </default>
+        </profiles>
+      </clickhouse>
+  clickhouse-inline-2:
+    content: |
+      <clickhouse>
+        <logger>
+          <level>warning</level>
+          <console>true</console>
+        </logger>
+        <query_thread_log remove="remove"/>
+        <query_log remove="remove"/>
+        <text_log remove="remove"/>
+        <trace_log remove="remove"/>
+        <metric_log remove="remove"/>
+        <asynchronous_metric_log remove="remove"/>
+        <session_log remove="remove"/>
+        <part_log remove="remove"/>
+      </clickhouse>
+  clickhouse-inline-3:
+    content: |
+      <clickhouse>
+        <mark_cache_size>536870912</mark_cache_size>
+        <concurrent_threads_soft_limit_num>1</concurrent_threads_soft_limit_num>
+      </clickhouse>
+  clickhouse-inline-4:
+    content: |
+      <clickhouse>
+        <profiles>
+          <default>
+            <max_block_size>2048</max_block_size>
+            <max_download_threads>1</max_download_threads>
+            <input_format_parallel_parsing>0</input_format_parallel_parsing>
+            <output_format_parallel_formatting>0</output_format_parallel_formatting>
+          </default>
+        </profiles>
+      </clickhouse>
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  clickhouse:
+    cap_add:
+    - SYS_NICE
+    configs:
+    - source: clickhouse-inline-1
+      target: /etc/clickhouse-server/users.d/disable-user-logging.xml
+    - source: clickhouse-inline-2
+      target: /etc/clickhouse-server/config.d/reduce-logs.xml
+    - source: clickhouse-inline-3
+      target: /etc/clickhouse-server/config.d/preserve-ram-config.xml
+    - source: clickhouse-inline-4
+      target: /etc/clickhouse-server/users.d/preserve-ram-user.xml
+    environment:
+    - CLICKHOUSE_DATABASE=${CLICKHOUSE_DATABASE:-analytics}
+    - CLICKHOUSE_USER=${CLICKHOUSE_USER:-default}
+    - CLICKHOUSE_PORT=${CLICKHOUSE_PORT:-8123}
+    - CLICKHOUSE_PASSWORD=$SERVICE_PASSWORD_CLICKHOUSE
+    healthcheck:
+      interval: 30s
+      retries: 10
+      start_period: 1m
+      test:
+      - CMD-SHELL
+      - wget --no-verbose --tries=1 -O - http://127.0.0.1:8123/ping || exit 1
+      timeout: 5s
+    image: clickhouse/clickhouse-server:24.10-alpine
+    networks:
+      appnet:
+        aliases:
+        - swetrix-coolify_clickhouse_1
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        hard: 262144
+        soft: 262144
+    volumes:
+    - swetrix-events-data:/var/lib/clickhouse
+  redis:
+    environment:
+    - REDIS_PORT=${REDIS_PORT:-6379}
+    - REDIS_USER=${REDIS_USER:-default}
+    - REDIS_PASSWORD=$SERVICE_PASSWORD_REDIS
+    healthcheck:
+      interval: 30s
+      retries: 10
+      start_period: 1m
+      test:
+      - CMD-SHELL
+      - redis-cli ping | grep PONG
+      timeout: 5s
+    image: redis:8.2-alpine
+    networks:
+      appnet:
+        aliases:
+        - swetrix-coolify_redis_1
+    restart: unless-stopped
+  swetrix:
+    depends_on:
+    - swetrix-api
+    environment:
+    - SERVICE_URL_SWETRIX_3000=${SERVICE_URL_SWETRIX_3000}
+    - API_URL=$SERVICE_URL_SWETRIXAPI
+    healthcheck:
+      interval: 30s
+      retries: 10
+      start_period: 15s
+      test:
+      - CMD-SHELL
+      - wget --no-verbose --tries=1 --spider http://localhost:3000/ping || exit 1
+      timeout: 5s
+    image: swetrix/swetrix-fe:v4.0.5
+    networks:
+      appnet:
+        aliases:
+        - swetrix-coolify_swetrix_1
+    restart: unless-stopped
+  swetrix-api:
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SECRET_KEY_BASE=$SERVICE_BASE64_64_SECRETKEYBASE
+    - SERVICE_URL_SWETRIXAPI=${SERVICE_URL_SWETRIXAPI}
+    - DISABLE_REGISTRATION=${DISABLE_REGISTRATION:-false}
+    - IP_GEOLOCATION_DB_PATH=${IP_GEOLOCATION_DB_PATH:-}
+    - DEBUG_MODE=${DEBUG_MODE:-false}
+    - CLOUDFLARE_PROXY_ENABLED=${CLOUDFLARE_PROXY_ENABLED:-false}
+    - SMTP_HOST=${SMTP_HOST:-}
+    - SMTP_PORT=${SMTP_PORT:-}
+    - SMTP_USER=${SMTP_USER:-}
+    - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+    - FROM_EMAIL=${FROM_EMAIL:-}
+    - SMTP_MOCK=${SMTP_MOCK:-false}
+    - OIDC_ENABLED=${OIDC_ENABLED:-false}
+    - OIDC_ONLY_AUTH=${OIDC_ONLY_AUTH:-false}
+    - OIDC_DISCOVERY_URL=${OIDC_DISCOVERY_URL:-}
+    - OIDC_CLIENT_ID=${OIDC_CLIENT_ID:-}
+    - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET:-}
+    - REDIS_HOST=redis
+    - CLICKHOUSE_HOST=http://clickhouse
+    - CLICKHOUSE_PASSWORD=$SERVICE_PASSWORD_CLICKHOUSE
+    - REDIS_PASSWORD=$SERVICE_PASSWORD_REDIS
+    healthcheck:
+      interval: 30s
+      retries: 10
+      start_period: 15s
+      test:
+      - CMD-SHELL
+      - wget --no-verbose --tries=1 --spider http://localhost:5005/ping || exit 1
+      timeout: 5s
+    image: swetrix/swetrix-api:v4.0.5
+    networks:
+      appnet:
+        aliases:
+        - swetrix-coolify_swetrix-api_1
+    restart: unless-stopped
+volumes:
+  swetrix-events-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/swetrix-events-data
+      o: bind
+      type: none

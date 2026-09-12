@@ -1,0 +1,130 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bitcoind
+description: Bitcoin core node
+endpoint:
+  port: 8333
+  service: bitcoind
+env:
+  BITCOIND_BLOCK_FILTER: ''
+  BITCOIND_BLOOM_FILTERS: ''
+  BITCOIND_DB_CACHE: ''
+  BITCOIND_LISTEN: ''
+  BITCOIND_MAXPEERS: ''
+  BITCOIND_MAX_MEMPOOL: ''
+  BITCOIND_PRUNING: ''
+  BITCOIND_SERVER: ''
+  BITCOIND_TXINDEX: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bitcoind
+notes:
+- 'порт 8332→8332 (bitcoind) не публикуется: доступ только через edge/gate'
+- 'порт 28332→28332 (bitcoind) не публикуется: доступ только через edge/gate'
+- 'порт 28333→28333 (bitcoind) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: BITCOIND_PRUNING
+  hint: 'default: 0 = disable pruning blocks, 1 = allow manual pruning via RPC, >=550 = automatically prune block files to stay under the specified target size in MiB'
+  label: Reduce storage requirements by enabling pruning (deleting) of old blocks
+  options: null
+  required: false
+  type: number
+- env: BITCOIND_DB_CACHE
+  hint: Set database cache size in megabytes; machines sync faster with a larger cache. Recommend setting as high as possible based upon machine's available RAM. Default 450 Mb.
+  label: DB Cache Size (In mb)
+  options: null
+  required: false
+  type: number
+- env: BITCOIND_MAX_MEMPOOL
+  hint: Keep the transaction memory pool below <n> megabytes. Default 300 Mb.
+  label: Max Mempool Size (In mb)
+  options: null
+  required: false
+  type: number
+- env: BITCOIND_LISTEN
+  hint: Accept incoming connections from peers.
+  label: Listen for Incoming Connections
+  options:
+  - label: Yes
+    value: '1'
+  - label: No
+    value: '0'
+  required: false
+  type: text
+- env: BITCOIND_SERVER
+  hint: Allows you to use bitcoin-cli to communicate with the node
+  label: Accept JSON-RPC requests
+  options:
+  - label: Yes
+    value: '1'
+  - label: No
+    value: '0'
+  required: false
+  type: text
+- env: BITCOIND_MAXPEERS
+  hint: Maintain at most N connections to peers. Leave empty for default 125.
+  label: Max Peer Connections
+  options: null
+  required: false
+  type: number
+- env: BITCOIND_TXINDEX
+  hint: Enabled by default
+  label: Enable txindex
+  options:
+  - label: Yes
+    value: '1'
+  - label: No
+    value: '0'
+  required: false
+  type: text
+- env: BITCOIND_BLOOM_FILTERS
+  hint: Enabled by default
+  label: Enable peer bloom filters
+  options:
+  - label: Yes
+    value: '1'
+  - label: No
+    value: '0'
+  required: false
+  type: text
+- env: BITCOIND_BLOCK_FILTER
+  hint: Enabled by default
+  label: Enable block filter index
+  options:
+  - label: Yes
+    value: '1'
+  - label: No
+    value: '0'
+  required: false
+  type: text
+tags: []
+title: Bitcoin
+type: app
+upstream:
+  author: Bitcoin developers
+  categories:
+  - finance
+  source: https://github.com/lncm/docker-bitcoind
+  tipi_version: 11
+  version: '28.0'
+website: https://github.com/lncm/docker-bitcoind

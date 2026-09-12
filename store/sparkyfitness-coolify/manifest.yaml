@@ -1,0 +1,192 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sparkyfitness-coolify
+description: SparkyFitness is a comprehensive fitness tracking and management application designed to help users monitor their nutrition, exercise, and body measurements. It provides tools for daily progress tracking, goal setting, and insightful reports to support a healthy lifestyle.
+endpoint:
+  port: 80
+  service: sparkyfitness-db
+env:
+  ALLOW_PRIVATE_NETWORK_CORS: 'false'
+  NODE_ENV: production
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_64_APPDBPASSWORD:
+    generate: hex64
+  SERVICE_PASSWORD_64_BETTERAUTHSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_64_SERVERAPIENCRYPTIONKEY:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_SPARKYFITNESS_80: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SPARKY_FITNESS_ADMIN_EMAIL: admin@example.com
+  SPARKY_FITNESS_APP_DB_USER: sparkyapp
+  SPARKY_FITNESS_DB_NAME: sparkyfitness
+  SPARKY_FITNESS_DB_PORT: '5432'
+  SPARKY_FITNESS_DISABLE_SIGNUP: 'false'
+  SPARKY_FITNESS_EMAIL_FROM: '"Sparky Fitness <noreply@sparkyfitness.com>"'
+  SPARKY_FITNESS_EMAIL_HOST: smtp.gmail.com
+  SPARKY_FITNESS_EMAIL_PASS: ''
+  SPARKY_FITNESS_EMAIL_PORT: '587'
+  SPARKY_FITNESS_EMAIL_SECURE: 'false'
+  SPARKY_FITNESS_EMAIL_USER: ''
+  SPARKY_FITNESS_EXTRA_TRUSTED_ORIGINS: ''
+  SPARKY_FITNESS_FORCE_EMAIL_LOGIN: 'true'
+  SPARKY_FITNESS_LOG_LEVEL: info
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_64_APPDBPASSWORD
+  path: null
+  user: SPARKY_FITNESS_APP_DB_USER
+name: sparkyfitness-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SPARKY_FITNESS_LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: sparky fitness log level
+  options: null
+  required: false
+  type: text
+- env: NODE_ENV
+  hint: 'по умолчанию: production'
+  label: node env
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_DB_NAME
+  hint: 'по умолчанию: sparkyfitness'
+  label: sparky fitness db name
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_DB_PORT
+  hint: 'по умолчанию: 5432'
+  label: sparky fitness db port
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_APP_DB_USER
+  hint: 'по умолчанию: sparkyapp'
+  label: sparky fitness app db user
+  options: null
+  required: false
+  type: text
+- env: ALLOW_PRIVATE_NETWORK_CORS
+  hint: 'по умолчанию: false'
+  label: allow private network cors
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_EXTRA_TRUSTED_ORIGINS
+  hint: null
+  label: sparky fitness extra trusted origins
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_DISABLE_SIGNUP
+  hint: 'по умолчанию: false'
+  label: sparky fitness disable signup
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_FORCE_EMAIL_LOGIN
+  hint: 'по умолчанию: true'
+  label: sparky fitness force email login
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: sparky fitness admin email
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_EMAIL_HOST
+  hint: 'по умолчанию: smtp.gmail.com'
+  label: sparky fitness email host
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_EMAIL_PORT
+  hint: 'по умолчанию: 587'
+  label: sparky fitness email port
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_EMAIL_SECURE
+  hint: 'по умолчанию: false'
+  label: sparky fitness email secure
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_EMAIL_USER
+  hint: null
+  label: sparky fitness email user
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_EMAIL_PASS
+  hint: null
+  label: sparky fitness email pass
+  options: null
+  required: false
+  type: text
+- env: SPARKY_FITNESS_EMAIL_FROM
+  hint: 'по умолчанию: "Sparky Fitness <noreply@sparkyfitness.com>"'
+  label: sparky fitness email from
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- sparkyfitness
+- fitness
+- health
+- nutrition
+- exercise
+- body measurements
+title: Sparkyfitness
+type: app
+upstream:
+  categories:
+  - health
+  source: https://codewithcj.github.io/SparkyFitness/
+  tags:
+  - sparkyfitness
+  - fitness
+  - health
+  - nutrition
+  - exercise
+  - body measurements
+  template: sparkyfitness.yaml
+website: https://codewithcj.github.io/SparkyFitness/

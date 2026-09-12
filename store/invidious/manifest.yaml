@@ -1,0 +1,82 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/invidious
+description: An alternative front-end to YouTube
+endpoint:
+  port: 3000
+  service: invidious
+env:
+  INVIDIOUS_COMPANION_KEY:
+    generate: token
+  INVIDIOUS_DOMAIN: ''
+  INVIDIOUS_EXTERNAL_PORT: ''
+  INVIDIOUS_HMAC_KEY:
+    generate: token
+  INVIDIOUS_HTTPS_ONLY: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: invidious
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: INVIDIOUS_HMAC_KEY
+  hint: null
+  label: HMAC key
+  options: null
+  required: false
+  type: random
+- env: INVIDIOUS_COMPANION_KEY
+  hint: null
+  label: Companion key
+  options: null
+  required: false
+  type: random
+- env: INVIDIOUS_DOMAIN
+  hint: The domain or IP you use to access the instance
+  label: Domain
+  options: null
+  required: false
+  type: fqdnip
+- env: INVIDIOUS_EXTERNAL_PORT
+  hint: External port for access from proxy (default 8095)
+  label: External port
+  options: null
+  required: false
+  type: number
+- env: INVIDIOUS_HTTPS_ONLY
+  hint: Force access from HTTPS only
+  label: https only
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: Invidious
+type: app
+upstream:
+  author: iv-org
+  categories:
+  - media
+  - social
+  source: https://github.com/iv-org/invidious
+  tipi_version: 21
+  version: master
+website: https://github.com/iv-org/invidious

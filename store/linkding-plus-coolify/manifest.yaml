@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/linkding-plus-coolify
+description: A self-hosted bookmark manager designed to be minimal, fast, and easy to set up. (Includes feature for archiving websites as HTML snapshots)
+endpoint:
+  port: 9090
+  service: linkding-plus
+env:
+  SERVICE_PASSWORD_LINKDING:
+    generate: password
+  SERVICE_URL_LINKDING_9090: https://${APP_DOMAIN}
+  SERVICE_USER_LINKDING:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_LINKDING
+  path: null
+  user: SERVICE_USER_LINKDING
+name: linkding-plus-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- rss
+- feed
+title: Linkding Plus
+type: app
+upstream:
+  categories:
+  - RSS
+  source: https://linkding.link/
+  tags:
+  - rss
+  - feed
+  template: linkding-plus.yaml
+website: https://linkding.link/

@@ -1,0 +1,69 @@
+# docker-registry-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  registry-inline-1:
+    content: "#!/usr/bin/env sh\nset -e \n\nif [ -z \"$USERNAME\" ] || [ -z \"$PASSWORD\" ]; then\n    echo \"Error: USERNAME and PASSWORD environment variables must be set\"\n    exit 1\nfi\n\napk add --no-cache apache2-utils\nmkdir -p \"$(dirname \"$REGISTRY_AUTH_HTPASSWD_PATH\")\"\nchmod 755 \"$(dirname \"$REGISTRY_AUTH_HTPASSWD_PATH\")\"\nhtpasswd -Bbc \"$REGISTRY_AUTH_HTPASSWD_PATH\" \"$USERNAME\" \"$PASSWORD\"\nregistry serve /etc/docker/registry/config.yml\n"
+  registry-inline-2:
+    content: |-
+      version: 0.1
+      log:
+        fields:
+          service: registry
+      storage:
+        cache:
+          blobdescriptor: inmemory
+        filesystem:
+          rootdirectory: /var/lib/registry
+      http:
+        addr: :5000
+        headers:
+          X-Content-Type-Options: [nosniff]
+      health:
+        storagedriver:
+          enabled: true
+          interval: 10s
+          threshold: 3
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  registry:
+    command:
+    - /entrypoint.sh
+    configs:
+    - source: registry-inline-1
+      target: /entrypoint.sh
+    - source: registry-inline-2
+      target: /etc/docker/registry/config.yml
+    environment:
+    - SERVICE_URL_REGISTRY_5000=${SERVICE_URL_REGISTRY_5000}
+    - USERNAME=${SERVICE_USER_REGISTRY}
+    - PASSWORD=${SERVICE_PASSWORD_REGISTRY}
+    - REGISTRY_AUTH=htpasswd
+    - REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm
+    - REGISTRY_AUTH_HTPASSWD_PATH=/auth/registry.password
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://localhost:5000/
+      timeout: 20s
+    image: registry:3
+    networks:
+      appnet:
+        aliases:
+        - docker-registry-coolify_registry_1
+    restart: unless-stopped
+    volumes:
+    - registry-data:/var/lib/registry
+volumes:
+  registry-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/registry-data
+      o: bind
+      type: none

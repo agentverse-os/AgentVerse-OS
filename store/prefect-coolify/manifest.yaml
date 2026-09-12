@@ -1,0 +1,123 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/prefect-coolify
+description: Prefect is an orchestration and observability platform that empowers developers to build and scale workflows quickly.
+endpoint:
+  port: 4200
+  service: prefect
+env:
+  DEFAULT_POOL_LIMIT: ''
+  DEFAULT_POOL_NAME: default
+  DEFAULT_WORKER_NAME: ''
+  POSTGRES_DB: prefect
+  POSTGRES_USER: ''
+  PREFECT_EXPERIMENTAL_ENABLE_SCHEDULE_CONCURRENCY: 'false'
+  PREFECT_EXPERIMENTAL_WARN: 'false'
+  PREFECT_RUNNER_SERVER_ENABLE: 'false'
+  SERVICE_PASSWORD_APIKEY:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_PREFECT: https://${APP_DOMAIN}
+  SERVICE_URL_PREFECT_4200: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: prefect-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: prefect'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: PREFECT_EXPERIMENTAL_WARN
+  hint: 'по умолчанию: false'
+  label: prefect experimental warn
+  options: null
+  required: false
+  type: text
+- env: PREFECT_EXPERIMENTAL_ENABLE_SCHEDULE_CONCURRENCY
+  hint: 'по умолчанию: false'
+  label: prefect experimental enable schedule concurrency
+  options: null
+  required: false
+  type: text
+- env: PREFECT_RUNNER_SERVER_ENABLE
+  hint: 'по умолчанию: false'
+  label: prefect runner server enable
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_POOL_NAME
+  hint: 'по умолчанию: default'
+  label: default pool name
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_WORKER_NAME
+  hint: null
+  label: default worker name
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_POOL_LIMIT
+  hint: null
+  label: default pool limit
+  options: null
+  required: false
+  type: text
+tags:
+- workflow
+- orchestration
+- data-pipeline
+- python
+- automation
+- data-processing
+- data-integration
+- etl
+title: Prefect
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://www.prefect.io/
+  tags:
+  - workflow
+  - orchestration
+  - data-pipeline
+  - python
+  - automation
+  - data-processing
+  - data-integration
+  - etl
+  template: prefect.yaml
+website: https://www.prefect.io/

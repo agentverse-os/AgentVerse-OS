@@ -1,0 +1,46 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/matter-server
+description: Interact with Matter. Works with HA !
+endpoint:
+  port: 9997
+  service: matter-server
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: matter-server
+notes:
+- 'matter-server: network_mode=host из каталога'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Matter Server
+type: app
+upstream:
+  author: OpenHomeFoundation
+  categories:
+  - utilities
+  - automation
+  source: https://github.com/home-assistant-libs/python-matter-server
+  tipi_version: 21
+  version: 8.1.0
+website: https://github.com/home-assistant-libs/python-matter-server

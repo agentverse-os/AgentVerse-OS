@@ -1,0 +1,82 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/jitsi-coolify
+description: Self-hosted Jitsi Meet — open-source video conferencing platform
+endpoint:
+  port: 80
+  service: jicofo
+env:
+  JVB_ADVERTISE_IPS: ''
+  JVB_STUN_SERVERS: stun.l.google.com:19302
+  LOG_LEVEL: info
+  SERVICE_PASSWORD_JICOFO:
+    generate: password
+  SERVICE_PASSWORD_JVB:
+    generate: password
+  SERVICE_URL_JITSI: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_JVB
+  path: null
+  user: jvb
+name: jitsi-coolify
+notes:
+- 'порт 10000:10000/udp (jvb) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: JVB_ADVERTISE_IPS
+  hint: null
+  label: jvb advertise ips
+  options: null
+  required: false
+  type: text
+- env: JVB_STUN_SERVERS
+  hint: 'по умолчанию: stun.l.google.com:19302'
+  label: jvb stun servers
+  options: null
+  required: false
+  type: text
+tags:
+- jitsi
+- video
+- conference
+- webrtc
+- meeting
+- self-hosted
+title: Jitsi
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-docker/
+  tags:
+  - jitsi
+  - video
+  - conference
+  - webrtc
+  - meeting
+  - self-hosted
+  template: jitsi.yaml
+website: https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-docker/

@@ -1,0 +1,82 @@
+# wanderer-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    depends_on:
+      search:
+        condition: service_healthy
+    environment:
+      MEILI_MASTER_KEY: ${APP_SEED}
+      MEILI_URL: http://wanderer_search_1:7700
+      ORIGIN: http://${DEVICE_DOMAIN_NAME}:3111
+      POCKETBASE_ENCRYPTION_KEY: ${APP_WANDERER_ENCRYPTION_KEY}
+    healthcheck:
+      interval: 15s
+      retries: 10
+      start_period: 20s
+      test:
+      - CMD
+      - /curl
+      - --fail
+      - http://localhost:8090/health
+      timeout: 10s
+    image: flomp/wanderer-db:v0.20.0@sha256:591974a7cb92be1d30a9033da0b97ef628d0ee1328e3ec29683b0075619805ba
+    networks:
+      appnet:
+        aliases:
+        - wanderer_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/pb_data:/pb_data
+    - ${APP_DATA_DIR}/data/plugins:/data/plugins
+  search:
+    environment:
+      MEILI_MASTER_KEY: ${APP_SEED}
+      MEILI_NO_ANALYTICS: 'true'
+      MEILI_URL: http://wanderer_search_1:7700
+    healthcheck:
+      interval: 15s
+      retries: 10
+      start_period: 20s
+      test: curl --fail http://localhost:7700/health || exit 1
+      timeout: 10s
+    image: getmeili/meilisearch:v1.14.0@sha256:8cd411ba5d9ec2dfce02e241305208eebacce0fd74a72bece21cadd03dc566ce
+    networks:
+      appnet:
+        aliases:
+        - wanderer_search_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/data.ms:/meili_data/data.ms
+  web:
+    depends_on:
+      db:
+        condition: service_healthy
+      search:
+        condition: service_healthy
+    environment:
+      BODY_SIZE_LIMIT: Infinity
+      MEILI_MASTER_KEY: ${APP_SEED}
+      MEILI_URL: http://wanderer_search_1:7700
+      NOMINATIM_URL: https://nominatim.openstreetmap.org
+      ORIGIN: http://${DEVICE_DOMAIN_NAME}:3111
+      OVERPASS_API_URL: https://overpass-api.de
+      PUBLIC_DISABLE_SIGNUP: 'false'
+      PUBLIC_POCKETBASE_URL: http://wanderer_db_1:8090
+      UPLOAD_FOLDER: /app/uploads
+      UPLOAD_PASSWORD: ${APP_PASSWORD}
+      UPLOAD_USER: admin
+      VALHALLA_URL: https://valhalla1.openstreetmap.de
+    image: flomp/wanderer-web:v0.20.0@sha256:d76177573caab135e8167179c9954168b5c582a48cbef0fcb7e1571af0c84d98
+    networks:
+      appnet:
+        aliases:
+        - wanderer_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/uploads:/app/uploads

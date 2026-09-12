@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/transmute-umbrel
+description: An efficient tool for transforming files on your Umbrel
+endpoint:
+  port: 3313
+  service: web
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/transmute/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/transmute/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/transmute/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/transmute/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: transmute-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Transmute
+type: app
+upstream:
+  author: Transmute
+  categories:
+  - files
+  release_notes: null
+  source: https://github.com/transmute-app/transmute
+  version: 2.0.0
+  website: https://transmute.sh/
+website: https://transmute.sh/

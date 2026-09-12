@@ -1,0 +1,53 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/forgejo
+description: Beyond coding. We forge. · Lightweight and performant · Guaranteed 100% Free Software
+endpoint:
+  port: 3000
+  service: forgejo
+env:
+  FORGEJO_DB_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: forgejo
+notes:
+- 'порт 222→22 (forgejo) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: FORGEJO_DB_PASSWORD
+  hint: null
+  label: FORGEJO_DB_PASSWORD
+  options: null
+  required: false
+  type: random
+tags: []
+title: Forgejo
+type: app
+upstream:
+  author: forgejo
+  categories:
+  - development
+  source: https://codeberg.org/forgejo/forgejo/
+  tipi_version: 57
+  version: 16.0.3
+website: https://codeberg.org/forgejo/forgejo/

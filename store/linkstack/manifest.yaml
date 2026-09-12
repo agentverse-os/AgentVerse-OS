@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/linkstack
+description: LinkStack is a highly customizable link sharing platform with an intuitive, easy to use user interface
+endpoint:
+  port: 80
+  service: linkstack
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: linkstack
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LinkStack
+type: app
+upstream:
+  author: LinkStackOrg
+  categories:
+  - media
+  source: https://github.com/LinkStackOrg/linkstack-docker
+  tipi_version: 6
+  version: latest
+website: https://github.com/LinkStackOrg/linkstack-docker

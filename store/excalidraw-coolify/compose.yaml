@@ -1,0 +1,25 @@
+# excalidraw-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  excalidraw:
+    environment:
+    - SERVICE_URL_EXCALIDRAW_80=${SERVICE_URL_EXCALIDRAW_80}
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - --spider
+      - --quiet
+      - http://localhost
+      timeout: 5s
+    image: excalidraw/excalidraw:latest
+    networks:
+      appnet:
+        aliases:
+        - excalidraw-coolify_excalidraw_1
+    restart: unless-stopped

@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/snapdrop-umbrel
+description: Opensource Airdrop Alternative
+endpoint:
+  port: 80
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/snapdrop/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/snapdrop/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/snapdrop/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/snapdrop/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: snapdrop-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Snapdrop
+type: app
+upstream:
+  author: RobinLinus
+  categories:
+  - files
+  release_notes: This update includes performance improvements and bug fixes.
+  source: https://github.com/RobinLinus/snapdrop
+  version: b8b78cc2
+  website: https://snapdrop.net/
+website: https://snapdrop.net/

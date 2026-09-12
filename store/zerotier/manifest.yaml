@@ -1,0 +1,53 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/zerotier
+description: Easy to use zero configuration VPN.
+endpoint:
+  port: 9993
+  service: zerotier
+env:
+  NETWORK_ID: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: zerotier
+notes:
+- 'zerotier: network_mode=host из каталога'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NETWORK_ID
+  hint: Create one at https://my.zerotier.com/
+  label: Network ID
+  options: null
+  required: true
+  type: text
+tags: []
+title: ZeroTier
+type: app
+upstream:
+  author: © ZeroTier Inc.
+  categories:
+  - network
+  - security
+  source: https://github.com/zerotier/ZeroTierOne
+  tipi_version: 11
+  version: 1.14.2
+website: https://github.com/zerotier/ZeroTierOne

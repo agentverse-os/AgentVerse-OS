@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/teamspeak-umbrel
+description: Easy, Secure, and High-Quality Communication for Gaming, Learning, Business, and more
+endpoint:
+  port: 8080
+  service: ui
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/teamspeak/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/teamspeak/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/teamspeak/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/teamspeak/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: serveradmin
+name: teamspeak-umbrel
+notes:
+- 'порт 9987:9987/udp (server) не публикуется: доступ только через edge/gate'
+- 'порт 10011:10011 (server) не публикуется: доступ только через edge/gate'
+- 'порт 30033:30033 (server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: TeamSpeak
+type: app
+upstream:
+  author: TeamSpeak Systems, Inc.
+  categories:
+  - social
+  release_notes: null
+  source: null
+  version: 3.13.7
+  website: https://www.teamspeak.com
+website: https://www.teamspeak.com

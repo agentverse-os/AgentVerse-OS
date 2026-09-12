@@ -1,0 +1,55 @@
+# pydio-cells-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cells:
+    environment:
+    - SERVICE_URL_CELLS_8080=${SERVICE_URL_CELLS_8080}
+    - CELLS_SITE_EXTERNAL=${SERVICE_URL_CELLS}
+    - CELLS_SITE_NO_TLS=1
+    image: pydio/cells:4.4
+    networks:
+      appnet:
+        aliases:
+        - pydio-cells-coolify_cells_1
+    restart: unless-stopped
+    volumes:
+    - cells_data:/var/cells
+  mariadb:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-cells}
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 20s
+    image: mariadb:11
+    networks:
+      appnet:
+        aliases:
+        - pydio-cells-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - mysql_data:/var/lib/mysql
+volumes:
+  cells_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/cells_data
+      o: bind
+      type: none
+  mysql_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mysql_data
+      o: bind
+      type: none

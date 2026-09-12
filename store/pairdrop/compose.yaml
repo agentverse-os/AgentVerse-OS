@@ -1,0 +1,19 @@
+# pairdrop: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  pairdrop:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      RATE_LIMIT: 'false'
+      TZ: ${TZ}
+      WS_FALLBACK: 'false'
+    image: lscr.io/linuxserver/pairdrop:1.11.2
+    networks:
+      appnet:
+        aliases:
+        - pairdrop_pairdrop_1
+    restart: unless-stopped

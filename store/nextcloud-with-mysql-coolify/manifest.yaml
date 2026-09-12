@@ -1,0 +1,67 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nextcloud-with-mysql-coolify
+description: NextCloud is a self-hosted, open-source platform that provides file storage, collaboration, and communication tools for seamless data management.
+endpoint:
+  port: 80
+  service: nextcloud
+env:
+  MYSQL_DATABASE: nextcloud
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_URL_NEXTCLOUD_80: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nextcloud-with-mysql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: nextcloud'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+tags:
+- cloud
+- collaboration
+- communication
+- filestorage
+- data
+title: Nextcloud With Mysql
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://docs.nextcloud.com
+  tags:
+  - cloud
+  - collaboration
+  - communication
+  - filestorage
+  - data
+  template: nextcloud-with-mysql.yaml
+website: https://docs.nextcloud.com

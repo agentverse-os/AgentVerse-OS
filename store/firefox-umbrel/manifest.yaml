@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/firefox-umbrel
+description: Firefox is a free and open-source web browser
+endpoint:
+  port: 3000
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/firefox/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/firefox/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/firefox/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/firefox/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: firefox-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Firefox
+type: app
+upstream:
+  author: Mozilla Foundation
+  categories:
+  - networking
+  release_notes: |-
+    This release of Firefox brings multiple bug fixes and improvements:
+
+
+      - Fixed Firefox freezing when switching between apps or opening certain panels within the browser
+      - Fixed difficult selection of drop-down menu options in the Firefox preferences page when selected via the in-page search
+      - Fixed various selection issues when triple-clicking text in some situations
+      - Fixed an incorrect filename being used when setting an image as the desktop wallpaper on Windows
+      - Various security fixes
+
+
+    Full release notes are available at https://www.mozilla.org/en-US/firefox/notes/
+  source: https://support.mozilla.org/en-US/contribute
+  version: 139.0.4
+  website: https://www.mozilla.org/en-US/firefox/
+website: https://www.mozilla.org/en-US/firefox/

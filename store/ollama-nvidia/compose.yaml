@@ -1,0 +1,23 @@
+# ollama-nvidia: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  ollama-nvidia:
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - capabilities:
+            - gpu
+            count: all
+            driver: nvidia
+    image: ollama/ollama:0.32.15
+    networks:
+      appnet:
+        aliases:
+        - ollama-nvidia_ollama-nvidia_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/.ollama:/root/.ollama

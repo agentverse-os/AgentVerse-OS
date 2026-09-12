@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/browserless-coolify
+description: A headless Chrome browser as a service.
+endpoint:
+  port: 3000
+  service: browserless
+env:
+  SERVICE_PASSWORD_BROWSERLESS:
+    generate: password
+  SERVICE_URL_BROWSERLESS_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: browserless-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- chrome
+- headless
+- browser
+- service
+title: Browserless
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://docs.browserless.io/
+  tags:
+  - chrome
+  - headless
+  - browser
+  - service
+  template: browserless.yaml
+website: https://docs.browserless.io/

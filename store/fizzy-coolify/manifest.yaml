@@ -1,0 +1,62 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/fizzy-coolify
+description: Kanban tracking tool for issues and ideas by 37signals
+endpoint:
+  port: 80
+  service: fizzy
+env:
+  SERVICE_FQDN_FIZZY_80: ${APP_DOMAIN}
+  SERVICE_PASSWORD_64_MASTERKEY:
+    generate: hex64
+  SERVICE_PASSWORD_FIZZY:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: fizzy-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- kanban
+- project management
+- issues
+- rails
+- ruby
+- basecamp
+- 37signals
+title: Fizzy
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/basecamp/fizzy
+  tags:
+  - kanban
+  - project management
+  - issues
+  - rails
+  - ruby
+  - basecamp
+  - 37signals
+  template: fizzy.yaml
+website: https://github.com/basecamp/fizzy

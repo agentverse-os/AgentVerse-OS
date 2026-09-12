@@ -1,0 +1,95 @@
+# sonarqube-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgresql:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_DB=${POSTGRES_DB:-sonar}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - sonarqube-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+  sonarqube:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_SONARQUBE_9000=${SERVICE_URL_SONARQUBE_9000}
+    - SONAR_JDBC_URL=jdbc:postgresql://postgresql:5432/${POSTGRES_DB:-sonar}
+    - SONAR_JDBC_USERNAME=$SERVICE_USER_POSTGRES
+    - SONAR_JDBC_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:9000
+      timeout: 20s
+    image: sonarqube:community
+    networks:
+      appnet:
+        aliases:
+        - sonarqube-coolify_sonarqube_1
+    restart: unless-stopped
+    volumes:
+    - sonarqube-data:/opt/sonarqube
+    - sonarqube-conf:/opt/sonarqube/conf
+    - sonarqube-extensions:/opt/sonarqube/extensions
+    - sonarqube-logs:/opt/sonarqube/logs
+    - sonarqube-bundled-plugins:/opt/sonarqube/lib/bundled-plugins
+volumes:
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none
+  sonarqube-bundled-plugins:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sonarqube-bundled-plugins
+      o: bind
+      type: none
+  sonarqube-conf:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sonarqube-conf
+      o: bind
+      type: none
+  sonarqube-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sonarqube-data
+      o: bind
+      type: none
+  sonarqube-extensions:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sonarqube-extensions
+      o: bind
+      type: none
+  sonarqube-logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sonarqube-logs
+      o: bind
+      type: none

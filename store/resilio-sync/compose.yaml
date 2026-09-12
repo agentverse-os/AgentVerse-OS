@@ -1,0 +1,20 @@
+# resilio-sync: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  resilio-sync:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+    image: lscr.io/linuxserver/resilio-sync:3.1.2
+    networks:
+      appnet:
+        aliases:
+        - resilio-sync_resilio-sync_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${APP_DATA_DIR}/data/downloads:/downloads
+    - ${APP_DATA_DIR}/data/sync:/sync

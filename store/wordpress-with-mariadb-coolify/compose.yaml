@@ -1,0 +1,68 @@
+# wordpress-with-mariadb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mariadb:
+    environment:
+    - MYSQL_ROOT_PASSWORD=$SERVICE_PASSWORD_ROOT
+    - MYSQL_DATABASE=wordpress
+    - MYSQL_USER=$SERVICE_USER_WORDPRESS
+    - MYSQL_PASSWORD=$SERVICE_PASSWORD_WORDPRESS
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 20s
+    image: mariadb:11
+    networks:
+      appnet:
+        aliases:
+        - wordpress-with-mariadb-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - mariadb-data:/var/lib/mysql
+  wordpress:
+    depends_on:
+    - mariadb
+    environment:
+    - SERVICE_URL_WORDPRESS=${SERVICE_URL_WORDPRESS}
+    - WORDPRESS_DB_HOST=mariadb
+    - WORDPRESS_DB_USER=$SERVICE_USER_WORDPRESS
+    - WORDPRESS_DB_PASSWORD=$SERVICE_PASSWORD_WORDPRESS
+    - WORDPRESS_DB_NAME=wordpress
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: wordpress:latest
+    networks:
+      appnet:
+        aliases:
+        - wordpress-with-mariadb-coolify_wordpress_1
+    restart: unless-stopped
+    volumes:
+    - wordpress-files:/var/www/html
+volumes:
+  mariadb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mariadb-data
+      o: bind
+      type: none
+  wordpress-files:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/wordpress-files
+      o: bind
+      type: none

@@ -1,0 +1,144 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/zep-coolify
+description: Zep enhances your AI agent's knowledge through continuous learning from user interactions, enabling personalized experiences and improved accuracy.
+endpoint:
+  port: 8000
+  service: zep
+env:
+  EXTRACTORS_DOCUMENTS_EMBEDDINGS_DIMENSIONS: '1536'
+  EXTRACTORS_DOCUMENTS_EMBEDDINGS_SERVICE: openai
+  EXTRACTORS_MESSAGES_EMBEDDINGS_DIMENSIONS: '1536'
+  EXTRACTORS_MESSAGES_EMBEDDINGS_SERVICE: openai
+  EXTRACTORS_MESSAGES_SUMMARIZER_EMBEDDINGS_DIMENSIONS: '1536'
+  EXTRACTORS_MESSAGES_SUMMARIZER_EMBEDDINGS_SERVICE: openai
+  OPENAI_API_KEY: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_AUTHSECRET:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_NLP_5557: https://${APP_DOMAIN}
+  SERVICE_URL_ZEP_8000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  ZEP_SERVER_WEB_ENABLED: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: zep-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: OPENAI_API_KEY
+  hint: null
+  label: openai api key
+  options: null
+  required: false
+  type: password
+- env: ZEP_SERVER_WEB_ENABLED
+  hint: 'по умолчанию: false'
+  label: zep server web enabled
+  options: null
+  required: false
+  type: text
+- env: EXTRACTORS_DOCUMENTS_EMBEDDINGS_SERVICE
+  hint: 'по умолчанию: openai'
+  label: extractors documents embeddings service
+  options: null
+  required: false
+  type: text
+- env: EXTRACTORS_DOCUMENTS_EMBEDDINGS_DIMENSIONS
+  hint: 'по умолчанию: 1536'
+  label: extractors documents embeddings dimensions
+  options: null
+  required: false
+  type: text
+- env: EXTRACTORS_MESSAGES_EMBEDDINGS_SERVICE
+  hint: 'по умолчанию: openai'
+  label: extractors messages embeddings service
+  options: null
+  required: false
+  type: text
+- env: EXTRACTORS_MESSAGES_EMBEDDINGS_DIMENSIONS
+  hint: 'по умолчанию: 1536'
+  label: extractors messages embeddings dimensions
+  options: null
+  required: false
+  type: text
+- env: EXTRACTORS_MESSAGES_SUMMARIZER_EMBEDDINGS_SERVICE
+  hint: 'по умолчанию: openai'
+  label: extractors messages summarizer embeddings service
+  options: null
+  required: false
+  type: text
+- env: EXTRACTORS_MESSAGES_SUMMARIZER_EMBEDDINGS_DIMENSIONS
+  hint: 'по умолчанию: 1536'
+  label: extractors messages summarizer embeddings dimensions
+  options: null
+  required: false
+  type: text
+tags:
+- lowcode
+- nocode
+- ai
+- llm
+- openai
+- anthropic
+- machine-learning
+- rag
+- agents
+- chatbot
+- api
+- team
+- bot
+- flows
+- memory
+title: Zep
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://help.getzep.com/concepts
+  tags:
+  - lowcode
+  - nocode
+  - ai
+  - llm
+  - openai
+  - anthropic
+  - machine-learning
+  - rag
+  - agents
+  - chatbot
+  - api
+  - team
+  - bot
+  - flows
+  - memory
+  template: zep.yaml
+website: https://help.getzep.com/concepts

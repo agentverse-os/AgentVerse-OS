@@ -1,0 +1,63 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/plausible-umbrel
+description: Easy to use and privacy-friendly Google Analytics alternative
+endpoint:
+  port: 8000
+  service: plausible
+env:
+  APP_PLAUSIBLE_VAULT_KEY: ''
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/plausible/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plausible/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plausible/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/plausible/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: plausible-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_PLAUSIBLE_VAULT_KEY
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app plausible vault key
+  options: null
+  required: false
+  type: password
+tags: []
+title: Plausible Analytics
+type: app
+upstream:
+  author: Plausible Community Edition
+  categories:
+  - developer
+  release_notes: |-
+    Fixes a port conflict that could prevent Plausible from running alongside TDEX Provider.
+
+    Plausible now opens on port 9093. No action is needed for normal use.
+
+    Note: If you manually created bookmarks or reverse proxy rules for Plausible, update them to use the new port.
+  source: https://github.com/plausible/analytics
+  version: 3.2.1-1
+  website: https://plausible.io/
+website: https://plausible.io/

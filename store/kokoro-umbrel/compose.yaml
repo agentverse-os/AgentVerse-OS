@@ -1,0 +1,14 @@
+# kokoro-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:v0.8.1@sha256:28d6f0b6e4df369559012578299d201b855a08fac466f616653edd1f08c5370a
+    networks:
+      appnet:
+        aliases:
+        - kokoro_web_1
+    restart: on-failure
+    user: 1000:1000

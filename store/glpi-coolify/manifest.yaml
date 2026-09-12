@@ -1,0 +1,65 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/glpi-coolify
+description: GLPI (Gestionnaire Libre de Parc Informatique) is a free, open-source IT Service Management (ITSM) platform used for IT asset management, helpdesk, and service desk operations.
+endpoint:
+  port: 80
+  service: glpi
+env:
+  MYSQL_DATABASE: glpi-db
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_URL_GLPI_80: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: glpi-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: glpi-db'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+tags:
+- helpdesk
+- ticketing
+- support
+- open-source
+title: Glpi
+type: app
+upstream:
+  categories:
+  - helpdesk
+  source: https://help.glpi-project.org/documentation
+  tags:
+  - helpdesk
+  - ticketing
+  - support
+  - open-source
+  template: glpi.yaml
+website: https://help.glpi-project.org/documentation

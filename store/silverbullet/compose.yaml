@@ -1,0 +1,18 @@
+# silverbullet: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  silverbullet:
+    environment:
+      SB_USER: ${SB_USER}:${SB_PASSWORD}
+    image: zefhemel/silverbullet:2.10.0
+    networks:
+      appnet:
+        aliases:
+        - silverbullet_silverbullet_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${APP_DATA_DIR}/space:/space

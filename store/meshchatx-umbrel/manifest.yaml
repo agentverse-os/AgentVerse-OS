@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/meshchatx-umbrel
+description: The future of off-grid communication. Secure, decentralized, and unstoppable
+endpoint:
+  port: 8000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: meshchatx-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: MeshChatX
+type: app
+upstream:
+  author: Quad4
+  categories:
+  - social
+  release_notes: |-
+    This update improves Docker/WebSocket resource handling for long-running sessions by raising file descriptor limits and cleaning up stale WebSocket connections and RNS ratchet writes.
+
+    It also fixes conversation and thread loading while announces arrive, database connection recovery that could return HTTP 500, WebSocket ready-status broadcasts, and CSP/Permissions-Policy headers.
+
+    Full release notes can be found at https://github.com/Quad4-Software/MeshChatX/releases/tag/v4.8.5
+  source: https://github.com/Quad4-Software/MeshChatX
+  version: 4.8.5
+  website: https://quad4.io
+website: https://quad4.io

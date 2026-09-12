@@ -1,0 +1,99 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gotosocial
+description: Fast, fun, ActivityPub server, powered by Go.
+endpoint:
+  port: 8080
+  service: gotosocial
+env:
+  GTS_ACCOUNTS_REGISTRATION_OPEN: ''
+  GTS_DB_PASSWORD:
+    generate: token
+  GTS_SMTP_FROM: ''
+  GTS_SMTP_HOST: ''
+  GTS_SMTP_PASSWORD:
+    generate: password
+  GTS_SMTP_PORT: ''
+  GTS_SMTP_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: gotosocial
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GTS_DB_PASSWORD
+  hint: null
+  label: GoToSocial DB Password
+  options: null
+  required: false
+  type: random
+- env: GTS_ACCOUNTS_REGISTRATION_OPEN
+  hint: null
+  label: Sign Ups
+  options:
+  - label: Open Sign Up
+    value: 'true'
+  - label: Invite Only
+    value: 'false'
+  required: true
+  type: text
+- env: GTS_SMTP_HOST
+  hint: Your SMTP Server
+  label: SMTP Host
+  options: null
+  required: false
+  type: text
+- env: GTS_SMTP_PORT
+  hint: Your SMTP Port
+  label: SMTP Port
+  options: null
+  required: false
+  type: text
+- env: GTS_SMTP_USERNAME
+  hint: Your SMTP Server User/Username
+  label: SMTP Username
+  options: null
+  required: false
+  type: text
+- env: GTS_SMTP_PASSWORD
+  hint: Your SMTP Server Password
+  label: SMTP Password
+  options: null
+  required: false
+  type: password
+- env: GTS_SMTP_FROM
+  hint: Make sure the Format is like noreply@example.com
+  label: SMTP From Address
+  options: null
+  required: false
+  type: text
+tags: []
+title: GoToSocial
+type: app
+upstream:
+  author: superseriousbusiness
+  categories:
+  - social
+  source: https://github.com/superseriousbusiness/gotosocial
+  tipi_version: 47
+  version: 0.22.1
+website: https://github.com/superseriousbusiness/gotosocial

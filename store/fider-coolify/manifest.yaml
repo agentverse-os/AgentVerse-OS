@@ -1,0 +1,96 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/fider-coolify
+description: Fider is a feedback platform for collecting and managing user feedback.
+endpoint:
+  port: 3000
+  service: fider
+env:
+  EMAIL_NOREPLY: noreply@example.com
+  EMAIL_SMTP_HOST: smtp.mailgun.com
+  EMAIL_SMTP_PORT: '587'
+  EMAIL_SMTP_USERNAME: postmaster@mailgun.com
+  POSTGRES_DB: fider
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_64_FIDER:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_FIDER_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: fider-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: EMAIL_NOREPLY
+  hint: 'по умолчанию: noreply@example.com'
+  label: email noreply
+  options: null
+  required: false
+  type: text
+- env: EMAIL_SMTP_HOST
+  hint: 'по умолчанию: smtp.mailgun.com'
+  label: email smtp host
+  options: null
+  required: false
+  type: text
+- env: EMAIL_SMTP_PORT
+  hint: 'по умолчанию: 587'
+  label: email smtp port
+  options: null
+  required: false
+  type: text
+- env: EMAIL_SMTP_USERNAME
+  hint: 'по умолчанию: postmaster@mailgun.com'
+  label: email smtp username
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: fider'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- feedback
+- user-feedback
+title: Fider
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://fider.io
+  tags:
+  - feedback
+  - user-feedback
+  template: fider.yaml
+website: https://fider.io

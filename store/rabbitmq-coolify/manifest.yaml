@@ -1,0 +1,72 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rabbitmq-coolify
+description: With tens of thousands of users, RabbitMQ is one of the most popular open source message brokers.
+endpoint:
+  port: 15672
+  service: rabbitmq
+env:
+  PORT: '5672'
+  SERVICE_PASSWORD_RABBITMQ:
+    generate: password
+  SERVICE_URL_RABBITMQ_15672: https://${APP_DOMAIN}
+  SERVICE_USER_RABBITMQ:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_RABBITMQ
+  path: null
+  user: SERVICE_USER_RABBITMQ
+name: rabbitmq-coolify
+notes:
+- 'порт ${PORT}:5672 (rabbitmq) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PORT
+  hint: 'по умолчанию: 5672'
+  label: port
+  options: null
+  required: false
+  type: text
+tags:
+- message broker
+- message queue
+- message-oriented middleware
+- MOM
+- AMQP
+- MQTT
+- STOMP
+- messaging
+title: Rabbitmq
+type: app
+upstream:
+  categories:
+  - messaging
+  source: https://www.rabbitmq.com/documentation.html
+  tags:
+  - message broker
+  - message queue
+  - message-oriented middleware
+  - MOM
+  - AMQP
+  - MQTT
+  - STOMP
+  - messaging
+  template: rabbitmq.yaml
+website: https://www.rabbitmq.com/documentation.html

@@ -1,0 +1,65 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/overseerr-umbrel
+description: Beautiful media discovery
+endpoint:
+  port: 5055
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/overseerr/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/overseerr/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/overseerr/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/overseerr/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: overseerr-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Overseerr
+type: app
+upstream:
+  author: Ryan Cohen
+  categories:
+  - media
+  release_notes: |-
+    This release includes several bug fixes and improvements:
+      - Better handling for active webpush subscriptions and notification management
+      - Corrected edge cases with deletion not updating requests properly
+      - Fixed availability sync for currently available non-completed media
+      - Improved handling of partial seasons and specials
+      - Updated Plex Watchlist URL
+      - Fixed notification sending for wrong status scenarios
+      - Corrected series setting to partially available status
+
+
+    New features:
+      - Updated to Node 20 for improved performance and security
+      - Prepared migration path for future Seerr transition
+      - Enhanced PWA app badge functionality
+
+
+    Full release notes can be found at https://github.com/sct/overseerr/releases
+  source: https://github.com/sct/overseerr
+  version: 1.35.0
+  website: https://overseerr.dev/
+website: https://overseerr.dev/

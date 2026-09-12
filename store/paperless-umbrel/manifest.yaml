@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/paperless-umbrel
+description: Transform your physical documents into a searchable online archive
+endpoint:
+  port: 8000
+  service: webserver
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/paperless/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/paperless/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/paperless/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/paperless/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: admin
+name: paperless-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Paperless-ngx
+type: app
+upstream:
+  author: Paperless-ngx Community
+  categories:
+  - files
+  release_notes: |-
+    Paperless-ngx 3.1.2 is a security patch and is recommended for all users. It also keeps the recent Paperless-ngx 3.0 major-update caveats: if you're updating from a pre-3.0 version, API v1 compatibility has been removed, legacy document/thumbnail encryption is no longer supported, and pre/post-consume scripts no longer receive positional arguments.
+
+    This update addresses security issue GHSA-2jhj-xqrq-rmrq and fixes disabled-control behavior in dark mode and drag-and-drop lists.
+
+    Full release notes can be found at https://github.com/paperless-ngx/paperless-ngx/releases/tag/v3.1.2
+  source: https://github.com/paperless-ngx/paperless-ngx
+  version: 3.1.2
+  website: https://docs.paperless-ngx.com/
+website: https://docs.paperless-ngx.com/

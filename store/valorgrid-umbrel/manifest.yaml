@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/valorgrid-umbrel
+description: Private and auditable investment portfolio tracking
+endpoint:
+  port: 1325
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/valorgrid/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/valorgrid/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/valorgrid/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/valorgrid/4.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/valorgrid/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: valorgrid-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: ValorGrid
+type: app
+upstream:
+  author: aivm23
+  categories:
+  - finance
+  release_notes: |-
+    This release improves portfolio imports, charts, backups, and container security.
+    - Adds MyInvestor CSV as a known broker import adapter - Refreshes the portfolio history chart after editing a transaction - Improves backup filename uniqueness for rapid backup creation - Updates dependencies to address a security issue
+  source: https://github.com/aivm23/ValorGrid
+  version: 3.34.0
+  website: https://valorgrid.app
+website: https://valorgrid.app

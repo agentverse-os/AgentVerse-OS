@@ -1,0 +1,70 @@
+# vvveb-with-mariadb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mariadb:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+    - MYSQL_DATABASE=${MARIADB_DATABASE:-vvveb}
+    - MYSQL_USER=${SERVICE_USER_VVVEB}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_VVVEB}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 20s
+    image: mariadb:11
+    networks:
+      appnet:
+        aliases:
+        - vvveb-with-mariadb-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - vvveb-mariadb-data:/var/lib/mysql
+  vvveb:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_VVVEB_80=${SERVICE_URL_VVVEB_80}
+    - DB_ENGINE=mysqli
+    - DB_HOST=mariadb
+    - DB_USER=${SERVICE_USER_VVVEB}
+    - DB_PASSWORD=${SERVICE_PASSWORD_VVVEB}
+    - DB_NAME=${MARIADB_DATABASE:-vvveb}
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: vvveb/vvvebcms:latest
+    networks:
+      appnet:
+        aliases:
+        - vvveb-with-mariadb-coolify_vvveb_1
+    restart: unless-stopped
+    volumes:
+    - vvveb-data:/var/www/html
+volumes:
+  vvveb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/vvveb-data
+      o: bind
+      type: none
+  vvveb-mariadb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/vvveb-mariadb-data
+      o: bind
+      type: none

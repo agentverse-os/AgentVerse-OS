@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/libreddit-umbrel
+description: An alternative private front-end to Reddit
+endpoint:
+  port: 7420
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/libreddit/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/libreddit/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/libreddit/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/libreddit/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: libreddit-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LibReddit
+type: app
+upstream:
+  author: Spikecodes
+  categories:
+  - social
+  release_notes: null
+  source: https://github.com/spikecodes/libreddit
+  version: 0.22.9
+  website: https://spike.codes/
+website: https://spike.codes/

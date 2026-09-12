@@ -1,0 +1,179 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/infisical-coolify
+description: Infisical is the open source secret management platform that developers use to centralize their application configuration and secrets like API keys and database credentials.
+endpoint:
+  port: 8080
+  service: backend
+env:
+  ALLOW_EMPTY_PASSWORD: yes
+  INF_APP_CONNECTION_GITHUB_APP_CLIENT_ID: ''
+  INF_APP_CONNECTION_GITHUB_APP_CLIENT_SECRET: ''
+  INF_APP_CONNECTION_GITHUB_APP_ID: ''
+  INF_APP_CONNECTION_GITHUB_APP_PRIVATE_KEY: ''
+  INF_APP_CONNECTION_GITHUB_APP_SLUG: ''
+  NODE_ENV: production
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_ENCRYPTIONKEY:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_REALBASE64_64_AUTHSECRET:
+    generate: hex64
+  SERVICE_URL_BACKEND_8080: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SMTP_FROM_ADDRESS: ''
+  SMTP_FROM_NAME: ''
+  SMTP_HOST: ''
+  SMTP_PASSWORD: ''
+  SMTP_PORT: ''
+  SMTP_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: infisical-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NODE_ENV
+  hint: 'по умолчанию: production'
+  label: node env
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST
+  hint: null
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_USERNAME
+  hint: null
+  label: smtp username
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: null
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: SMTP_PORT
+  hint: null
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_FROM_ADDRESS
+  hint: null
+  label: smtp from address
+  options: null
+  required: false
+  type: text
+- env: SMTP_FROM_NAME
+  hint: null
+  label: smtp from name
+  options: null
+  required: false
+  type: text
+- env: INF_APP_CONNECTION_GITHUB_APP_CLIENT_ID
+  hint: null
+  label: inf app connection github app client id
+  options: null
+  required: false
+  type: text
+- env: INF_APP_CONNECTION_GITHUB_APP_CLIENT_SECRET
+  hint: null
+  label: inf app connection github app client secret
+  options: null
+  required: false
+  type: password
+- env: INF_APP_CONNECTION_GITHUB_APP_SLUG
+  hint: null
+  label: inf app connection github app slug
+  options: null
+  required: false
+  type: text
+- env: INF_APP_CONNECTION_GITHUB_APP_ID
+  hint: null
+  label: inf app connection github app id
+  options: null
+  required: false
+  type: text
+- env: INF_APP_CONNECTION_GITHUB_APP_PRIVATE_KEY
+  hint: null
+  label: inf app connection github app private key
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: ALLOW_EMPTY_PASSWORD
+  hint: 'по умолчанию: yes'
+  label: allow empty password
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- security
+- environment
+- secrets
+- infisical
+- database
+- configuration
+- secret
+- api
+- keys
+- auth
+- encryption
+title: Infisical
+type: app
+upstream:
+  categories:
+  - security
+  source: https://infisical.com/docs/documentation/getting-started/introduction
+  tags:
+  - security
+  - environment
+  - secrets
+  - infisical
+  - database
+  - configuration
+  - secret
+  - api
+  - keys
+  - auth
+  - encryption
+  template: infisical.yaml
+website: https://infisical.com/docs/documentation/getting-started/introduction

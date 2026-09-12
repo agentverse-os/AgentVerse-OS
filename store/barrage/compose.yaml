@@ -1,0 +1,18 @@
+# barrage: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  barrage:
+    environment:
+    - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+    - DELUGE_URL=${DELUGE_URL}
+    - DELUGE_PASSWORD=${DELUGE_PASSWORD}
+    - BARRAGE_PASSWORD=${BARRAGE_PASSWORD}
+    image: maulik9898/barrage:0.3.0
+    networks:
+      appnet:
+        aliases:
+        - barrage_barrage_1
+    restart: unless-stopped

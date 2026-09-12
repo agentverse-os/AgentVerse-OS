@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/spacedrive
+description: Cross-platform file explorer
+endpoint:
+  port: 8080
+  service: spacedrive
+env:
+  SD_AUTH_PASSWORD:
+    generate: password
+  SD_AUTH_USER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: SD_AUTH_PASSWORD
+  path: null
+  user: SD_AUTH_USER
+name: spacedrive
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SD_AUTH_USER
+  hint: null
+  label: Spacedrive Username
+  options: null
+  required: true
+  type: text
+- env: SD_AUTH_PASSWORD
+  hint: null
+  label: Spacedrive Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Spacedrive
+type: app
+upstream:
+  author: spacedriveapp
+  categories:
+  - utilities
+  source: https://github.com/spacedriveapp/spacedrive
+  tipi_version: 9
+  version: 0.4.2
+website: https://github.com/spacedriveapp/spacedrive

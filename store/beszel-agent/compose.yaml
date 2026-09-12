@@ -1,0 +1,18 @@
+# beszel-agent: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  beszel-agent:
+    environment:
+    - PORT=45876
+    - KEY=${BESZEL_AGENT_KEY}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    image: henrygd/beszel-agent:0.18.8
+    network_mode: host
+    restart: unless-stopped
+    volumes: []

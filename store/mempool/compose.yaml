@@ -1,0 +1,66 @@
+# mempool: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mempool:
+    command: nginx -g 'daemon off;'
+    depends_on:
+    - mempool-db
+    environment:
+      BACKEND_MAINNET_HTTP_HOST: mempool-api
+      FRONTEND_HTTP_PORT: '8080'
+    image: mempool/frontend:v3.3.1
+    networks:
+      appnet:
+        aliases:
+        - mempool_mempool_1
+    restart: unless-stopped
+    stop_grace_period: 1m
+  mempool-api:
+    command: ./start.sh
+    depends_on:
+    - mempool-db
+    environment:
+      CORE_RPC_COOKIE: 'true'
+      CORE_RPC_COOKIE_PATH: /data/.bitcoin/.cookie
+      CORE_RPC_HOST: ${CORE_RPC_HOST:-bitcoind}
+      CORE_RPC_PORT: '8332'
+      CORE_RPC_TIMEOUT: '60000'
+      DATABASE_DATABASE: mempool
+      DATABASE_ENABLED: 'true'
+      DATABASE_HOST: mempool-db
+      DATABASE_PASSWORD: ${MEMPOOL_DB_PASSWORD}
+      DATABASE_USERNAME: mempool
+      ELECTRUM_HOST: ${ELECTRUM_HOST:-electrs}
+      ELECTRUM_PORT: ${ELECTRUM_PORT:-50001}
+      ELECTRUM_TLS_ENABLED: 'false'
+      MEMPOOL_BACKEND: electrum
+      STATISTICS_ENABLED: 'true'
+    image: mempool/backend:v3.3.1
+    networks:
+      appnet:
+        aliases:
+        - mempool_mempool-api_1
+    restart: unless-stopped
+    stop_grace_period: 1m
+    user: 0:0
+    volumes:
+    - ${BITCOIND_DIR:-${APP_DATA_DIR}/../bitcoind/data}:/data/.bitcoin:ro
+    - ${APP_DATA_DIR}/data:/backend/cache
+  mempool-db:
+    environment:
+      MYSQL_DATABASE: mempool
+      MYSQL_PASSWORD: ${MEMPOOL_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MEMPOOL_DB_PASSWORD}
+      MYSQL_USER: mempool
+    image: mariadb:10.5.21
+    networks:
+      appnet:
+        aliases:
+        - mempool_mempool-db_1
+    restart: unless-stopped
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql

@@ -1,0 +1,74 @@
+# penpot: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  penpot:
+    depends_on:
+    - penpot-backend
+    - penpot-exporter
+    environment:
+      PENPOT_FLAGS: enable-registration enable-login-with-password
+    image: penpotapp/frontend:latest
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/assets:/opt/data/assets
+  penpot-backend:
+    depends_on:
+    - penpot-postgres
+    - penpot-redis
+    environment:
+      PENPOT_ASSETS_STORAGE_BACKEND: assets-fs
+      PENPOT_DATABASE_PASSWORD: ${PENPOT_POSTGRES_PASSWORD}
+      PENPOT_DATABASE_URI: postgresql://penpot-postgres/penpot
+      PENPOT_DATABASE_USERNAME: tipi
+      PENPOT_FLAGS: enable-registration enable-login-with-password disable-email-verification
+      PENPOT_PUBLIC_URI: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      PENPOT_REDIS_URI: redis://penpot-redis/0
+      PENPOT_STORAGE_ASSETS_FS_DIRECTORY: /opt/data/assets
+      PENPOT_TELEMETRY_ENABLED: 'false'
+    image: penpotapp/backend:latest
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-backend_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/assets:/opt/data/assets
+  penpot-exporter:
+    environment:
+      PENPOT_PUBLIC_URI: http://penpot
+      PENPOT_REDIS_URI: redis://penpot-redis/0
+    image: penpotapp/exporter:latest
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-exporter_1
+    restart: unless-stopped
+  penpot-postgres:
+    environment:
+      POSTGRES_DB: penpot
+      POSTGRES_INITDB_ARGS: --data-checksums
+      POSTGRES_PASSWORD: ${PENPOT_POSTGRES_PASSWORD}
+      POSTGRES_USER: tipi
+    image: postgres:14
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-postgres_1
+    restart: unless-stopped
+    stop_signal: SIGINT
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  penpot-redis:
+    image: redis:7
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-redis_1
+    restart: unless-stopped

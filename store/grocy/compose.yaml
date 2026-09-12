@@ -1,0 +1,19 @@
+# grocy: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  grocy:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/grocy:4.6.0
+    networks:
+      appnet:
+        aliases:
+        - grocy_grocy_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/config

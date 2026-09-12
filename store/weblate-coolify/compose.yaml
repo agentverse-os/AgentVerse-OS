@@ -1,0 +1,106 @@
+# weblate-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgresql:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_DB=${POSTGRES_DB:-weblate}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - weblate-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+  redis:
+    command: |
+      --appendonly yes --requirepass ${SERVICE_PASSWORD_REDIS}
+    environment:
+    - REDIS_PASSWORD=$SERVICE_PASSWORD_REDIS
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 20s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - weblate-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - weblate-redis-data:/data
+  weblate:
+    environment:
+    - SERVICE_URL_WEBLATE_8080=${SERVICE_URL_WEBLATE_8080}
+    - WEBLATE_SITE_DOMAIN=$SERVICE_FQDN_WEBLATE
+    - WEBLATE_ADMIN_NAME=${WEBLATE_ADMIN_NAME:-Admin}
+    - WEBLATE_ADMIN_EMAIL=${WEBLATE_ADMIN_EMAIL:-admin@example.com}
+    - WEBLATE_ADMIN_PASSWORD=$SERVICE_PASSWORD_WEBLATE
+    - DEFAULT_FROM_EMAIL=${WEBLATE_ADMIN_EMAIL:-admin@example.com}
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_DATABASE=${POSTGRES_DB:-weblate}
+    - POSTGRES_HOST=postgresql
+    - POSTGRES_PORT=5432
+    - REDIS_HOST=redis
+    - REDIS_PORT=6379
+    - REDIS_PASSWORD=$SERVICE_PASSWORD_REDIS
+    healthcheck:
+      interval: 2s
+      retries: 30
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8080
+      timeout: 10s
+    image: weblate/weblate:latest
+    networks:
+      appnet:
+        aliases:
+        - weblate-coolify_weblate_1
+    restart: unless-stopped
+    volumes:
+    - weblate-data:/app/data
+    - weblate-cache:/app/cache
+volumes:
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none
+  weblate-cache:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/weblate-cache
+      o: bind
+      type: none
+  weblate-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/weblate-data
+      o: bind
+      type: none
+  weblate-redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/weblate-redis-data
+      o: bind
+      type: none

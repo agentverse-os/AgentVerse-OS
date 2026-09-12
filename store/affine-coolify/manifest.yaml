@@ -1,0 +1,127 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/affine-coolify
+description: Affine is an open-source, all-in-one workspace and OS for knowledge management, a Notion/Miro alternative.
+endpoint:
+  port: 3010
+  service: affine
+env:
+  AFFINE_REVISION: stable
+  COPILOT_FAL_API_KEY: ''
+  COPILOT_OPENAI_API_KEY: ''
+  COPILOT_PERPLEXITY_API_KEY: ''
+  MAILER_HOST: ''
+  MAILER_PASSWORD: ''
+  MAILER_PORT: ''
+  MAILER_SENDER: ''
+  MAILER_USER: ''
+  POSTGRES_DB: affine
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_AFFINE: https://${APP_DOMAIN}
+  SERVICE_URL_AFFINE_3010: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: affine-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: affine'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: MAILER_HOST
+  hint: null
+  label: mailer host
+  options: null
+  required: false
+  type: text
+- env: MAILER_PORT
+  hint: null
+  label: mailer port
+  options: null
+  required: false
+  type: text
+- env: MAILER_USER
+  hint: null
+  label: mailer user
+  options: null
+  required: false
+  type: text
+- env: MAILER_PASSWORD
+  hint: null
+  label: mailer password
+  options: null
+  required: false
+  type: password
+- env: MAILER_SENDER
+  hint: null
+  label: mailer sender
+  options: null
+  required: false
+  type: text
+- env: COPILOT_FAL_API_KEY
+  hint: null
+  label: copilot fal api key
+  options: null
+  required: false
+  type: password
+- env: COPILOT_PERPLEXITY_API_KEY
+  hint: null
+  label: copilot perplexity api key
+  options: null
+  required: false
+  type: password
+- env: COPILOT_OPENAI_API_KEY
+  hint: null
+  label: copilot openai api key
+  options: null
+  required: false
+  type: password
+- env: AFFINE_REVISION
+  hint: 'по умолчанию: stable'
+  label: affine revision
+  options: null
+  required: false
+  type: text
+tags:
+- knowledge-management
+- notion
+- miro
+- workspace
+title: Affine
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.affine.pro/docs/self-host-affine
+  tags:
+  - knowledge-management
+  - notion
+  - miro
+  - workspace
+  template: affine.yaml
+website: https://docs.affine.pro/docs/self-host-affine

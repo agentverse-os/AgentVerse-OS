@@ -1,0 +1,15 @@
+# cloudflared: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cloudflared:
+    environment:
+      BASIC_AUTH_PASS: ${BASIC_AUTH_PASS}
+      BASIC_AUTH_USER: ${BASIC_AUTH_USER}
+    image: wisdomsky/cloudflared-web:2026.8.2
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/cloudflared/config:/config

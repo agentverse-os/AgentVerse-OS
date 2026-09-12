@@ -1,0 +1,99 @@
+# authentik-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  authentik-server:
+    command: server
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_AUTHENTIKSERVER_9000=${SERVICE_URL_AUTHENTIKSERVER_9000}
+    - AUTHENTIK_POSTGRESQL__HOST=${POSTGRES_HOST:-postgresql}
+    - AUTHENTIK_POSTGRESQL__USER=${SERVICE_USER_POSTGRESQL}
+    - AUTHENTIK_POSTGRESQL__NAME=${POSTGRES_DB:-authentik}
+    - AUTHENTIK_POSTGRESQL__PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - AUTHENTIK_SECRET_KEY=${SERVICE_PASSWORD_64_AUTHENTIKSERVER}
+    - AUTHENTIK_ERROR_REPORTING__ENABLED=${AUTHENTIK_ERROR_REPORTING__ENABLED:-true}
+    - AUTHENTIK_EMAIL__HOST=${AUTHENTIK_EMAIL__HOST}
+    - AUTHENTIK_EMAIL__PORT=${AUTHENTIK_EMAIL__PORT}
+    - AUTHENTIK_EMAIL__USERNAME=${AUTHENTIK_EMAIL__USERNAME}
+    - AUTHENTIK_EMAIL__PASSWORD=${AUTHENTIK_EMAIL__PASSWORD}
+    - AUTHENTIK_EMAIL__USE_TLS=${AUTHENTIK_EMAIL__USE_TLS}
+    - AUTHENTIK_EMAIL__USE_SSL=${AUTHENTIK_EMAIL__USE_SSL}
+    - AUTHENTIK_EMAIL__TIMEOUT=${AUTHENTIK_EMAIL__TIMEOUT}
+    - AUTHENTIK_EMAIL__FROM=${AUTHENTIK_EMAIL__FROM}
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG:-2025.10.3}
+    networks:
+      appnet:
+        aliases:
+        - authentik-coolify_authentik-server_1
+    restart: unless-stopped
+    volumes:
+    - ./media:/media
+    - ./custom-templates:/templates
+  authentik-worker:
+    command: worker
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - AUTHENTIK_POSTGRESQL__HOST=${POSTGRES_HOST:-postgresql}
+    - AUTHENTIK_POSTGRESQL__USER=${SERVICE_USER_POSTGRESQL}
+    - AUTHENTIK_POSTGRESQL__NAME=${POSTGRES_DB:-authentik}
+    - AUTHENTIK_POSTGRESQL__PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - AUTHENTIK_SECRET_KEY=${SERVICE_PASSWORD_64_AUTHENTIKSERVER}
+    - AUTHENTIK_ERROR_REPORTING__ENABLED=${AUTHENTIK_ERROR_REPORTING__ENABLED}
+    - AUTHENTIK_EMAIL__HOST=${AUTHENTIK_EMAIL__HOST}
+    - AUTHENTIK_EMAIL__PORT=${AUTHENTIK_EMAIL__PORT}
+    - AUTHENTIK_EMAIL__USERNAME=${AUTHENTIK_EMAIL__USERNAME}
+    - AUTHENTIK_EMAIL__PASSWORD=${AUTHENTIK_EMAIL__PASSWORD}
+    - AUTHENTIK_EMAIL__USE_TLS=${AUTHENTIK_EMAIL__USE_TLS}
+    - AUTHENTIK_EMAIL__USE_SSL=${AUTHENTIK_EMAIL__USE_SSL}
+    - AUTHENTIK_EMAIL__TIMEOUT=${AUTHENTIK_EMAIL__TIMEOUT}
+    - AUTHENTIK_EMAIL__FROM=${AUTHENTIK_EMAIL__FROM}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG:-2025.10.3}
+    networks:
+      appnet:
+        aliases:
+        - authentik-coolify_authentik-worker_1
+      dockerro: {}
+    restart: unless-stopped
+    user: root
+    volumes:
+    - ./media:/media
+    - ./certs:/certs
+    - ./custom-templates:/templates
+  postgresql:
+    environment:
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_DB=authentik
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD-SHELL
+      - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      timeout: 10s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - authentik-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - authentik-db:/var/lib/postgresql/data
+volumes:
+  authentik-db:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/authentik-db
+      o: bind
+      type: none

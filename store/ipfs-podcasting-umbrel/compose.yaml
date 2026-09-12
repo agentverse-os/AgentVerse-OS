@@ -1,0 +1,19 @@
+# ipfs-podcasting-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: ipfspodcasting/podcastnode:v0.6@sha256:773d7c34d452764be973e8bc495990ec47f8042287493997784198c64e924393
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - ipfs-podcasting_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/ipfs:/ipfs-podcasting/ipfs
+    - ${APP_DATA_DIR}/cfg:/ipfs-podcasting/cfg

@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/koillection
+description: Koillection allow you to manage any kind of collections.
+endpoint:
+  port: 80
+  service: koillection
+env:
+  KOILLECTION_DB_PASSWORD:
+    generate: token
+  KOILLECTION_DB_USER:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: koillection
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: KOILLECTION_DB_USER
+  hint: null
+  label: database user
+  options: null
+  required: false
+  type: random
+- env: KOILLECTION_DB_PASSWORD
+  hint: null
+  label: database password
+  options: null
+  required: false
+  type: random
+tags: []
+title: Koillection
+type: app
+upstream:
+  author: https://github.com/benjaminjonard
+  categories:
+  - utilities
+  source: https://github.com/benjaminjonard/koillection
+  tipi_version: 46
+  version: 1.8.4
+website: https://github.com/benjaminjonard/koillection

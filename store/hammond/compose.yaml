@@ -1,0 +1,26 @@
+# hammond: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  hammond:
+    environment:
+      TZ: ${TZ}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      test: wget --no-verbose --tries=1 --spider http://localhost:3000
+      timeout: 5s
+    image: alfhou/hammond:v0.0.24
+    networks:
+      appnet:
+        aliases:
+        - hammond_hammond_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${APP_DATA_DIR}/data/assets:/assets
+    - /etc/timezone:/etc/timezone:ro
+    - /etc/localtime:/etc/localtime:ro

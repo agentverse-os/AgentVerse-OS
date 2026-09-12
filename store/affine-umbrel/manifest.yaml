@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/affine-umbrel
+description: Open source alternative to Notion, Miro, and Airtable
+endpoint:
+  port: 3010
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/affine/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/affine/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/affine/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/affine/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: affine-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Affine
+type: app
+upstream:
+  author: toeverything
+  categories:
+  - files
+  release_notes: |-
+    This is a follow-up to AFFiNE 0.27. If you're updating from a pre-0.27 version, only clients on version 0.26 or newer are supported for sync, and advanced self-host configuration should be migrated to config.json per AFFiNE's docs.
+
+    Key improvements in 0.27.4 include:
+      - Improved BYOK model editing
+      - Fixed code block line-number triggers and trashed-doc journal visibility
+      - Improved OneNote imports and Android keyboard compatibility
+      - Improved backend stability for long records and reduced memory usage during server-side garbage collection
+      - Updated AI model support for GPT 5.6 and Gemini 3.7
+
+
+    Full release notes can be found at https://github.com/toeverything/AFFiNE/releases/tag/v0.27.4
+  source: https://github.com/toeverything/AFFiNE
+  version: 0.27.4
+  website: https://affine.pro
+website: https://affine.pro

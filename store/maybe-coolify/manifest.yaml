@@ -1,0 +1,108 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/maybe-coolify
+description: Maybe, the OS for your personal finances.
+endpoint:
+  port: 3000
+  service: maybe
+env:
+  GOOD_JOB_EXECUTION_MODE: async
+  OPENAI_ACCESS_TOKEN: ''
+  POSTGRES_DB: maybe-db
+  POSTGRES_USER: ''
+  RAILS_ASSUME_SSL: 'false'
+  RAILS_FORCE_SSL: 'false'
+  SERVICE_BASE64_64_SECRETKEYBASE:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_URL_MAYBE: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: maybe-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: RAILS_FORCE_SSL
+  hint: 'по умолчанию: false'
+  label: rails force ssl
+  options: null
+  required: false
+  type: text
+- env: RAILS_ASSUME_SSL
+  hint: 'по умолчанию: false'
+  label: rails assume ssl
+  options: null
+  required: false
+  type: text
+- env: GOOD_JOB_EXECUTION_MODE
+  hint: 'по умолчанию: async'
+  label: good job execution mode
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: maybe-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: OPENAI_ACCESS_TOKEN
+  hint: null
+  label: openai access token
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- finances
+- wallets
+- coins
+- stocks
+- investments
+- open
+- source
+title: Maybe
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/maybe-finance/maybe
+  tags:
+  - finances
+  - wallets
+  - coins
+  - stocks
+  - investments
+  - open
+  - source
+  template: maybe.yaml
+website: https://github.com/maybe-finance/maybe

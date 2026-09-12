@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/marimo-coolify
+description: An open-source reactive notebook for Python — reproducible, git-friendly, SQL built-in, executable as a script, and shareable as an app.
+endpoint:
+  port: 8080
+  service: marimo
+env:
+  SERVICE_PASSWORD_MARIMO:
+    generate: password
+  SERVICE_URL_MARIMO_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: marimo-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- notebook
+- python
+- data
+- analysis
+title: Marimo
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://marimo.io/
+  tags:
+  - notebook
+  - python
+  - data
+  - analysis
+  template: marimo.yml
+website: https://marimo.io/

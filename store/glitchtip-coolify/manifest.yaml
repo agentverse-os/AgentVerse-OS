@@ -1,0 +1,106 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/glitchtip-coolify
+description: GlitchTip is a error tracking system.
+endpoint:
+  port: 8000
+  service: migrate
+env:
+  CELERY_WORKER_AUTOSCALE: 1,3
+  CELERY_WORKER_MAX_TASKS_PER_CHILD: '10000'
+  DEFAULT_FROM_EMAIL: test@example.com
+  EMAIL_URL: consolemail://
+  POSTGRESQL_DATABASE: glitchtip
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_BASE64_64_ENCRYPTION:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_GLITCHTIP: https://${APP_DOMAIN}
+  SERVICE_URL_GLITCHTIP_8000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: glitchtip-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: glitchtip'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: EMAIL_URL
+  hint: 'по умолчанию: consolemail://'
+  label: email url
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_FROM_EMAIL
+  hint: 'по умолчанию: test@example.com'
+  label: default from email
+  options: null
+  required: false
+  type: text
+- env: CELERY_WORKER_AUTOSCALE
+  hint: 'по умолчанию: 1,3'
+  label: celery worker autoscale
+  options: null
+  required: false
+  type: text
+- env: CELERY_WORKER_MAX_TASKS_PER_CHILD
+  hint: 'по умолчанию: 10000'
+  label: celery worker max tasks per child
+  options: null
+  required: false
+  type: text
+tags:
+- error
+- tracking
+- sentry
+title: Glitchtip
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://glitchtip.com
+  tags:
+  - error
+  - tracking
+  - sentry
+  template: glitchtip.yaml
+website: https://glitchtip.com

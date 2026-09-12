@@ -1,0 +1,67 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tubearchivist
+description: Your self-hosted YouTube media server
+endpoint:
+  port: 8000
+  service: tubearchivist
+env:
+  ELASTIC_PASSWORD:
+    generate: token
+  TA_PASSWORD:
+    generate: password
+  TA_USER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: TA_PASSWORD
+  path: null
+  user: TA_USER
+name: tubearchivist
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TA_USER
+  hint: null
+  label: Tube Archivist Username
+  options: null
+  required: true
+  type: text
+- env: TA_PASSWORD
+  hint: null
+  label: Tube Archivist Password
+  options: null
+  required: true
+  type: password
+- env: ELASTIC_PASSWORD
+  hint: null
+  label: Elasticsearch Password
+  options: null
+  required: false
+  type: random
+tags: []
+title: Tube Archivist
+type: app
+upstream:
+  author: bbilly1
+  categories:
+  - media
+  source: https://github.com/tubearchivist/tubearchivist
+  tipi_version: 41
+  version: v0.5.12
+website: https://github.com/tubearchivist/tubearchivist

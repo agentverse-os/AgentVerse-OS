@@ -1,0 +1,42 @@
+# your-spotify: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  your-spotify:
+    depends_on:
+    - your-spotify-server
+    environment:
+      API_ENDPOINT: http://${INTERNAL_IP}:32500
+    image: yooooomi/your_spotify_client:1.20.0
+    networks:
+      appnet:
+        aliases:
+        - your-spotify_your-spotify_1
+    restart: unless-stopped
+  your-spotify-db:
+    image: mongo:4.4.30
+    networks:
+      appnet:
+        aliases:
+        - your-spotify_your-spotify-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/data/db
+  your-spotify-server:
+    depends_on:
+    - your-spotify-db
+    environment:
+      API_ENDPOINT: http://${INTERNAL_IP}:32500
+      CLIENT_ENDPOINT: http://${INTERNAL_IP}:${APP_PORT}
+      CORS: i-want-a-security-vulnerability-and-want-to-allow-all-origins
+      MONGO_ENDPOINT: mongodb://your-spotify-db:27017/your_spotify
+      SPOTIFY_PUBLIC: ${SPOTIFY_PUBLIC}
+      SPOTIFY_SECRET: ${SPOTIFY_SECRET}
+    image: yooooomi/your_spotify_server
+    networks:
+      appnet:
+        aliases:
+        - your-spotify_your-spotify-server_1
+    restart: unless-stopped

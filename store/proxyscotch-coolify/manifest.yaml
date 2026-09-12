@@ -1,0 +1,73 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/proxyscotch-coolify
+description: A simple proxy server created for https://hoppscotch.io - CORS proxy
+endpoint:
+  port: 9159
+  service: proxyscotch
+env:
+  ALLOWED_ORIGINS: '*'
+  BANNED_DESTS: ''
+  BANNED_OUTPUTS: ''
+  SERVICE_PASSWORD_TOKEN:
+    generate: password
+  SERVICE_URL_PROXYSCOTCH_9159: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: proxyscotch-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ALLOWED_ORIGINS
+  hint: 'по умолчанию: *'
+  label: allowed origins
+  options: null
+  required: false
+  type: text
+- env: BANNED_OUTPUTS
+  hint: null
+  label: banned outputs
+  options: null
+  required: false
+  type: text
+- env: BANNED_DESTS
+  hint: null
+  label: banned dests
+  options: null
+  required: false
+  type: text
+tags:
+- proxy
+- hoppscotch
+- cors
+title: Proxyscotch
+type: app
+upstream:
+  categories:
+  - proxy
+  source: https://github.com/hoppscotch/proxyscotch
+  tags:
+  - proxy
+  - hoppscotch
+  - cors
+  template: proxyscotch.yaml
+website: https://github.com/hoppscotch/proxyscotch

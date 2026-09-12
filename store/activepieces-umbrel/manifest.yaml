@@ -1,0 +1,65 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/activepieces-umbrel
+description: Your friendliest open source AI automation tool
+endpoint:
+  port: 80
+  service: app
+env:
+  APP_AP_ENCRYPTION_KEY: ''
+  APP_PASSWORD:
+    generate: password
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/activepieces/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/activepieces/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/activepieces/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/activepieces/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: activepieces-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_AP_ENCRYPTION_KEY
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app ap encryption key
+  options: null
+  required: false
+  type: password
+tags: []
+title: Activepieces
+type: app
+upstream:
+  author: Activepieces
+  categories:
+  - automation
+  release_notes: |-
+    Activepieces 0.89.0 adds new agent, MCP, and AI-provider features, including agent trial runs, a dedicated MCP client connection page, and support for xAI, DeepSeek, Z.ai, Qwen, MiniMax, and Moonshot providers.
+
+    This release also adds and updates many pieces, and fixes project access, secret-manager visibility, file uploads on older platforms, Jira polling triggers, Tables date filters, large-flow CPU usage, and platform deletion timeouts.
+
+    Before updating, review Activepieces' breaking changes if you use agent steps, MCP OAuth clients, Microsoft Teams Bot, Brevo contact actions, long-running agent/MCP actions, or workflows that depend on sign-in-code behavior.
+
+    Full release notes can be found at https://github.com/activepieces/activepieces/releases/tag/0.89.0
+  source: https://github.com/activepieces/activepieces/
+  version: 0.89.0
+  website: https://www.activepieces.com/
+website: https://www.activepieces.com/

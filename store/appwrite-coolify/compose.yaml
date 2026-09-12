@@ -1,0 +1,1119 @@
+# appwrite-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  appwrite:
+    depends_on:
+    - appwrite-mariadb
+    - appwrite-redis
+    environment:
+    - SERVICE_URL_APPWRITE=/
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_EDITION=${_APP_EDITION:-self-hosted}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_LOCALE=${_APP_LOCALE:-en}
+    - _APP_COMPRESSION_MIN_SIZE_BYTES=${_APP_COMPRESSION_MIN_SIZE_BYTES}
+    - _APP_CONSOLE_WHITELIST_ROOT=${_APP_CONSOLE_WHITELIST_ROOT:-enabled}
+    - _APP_CONSOLE_WHITELIST_EMAILS=${_APP_CONSOLE_WHITELIST_EMAILS}
+    - _APP_CONSOLE_SESSION_ALERTS=${_APP_CONSOLE_SESSION_ALERTS}
+    - _APP_CONSOLE_WHITELIST_IPS=${_APP_CONSOLE_WHITELIST_IPS}
+    - _APP_CONSOLE_HOSTNAMES=${_APP_CONSOLE_HOSTNAMES}
+    - _APP_SYSTEM_EMAIL_NAME=${_APP_SYSTEM_EMAIL_NAME:-Appwrite}
+    - _APP_SYSTEM_EMAIL_ADDRESS=${_APP_SYSTEM_EMAIL_ADDRESS:-team@appwrite.io}
+    - _APP_SYSTEM_TEAM_EMAIL=${_APP_SYSTEM_TEAM_EMAIL:-team@appwrite.io}
+    - _APP_EMAIL_SECURITY=${_APP_EMAIL_SECURITY:-certs@appwrite.io}
+    - _APP_SYSTEM_RESPONSE_FORMAT=${_APP_SYSTEM_RESPONSE_FORMAT}
+    - _APP_OPTIONS_ABUSE=${_APP_OPTIONS_ABUSE:-enabled}
+    - _APP_OPTIONS_ROUTER_PROTECTION=${_APP_OPTIONS_ROUTER_PROTECTION:-disabled}
+    - _APP_OPTIONS_FORCE_HTTPS=${_APP_OPTIONS_FORCE_HTTPS:-disabled}
+    - _APP_OPTIONS_ROUTER_FORCE_HTTPS=${_APP_OPTIONS_ROUTER_FORCE_HTTPS:-disabled}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_CONSOLE_DOMAIN=${_APP_CONSOLE_DOMAIN}
+    - _APP_DOMAIN=${_APP_DOMAIN:-$SERVICE_FQDN_APPWRITE}
+    - _APP_DOMAIN_TARGET_CNAME=${_APP_DOMAIN_TARGET_CNAME:-localhost}
+    - _APP_DOMAIN_TARGET_AAAA=${_APP_DOMAIN_TARGET_AAAA:-::1}
+    - _APP_DOMAIN_TARGET_A=${_APP_DOMAIN_TARGET_A:-127.0.0.1}
+    - _APP_DOMAIN_TARGET_CAA=${_APP_DOMAIN_TARGET_CAA}
+    - _APP_DOMAIN_FUNCTIONS=${_APP_DOMAIN_FUNCTIONS:-functions.$SERVICE_FQDN_APPWRITE}
+    - _APP_DNS=${_APP_DNS}
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_SMTP_HOST=${_APP_SMTP_HOST}
+    - _APP_SMTP_PORT=${_APP_SMTP_PORT}
+    - _APP_SMTP_SECURE=${_APP_SMTP_SECURE}
+    - _APP_SMTP_USERNAME=${_APP_SMTP_USERNAME}
+    - _APP_SMTP_PASSWORD=${_APP_SMTP_PASSWORD}
+    - _APP_USAGE_STATS=${_APP_USAGE_STATS:-enabled}
+    - _APP_STORAGE_LIMIT=${_APP_STORAGE_LIMIT:-30000000}
+    - _APP_STORAGE_PREVIEW_LIMIT=${_APP_STORAGE_PREVIEW_LIMIT:-20000000}
+    - _APP_STORAGE_ANTIVIRUS=${_APP_STORAGE_ANTIVIRUS:-disabled}
+    - _APP_STORAGE_ANTIVIRUS_HOST=${_APP_STORAGE_ANTIVIRUS_HOST:-appwrite-clamav}
+    - _APP_STORAGE_ANTIVIRUS_PORT=${_APP_STORAGE_ANTIVIRUS_PORT:-3310}
+    - _APP_STORAGE_DEVICE=${_APP_STORAGE_DEVICE:-local}
+    - _APP_STORAGE_S3_ACCESS_KEY=${_APP_STORAGE_S3_ACCESS_KEY}
+    - _APP_STORAGE_S3_SECRET=${_APP_STORAGE_S3_SECRET}
+    - _APP_STORAGE_S3_REGION=${_APP_STORAGE_S3_REGION:-us-east-1}
+    - _APP_STORAGE_S3_BUCKET=${_APP_STORAGE_S3_BUCKET}
+    - _APP_STORAGE_S3_ENDPOINT=${_APP_STORAGE_S3_ENDPOINT}
+    - _APP_STORAGE_DO_SPACES_ACCESS_KEY=${_APP_STORAGE_DO_SPACES_ACCESS_KEY}
+    - _APP_STORAGE_DO_SPACES_SECRET=${_APP_STORAGE_DO_SPACES_SECRET}
+    - _APP_STORAGE_DO_SPACES_REGION=${_APP_STORAGE_DO_SPACES_REGION:-us-east-1}
+    - _APP_STORAGE_DO_SPACES_BUCKET=${_APP_STORAGE_DO_SPACES_BUCKET}
+    - _APP_STORAGE_BACKBLAZE_ACCESS_KEY=${_APP_STORAGE_BACKBLAZE_ACCESS_KEY}
+    - _APP_STORAGE_BACKBLAZE_SECRET=${_APP_STORAGE_BACKBLAZE_SECRET}
+    - _APP_STORAGE_BACKBLAZE_REGION=${_APP_STORAGE_BACKBLAZE_REGION:-us-west-004}
+    - _APP_STORAGE_BACKBLAZE_BUCKET=${_APP_STORAGE_BACKBLAZE_BUCKET}
+    - _APP_STORAGE_LINODE_ACCESS_KEY=${_APP_STORAGE_LINODE_ACCESS_KEY}
+    - _APP_STORAGE_LINODE_SECRET=${_APP_STORAGE_LINODE_SECRET}
+    - _APP_STORAGE_LINODE_REGION=${_APP_STORAGE_LINODE_REGION:-eu-central-1}
+    - _APP_STORAGE_LINODE_BUCKET=${_APP_STORAGE_LINODE_BUCKET}
+    - _APP_STORAGE_WASABI_ACCESS_KEY=${_APP_STORAGE_WASABI_ACCESS_KEY}
+    - _APP_STORAGE_WASABI_SECRET=${_APP_STORAGE_WASABI_SECRET}
+    - _APP_STORAGE_WASABI_REGION=${_APP_STORAGE_WASABI_REGION:-eu-central-1}
+    - _APP_STORAGE_WASABI_BUCKET=${_APP_STORAGE_WASABI_BUCKET}
+    - _APP_COMPUTE_SIZE_LIMIT=${_APP_COMPUTE_SIZE_LIMIT:-30000000}
+    - _APP_FUNCTIONS_TIMEOUT=${_APP_FUNCTIONS_TIMEOUT:-900}
+    - _APP_SITES_TIMEOUT=${_APP_SITES_TIMEOUT:-900}
+    - _APP_COMPUTE_BUILD_TIMEOUT=${_APP_COMPUTE_BUILD_TIMEOUT:-900}
+    - _APP_COMPUTE_CPUS=${_APP_COMPUTE_CPUS:-0}
+    - _APP_COMPUTE_MEMORY=${_APP_COMPUTE_MEMORY:-0}
+    - _APP_FUNCTIONS_RUNTIMES=${_APP_FUNCTIONS_RUNTIMES:-node-20.0,php-8.2,python-3.11,ruby-3.2}
+    - _APP_SITES_RUNTIMES=${_APP_SITES_RUNTIMES}
+    - _APP_DOMAIN_SITES=${_APP_DOMAIN_SITES:-sites.$SERVICE_FQDN_APPWRITE}
+    - _APP_EXECUTOR_SECRET=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_EXECUTOR_HOST=${_APP_EXECUTOR_HOST:-http://appwrite-executor/v1}
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_MAINTENANCE_INTERVAL=${_APP_MAINTENANCE_INTERVAL:-86400}
+    - _APP_MAINTENANCE_DELAY=${_APP_MAINTENANCE_DELAY}
+    - _APP_MAINTENANCE_START_TIME=${_APP_MAINTENANCE_START_TIME}
+    - _APP_MAINTENANCE_RETENTION_EXECUTION=${_APP_MAINTENANCE_RETENTION_EXECUTION:-1209600}
+    - _APP_MAINTENANCE_RETENTION_CACHE=${_APP_MAINTENANCE_RETENTION_CACHE:-2592000}
+    - _APP_MAINTENANCE_RETENTION_ABUSE=${_APP_MAINTENANCE_RETENTION_ABUSE:-86400}
+    - _APP_MAINTENANCE_RETENTION_AUDIT=${_APP_MAINTENANCE_RETENTION_AUDIT:-1209600}
+    - _APP_MAINTENANCE_RETENTION_AUDIT_CONSOLE=${_APP_MAINTENANCE_RETENTION_AUDIT_CONSOLE}
+    - _APP_MAINTENANCE_RETENTION_USAGE_HOURLY=${_APP_MAINTENANCE_RETENTION_USAGE_HOURLY:-8640000}
+    - _APP_MAINTENANCE_RETENTION_SCHEDULES=${_APP_MAINTENANCE_RETENTION_SCHEDULES:-86400}
+    - _APP_SMS_PROVIDER=${_APP_SMS_PROVIDER}
+    - _APP_SMS_FROM=${_APP_SMS_FROM}
+    - _APP_GRAPHQL_MAX_BATCH_SIZE=${_APP_GRAPHQL_MAX_BATCH_SIZE:-10}
+    - _APP_GRAPHQL_MAX_COMPLEXITY=${_APP_GRAPHQL_MAX_COMPLEXITY:-250}
+    - _APP_GRAPHQL_MAX_DEPTH=${_APP_GRAPHQL_MAX_DEPTH:-3}
+    - _APP_VCS_GITHUB_APP_NAME=${_APP_VCS_GITHUB_APP_NAME}
+    - _APP_VCS_GITHUB_PRIVATE_KEY=${_APP_VCS_GITHUB_PRIVATE_KEY}
+    - _APP_VCS_GITHUB_APP_ID=${_APP_VCS_GITHUB_APP_ID}
+    - _APP_VCS_GITHUB_WEBHOOK_SECRET=${_APP_VCS_GITHUB_WEBHOOK_SECRET}
+    - _APP_VCS_GITHUB_CLIENT_SECRET=${_APP_VCS_GITHUB_CLIENT_SECRET}
+    - _APP_VCS_GITHUB_CLIENT_ID=${_APP_VCS_GITHUB_CLIENT_ID}
+    - _APP_MIGRATIONS_FIREBASE_CLIENT_ID=${_APP_MIGRATIONS_FIREBASE_CLIENT_ID}
+    - _APP_MIGRATIONS_FIREBASE_CLIENT_SECRET=${_APP_MIGRATIONS_FIREBASE_CLIENT_SECRET}
+    - _APP_ASSISTANT_OPENAI_API_KEY=${_APP_ASSISTANT_OPENAI_API_KEY}
+    - _APP_MESSAGE_SMS_TEST_DSN=${_APP_MESSAGE_SMS_TEST_DSN}
+    - _APP_MESSAGE_EMAIL_TEST_DSN=${_APP_MESSAGE_EMAIL_TEST_DSN}
+    - _APP_MESSAGE_PUSH_TEST_DSN=${_APP_MESSAGE_PUSH_TEST_DSN}
+    - _APP_CONSOLE_COUNTRIES_DENYLIST=${_APP_CONSOLE_COUNTRIES_DENYLIST}
+    - _APP_EXPERIMENT_LOGGING_PROVIDER=${_APP_EXPERIMENT_LOGGING_PROVIDER}
+    - _APP_EXPERIMENT_LOGGING_CONFIG=${_APP_EXPERIMENT_LOGGING_CONFIG}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    - _APP_DATABASE_SHARED_TABLES_V1=${_APP_DATABASE_SHARED_TABLES_V1}
+    - _APP_DATABASE_SHARED_NAMESPACE=${_APP_DATABASE_SHARED_NAMESPACE}
+    - _APP_FUNCTIONS_CREATION_ABUSE_LIMIT=${_APP_FUNCTIONS_CREATION_ABUSE_LIMIT}
+    - _APP_CUSTOM_DOMAIN_DENY_LIST=${_APP_CUSTOM_DOMAIN_DENY_LIST}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - curl -fsI http://localhost:80 | head -n 1 | grep -E '^HTTP/.* 3[0-9]{2} ' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite_1
+    restart: unless-stopped
+    volumes:
+    - appwrite-uploads:/storage/uploads:rw
+    - appwrite-imports:/storage/imports:rw
+    - appwrite-cache:/storage/cache:rw
+    - appwrite-config:/storage/config:rw
+    - appwrite-certificates:/storage/certificates:rw
+    - appwrite-functions:/storage/functions:rw
+    - appwrite-sites:/storage/sites:rw
+    - appwrite-builds:/storage/builds:rw
+  appwrite-assistant:
+    environment:
+    - _APP_ASSISTANT_OPENAI_API_KEY=${_APP_ASSISTANT_OPENAI_API_KEY}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - wget --spider -q http://127.0.0.1:3003 || exit 0
+      timeout: 5s
+    image: appwrite/assistant:0.8.3
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-assistant_1
+    restart: unless-stopped
+  appwrite-browser:
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD
+      - node
+      - -e
+      - import('http').then(http => http.get('http://localhost:3000', res => process.exit(0)).on('error', () => process.exit(1)))
+      timeout: 5s
+    hostname: appwrite-browser
+    image: appwrite/browser:0.2.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-browser_1
+    restart: unless-stopped
+  appwrite-console:
+    environment:
+    - SERVICE_URL_APPWRITE=/console
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - curl -fsI http://localhost:80 | head -n 1 | grep -E '^HTTP/.* 3[0-9]{2} ' || exit 1
+      timeout: 5s
+    image: appwrite/console:6.1.28
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-console_1
+    restart: unless-stopped
+  appwrite-mariadb:
+    command: mysqld --innodb-flush-method=fsync
+    environment:
+    - MYSQL_ROOT_PASSWORD=$SERVICE_PASSWORD_MARIADBROOT
+    - MYSQL_DATABASE=${_APP_DB_SCHEMA:-appwrite}
+    - MYSQL_USER=$SERVICE_USER_MARIADB
+    - MYSQL_PASSWORD=$SERVICE_PASSWORD_MARIADB
+    - MARIADB_AUTO_UPGRADE=1
+    healthcheck:
+      interval: 20s
+      retries: 5
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 10s
+    image: mariadb:10.11
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-mariadb_1
+    restart: unless-stopped
+    volumes:
+    - appwrite-mariadb:/var/lib/mysql:rw
+  appwrite-realtime:
+    depends_on:
+    - appwrite-mariadb
+    - appwrite-redis
+    entrypoint: realtime
+    environment:
+    - SERVICE_URL_APPWRITE=/v1/realtime
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPTIONS_ABUSE=${_APP_OPTIONS_ABUSE:-enabled}
+    - _APP_OPTIONS_ROUTER_PROTECTION=${_APP_OPTIONS_ROUTER_PROTECTION:-disabled}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_USAGE_STATS=${_APP_USAGE_STATS:-enabled}
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - curl -s localhost > /dev/null || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-realtime_1
+    restart: unless-stopped
+  appwrite-redis:
+    command: |
+      redis-server --maxmemory            512mb --maxmemory-policy     allkeys-lru --maxmemory-samples    5
+    healthcheck:
+      interval: 20s
+      retries: 5
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 10s
+    image: redis:7.2.4-alpine
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-redis_1
+    restart: unless-stopped
+    volumes:
+    - appwrite-redis:/data:rw
+  appwrite-task-maintenance:
+    depends_on:
+    - appwrite-redis
+    entrypoint: maintenance
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_DOMAIN=${_APP_DOMAIN:-$SERVICE_FQDN_APPWRITE}
+    - _APP_DOMAIN_TARGET_CNAME=${_APP_DOMAIN_TARGET_CNAME}
+    - _APP_DOMAIN_TARGET_AAAA=${_APP_DOMAIN_TARGET_AAAA}
+    - _APP_DOMAIN_TARGET_A=${_APP_DOMAIN_TARGET_A}
+    - _APP_DOMAIN_TARGET_CAA=${_APP_DOMAIN_TARGET_CAA}
+    - _APP_DOMAIN_FUNCTIONS=${_APP_DOMAIN_FUNCTIONS:-functions.$SERVICE_FQDN_APPWRITE}
+    - _APP_DNS=${_APP_DNS}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_MAINTENANCE_INTERVAL=${_APP_MAINTENANCE_INTERVAL:-86400}
+    - _APP_MAINTENANCE_RETENTION_EXECUTION=${_APP_MAINTENANCE_RETENTION_EXECUTION:-1209600}
+    - _APP_MAINTENANCE_RETENTION_CACHE=${_APP_MAINTENANCE_RETENTION_CACHE:-2592000}
+    - _APP_MAINTENANCE_RETENTION_ABUSE=${_APP_MAINTENANCE_RETENTION_ABUSE:-86400}
+    - _APP_MAINTENANCE_RETENTION_AUDIT=${_APP_MAINTENANCE_RETENTION_AUDIT:-1209600}
+    - _APP_MAINTENANCE_RETENTION_AUDIT_CONSOLE=${_APP_MAINTENANCE_RETENTION_AUDIT_CONSOLE}
+    - _APP_MAINTENANCE_RETENTION_USAGE_HOURLY=${_APP_MAINTENANCE_RETENTION_USAGE_HOURLY:-8640000}
+    - _APP_MAINTENANCE_RETENTION_SCHEDULES=${_APP_MAINTENANCE_RETENTION_SCHEDULES:-86400}
+    - _APP_MAINTENANCE_START_TIME=${_APP_MAINTENANCE_START_TIME}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[m]aintenance' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-task-maintenance_1
+    restart: unless-stopped
+  appwrite-task-scheduler-executions:
+    depends_on:
+    - appwrite-mariadb
+    - appwrite-redis
+    entrypoint: schedule-executions
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[s]chedule-execut' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-task-scheduler-executions_1
+    restart: unless-stopped
+  appwrite-task-scheduler-functions:
+    depends_on:
+    - appwrite-mariadb
+    - appwrite-redis
+    entrypoint: schedule-functions
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[s]chedule-functi' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-task-scheduler-functions_1
+    restart: unless-stopped
+  appwrite-task-scheduler-messages:
+    depends_on:
+    - appwrite-mariadb
+    - appwrite-redis
+    entrypoint: schedule-messages
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[s]chedule-messag' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-task-scheduler-messages_1
+    restart: unless-stopped
+  appwrite-task-stats-resources:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    entrypoint: stats-resources
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_USAGE_STATS=${_APP_USAGE_STATS:-enabled}
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    - _APP_STATS_RESOURCES_INTERVAL=${_APP_STATS_RESOURCES_INTERVAL}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[s]tats-resources' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-task-stats-resources_1
+    restart: unless-stopped
+  appwrite-worker-audits:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    entrypoint: worker-audits
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-audits' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-audits_1
+    restart: unless-stopped
+  appwrite-worker-builds:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    entrypoint: worker-builds
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_EXECUTOR_SECRET=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_EXECUTOR_HOST=${_APP_EXECUTOR_HOST:-http://appwrite-executor/v1}
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_VCS_GITHUB_APP_NAME=${_APP_VCS_GITHUB_APP_NAME}
+    - _APP_VCS_GITHUB_PRIVATE_KEY=${_APP_VCS_GITHUB_PRIVATE_KEY}
+    - _APP_VCS_GITHUB_APP_ID=${_APP_VCS_GITHUB_APP_ID}
+    - _APP_FUNCTIONS_TIMEOUT=${_APP_FUNCTIONS_TIMEOUT:-900}
+    - _APP_SITES_TIMEOUT=${_APP_SITES_TIMEOUT:-900}
+    - _APP_COMPUTE_BUILD_TIMEOUT=${_APP_COMPUTE_BUILD_TIMEOUT:-900}
+    - _APP_COMPUTE_CPUS=${_APP_COMPUTE_CPUS:-0}
+    - _APP_COMPUTE_MEMORY=${_APP_COMPUTE_MEMORY:-0}
+    - _APP_COMPUTE_SIZE_LIMIT=${_APP_COMPUTE_SIZE_LIMIT:-30000000}
+    - _APP_OPTIONS_FORCE_HTTPS=${_APP_OPTIONS_FORCE_HTTPS:-disabled}
+    - _APP_OPTIONS_ROUTER_FORCE_HTTPS=${_APP_OPTIONS_ROUTER_FORCE_HTTPS:-disabled}
+    - _APP_DOMAIN=${_APP_DOMAIN:-$SERVICE_FQDN_APPWRITE}
+    - _APP_STORAGE_DEVICE=${_APP_STORAGE_DEVICE:-local}
+    - _APP_STORAGE_S3_ACCESS_KEY=${_APP_STORAGE_S3_ACCESS_KEY}
+    - _APP_STORAGE_S3_SECRET=${_APP_STORAGE_S3_SECRET}
+    - _APP_STORAGE_S3_REGION=${_APP_STORAGE_S3_REGION:-us-east-1}
+    - _APP_STORAGE_S3_BUCKET=${_APP_STORAGE_S3_BUCKET}
+    - _APP_STORAGE_S3_ENDPOINT=${_APP_STORAGE_S3_ENDPOINT}
+    - _APP_STORAGE_DO_SPACES_ACCESS_KEY=${_APP_STORAGE_DO_SPACES_ACCESS_KEY}
+    - _APP_STORAGE_DO_SPACES_SECRET=${_APP_STORAGE_DO_SPACES_SECRET}
+    - _APP_STORAGE_DO_SPACES_REGION=${_APP_STORAGE_DO_SPACES_REGION:-us-east-1}
+    - _APP_STORAGE_DO_SPACES_BUCKET=${_APP_STORAGE_DO_SPACES_BUCKET}
+    - _APP_STORAGE_BACKBLAZE_ACCESS_KEY=${_APP_STORAGE_BACKBLAZE_ACCESS_KEY}
+    - _APP_STORAGE_BACKBLAZE_SECRET=${_APP_STORAGE_BACKBLAZE_SECRET}
+    - _APP_STORAGE_BACKBLAZE_REGION=${_APP_STORAGE_BACKBLAZE_REGION:-us-west-004}
+    - _APP_STORAGE_BACKBLAZE_BUCKET=${_APP_STORAGE_BACKBLAZE_BUCKET}
+    - _APP_STORAGE_LINODE_ACCESS_KEY=${_APP_STORAGE_LINODE_ACCESS_KEY}
+    - _APP_STORAGE_LINODE_SECRET=${_APP_STORAGE_LINODE_SECRET}
+    - _APP_STORAGE_LINODE_REGION=${_APP_STORAGE_LINODE_REGION:-eu-central-1}
+    - _APP_STORAGE_LINODE_BUCKET=${_APP_STORAGE_LINODE_BUCKET}
+    - _APP_STORAGE_WASABI_ACCESS_KEY=${_APP_STORAGE_WASABI_ACCESS_KEY}
+    - _APP_STORAGE_WASABI_SECRET=${_APP_STORAGE_WASABI_SECRET}
+    - _APP_STORAGE_WASABI_REGION=${_APP_STORAGE_WASABI_REGION:-eu-central-1}
+    - _APP_STORAGE_WASABI_BUCKET=${_APP_STORAGE_WASABI_BUCKET}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    - _APP_DOMAIN_SITES=${_APP_DOMAIN_SITES:-sites.$SERVICE_FQDN_APPWRITE}
+    - _APP_BROWSER_HOST=${_APP_BROWSER_HOST}
+    - _APP_CONSOLE_DOMAIN=${_APP_CONSOLE_DOMAIN}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-builds' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-builds_1
+    restart: unless-stopped
+    volumes:
+    - appwrite-functions:/storage/functions:rw
+    - appwrite-sites:/storage/sites:rw
+    - appwrite-builds:/storage/builds:rw
+    - appwrite-uploads:/storage/uploads:rw
+  appwrite-worker-certificates:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    entrypoint: worker-certificates
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_DOMAIN=${_APP_DOMAIN:-$SERVICE_FQDN_APPWRITE}
+    - _APP_DOMAIN_TARGET_CNAME=${_APP_DOMAIN_TARGET_CNAME}
+    - _APP_DOMAIN_TARGET_AAAA=${_APP_DOMAIN_TARGET_AAAA}
+    - _APP_DOMAIN_TARGET_A=${_APP_DOMAIN_TARGET_A}
+    - _APP_DOMAIN_TARGET_CAA=${_APP_DOMAIN_TARGET_CAA}
+    - _APP_DOMAIN_FUNCTIONS=${_APP_DOMAIN_FUNCTIONS:-functions.$SERVICE_FQDN_APPWRITE}
+    - _APP_DNS=${_APP_DNS}
+    - _APP_EMAIL_CERTIFICATES=${_APP_EMAIL_CERTIFICATES:-enabled}
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-certificates' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-certificates_1
+    restart: unless-stopped
+    volumes:
+    - appwrite-config:/storage/config:rw
+    - appwrite-certificates:/storage/certificates:rw
+  appwrite-worker-databases:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    entrypoint: worker-databases
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_WORKERS_NUM=${_APP_WORKERS_NUM}
+    - _APP_QUEUE_NAME=${_APP_QUEUE_NAME}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-databases' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-databases_1
+    restart: unless-stopped
+  appwrite-worker-deletes:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    entrypoint: worker-deletes
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_STORAGE_DEVICE=${_APP_STORAGE_DEVICE:-local}
+    - _APP_STORAGE_S3_ACCESS_KEY=${_APP_STORAGE_S3_ACCESS_KEY}
+    - _APP_STORAGE_S3_SECRET=${_APP_STORAGE_S3_SECRET}
+    - _APP_STORAGE_S3_REGION=${_APP_STORAGE_S3_REGION:-us-east-1}
+    - _APP_STORAGE_S3_BUCKET=${_APP_STORAGE_S3_BUCKET}
+    - _APP_STORAGE_S3_ENDPOINT=${_APP_STORAGE_S3_ENDPOINT}
+    - _APP_STORAGE_DO_SPACES_ACCESS_KEY=${_APP_STORAGE_DO_SPACES_ACCESS_KEY}
+    - _APP_STORAGE_DO_SPACES_SECRET=${_APP_STORAGE_DO_SPACES_SECRET}
+    - _APP_STORAGE_DO_SPACES_REGION=${_APP_STORAGE_DO_SPACES_REGION:-us-east-1}
+    - _APP_STORAGE_DO_SPACES_BUCKET=${_APP_STORAGE_DO_SPACES_BUCKET}
+    - _APP_STORAGE_BACKBLAZE_ACCESS_KEY=${_APP_STORAGE_BACKBLAZE_ACCESS_KEY}
+    - _APP_STORAGE_BACKBLAZE_SECRET=${_APP_STORAGE_BACKBLAZE_SECRET}
+    - _APP_STORAGE_BACKBLAZE_REGION=${_APP_STORAGE_BACKBLAZE_REGION:-us-west-004}
+    - _APP_STORAGE_BACKBLAZE_BUCKET=${_APP_STORAGE_BACKBLAZE_BUCKET}
+    - _APP_STORAGE_LINODE_ACCESS_KEY=${_APP_STORAGE_LINODE_ACCESS_KEY}
+    - _APP_STORAGE_LINODE_SECRET=${_APP_STORAGE_LINODE_SECRET}
+    - _APP_STORAGE_LINODE_REGION=${_APP_STORAGE_LINODE_REGION:-eu-central-1}
+    - _APP_STORAGE_LINODE_BUCKET=${_APP_STORAGE_LINODE_BUCKET}
+    - _APP_STORAGE_WASABI_ACCESS_KEY=${_APP_STORAGE_WASABI_ACCESS_KEY}
+    - _APP_STORAGE_WASABI_SECRET=${_APP_STORAGE_WASABI_SECRET}
+    - _APP_STORAGE_WASABI_REGION=${_APP_STORAGE_WASABI_REGION:-eu-central-1}
+    - _APP_STORAGE_WASABI_BUCKET=${_APP_STORAGE_WASABI_BUCKET}
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_EXECUTOR_SECRET=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_EXECUTOR_HOST=${_APP_EXECUTOR_HOST:-http://appwrite-executor/v1}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    - _APP_DATABASE_SHARED_TABLES_V1=${_APP_DATABASE_SHARED_TABLES_V1}
+    - _APP_EMAIL_CERTIFICATES=${_APP_EMAIL_CERTIFICATES}
+    - _APP_MAINTENANCE_RETENTION_AUDIT=${_APP_MAINTENANCE_RETENTION_AUDIT:-1209600}
+    - _APP_MAINTENANCE_RETENTION_AUDIT_CONSOLE=${_APP_MAINTENANCE_RETENTION_AUDIT_CONSOLE}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-deletes' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-deletes_1
+    restart: unless-stopped
+    volumes:
+    - appwrite-uploads:/storage/uploads:rw
+    - appwrite-cache:/storage/cache:rw
+    - appwrite-functions:/storage/functions:rw
+    - appwrite-sites:/storage/sites:rw
+    - appwrite-builds:/storage/builds:rw
+    - appwrite-certificates:/storage/certificates:rw
+  appwrite-worker-functions:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    - openruntimes-executor
+    entrypoint: worker-functions
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_DOMAIN=${_APP_DOMAIN:-$SERVICE_FQDN_APPWRITE}
+    - _APP_OPTIONS_FORCE_HTTPS=${_APP_OPTIONS_FORCE_HTTPS:-disabled}
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_FUNCTIONS_TIMEOUT=${_APP_FUNCTIONS_TIMEOUT:-900}
+    - _APP_SITES_TIMEOUT=${_APP_SITES_TIMEOUT:-900}
+    - _APP_COMPUTE_BUILD_TIMEOUT=${_APP_COMPUTE_BUILD_TIMEOUT:-900}
+    - _APP_COMPUTE_CPUS=${_APP_COMPUTE_CPUS:-0}
+    - _APP_COMPUTE_MEMORY=${_APP_COMPUTE_MEMORY:-0}
+    - _APP_EXECUTOR_SECRET=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_EXECUTOR_HOST=${_APP_EXECUTOR_HOST:-http://appwrite-executor/v1}
+    - _APP_USAGE_STATS=${_APP_USAGE_STATS:-enabled}
+    - _APP_DOCKER_HUB_USERNAME=${_APP_DOCKER_HUB_USERNAME}
+    - _APP_DOCKER_HUB_PASSWORD=${_APP_DOCKER_HUB_PASSWORD}
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_LOGGING_PROVIDER=${_APP_LOGGING_PROVIDER}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-functions' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-functions_1
+    restart: unless-stopped
+  appwrite-worker-mails:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    entrypoint: worker-mails
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_SYSTEM_EMAIL_NAME=${_APP_SYSTEM_EMAIL_NAME:-Appwrite}
+    - _APP_SYSTEM_EMAIL_ADDRESS=${_APP_SYSTEM_EMAIL_ADDRESS:-team@appwrite.io}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_SMTP_HOST=${_APP_SMTP_HOST}
+    - _APP_SMTP_PORT=${_APP_SMTP_PORT}
+    - _APP_SMTP_SECURE=${_APP_SMTP_SECURE}
+    - _APP_SMTP_USERNAME=${_APP_SMTP_USERNAME}
+    - _APP_SMTP_PASSWORD=${_APP_SMTP_PASSWORD}
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_DOMAIN=${_APP_DOMAIN:-$SERVICE_FQDN_APPWRITE}
+    - _APP_OPTIONS_FORCE_HTTPS=${_APP_OPTIONS_FORCE_HTTPS:-disabled}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-mails' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-mails_1
+    restart: unless-stopped
+  appwrite-worker-messaging:
+    depends_on:
+    - appwrite-redis
+    entrypoint: worker-messaging
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_SMS_FROM=${_APP_SMS_FROM}
+    - _APP_SMS_PROVIDER=${_APP_SMS_PROVIDER}
+    - _APP_SMS_PROJECTS_DENY_LIST=${_APP_SMS_PROJECTS_DENY_LIST}
+    - _APP_STORAGE_DEVICE=${_APP_STORAGE_DEVICE:-local}
+    - _APP_STORAGE_S3_ACCESS_KEY=${_APP_STORAGE_S3_ACCESS_KEY}
+    - _APP_STORAGE_S3_SECRET=${_APP_STORAGE_S3_SECRET}
+    - _APP_STORAGE_S3_REGION=${_APP_STORAGE_S3_REGION:-us-east-1}
+    - _APP_STORAGE_S3_BUCKET=${_APP_STORAGE_S3_BUCKET}
+    - _APP_STORAGE_S3_ENDPOINT=${_APP_STORAGE_S3_ENDPOINT}
+    - _APP_STORAGE_DO_SPACES_ACCESS_KEY=${_APP_STORAGE_DO_SPACES_ACCESS_KEY}
+    - _APP_STORAGE_DO_SPACES_SECRET=${_APP_STORAGE_DO_SPACES_SECRET}
+    - _APP_STORAGE_DO_SPACES_REGION=${_APP_STORAGE_DO_SPACES_REGION:-us-east-1}
+    - _APP_STORAGE_DO_SPACES_BUCKET=${_APP_STORAGE_DO_SPACES_BUCKET}
+    - _APP_STORAGE_BACKBLAZE_ACCESS_KEY=${_APP_STORAGE_BACKBLAZE_ACCESS_KEY}
+    - _APP_STORAGE_BACKBLAZE_SECRET=${_APP_STORAGE_BACKBLAZE_SECRET}
+    - _APP_STORAGE_BACKBLAZE_REGION=${_APP_STORAGE_BACKBLAZE_REGION:-us-west-004}
+    - _APP_STORAGE_BACKBLAZE_BUCKET=${_APP_STORAGE_BACKBLAZE_BUCKET}
+    - _APP_STORAGE_LINODE_ACCESS_KEY=${_APP_STORAGE_LINODE_ACCESS_KEY}
+    - _APP_STORAGE_LINODE_SECRET=${_APP_STORAGE_LINODE_SECRET}
+    - _APP_STORAGE_LINODE_REGION=${_APP_STORAGE_LINODE_REGION:-eu-central-1}
+    - _APP_STORAGE_LINODE_BUCKET=${_APP_STORAGE_LINODE_BUCKET}
+    - _APP_STORAGE_WASABI_ACCESS_KEY=${_APP_STORAGE_WASABI_ACCESS_KEY}
+    - _APP_STORAGE_WASABI_SECRET=${_APP_STORAGE_WASABI_SECRET}
+    - _APP_STORAGE_WASABI_REGION=${_APP_STORAGE_WASABI_REGION:-eu-central-1}
+    - _APP_STORAGE_WASABI_BUCKET=${_APP_STORAGE_WASABI_BUCKET}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-messaging' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-messaging_1
+    restart: unless-stopped
+    volumes:
+    - appwrite-uploads:/storage/uploads:rw
+  appwrite-worker-migrations:
+    depends_on:
+    - appwrite-mariadb
+    entrypoint: worker-migrations
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_DOMAIN=${_APP_DOMAIN:-$SERVICE_FQDN_APPWRITE}
+    - _APP_DOMAIN_TARGET_CNAME=${_APP_DOMAIN_TARGET_CNAME}
+    - _APP_DOMAIN_TARGET_AAAA=${_APP_DOMAIN_TARGET_AAAA}
+    - _APP_DOMAIN_TARGET_A=${_APP_DOMAIN_TARGET_A}
+    - _APP_DOMAIN_TARGET_CAA=${_APP_DOMAIN_TARGET_CAA}
+    - _APP_DNS=${_APP_DNS}
+    - _APP_EMAIL_SECURITY=${_APP_EMAIL_SECURITY:-certs@appwrite.io}
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_MIGRATIONS_FIREBASE_CLIENT_ID=${_APP_MIGRATIONS_FIREBASE_CLIENT_ID}
+    - _APP_MIGRATIONS_FIREBASE_CLIENT_SECRET=${_APP_MIGRATIONS_FIREBASE_CLIENT_SECRET}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-migrations_1
+    restart: unless-stopped
+    volumes:
+    - appwrite-imports:/storage/imports:rw
+  appwrite-worker-stats-resources:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    entrypoint: worker-stats-resources
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_USAGE_STATS=${_APP_USAGE_STATS:-enabled}
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_STATS_RESOURCES_INTERVAL=${_APP_STATS_RESOURCES_INTERVAL}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-stats-resources' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-stats-resources_1
+    restart: unless-stopped
+  appwrite-worker-stats-usage:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    entrypoint: worker-stats-usage
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_USAGE_STATS=${_APP_USAGE_STATS:-enabled}
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_USAGE_AGGREGATION_INTERVAL=${_APP_USAGE_AGGREGATION_INTERVAL:-30}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-stats-usage' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-stats-usage_1
+    restart: unless-stopped
+  appwrite-worker-webhooks:
+    depends_on:
+    - appwrite-redis
+    - appwrite-mariadb
+    entrypoint: worker-webhooks
+    environment:
+    - _APP_ENV=${_APP_ENV:-production}
+    - _APP_WORKER_PER_CORE=${_APP_WORKER_PER_CORE:-6}
+    - _APP_OPENSSL_KEY_V1=$SERVICE_PASSWORD_64_APPWRITE
+    - _APP_EMAIL_SECURITY=${_APP_EMAIL_SECURITY:-certs@appwrite.io}
+    - _APP_SYSTEM_SECURITY_EMAIL_ADDRESS=${_APP_SYSTEM_SECURITY_EMAIL_ADDRESS}
+    - _APP_DB_HOST=${_APP_DB_HOST:-appwrite-mariadb}
+    - _APP_DB_PORT=${_APP_DB_PORT:-3306}
+    - _APP_DB_SCHEMA=${_APP_DB_SCHEMA:-appwrite}
+    - _APP_DB_USER=$SERVICE_USER_MARIADB
+    - _APP_DB_PASS=$SERVICE_PASSWORD_MARIADB
+    - _APP_REDIS_HOST=${_APP_REDIS_HOST:-appwrite-redis}
+    - _APP_REDIS_PORT=${_APP_REDIS_PORT:-6379}
+    - _APP_REDIS_USER=${_APP_REDIS_USER}
+    - _APP_REDIS_PASS=${_APP_REDIS_PASS}
+    - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - _APP_WEBHOOK_MAX_FAILED_ATTEMPTS=${_APP_WEBHOOK_MAX_FAILED_ATTEMPTS}
+    - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - ps aux | grep -q '[w]orker-webhooks' || exit 1
+      timeout: 5s
+    image: appwrite/appwrite:1.7.4
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_appwrite-worker-webhooks_1
+    restart: unless-stopped
+  openruntimes-executor:
+    environment:
+    - OPR_EXECUTOR_IMAGE_PULL=disabled
+    - OPR_EXECUTOR_INACTIVE_TRESHOLD=${_APP_COMPUTE_INACTIVE_THRESHOLD}
+    - OPR_EXECUTOR_MAINTENANCE_INTERVAL=${_APP_COMPUTE_MAINTENANCE_INTERVAL}
+    - OPR_EXECUTOR_NETWORK=${_APP_COMPUTE_RUNTIMES_NETWORK:-runtimes}
+    - OPR_EXECUTOR_DOCKER_HUB_USERNAME=${_APP_DOCKER_HUB_USERNAME}
+    - OPR_EXECUTOR_DOCKER_HUB_PASSWORD=${_APP_DOCKER_HUB_PASSWORD}
+    - OPR_EXECUTOR_ENV=${_APP_ENV:-production}
+    - OPR_EXECUTOR_RUNTIMES=${_APP_FUNCTIONS_RUNTIMES},${_APP_SITES_RUNTIMES}
+    - OPR_EXECUTOR_SECRET=$SERVICE_PASSWORD_64_APPWRITE
+    - OPR_EXECUTOR_RUNTIME_VERSIONS=v5
+    - OPR_EXECUTOR_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
+    - OPR_EXECUTOR_STORAGE_DEVICE=${_APP_STORAGE_DEVICE:-local}
+    - OPR_EXECUTOR_STORAGE_S3_ACCESS_KEY=${_APP_STORAGE_S3_ACCESS_KEY}
+    - OPR_EXECUTOR_STORAGE_S3_SECRET=${_APP_STORAGE_S3_SECRET}
+    - OPR_EXECUTOR_STORAGE_S3_REGION=${_APP_STORAGE_S3_REGION}
+    - OPR_EXECUTOR_STORAGE_S3_BUCKET=${_APP_STORAGE_S3_BUCKET}
+    - OPR_EXECUTOR_STORAGE_S3_ENDPOINT=${_APP_STORAGE_S3_ENDPOINT}
+    - OPR_EXECUTOR_STORAGE_DO_SPACES_ACCESS_KEY=${_APP_STORAGE_DO_SPACES_ACCESS_KEY}
+    - OPR_EXECUTOR_STORAGE_DO_SPACES_SECRET=${_APP_STORAGE_DO_SPACES_SECRET}
+    - OPR_EXECUTOR_STORAGE_DO_SPACES_REGION=${_APP_STORAGE_DO_SPACES_REGION}
+    - OPR_EXECUTOR_STORAGE_DO_SPACES_BUCKET=${_APP_STORAGE_DO_SPACES_BUCKET}
+    - OPR_EXECUTOR_STORAGE_BACKBLAZE_ACCESS_KEY=${_APP_STORAGE_BACKBLAZE_ACCESS_KEY}
+    - OPR_EXECUTOR_STORAGE_BACKBLAZE_SECRET=${_APP_STORAGE_BACKBLAZE_SECRET}
+    - OPR_EXECUTOR_STORAGE_BACKBLAZE_REGION=${_APP_STORAGE_BACKBLAZE_REGION}
+    - OPR_EXECUTOR_STORAGE_BACKBLAZE_BUCKET=${_APP_STORAGE_BACKBLAZE_BUCKET}
+    - OPR_EXECUTOR_STORAGE_LINODE_ACCESS_KEY=${_APP_STORAGE_LINODE_ACCESS_KEY}
+    - OPR_EXECUTOR_STORAGE_LINODE_SECRET=${_APP_STORAGE_LINODE_SECRET}
+    - OPR_EXECUTOR_STORAGE_LINODE_REGION=${_APP_STORAGE_LINODE_REGION}
+    - OPR_EXECUTOR_STORAGE_LINODE_BUCKET=${_APP_STORAGE_LINODE_BUCKET}
+    - OPR_EXECUTOR_STORAGE_WASABI_ACCESS_KEY=${_APP_STORAGE_WASABI_ACCESS_KEY}
+    - OPR_EXECUTOR_STORAGE_WASABI_SECRET=${_APP_STORAGE_WASABI_SECRET}
+    - OPR_EXECUTOR_STORAGE_WASABI_REGION=${_APP_STORAGE_WASABI_REGION}
+    - OPR_EXECUTOR_STORAGE_WASABI_BUCKET=${_APP_STORAGE_WASABI_BUCKET}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    hostname: appwrite-executor
+    image: openruntimes/executor:0.8.6
+    networks:
+      appnet:
+        aliases:
+        - appwrite-coolify_openruntimes-executor_1
+      dockerro: {}
+    restart: unless-stopped
+    stop_signal: SIGINT
+    volumes:
+    - appwrite-builds:/storage/builds:rw
+    - appwrite-functions:/storage/functions:rw
+    - appwrite-sites:/storage/sites:rw
+    - /tmp:/tmp:rw
+volumes:
+  appwrite-builds:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/appwrite-builds
+      o: bind
+      type: none
+  appwrite-cache:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/appwrite-cache
+      o: bind
+      type: none
+  appwrite-certificates:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/appwrite-certificates
+      o: bind
+      type: none
+  appwrite-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/appwrite-config
+      o: bind
+      type: none
+  appwrite-functions:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/appwrite-functions
+      o: bind
+      type: none
+  appwrite-imports:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/appwrite-imports
+      o: bind
+      type: none
+  appwrite-mariadb:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/appwrite-mariadb
+      o: bind
+      type: none
+  appwrite-redis:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/appwrite-redis
+      o: bind
+      type: none
+  appwrite-sites:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/appwrite-sites
+      o: bind
+      type: none
+  appwrite-uploads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/appwrite-uploads
+      o: bind
+      type: none

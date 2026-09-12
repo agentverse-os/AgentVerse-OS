@@ -1,0 +1,81 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bitcoin-core-coolify
+description: A self-hosted Bitcoin Core full node.
+endpoint:
+  port: 80
+  service: bitcoin-core
+env:
+  BITCOIN_PRINTTOCONSOLE: '1'
+  BITCOIN_RPCUSER: bitcoinuser
+  BITCOIN_SERVER: '1'
+  BITCOIN_TXINDEX: '1'
+  SERVICE_PASSWORD_PASSWORD64:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_PASSWORD64
+  path: null
+  user: BITCOIN_RPCUSER
+name: bitcoin-core-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: BITCOIN_RPCUSER
+  hint: 'по умолчанию: bitcoinuser'
+  label: bitcoin rpcuser
+  options: null
+  required: false
+  type: text
+- env: BITCOIN_PRINTTOCONSOLE
+  hint: 'по умолчанию: 1'
+  label: bitcoin printtoconsole
+  options: null
+  required: false
+  type: text
+- env: BITCOIN_TXINDEX
+  hint: 'по умолчанию: 1'
+  label: bitcoin txindex
+  options: null
+  required: false
+  type: text
+- env: BITCOIN_SERVER
+  hint: 'по умолчанию: 1'
+  label: bitcoin server
+  options: null
+  required: false
+  type: text
+tags:
+- cryptocurrency
+- node
+- blockchain
+- bitcoin
+title: Bitcoin Core
+type: app
+upstream:
+  categories:
+  - backend
+  source: https://hub.docker.com/r/ruimarinho/bitcoin-core/
+  tags:
+  - cryptocurrency
+  - node
+  - blockchain
+  - bitcoin
+  template: bitcoin-core.yaml
+website: https://hub.docker.com/r/ruimarinho/bitcoin-core/

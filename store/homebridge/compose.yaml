@@ -1,0 +1,20 @@
+# homebridge: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  homebridge:
+    environment:
+      TZ: ${TZ}
+    image: homebridge/homebridge:2024-05-02
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 10mb
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/homebridge:/homebridge

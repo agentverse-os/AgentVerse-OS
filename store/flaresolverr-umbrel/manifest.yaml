@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/flaresolverr-umbrel
+description: Proxy server to bypass Cloudflare and DDoS-GUARD protection
+endpoint:
+  port: 8000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/flaresolverr/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/flaresolverr/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/flaresolverr/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/flaresolverr/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: flaresolverr-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: flaresolverr
+type: app
+upstream:
+  author: FlareSolverr
+  categories:
+  - networking
+  release_notes: This update improves Turnstile captcha handling, fixes archive ownership/import issues, and includes dependency updates.
+  source: https://github.com/FlareSolverr/FlareSolverr
+  version: 3.5.0
+  website: https://github.com/FlareSolverr/FlareSolverr
+website: https://github.com/FlareSolverr/FlareSolverr

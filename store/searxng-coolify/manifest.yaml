@@ -1,0 +1,80 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/searxng-coolify
+description: SearXNG is a free internet metasearch engine which aggregates results from more than 70 search services.
+endpoint:
+  port: 8080
+  service: searxng
+env:
+  INSTANCE_NAME: coolify
+  SEARXNG_BIND_ADDRESS: 0.0.0.0
+  SERVICE_PASSWORD_SEARXNGSECRET:
+    generate: password
+  SERVICE_URL_SEARXNG_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: searxng-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: INSTANCE_NAME
+  hint: 'по умолчанию: coolify'
+  label: instance name
+  options: null
+  required: false
+  type: text
+- env: SEARXNG_BIND_ADDRESS
+  hint: 'по умолчанию: 0.0.0.0'
+  label: searxng bind address
+  options: null
+  required: false
+  type: text
+tags:
+- search
+- google
+- engine
+- images
+- documents
+- rss
+- proxy
+- news
+- web
+- api
+title: Searxng
+type: app
+upstream:
+  categories:
+  - search
+  source: https://docs.searxng.org
+  tags:
+  - search
+  - google
+  - engine
+  - images
+  - documents
+  - rss
+  - proxy
+  - news
+  - web
+  - api
+  template: searxng.yaml
+website: https://docs.searxng.org

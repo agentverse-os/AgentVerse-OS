@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pastefy-umbrel
+description: An easy paste for seamless sharing
+endpoint:
+  port: 80
+  service: app
+env:
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/pastefy/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pastefy-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Pastefy
+type: app
+upstream:
+  author: InteraApps
+  categories:
+  - developer
+  release_notes: |-
+    This update contains bug fixes and performance improvements.
+
+    Full release notes can be found at https://github.com/interaapps/pastefy/releases
+  source: https://github.com/interaapps/pastefy
+  version: 7.1.6
+  website: https://pastefy.app/
+website: https://pastefy.app/

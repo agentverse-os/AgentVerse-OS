@@ -1,0 +1,66 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/next-image-transformation-coolify
+description: Drop-in replacement for Vercel's Nextjs image optimization service.
+endpoint:
+  port: 3000
+  service: imgproxy
+env:
+  ALLOWED_REMOTE_DOMAINS: '*'
+  IMGPROXY_URL: http://imgproxy:8080
+  SERVICE_URL_TRANSFORMATION_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: next-image-transformation-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ALLOWED_REMOTE_DOMAINS
+  hint: 'по умолчанию: *'
+  label: allowed remote domains
+  options: null
+  required: false
+  type: text
+- env: IMGPROXY_URL
+  hint: 'по умолчанию: http://imgproxy:8080'
+  label: imgproxy url
+  options: null
+  required: false
+  type: text
+tags:
+- nextjs
+- image
+- transformation
+- service
+title: Next Image Transformation
+type: app
+upstream:
+  categories:
+  - media
+  source: https://github.com/coollabsio/next-image-transformation
+  tags:
+  - nextjs
+  - image
+  - transformation
+  - service
+  template: next-image-transformation.yaml
+website: https://github.com/coollabsio/next-image-transformation

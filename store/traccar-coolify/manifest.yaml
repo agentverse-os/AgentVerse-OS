@@ -1,0 +1,87 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/traccar-coolify
+description: Traccar is a free and open source modern GPS tracking system.
+endpoint:
+  port: 8082
+  service: postgres
+env:
+  CONFIG_USE_ENVIRONMENT_VARIABLES: 'true'
+  POSTGRESQL_DATABASE: traccar
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_TRACCARAPI_5159: https://${APP_DOMAIN}
+  SERVICE_URL_TRACCAR_8082: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: POSTGRES_USER
+name: traccar-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CONFIG_USE_ENVIRONMENT_VARIABLES
+  hint: 'по умолчанию: true'
+  label: config use environment variables
+  options: null
+  required: false
+  type: text
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: traccar'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- traccar
+- gps
+- tracking
+- open
+- source
+title: Traccar
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://www.traccar.org/documentation/
+  tags:
+  - traccar
+  - gps
+  - tracking
+  - open
+  - source
+  template: traccar.yaml
+website: https://www.traccar.org/documentation/

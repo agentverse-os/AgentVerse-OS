@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/jupyterlab-umbrel
+description: Next-generation web interface for interactive computing and data science
+endpoint:
+  port: 8888
+  service: server
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/jupyterlab/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jupyterlab/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jupyterlab/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/jupyterlab/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: jupyterlab-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: JupyterLab
+type: app
+upstream:
+  author: jupyterlab
+  categories:
+  - developer
+  release_notes: Adds GPU access so notebooks can use CUDA or ROCm frameworks when a supported GPU is available. Using an AMD or NVIDIA GPU requires umbrelOS 2.0 Beta or later.
+  source: https://github.com/jupyterlab/jupyterlab
+  version: v4.6.3-patch.1
+  website: https://jupyterlab.readthedocs.io/en/latest/
+website: https://jupyterlab.readthedocs.io/en/latest/

@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/papra-umbrel
+description: The minimalistic document archiving platform
+endpoint:
+  port: 1221
+  service: server
+env:
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/papra/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/papra/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/papra/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/papra/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: papra-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Papra
+type: app
+upstream:
+  author: Papra
+  categories:
+  - files
+  release_notes: |-
+    This update adds security fixes for session revocation after password resets, deleted-organization share links, registration API enforcement when registration is disabled, and Stripe webhook validation when webhook secrets are not configured.
+
+    It also adds database indexes for better performance, fixes PDF preview rendering after navigation, improves batch document selection and tag deletion confirmations, and increases OCR/content extraction timeouts for supported external services.
+
+    Full release notes can be found at https://github.com/papra-hq/papra/releases/tag/%40papra/app%4026.6.2
+  source: https://github.com/papra-hq/papra
+  version: 26.6.2
+  website: https://papra.app
+website: https://papra.app

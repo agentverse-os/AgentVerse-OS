@@ -1,0 +1,101 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/budibase-coolify
+description: Low code platform for building business apps and workflows in minutes. Supports PostgreSQL, MySQL, MSSQL, MongoDB, Rest API, Docker, K8s, and more.
+endpoint:
+  port: 10000
+  service: app-service
+env:
+  BUDIBASE_ENVIRONMENT: PRODUCTION
+  ENABLE_ANALYTICS: 'true'
+  SERVICE_BASE64_128_BUDIBASE:
+    generate: hex64
+  SERVICE_BASE64_64_BUDIBASE:
+    generate: hex64
+  SERVICE_BASE64_64_BUDIBASEAPI:
+    generate: hex64
+  SERVICE_BASE64_64_BUDIBASEJWT:
+    generate: hex64
+  SERVICE_PASSWORD_COUCHDB:
+    generate: password
+  SERVICE_PASSWORD_MINIO:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_PASSWORD_WATCHTOWER:
+    generate: password
+  SERVICE_URL_BUDIBASE_10000: https://${APP_DOMAIN}
+  SERVICE_USER_COUCHDB:
+    generate: password
+  SERVICE_USER_MINIO:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: budibase-coolify
+notes:
+- 'watchtower-service: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: BUDIBASE_ENVIRONMENT
+  hint: 'по умолчанию: PRODUCTION'
+  label: budibase environment
+  options: null
+  required: false
+  type: text
+- env: ENABLE_ANALYTICS
+  hint: 'по умолчанию: true'
+  label: enable analytics
+  options: null
+  required: false
+  type: text
+tags:
+- budibase
+- low-code
+- business-apps
+- workflow
+- automation
+- postgresql
+- mysql
+- mssql
+- mongodb
+- docker
+- kubernetes
+title: Budibase
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://docs.budibase.com/docs/docker-compose
+  tags:
+  - budibase
+  - low-code
+  - business-apps
+  - workflow
+  - automation
+  - postgresql
+  - mysql
+  - mssql
+  - mongodb
+  - docker
+  - kubernetes
+  template: budibase.yaml
+website: https://docs.budibase.com/docs/docker-compose

@@ -1,0 +1,67 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/haven
+description: Self-hostable private blogging.
+endpoint:
+  port: 3000
+  service: haven
+env:
+  HAVEN_DB_PASSWORD:
+    generate: token
+  HAVEN_USER_EMAIL: ''
+  HAVEN_USER_PASSWORD:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: HAVEN_USER_PASSWORD
+  path: null
+  user: HAVEN_USER_EMAIL
+name: haven
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: HAVEN_USER_EMAIL
+  hint: null
+  label: Haven Email
+  options: null
+  required: true
+  type: text
+- env: HAVEN_USER_PASSWORD
+  hint: null
+  label: Haven Password
+  options: null
+  required: true
+  type: password
+- env: HAVEN_DB_PASSWORD
+  hint: null
+  label: Haven DB password
+  options: null
+  required: false
+  type: random
+tags: []
+title: Haven
+type: app
+upstream:
+  author: mawise
+  categories:
+  - social
+  source: https://github.com/havenweb/haven
+  tipi_version: 7
+  version: latest
+website: https://github.com/havenweb/haven

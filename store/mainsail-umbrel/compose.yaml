@@ -1,0 +1,16 @@
+# mainsail-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: ghcr.io/mainsail-crew/mainsail:v2.19.0@sha256:adcadcdb6f9f6ede1f347ca4ac5f469dcc07f3677d46f8ffcd23696c66681893
+    networks:
+      appnet:
+        aliases:
+        - mainsail_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/config.json:/usr/share/nginx/html/config.json:ro

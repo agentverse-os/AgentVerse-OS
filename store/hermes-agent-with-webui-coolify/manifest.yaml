@@ -1,0 +1,90 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/hermes-agent-with-webui-coolify
+description: Hermes Agent — autonomous AI agent with persistent memory, scheduling, and a self-hosted web chat UI.
+endpoint:
+  port: 8787
+  service: hermes-webui
+env:
+  ANTHROPIC_API_KEY: ''
+  GOOGLE_API_KEY: ''
+  OPENAI_API_KEY: ''
+  OPENROUTER_API_KEY: ''
+  SERVICE_PASSWORD_HERMESWEBUI:
+    generate: password
+  SERVICE_URL_HERMESWEBUI_8787: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_HERMESWEBUI
+  path: null
+  user: null
+name: hermes-agent-with-webui-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: OPENROUTER_API_KEY
+  hint: null
+  label: openrouter api key
+  options: null
+  required: false
+  type: password
+- env: ANTHROPIC_API_KEY
+  hint: null
+  label: anthropic api key
+  options: null
+  required: false
+  type: password
+- env: OPENAI_API_KEY
+  hint: null
+  label: openai api key
+  options: null
+  required: false
+  type: password
+- env: GOOGLE_API_KEY
+  hint: null
+  label: google api key
+  options: null
+  required: false
+  type: password
+tags:
+- ai
+- agent
+- llm
+- chatbot
+- hermes
+- openrouter
+- anthropic
+- openai
+title: Hermes Agent With Webui
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://github.com/nesquena/hermes-webui
+  tags:
+  - ai
+  - agent
+  - llm
+  - chatbot
+  - hermes
+  - openrouter
+  - anthropic
+  - openai
+  template: hermes-agent-with-webui.yaml
+website: https://github.com/nesquena/hermes-webui

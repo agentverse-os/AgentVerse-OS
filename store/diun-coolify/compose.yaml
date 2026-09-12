@@ -1,0 +1,46 @@
+# diun-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  diun:
+    command: serve
+    environment:
+    - TZ=${TIME_ZONE:-Europe/Vienna}
+    - LOG_LEVEL=${LOG_LEVEL:-info}
+    - LOG_JSON=${LOG_JSON:-false}
+    - DIUN_WATCH_WORKERS=${DIUN_WATCH_WORKERS:-20}
+    - DIUN_WATCH_SCHEDULE=${DIUN_WATCH_SCHEDULE:- * */6 * * *}
+    - DIUN_WATCH_JITTER=${DIUN_WATCH_JITTER:-30s}
+    - DIUN_PROVIDERS_DOCKER=${DIUN_PROVIDERS_DOCKER:-true}
+    - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=${DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT:-true}
+    - DIUN_NOTIF_SLACK_WEBHOOKURL=${SERVICE_WEBHOOK_URL_SLACK}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD
+      - diun
+      - --version
+      timeout: 20s
+    image: crazymax/diun:latest
+    networks:
+      appnet:
+        aliases:
+        - diun-coolify_diun_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - diun_data:/data
+volumes:
+  diun_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/diun_data
+      o: bind
+      type: none

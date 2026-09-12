@@ -1,0 +1,175 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/litellm-coolify
+description: Call all LLM APIs using the OpenAI format. Use Bedrock, Azure, OpenAI, Cohere, Anthropic, Ollama, Sagemaker, HuggingFace, Replicate, Groq (100+ LLMs)
+endpoint:
+  port: 4000
+  service: litellm
+env:
+  ANTHROPIC_API_BASE: ''
+  ANTHROPIC_API_KEY: ''
+  LITELLM_LOG: ERROR
+  LITELLM_MODE: PRODUCTION
+  OPENAI_API_BASE: ''
+  OPENAI_API_KEY: ''
+  POSTGRES_DB: litellm
+  POSTGRES_USER: ''
+  REDIS_HOST: redis
+  REDIS_PORT: '6379'
+  SERVICE_PASSWORD_MASTERKEY:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_UI:
+    generate: password
+  SERVICE_URL_LITELLM_4000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SERVICE_USER_UI:
+    generate: password
+  STORE_MODEL_IN_DB: ''
+  VOYAGE_API_BASE: ''
+  VOYAGE_API_KEY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_UI
+  path: null
+  user: SERVICE_USER_UI
+name: litellm-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LITELLM_LOG
+  hint: 'по умолчанию: ERROR'
+  label: litellm log
+  options: null
+  required: false
+  type: text
+- env: LITELLM_MODE
+  hint: 'по умолчанию: PRODUCTION'
+  label: litellm mode
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: litellm'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: REDIS_HOST
+  hint: 'по умолчанию: redis'
+  label: redis host
+  options: null
+  required: false
+  type: text
+- env: REDIS_PORT
+  hint: 'по умолчанию: 6379'
+  label: redis port
+  options: null
+  required: false
+  type: text
+- env: OPENAI_API_KEY
+  hint: null
+  label: openai api key
+  options: null
+  required: false
+  type: password
+- env: OPENAI_API_BASE
+  hint: null
+  label: openai api base
+  options: null
+  required: false
+  type: text
+- env: ANTHROPIC_API_KEY
+  hint: null
+  label: anthropic api key
+  options: null
+  required: false
+  type: password
+- env: ANTHROPIC_API_BASE
+  hint: null
+  label: anthropic api base
+  options: null
+  required: false
+  type: text
+- env: VOYAGE_API_KEY
+  hint: null
+  label: voyage api key
+  options: null
+  required: false
+  type: password
+- env: VOYAGE_API_BASE
+  hint: null
+  label: voyage api base
+  options: null
+  required: false
+  type: text
+- env: STORE_MODEL_IN_DB
+  hint: null
+  label: store model in db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- qdrant
+- weaviate
+- langchain
+- openai
+- gpt
+- llm
+- lmops
+- anthropic
+- cohere
+- ollama
+- sagemaker
+- huggingface
+- replicate
+- groq
+title: Litellm
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://docs.litellm.ai
+  tags:
+  - ai
+  - qdrant
+  - weaviate
+  - langchain
+  - openai
+  - gpt
+  - llm
+  - lmops
+  - anthropic
+  - cohere
+  - ollama
+  - sagemaker
+  - huggingface
+  - replicate
+  - groq
+  template: litellm.yaml
+website: https://docs.litellm.ai

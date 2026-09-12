@@ -1,0 +1,71 @@
+# vvveb-with-mysql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mysql:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-vvveb}
+    - MYSQL_USER=${SERVICE_USER_VVVEB}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_VVVEB}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - 127.0.0.1
+      timeout: 20s
+    image: mysql:8.4.2
+    networks:
+      appnet:
+        aliases:
+        - vvveb-with-mysql-coolify_mysql_1
+    restart: unless-stopped
+    volumes:
+    - vvveb-mysql-data:/var/lib/mysql
+  vvveb:
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_VVVEB_80=${SERVICE_URL_VVVEB_80}
+    - DB_ENGINE=mysqli
+    - DB_HOST=mysql
+    - DB_USER=${SERVICE_USER_VVVEB}
+    - DB_PASSWORD=${SERVICE_PASSWORD_VVVEB}
+    - DB_NAME=${MYSQL_DATABASE:-vvveb}
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: vvveb/vvvebcms:latest
+    networks:
+      appnet:
+        aliases:
+        - vvveb-with-mysql-coolify_vvveb_1
+    restart: unless-stopped
+    volumes:
+    - vvveb-data:/var/www/html
+volumes:
+  vvveb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/vvveb-data
+      o: bind
+      type: none
+  vvveb-mysql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/vvveb-mysql-data
+      o: bind
+      type: none

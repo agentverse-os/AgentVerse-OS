@@ -1,0 +1,202 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ente-photos-coolify
+description: Ente Photos is a fully open source, End to End Encrypted alternative to Google Photos and Apple Photos.
+endpoint:
+  port: 8080
+  service: web
+env:
+  ENTE_DB_HOST: postgres
+  ENTE_DB_NAME: ente_db
+  ENTE_DB_PORT: '5432'
+  ENTE_HTTP_USE_TLS: 'false'
+  ENTE_INTERNAL_ADMIN: '1580559962386438'
+  ENTE_INTERNAL_DISABLE_REGISTRATION: 'false'
+  ENTE_SMTP_EMAIL: ''
+  ENTE_SMTP_ENCRYPTION: ''
+  ENTE_SMTP_HOST: ''
+  ENTE_SMTP_PASSWORD: ''
+  ENTE_SMTP_PORT: ''
+  ENTE_SMTP_SENDER_NAME: ''
+  ENTE_SMTP_USERNAME: ''
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  PRIMARY_STORAGE_ARE_LOCAL_BUCKETS: 'false'
+  PRIMARY_STORAGE_USE_PATH_STYLE_URLS: 'true'
+  S3_STORAGE_REGION: us-east-1
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_REALBASE64_64_HASH:
+    generate: hex64
+  SERVICE_REALBASE64_ENCRYPTION:
+    generate: hex64
+  SERVICE_REALBASE64_JWT:
+    generate: hex64
+  SERVICE_URL_MUSEUM: https://${APP_DOMAIN}
+  SERVICE_URL_MUSEUM_8080: https://${APP_DOMAIN}
+  SERVICE_URL_WEB: https://${APP_DOMAIN}
+  SERVICE_URL_WEB_3000: https://${APP_DOMAIN}
+  SERVICE_URL_WEB_3001: https://${APP_DOMAIN}
+  SERVICE_URL_WEB_3002: https://${APP_DOMAIN}
+  SERVICE_URL_WEB_3004: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ente-photos-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ENTE_HTTP_USE_TLS
+  hint: 'по умолчанию: false'
+  label: ente http use tls
+  options: null
+  required: false
+  type: text
+- env: ENTE_DB_HOST
+  hint: 'по умолчанию: postgres'
+  label: ente db host
+  options: null
+  required: false
+  type: text
+- env: ENTE_DB_PORT
+  hint: 'по умолчанию: 5432'
+  label: ente db port
+  options: null
+  required: false
+  type: text
+- env: ENTE_DB_NAME
+  hint: 'по умолчанию: ente_db'
+  label: ente db name
+  options: null
+  required: false
+  type: text
+- env: ENTE_INTERNAL_ADMIN
+  hint: 'по умолчанию: 1580559962386438'
+  label: ente internal admin
+  options: null
+  required: false
+  type: text
+- env: ENTE_INTERNAL_DISABLE_REGISTRATION
+  hint: 'по умолчанию: false'
+  label: ente internal disable registration
+  options: null
+  required: false
+  type: text
+- env: PRIMARY_STORAGE_ARE_LOCAL_BUCKETS
+  hint: 'по умолчанию: false'
+  label: primary storage are local buckets
+  options: null
+  required: false
+  type: text
+- env: PRIMARY_STORAGE_USE_PATH_STYLE_URLS
+  hint: 'по умолчанию: true'
+  label: primary storage use path style urls
+  options: null
+  required: false
+  type: text
+- env: S3_STORAGE_REGION
+  hint: 'по умолчанию: us-east-1'
+  label: s3 storage region
+  options: null
+  required: false
+  type: text
+- env: ENTE_SMTP_HOST
+  hint: null
+  label: ente smtp host
+  options: null
+  required: false
+  type: text
+- env: ENTE_SMTP_PORT
+  hint: null
+  label: ente smtp port
+  options: null
+  required: false
+  type: text
+- env: ENTE_SMTP_USERNAME
+  hint: null
+  label: ente smtp username
+  options: null
+  required: false
+  type: text
+- env: ENTE_SMTP_PASSWORD
+  hint: null
+  label: ente smtp password
+  options: null
+  required: false
+  type: password
+- env: ENTE_SMTP_EMAIL
+  hint: null
+  label: ente smtp email
+  options: null
+  required: false
+  type: text
+- env: ENTE_SMTP_SENDER_NAME
+  hint: null
+  label: ente smtp sender name
+  options: null
+  required: false
+  type: text
+- env: ENTE_SMTP_ENCRYPTION
+  hint: null
+  label: ente smtp encryption
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- photos
+- gallery
+- backup
+- encryption
+- privacy
+- self-hosted
+- google-photos
+- alternative
+title: Ente Photos
+type: app
+upstream:
+  categories:
+  - media
+  source: https://help.ente.io/self-hosting/installation/compose
+  tags:
+  - photos
+  - gallery
+  - backup
+  - encryption
+  - privacy
+  - self-hosted
+  - google-photos
+  - alternative
+  template: ente-photos.yaml
+website: https://help.ente.io/self-hosting/installation/compose

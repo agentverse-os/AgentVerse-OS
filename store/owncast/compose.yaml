@@ -1,0 +1,15 @@
+# owncast: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  owncast:
+    image: owncast/owncast:0.2.5
+    networks:
+      appnet:
+        aliases:
+        - owncast_owncast_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data

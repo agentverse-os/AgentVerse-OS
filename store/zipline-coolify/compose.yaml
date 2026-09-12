@@ -1,0 +1,74 @@
+# zipline-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-zipline-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - zipline-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - zipline-postgres-data:/var/lib/postgresql/data
+  zipline:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_ZIPLINE_3000=${SERVICE_URL_ZIPLINE_3000}
+    - CORE_RETURN_HTTPS=${CORE_RETURN_HTTPS:-false}
+    - CORE_SECRET=${SERVICE_PASSWORD_64_ZIPLINE}
+    - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres/${POSTGRES_DB:-zipline-db}
+    - CORE_LOGGER=${CORE_LOGGER:-true}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:3000/auth/login
+      timeout: 20s
+    image: ghcr.io/diced/zipline:latest
+    networks:
+      appnet:
+        aliases:
+        - zipline-coolify_zipline_1
+    restart: unless-stopped
+    volumes:
+    - zipline-uploads:/zipline/uploads
+    - zipline-public:/zipline/public
+volumes:
+  zipline-postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/zipline-postgres-data
+      o: bind
+      type: none
+  zipline-public:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/zipline-public
+      o: bind
+      type: none
+  zipline-uploads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/zipline-uploads
+      o: bind
+      type: none

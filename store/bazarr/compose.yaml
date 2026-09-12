@@ -1,0 +1,21 @@
+# bazarr: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  bazarr:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ}
+    image: lscr.io/linuxserver/bazarr:1.6.0
+    networks:
+      appnet:
+        aliases:
+        - bazarr_bazarr_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${APP_DATA_DIR}/data:/config
+    - ${ROOT_FOLDER_HOST}/media:/media

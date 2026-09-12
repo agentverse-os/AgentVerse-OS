@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mage-ai-coolify
+description: Build, run, and manage data pipelines for integrating and transforming data.
+endpoint:
+  port: 6789
+  service: mage-ai
+env:
+  SERVICE_URL_MAGEAI_6789: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mage-ai-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- data
+- dbt
+- etl
+- pipelines
+title: Mage Ai
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://docs.mage.ai
+  tags:
+  - data
+  - dbt
+  - etl
+  - pipelines
+  template: mage-ai.yaml
+website: https://docs.mage.ai

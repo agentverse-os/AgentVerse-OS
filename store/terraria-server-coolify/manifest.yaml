@@ -1,0 +1,109 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/terraria-server-coolify
+description: Docker multi-arch Image for Terraria Server.
+endpoint:
+  port: 7777
+  service: terraria-server
+env:
+  AUTOCREATE: '2'
+  DIFFICULTY: '1'
+  LANGUAGE: en/US
+  MAXPLAYERS: '8'
+  MOTD: Welcome to the server!
+  PASSWORD: mypassword
+  SECURE: '1'
+  WORLD: /root/.local/share/Terraria/Worlds/world1.wld
+  WORLDNAME: world1
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: PASSWORD
+  path: null
+  user: null
+name: terraria-server-coolify
+notes:
+- 'порт 7777:7777 (terraria-server) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: WORLD
+  hint: 'по умолчанию: /root/.local/share/Terraria/Worlds/world1.wld'
+  label: world
+  options: null
+  required: false
+  type: text
+- env: AUTOCREATE
+  hint: 'по умолчанию: 2'
+  label: autocreate
+  options: null
+  required: false
+  type: text
+- env: WORLDNAME
+  hint: 'по умолчанию: world1'
+  label: worldname
+  options: null
+  required: false
+  type: text
+- env: DIFFICULTY
+  hint: 'по умолчанию: 1'
+  label: difficulty
+  options: null
+  required: false
+  type: text
+- env: MAXPLAYERS
+  hint: 'по умолчанию: 8'
+  label: maxplayers
+  options: null
+  required: false
+  type: text
+- env: PASSWORD
+  hint: 'по умолчанию: mypassword'
+  label: password
+  options: null
+  required: false
+  type: password
+- env: MOTD
+  hint: 'по умолчанию: Welcome to the server!'
+  label: motd
+  options: null
+  required: false
+  type: text
+- env: LANGUAGE
+  hint: 'по умолчанию: en/US'
+  label: language
+  options: null
+  required: false
+  type: text
+- env: SECURE
+  hint: 'по умолчанию: 1'
+  label: secure
+  options: null
+  required: false
+  type: text
+tags:
+- terraria
+title: Terraria Server
+type: app
+upstream:
+  categories:
+  - games
+  source: https://github.com/hexlo/terraria-server-docker
+  tags:
+  - terraria
+  template: terraria-server.yaml
+website: https://github.com/hexlo/terraria-server-docker

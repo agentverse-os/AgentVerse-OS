@@ -1,0 +1,97 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/beszel-agent-coolify
+description: Monitoring agent for Beszel
+endpoint:
+  port: 80
+  service: beszel-agent
+env:
+  DISABLE_SSH: 'false'
+  KEY: ''
+  LOG_LEVEL: warn
+  SERVICE_URL_BESZEL: https://${APP_DOMAIN}
+  SKIP_GPU: 'false'
+  SYSTEM_NAME: ''
+  TOKEN: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: beszel-agent-coolify
+notes:
+- 'beszel-agent: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TOKEN
+  hint: null
+  label: token
+  options: null
+  required: false
+  type: password
+- env: KEY
+  hint: null
+  label: key
+  options: null
+  required: false
+  type: password
+- env: DISABLE_SSH
+  hint: 'по умолчанию: false'
+  label: disable ssh
+  options: null
+  required: false
+  type: text
+- env: LOG_LEVEL
+  hint: 'по умолчанию: warn'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: SKIP_GPU
+  hint: 'по умолчанию: false'
+  label: skip gpu
+  options: null
+  required: false
+  type: text
+- env: SYSTEM_NAME
+  hint: null
+  label: system name
+  options: null
+  required: false
+  type: text
+tags:
+- beszel
+- monitoring
+- server
+- stats
+- alerts
+title: Beszel Agent
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://www.beszel.dev/guide/agent-installation
+  tags:
+  - beszel
+  - monitoring
+  - server
+  - stats
+  - alerts
+  template: beszel-agent.yaml
+website: https://www.beszel.dev/guide/agent-installation

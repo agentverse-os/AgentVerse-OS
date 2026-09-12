@@ -1,0 +1,37 @@
+# langflow-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+      DO_NOT_TRACK: 'true'
+      HOME: /app/langflow
+      LANGFLOW_AUTO_LOGIN: 'true'
+      LANGFLOW_CONFIG_DIR: /app/langflow
+      LANGFLOW_DATABASE_URL: postgresql://langflow:langflow@langflow_db_1:5432/langflow
+      LANGFLOW_SUPERUSER_PASSWORD: ${APP_PASSWORD}
+    image: langflowai/langflow:1.12.0@sha256:65796601f3fc7a39c674671ceaca3bb3a69bd6581d08e2582f15fca2ad4ba6d0
+    networks:
+      appnet:
+        aliases:
+        - langflow_app_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/app/langflow
+  db:
+    environment:
+      POSTGRES_DB: langflow
+      POSTGRES_PASSWORD: langflow
+      POSTGRES_USER: langflow
+    image: postgres:16.14-trixie@sha256:4b7183ac05f8ef417db21fd72d71047a4238340c261d3cc3ddb6d579ab5071ae
+    networks:
+      appnet:
+        aliases:
+        - langflow_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data

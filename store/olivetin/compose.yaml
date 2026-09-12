@@ -1,0 +1,15 @@
+# olivetin: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  olivetin:
+    image: jamesread/olivetin:latest
+    networks:
+      appnet:
+        aliases:
+        - olivetin_olivetin_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/config

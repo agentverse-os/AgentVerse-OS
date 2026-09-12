@@ -1,0 +1,14 @@
+# morphos-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: ghcr.io/danvergara/morphos-server:0.6.0@sha256:3d6f64ef386cbb6a7c5d55526e1a69da2d3661a1996d757897e92bf4369088f5
+    networks:
+      appnet:
+        aliases:
+        - morphos_web_1
+    restart: on-failure
+    stop_grace_period: 1m

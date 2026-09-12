@@ -1,0 +1,38 @@
+# appsmith-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  appsmith:
+    environment:
+    - SERVICE_URL_APPSMITH=${SERVICE_URL_APPSMITH}
+    - APPSMITH_MAIL_ENABLED=${APPSMITH_MAIL_ENABLED:-false}
+    - APPSMITH_DISABLE_TELEMETRY=${APPSMITH_DISABLE_TELEMETRY:-false}
+    - APPSMITH_DISABLE_INTERCOM=${APPSMITH_DISABLE_INTERCOM:-true}
+    - APPSMITH_SENTRY_DSN=${APPSMITH_SENTRY_DSN}
+    - APPSMITH_SMART_LOOK_ID=${APPSMITH_SMART_LOOK_ID}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 20s
+    image: index.docker.io/appsmith/appsmith-ce:latest
+    networks:
+      appnet:
+        aliases:
+        - appsmith-coolify_appsmith_1
+    restart: unless-stopped
+    volumes:
+    - stacks-data:/appsmith-stacks
+volumes:
+  stacks-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/stacks-data
+      o: bind
+      type: none

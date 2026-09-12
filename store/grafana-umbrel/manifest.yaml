@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/grafana-umbrel
+description: The open-source platform for monitoring and observability
+endpoint:
+  port: 3000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/grafana/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/grafana/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/grafana/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/grafana/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: admin
+  path: null
+  user: admin
+name: grafana-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Grafana
+type: app
+upstream:
+  author: Grafana Labs
+  categories:
+  - networking
+  release_notes: |-
+    ⚠️ If you're updating from before Grafana 13.1, Prometheus Azure/SigV4 authentication and the Zipkin core plugin were removed from Grafana core. Review the upstream notes if you use those integrations.
+
+    Grafana 13.2.1 includes security fixes for CVE-2026-12704 and CVE-2026-14199.
+
+    This release also fixes dashboard import variables, bundled plugin packaging, and panel editor resizing.
+
+    Full release notes can be found at https://github.com/grafana/grafana/releases/tag/v13.2.1
+  source: https://github.com/grafana/grafana
+  version: 13.2.1
+  website: https://grafana.com
+website: https://grafana.com

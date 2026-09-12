@@ -1,0 +1,45 @@
+# github-runner-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  runner:
+    environment:
+    - REPO_URL=${REPO_URL}
+    - RUNNER_NAME_PREFIX=${RUNNER_NAME_PREFIX:-coolify-runner}
+    - RUNNER_NAME_SUFFIX=${RUNNER_NAME_SUFFIX:-false}
+    - ACCESS_TOKEN=${ACCESS_TOKEN}
+    - RUNNER_WORKDIR=/runner/work
+    - RUNNER_SCOPE=${RUNNER_SCOPE:-repo}
+    - LABELS=${LABELS:-default}
+    - ORG_NAME=${ORG_NAME}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test:
+      - CMD-SHELL
+      - ps aux | grep '[R]unner' > /dev/null || exit 1
+      timeout: 10s
+    image: myoung34/github-runner:latest
+    networks:
+      appnet:
+        aliases:
+        - github-runner-coolify_runner_1
+      dockerro: {}
+    restart: unless-stopped
+    security_opt:
+    - label:disable
+    volumes:
+    - runner-data:/runner
+volumes:
+  runner-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/runner-data
+      o: bind
+      type: none

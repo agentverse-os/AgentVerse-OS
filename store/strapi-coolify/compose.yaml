@@ -1,0 +1,115 @@
+# strapi-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgresql:
+    environment:
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-strapi}
+    - POSTGRES_USER=$SERVICE_USER_POSTGRESQL
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRESQL
+    - PGDATA=/var/lib/postgresql/data
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: elestio/postgres:latest
+    networks:
+      appnet:
+        aliases:
+        - strapi-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - strapi-postgresql-data:/var/lib/postgresql/data
+  strapi:
+    command:
+    - -c
+    - |
+      cat > /opt/app/src/admin/vite.config.js << 'EOFVITE'
+      const { mergeConfig } = require('vite');
+      module.exports = (config) => {
+        return mergeConfig(config, {
+          resolve: {
+            alias: {
+              '@': '/src',
+            },
+          },
+          server: {
+            allowedHosts: ['$SERVICE_FQDN_STRAPI']
+          }
+        });
+      };
+      EOFVITE
+      exec npm run develop
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    environment:
+    - SERVICE_FQDN_STRAPI=${SERVICE_FQDN_STRAPI}
+    - SERVICE_URL_STRAPI_1337=${SERVICE_URL_STRAPI_1337}
+    - DATABASE_CLIENT=postgres
+    - DATABASE_HOST=postgresql
+    - DATABASE_PORT=5432
+    - DATABASE_NAME=${POSTGRESQL_DATABASE:-strapi}
+    - DATABASE_USERNAME=$SERVICE_USER_POSTGRESQL
+    - DATABASE_PASSWORD=$SERVICE_PASSWORD_POSTGRESQL
+    - JWT_SECRET=$SERVICE_BASE64_64_SECRET
+    - ADMIN_JWT_SECRET=$SERVICE_BASE64_64_SECRET
+    - APP_KEYS=$SERVICE_BASE64_64_KEY
+    - STRAPI_TELEMETRY_DISABLED=${STRAPI_TELEMETRY_DISABLED:-true}
+    - STRAPI_LICENSE=${STRAPI_LICENSE}
+    - NODE_ENV=${NODE_ENV:-development}
+    - BROWSER=${BROWSER:-true}
+    - STRAPI_PLUGIN_I18N_INIT_LOCALE_CODE=${STRAPI_PLUGIN_I18N_INIT_LOCALE_CODE:-en}
+    - STRAPI_ENFORCE_SOURCEMAPS=${STRAPI_ENFORCE_SOURCEMAPS:-false}
+    - FAST_REFRESH=${FAST_REFRESH:-true}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:1337/
+      timeout: 20s
+    image: elestio/strapi-production:v5.33.4
+    networks:
+      appnet:
+        aliases:
+        - strapi-coolify_strapi_1
+    restart: unless-stopped
+    volumes:
+    - strapi-config:/opt/app/config
+    - strapi-src:/opt/app/src
+    - strapi-uploads:/opt/app/public/uploads
+volumes:
+  strapi-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/strapi-config
+      o: bind
+      type: none
+  strapi-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/strapi-postgresql-data
+      o: bind
+      type: none
+  strapi-src:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/strapi-src
+      o: bind
+      type: none
+  strapi-uploads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/strapi-uploads
+      o: bind
+      type: none

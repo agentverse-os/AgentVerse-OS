@@ -1,0 +1,55 @@
+# metabase-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  metabase:
+    environment:
+    - SERVICE_URL_METABASE_3000=${SERVICE_URL_METABASE_3000}
+    - MB_DB_TYPE=postgres
+    - MB_DB_HOST=postgresql
+    - MB_DB_PORT=5432
+    - MB_DB_DBNAME=${POSTGRESQL_DATABASE:-metabase}
+    - MB_DB_USER=$SERVICE_USER_POSTGRESQL
+    - MB_DB_PASS=$SERVICE_PASSWORD_POSTGRESQL
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: curl --fail -I http://127.0.0.1:3000/api/health || exit 1
+      timeout: 20s
+    image: metabase/metabase:latest
+    networks:
+      appnet:
+        aliases:
+        - metabase-coolify_metabase_1
+    restart: unless-stopped
+    volumes:
+    - /dev/urandom:/dev/random:ro
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-metabase}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - metabase-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - metabase-postgresql-data:/var/lib/postgresql/data
+volumes:
+  metabase-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/metabase-postgresql-data
+      o: bind
+      type: none

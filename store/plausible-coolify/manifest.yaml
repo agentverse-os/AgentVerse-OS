@@ -1,0 +1,144 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/plausible-coolify
+description: '"Plausible Analytics is a simple, open-source, lightweight (< 1 KB) and privacy-friendly web analytics alternative to Google Analytics."'
+endpoint:
+  port: 8000
+  service: plausible
+env:
+  GOOGLE_CLIENT_ID: ''
+  GOOGLE_CLIENT_SECRET: ''
+  MAILER_ADAPTER: Bamboo.LocalAdapter
+  MAILER_EMAIL: ''
+  MAILER_NAME: ''
+  POSTGRES_DB: plausible-db
+  POSTGRES_USER: ''
+  SERVICE_BASE64_64_PLAUSIBLE:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_REALBASE64_32:
+    generate: hex64
+  SERVICE_URL_PLAUSIBLE: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SMTP_HOST_ADDR: ''
+  SMTP_HOST_PORT: ''
+  SMTP_HOST_SSL_ENABLED: ''
+  SMTP_USER_NAME: ''
+  SMTP_USER_PWD: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: plausible-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: plausible-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: GOOGLE_CLIENT_ID
+  hint: null
+  label: google client id
+  options: null
+  required: false
+  type: text
+- env: GOOGLE_CLIENT_SECRET
+  hint: null
+  label: google client secret
+  options: null
+  required: false
+  type: password
+- env: MAILER_ADAPTER
+  hint: 'по умолчанию: Bamboo.LocalAdapter'
+  label: mailer adapter
+  options: null
+  required: false
+  type: text
+- env: MAILER_EMAIL
+  hint: null
+  label: mailer email
+  options: null
+  required: false
+  type: text
+- env: MAILER_NAME
+  hint: null
+  label: mailer name
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST_ADDR
+  hint: null
+  label: smtp host addr
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST_PORT
+  hint: null
+  label: smtp host port
+  options: null
+  required: false
+  type: text
+- env: SMTP_USER_NAME
+  hint: null
+  label: smtp user name
+  options: null
+  required: false
+  type: text
+- env: SMTP_USER_PWD
+  hint: null
+  label: smtp user pwd
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST_SSL_ENABLED
+  hint: null
+  label: smtp host ssl enabled
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- analytics
+- privacy
+- google
+- alternative
+title: Plausible
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://plausible.io/docs/self-hosting
+  tags:
+  - analytics
+  - privacy
+  - google
+  - alternative
+  template: plausible.yaml
+website: https://plausible.io/docs/self-hosting

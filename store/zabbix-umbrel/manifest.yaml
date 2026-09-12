@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/zabbix-umbrel
+description: The all-in-one, open-source solution that lets you monitor anything
+endpoint:
+  port: 8080
+  service: zabbix-frontend
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/zabbix/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zabbix/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zabbix/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/zabbix/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: zabbix
+  path: null
+  user: Admin
+name: zabbix-umbrel
+notes:
+- 'порт 10050:10050 (zabbix-server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Zabbix
+type: app
+upstream:
+  author: Zabbix LLC
+  categories:
+  - networking
+  release_notes: |-
+    This update includes bug fixes and improvements from Zabbix 7.4.14:
+      - Updated maximum supported TimescaleDB version to 2.29
+      - Updated frontend help links to point to the current documentation
+      - Fixed PHP runtime errors in the user role edit form
+      - Fixed Zabbix Agent 2 active checks after failed responses
+      - Fixed and improved bundled templates for Redis, Ceph, RabbitMQ, Check Point, Cisco, MSSQL, and Elasticsearch monitoring
+      - Fixed frontend issues affecting host wizard hints, graphs, Kiosk mode dashboards, event menus, language switching, item interval validation, and hintbox positioning
+
+
+    Full release notes are available at https://www.zabbix.com/rn/rn7.4.14
+  source: https://github.com/zabbix/zabbix
+  version: 7.4.14
+  website: https://www.zabbix.com/
+website: https://www.zabbix.com/

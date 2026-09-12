@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/glance-coolify
+description: A self-hosted dashboard that puts all your feeds in one place.
+endpoint:
+  port: 8080
+  service: glance
+env:
+  SERVICE_URL_GLANCE_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: glance-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- dashboard
+- server
+- applications
+- interface
+- rrss
+title: Glance
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/glanceapp/glance
+  tags:
+  - dashboard
+  - server
+  - applications
+  - interface
+  - rrss
+  template: glance.yaml
+website: https://github.com/glanceapp/glance

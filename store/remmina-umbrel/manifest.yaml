@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/remmina-umbrel
+description: Remote access screen and file sharing
+endpoint:
+  port: 3000
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/remmina/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/remmina/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/remmina/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/remmina/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: remmina-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Remmina
+type: app
+upstream:
+  author: Remmina
+  categories:
+  - networking
+  release_notes: |-
+    This release includes several improvements and bug fixes:
+      - Fixed build issues for OpenSSL 1.1
+      - Added support for running SSH commands when connecting via SSH tunnel
+      - Resolved compilation issues with GCC-14
+      - Fixed a crash related to the 'disable password storing' feature
+      - Updated handling of load balancing information
+
+    For full release notes, visit https://gitlab.com/Remmina/Remmina/-/releases
+  source: https://gitlab.com/Remmina/Remmina
+  version: 1.4.35
+  website: https://remmina.org
+website: https://remmina.org

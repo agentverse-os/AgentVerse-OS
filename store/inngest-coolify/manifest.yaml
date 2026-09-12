@@ -1,0 +1,62 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/inngest-coolify
+description: Durable workflow engine for background jobs, queues and scheduled tasks.
+endpoint:
+  port: 8288
+  service: inngest
+env:
+  SERVICE_HEX_32_EVENTKEY:
+    generate: token
+  SERVICE_HEX_32_SIGNINGKEY:
+    generate: token
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_INNGEST_8288: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: inngest-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- queue
+- workflow
+- jobs
+- events
+- background
+- automation
+title: Inngest
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://www.inngest.com/docs/self-hosting
+  tags:
+  - queue
+  - workflow
+  - jobs
+  - events
+  - background
+  - automation
+  template: inngest.yaml
+website: https://www.inngest.com/docs/self-hosting

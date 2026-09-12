@@ -1,0 +1,68 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/librephotos-umbrel
+description: A photo management service
+endpoint:
+  port: 80
+  service: proxy
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/librephotos/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin@admin.com
+name: librephotos-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LibrePhotos
+type: app
+upstream:
+  author: LibrePhotos
+  categories:
+  - files
+  release_notes: |-
+    Some of the key highlights in this release include:
+      - Face recognition results can now be written back to XMP sidecar files, making face tagging data portable and compatible with other photo tools
+      - New services health monitoring panel in the admin page showing real-time status of all background services with start and stop controls
+      - New server logs card in the admin panel lets you inspect server logs directly from the UI
+      - New and updated translations: Danish, German, Korean, Tamil, Dutch, Ukrainian
+      - Fixed motion photo video serving
+      - Fixed duplicate face detection using more accurate overlap calculation
+      - Fixed photo captioning crash when the tag service returns an unexpected response
+      - Fixed login error notification to show proper error messages
+      - Security fix: Django updated to v5.2.12
+      - Security fix: Prevented non-admin users from creating superuser accounts via the registration API
+
+
+    Full release notes can be found at https://github.com/LibrePhotos/librephotos-docker/releases
+  source: https://github.com/LibrePhotos/librephotos-docker
+  version: 2026w14
+  website: https://docs.librephotos.com/
+website: https://docs.librephotos.com/

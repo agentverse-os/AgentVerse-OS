@@ -1,0 +1,58 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/elasticsearch-coolify
+description: Elasticsearch is free and Open Source, Distributed, RESTful Search Engine.
+endpoint:
+  port: 9200
+  service: elasticsearch
+env:
+  SERVICE_PASSWORD_ELASTICSEARCH:
+    generate: password
+  SERVICE_URL_ELASTICSEARCH_9200: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ELASTICSEARCH
+  path: null
+  user: null
+name: elasticsearch-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- search
+- engine
+- fulltext
+- full
+- text
+- elasticsearch
+title: Elasticsearch
+type: app
+upstream:
+  categories:
+  - search
+  source: https://www.elastic.co/products/elasticsearch
+  tags:
+  - search
+  - engine
+  - fulltext
+  - full
+  - text
+  - elasticsearch
+  template: elasticsearch.yaml
+website: https://www.elastic.co/products/elasticsearch

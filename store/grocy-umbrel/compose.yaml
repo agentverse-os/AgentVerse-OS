@@ -1,0 +1,20 @@
+# grocy-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=Etc/UTC
+    - GROCY_BASE_URL=/
+    image: linuxserver/grocy:4.7.0@sha256:f20d27df7b7056797c2eefd13647c2feb462e32519ad84280381b18fb4ef5f08
+    networks:
+      appnet:
+        aliases:
+        - grocy_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config

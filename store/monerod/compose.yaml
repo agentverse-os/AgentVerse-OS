@@ -1,0 +1,16 @@
+# monerod: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  monerod:
+    command: --rpc-restricted-bind-ip=0.0.0.0 --rpc-restricted-bind-port=18089 --public-node --no-igd --enable-dns-blocklist --prune-blockchain --zmq-pub=tcp://0.0.0.0:18083
+    image: sethsimmons/simple-monerod:v0.18.3.4
+    networks:
+      appnet:
+        aliases:
+        - monerod_monerod_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/home/monero/.bitmonero

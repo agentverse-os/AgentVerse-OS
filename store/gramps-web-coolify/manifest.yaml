@@ -1,0 +1,64 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gramps-web-coolify
+description: Open Source Online Genealogy System.
+endpoint:
+  port: 5000
+  service: grampsweb
+env:
+  GRAMPSWEB_TREE: Gramps Web
+  GUNICORN_NUM_WORKERS: '2'
+  SERVICE_URL_GRAMPSWEB_5000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: gramps-web-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GRAMPSWEB_TREE
+  hint: 'по умолчанию: Gramps Web'
+  label: grampsweb tree
+  options: null
+  required: false
+  type: text
+- env: GUNICORN_NUM_WORKERS
+  hint: 'по умолчанию: 2'
+  label: gunicorn num workers
+  options: null
+  required: false
+  type: text
+tags:
+- family
+- genealogy
+- personal
+title: Gramps Web
+type: app
+upstream:
+  categories:
+  - family
+  source: https://www.grampsweb.org/install_setup/setup/
+  tags:
+  - family
+  - genealogy
+  - personal
+  template: gramps-web.yaml
+website: https://www.grampsweb.org/install_setup/setup/

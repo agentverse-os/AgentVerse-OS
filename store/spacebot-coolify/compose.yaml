@@ -1,0 +1,45 @@
+# spacebot-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  spacebot:
+    environment:
+    - SERVICE_FQDN_SPACEBOT_19898=${SERVICE_FQDN_SPACEBOT_19898}
+    - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    - OPENAI_API_KEY=${OPENAI_API_KEY}
+    - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+    - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+    - SLACK_APP_TOKEN=${SLACK_APP_TOKEN}
+    - BRAVE_SEARCH_API_KEY=${BRAVE_SEARCH_API_KEY}
+    - SPACEBOT_CHANNEL_MODEL=${SPACEBOT_CHANNEL_MODEL}
+    - SPACEBOT_WORKER_MODEL=${SPACEBOT_WORKER_MODEL}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -sf
+      - http://localhost:19898/api/health
+      timeout: 5s
+    image: ghcr.io/spacedriveapp/spacebot:full
+    networks:
+      appnet:
+        aliases:
+        - spacebot-coolify_spacebot_1
+    restart: unless-stopped
+    security_opt:
+    - seccomp=unconfined
+    shm_size: 1g
+    volumes:
+    - spacebot-data:/data
+volumes:
+  spacebot-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/spacebot-data
+      o: bind
+      type: none

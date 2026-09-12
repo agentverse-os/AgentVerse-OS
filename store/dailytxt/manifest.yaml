@@ -1,0 +1,67 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/dailytxt
+description: Encrypted Diary Web-App
+endpoint:
+  port: 80
+  service: dailytxt
+env:
+  DAILYTXT_ADMIN_PASSWORD:
+    generate: password
+  DAILYTXT_ALLOW_REGISTRATION: 'true'
+  DAILYTXT_SECRET_KEY:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: DAILYTXT_ADMIN_PASSWORD
+  path: null
+  user: null
+name: dailytxt
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DAILYTXT_SECRET_KEY
+  hint: null
+  label: DailyTXT Secret Key
+  options: null
+  required: false
+  type: random
+- env: DAILYTXT_ADMIN_PASSWORD
+  hint: null
+  label: Admin Password
+  options: null
+  required: false
+  type: password
+- env: DAILYTXT_ALLOW_REGISTRATION
+  hint: Set it to true intially to create the first user.
+  label: Allow User Registration
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: DailyTxT
+type: app
+upstream:
+  author: PhiTux
+  categories:
+  - utilities
+  source: https://github.com/PhiTux/DailyTxT
+  tipi_version: 32
+  version: 2.6.3
+website: https://github.com/PhiTux/DailyTxT

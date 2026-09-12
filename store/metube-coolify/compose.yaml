@@ -1,0 +1,35 @@
+# metube-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  metube:
+    environment:
+    - SERVICE_URL_METUBE_8081=${SERVICE_URL_METUBE_8081}
+    - UID=1000
+    - GID=1000
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8081
+      timeout: 10s
+    image: ghcr.io/alexta69/metube:latest
+    networks:
+      appnet:
+        aliases:
+        - metube-coolify_metube_1
+    restart: unless-stopped
+    volumes:
+    - metube-downloads:/downloads
+volumes:
+  metube-downloads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/metube-downloads
+      o: bind
+      type: none

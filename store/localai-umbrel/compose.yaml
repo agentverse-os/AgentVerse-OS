@@ -1,0 +1,34 @@
+# localai-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  api:
+    environment:
+    - MODELS_PATH=/models
+    - LOCALAI_BACKENDS_PATH=/backends
+    - LOCALAI_EXTERNAL_BACKENDS=cpu-llama-cpp
+    - LOCALAI_FORCE_META_BACKEND_CAPABILITY_RUN_FILE=/nonexistent
+    - NVIDIA_DISABLE_REQUIRE=true
+    healthcheck:
+      interval: 1m
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8080/readyz
+      timeout: 20m
+    image: localai/localai:v4.9.0@sha256:d78cd113b2bc5892d7533c1356e9c9725bb90e86a075356a63730f3d681ce4d7
+    networks:
+      appnet:
+        aliases:
+        - localai_api_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/models:/models:cached
+    - ${APP_DATA_DIR}/data/backends:/backends:cached
+    - ${APP_DATA_DIR}/data/data:/data:cached
+    - ${APP_DATA_DIR}/data/configuration:/configuration:cached
+    - ${APP_DATA_DIR}/data/images/:/tmp/generated/images/

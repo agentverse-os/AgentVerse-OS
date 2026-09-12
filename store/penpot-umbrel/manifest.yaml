@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/penpot-umbrel
+description: Design and prototyping platform
+endpoint:
+  port: 8080
+  service: penpot-frontend
+env:
+  APP_PENPOT_UI_PORT: '9001'
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/penpot/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/penpot/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/penpot/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/penpot/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: penpot-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Penpot
+type: app
+upstream:
+  author: Penpot
+  categories:
+  - developer
+  release_notes: |-
+    This update fixes a security issue in Penpot's SVG exporter and resolves SVG text export rendering problems.
+    It also fixes typography tokens becoming detached when editing text content.
+    Full release notes can be found at https://github.com/penpot/penpot/releases/tag/2.17.2
+  source: https://github.com/penpot/penpot
+  version: 2.17.2
+  website: https://penpot.app/
+website: https://penpot.app/

@@ -1,0 +1,55 @@
+# ghostfolio-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgres:
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: ${APP_GHOSTFOLIO_DB_DATABASE_NAME}
+      POSTGRES_PASSWORD: ${APP_GHOSTFOLIO_DB_PASSWORD}
+      POSTGRES_USER: ${APP_GHOSTFOLIO_DB_USERNAME}
+    image: postgres:14-bullseye@sha256:c2a30d08a6f9e6c365595fd086c9e0436064c52425f15f72379ecf0807bac518
+    networks:
+      appnet:
+        aliases:
+        - ghostfolio_postgres_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  redis:
+    command: |
+      --requirepass ${APP_GHOSTFOLIO_REDIS_PASSWORD}
+    image: redis:6.2-bullseye@sha256:5cdb2ac6f780e1d250787f4a887c1ed1166e3389757189ea913059409acc6f7c
+    networks:
+      appnet:
+        aliases:
+        - ghostfolio_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  server:
+    environment:
+      ACCESS_TOKEN_SALT: $APP_GHOSTFOLIO_ACCESS_TOKEN_SALT
+      DATABASE_URL: postgresql://${APP_GHOSTFOLIO_DB_USERNAME}:${APP_GHOSTFOLIO_DB_PASSWORD}@ghostfolio_postgres_1:5432/${APP_GHOSTFOLIO_DB_DATABASE_NAME}
+      HOST: 0.0.0.0
+      JWT_SECRET_KEY: ${APP_SEED}
+      NODE_ENV: production
+      PORT: 3334
+      POSTGRES_DB: ${APP_GHOSTFOLIO_DB_DATABASE_NAME}
+      POSTGRES_PASSWORD: ${APP_GHOSTFOLIO_DB_PASSWORD}
+      POSTGRES_USER: ${APP_GHOSTFOLIO_DB_USERNAME}
+      REDIS_HOST: ghostfolio_redis_1
+      REDIS_PASSWORD: ${APP_GHOSTFOLIO_REDIS_PASSWORD}
+      REDIS_PORT: 6379
+    image: ghostfolio/ghostfolio:3.65.0@sha256:5762d47097bb30f6e8c51a1a0ebd9a39798631b512d8a78223bcfe68202e5286
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - ghostfolio_server_1
+    restart: on-failure

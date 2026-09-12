@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/yucca-umbrel
+description: Simple NVR video surveillance solution
+endpoint:
+  port: 9910
+  service: yucca
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/yucca/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/yucca/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/yucca/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/yucca/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/yucca/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/yucca/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: yucca-umbrel
+notes:
+- 'порт 10925:10925 (yucca) не публикуется: доступ только через edge/gate'
+- 'порт 9912:9912 (yucca) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Yucca
+type: app
+upstream:
+  author: Yucca Stream
+  categories:
+  - automation
+  release_notes: This maintenance update includes Yucca 0.13.4, the latest stable community release.
+  source: null
+  version: 0.13.4
+  website: https://yucca.app/
+website: https://yucca.app/

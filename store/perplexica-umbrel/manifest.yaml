@@ -1,0 +1,65 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/perplexica-umbrel
+description: An AI-powered answering engine
+endpoint:
+  port: 3000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/perplexica/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/perplexica/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/perplexica/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/perplexica/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/perplexica/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: perplexica-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Vane
+type: app
+upstream:
+  author: Kushagra Srivastava
+  categories:
+  - ai
+  release_notes: |-
+    Perplexica is now Vane!
+
+    This is a minor release featuring improvements to the deep research mode and various fixes:
+      - Fixed history double-conversion bugs to ensure smoother suggestion generation
+      - Added validation and timeouts to prevent hung search requests
+      - Improved widget execution handling; errors no longer crash the entire research pipeline
+      - Resolved build-time errors by addressing missing package dependencies
+      - Fixed edge cases involving non-array search query formats
+      - Integrated serverUtils and updated the reverse geolocation API for better accuracy
+      - Enhanced error handling for file upload workflows
+      - Added a Chromium-based scraper for better compatibility with modern web pages
+      - Implemented a new, optimized executeSearch function
+      - Leveraged embeddings to filter search results, preventing context window overflow and improving relevance
+
+
+    Full release notes can be found at https://github.com/ItzCrazyKns/Vane/releases
+  source: https://github.com/ItzCrazyKns/Vane
+  version: 1.12.2
+  website: https://github.com/ItzCrazyKns/Vane
+website: https://github.com/ItzCrazyKns/Vane

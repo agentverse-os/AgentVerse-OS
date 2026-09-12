@@ -1,0 +1,21 @@
+# dailytxt: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  dailytxt:
+    environment:
+      ADMIN_PASSWORD: ${DAILYTXT_ADMIN_PASSWORD}
+      ALLOW_REGISTRATION: ${DAILYTXT_ALLOW_REGISTRATION}
+      DATA_INDENT: '2'
+      LOGOUT_AFTER_DAYS: '60'
+      SECRET_KEY: ${DAILYTXT_SECRET_KEY}
+    image: phitux/dailytxt:2.6.3
+    networks:
+      appnet:
+        aliases:
+        - dailytxt_dailytxt_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/dailytxt:/data/

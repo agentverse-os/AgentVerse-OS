@@ -1,0 +1,18 @@
+# urbit-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  manager:
+    environment:
+      APP_PASSWORD: ${APP_PASSWORD}
+    image: mopfelwinrux/urbit-umbrel:v4.6@sha256:6fbc4faea5c1ddbadcc8e2d0ea8ac71da21151395af8dfd70366910c56a0246d
+    networks:
+      appnet:
+        aliases:
+        - urbit_manager_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/piers:/data/piers
+    - ${APP_DATA_DIR}/keys:/data/keys

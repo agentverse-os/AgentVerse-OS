@@ -1,0 +1,37 @@
+# radarr-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  radarr:
+    environment:
+    - SERVICE_URL_RADARR_7878=${SERVICE_URL_RADARR_7878}
+    - _APP_URL=$SERVICE_URL_RADARR
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-America/Toronto}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:7878/ping
+      timeout: 10s
+    image: lscr.io/linuxserver/radarr:latest
+    networks:
+      appnet:
+        aliases:
+        - radarr-coolify_radarr_1
+    restart: unless-stopped
+    volumes:
+    - radarr-config:/config
+volumes:
+  radarr-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/radarr-config
+      o: bind
+      type: none

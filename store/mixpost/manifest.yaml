@@ -1,0 +1,68 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mixpost
+description: 'Self-hosted social media management. Schedule and organize your social content. '
+endpoint:
+  port: 80
+  service: mixpost
+env:
+  MIXPOST_APP_KEY:
+    generate: token
+  MIXPOST_MYSQL_PASSWORD:
+    generate: token
+  MIXPOST_REDIS_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mixpost
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MIXPOST_MYSQL_PASSWORD
+  hint: null
+  label: Mixpost SQL Password
+  options: null
+  required: false
+  type: random
+- env: MIXPOST_REDIS_PASSWORD
+  hint: null
+  label: Mixpost Redis Password
+  options: null
+  required: false
+  type: random
+- env: MIXPOST_APP_KEY
+  hint: null
+  label: Application key
+  options: null
+  required: false
+  type: random
+tags: []
+title: Mixpost
+type: app
+upstream:
+  author: Inovector
+  categories:
+  - social
+  source: https://github.com/inovector/mixpost
+  tipi_version: 27
+  version: v2.6.0
+website: https://github.com/inovector/mixpost

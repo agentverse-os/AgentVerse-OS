@@ -1,0 +1,192 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/open-archiver-coolify
+description: A self-hosted, open-source email archiving solution with full-text search capability.
+endpoint:
+  port: 3000
+  service: open-archiver
+env:
+  BODY_SIZE_LIMIT: 100M
+  JWT_EXPIRES_IN: 7d
+  NODE_ENV: production
+  PORT_BACKEND: '4000'
+  PORT_FRONTEND: '3000'
+  POSTGRES_DB: open_archive
+  POSTGRES_USER: ''
+  RATE_LIMIT_MAX_REQUESTS: '100'
+  RATE_LIMIT_WINDOW_MS: '60000'
+  SERVICE_BASE64_128_JWT:
+    generate: hex64
+  SERVICE_HEX_64_ENCRYPTIONKEY:
+    generate: hex64
+  SERVICE_HEX_64_STORAGEENCRYPTIONKEY:
+    generate: hex64
+  SERVICE_PASSWORD_MEILISEARCH:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_VALKEY:
+    generate: password
+  SERVICE_URL_OPENARCHIVER_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  STORAGE_LOCAL_ROOT_PATH: /var/data/open-archiver
+  STORAGE_S3_ACCESS_KEY_ID: ''
+  STORAGE_S3_BUCKET: ''
+  STORAGE_S3_ENDPOINT: ''
+  STORAGE_S3_FORCE_PATH_STYLE: 'false'
+  STORAGE_S3_REGION: ''
+  STORAGE_S3_SECRET_ACCESS_KEY: ''
+  STORAGE_TYPE: local
+  SYNC_FREQUENCY: '* * * * *'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: open-archiver-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PORT_BACKEND
+  hint: 'по умолчанию: 4000'
+  label: port backend
+  options: null
+  required: false
+  type: text
+- env: PORT_FRONTEND
+  hint: 'по умолчанию: 3000'
+  label: port frontend
+  options: null
+  required: false
+  type: text
+- env: NODE_ENV
+  hint: 'по умолчанию: production'
+  label: node env
+  options: null
+  required: false
+  type: text
+- env: SYNC_FREQUENCY
+  hint: 'по умолчанию: * * * * *'
+  label: sync frequency
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: open_archive'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: STORAGE_TYPE
+  hint: 'по умолчанию: local'
+  label: storage type
+  options: null
+  required: false
+  type: text
+- env: STORAGE_LOCAL_ROOT_PATH
+  hint: 'по умолчанию: /var/data/open-archiver'
+  label: storage local root path
+  options: null
+  required: false
+  type: text
+- env: BODY_SIZE_LIMIT
+  hint: 'по умолчанию: 100M'
+  label: body size limit
+  options: null
+  required: false
+  type: text
+- env: STORAGE_S3_ENDPOINT
+  hint: null
+  label: storage s3 endpoint
+  options: null
+  required: false
+  type: text
+- env: STORAGE_S3_BUCKET
+  hint: null
+  label: storage s3 bucket
+  options: null
+  required: false
+  type: text
+- env: STORAGE_S3_ACCESS_KEY_ID
+  hint: null
+  label: storage s3 access key id
+  options: null
+  required: false
+  type: password
+- env: STORAGE_S3_SECRET_ACCESS_KEY
+  hint: null
+  label: storage s3 secret access key
+  options: null
+  required: false
+  type: password
+- env: STORAGE_S3_REGION
+  hint: null
+  label: storage s3 region
+  options: null
+  required: false
+  type: text
+- env: STORAGE_S3_FORCE_PATH_STYLE
+  hint: 'по умолчанию: false'
+  label: storage s3 force path style
+  options: null
+  required: false
+  type: text
+- env: JWT_EXPIRES_IN
+  hint: 'по умолчанию: 7d'
+  label: jwt expires in
+  options: null
+  required: false
+  type: text
+- env: RATE_LIMIT_WINDOW_MS
+  hint: 'по умолчанию: 60000'
+  label: rate limit window ms
+  options: null
+  required: false
+  type: text
+- env: RATE_LIMIT_MAX_REQUESTS
+  hint: 'по умолчанию: 100'
+  label: rate limit max requests
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- email archiving
+- email
+- compliance
+- search
+title: Open Archiver
+type: app
+upstream:
+  categories:
+  - email
+  source: https://docs.openarchiver.com/
+  tags:
+  - email archiving
+  - email
+  - compliance
+  - search
+  template: open-archiver.yaml
+website: https://docs.openarchiver.com/

@@ -1,0 +1,44 @@
+# ghost: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  ghost:
+    depends_on:
+    - ghostdb
+    environment:
+      database__client: mysql
+      database__connection__database: ghosttipi
+      database__connection__host: ghostdb
+      database__connection__password: ${GHOST_DATABASE_PASSWORD}
+      database__connection__user: tipi
+      mail__options__auth__pass: ${GHOST_MAIL_PASSWORD}
+      mail__options__auth__user: ${GHOST_MAIL_USER}
+      mail__options__host: ${GHOST_MAIL_HOST}
+      mail__options__port: ${GHOST_MAIL_PORT}
+      mail__options__service: ${GHOST_MAIL_SERVICE}
+      mail__transport: SMTP
+      url: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+    image: ghost:5.130.6
+    networks:
+      appnet:
+        aliases:
+        - ghost_ghost_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/content:/var/lib/ghost/content
+  ghostdb:
+    environment:
+      MYSQL_DATABASE: ghosttipi
+      MYSQL_PASSWORD: ${GHOST_DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${GHOST_DATABASE_PASSWORD}
+      MYSQL_USER: tipi
+    image: mariadb:latest
+    networks:
+      appnet:
+        aliases:
+        - ghost_ghostdb_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql

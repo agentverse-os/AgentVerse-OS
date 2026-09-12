@@ -1,0 +1,86 @@
+# librephotos: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  librephotos:
+    depends_on:
+    - librephotos-backend
+    - librephotos-frontend
+    image: reallibrephotos/librephotos-proxy:2023w48
+    networks:
+      appnet:
+        aliases:
+        - librephotos_librephotos_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/scan:/data
+    - ${APP_DATA_DIR}/data/protected_media:/protected_media
+    - ${APP_DATA_DIR}/data/proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+  librephotos-backend:
+    depends_on:
+      librephotos-db:
+        condition: service_healthy
+    environment:
+      ADMIN_EMAIL: ${LIBREPHOTOS_EMAIL}
+      ADMIN_PASSWORD: ${LIBREPHOTOS_PASSWORD}
+      ADMIN_USERNAME: ${LIBREPHOTOS_USERNAME}
+      ALLOW_UPLOAD: 'true'
+      BACKEND_HOST: librephotos-backend
+      CSRF_TRUSTED_ORIGINS: ${APP_PROTOCOL:-http}://${APP_DOMAIN},http://${INTERNAL_IP}:${APP_PORT}
+      DB_BACKEND: postgresql
+      DB_HOST: librephotos-db
+      DB_NAME: librephotos
+      DB_PASS: ${LIBREPHOTOS_DB_PASSWORD}
+      DB_PORT: '5432'
+      DB_USER: tipi
+      DEBUG: '0'
+      REDIS_HOST: librephotos-redis
+      REDIS_PORT: '6379'
+      SECRET_KEY: ${LIBREPHOTOS_SECRET_KEY}
+    image: reallibrephotos/librephotos:2023w48
+    networks:
+      appnet:
+        aliases:
+        - librephotos_librephotos-backend_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/scan:/data
+    - ${APP_DATA_DIR}/data/protected_media:/protected_media
+    - ${APP_DATA_DIR}/data/logs:/logs
+    - ${APP_DATA_DIR}/data/cache:/root/.cache
+  librephotos-db:
+    environment:
+      POSTGRES_DB: librephotos
+      POSTGRES_PASSWORD: ${LIBREPHOTOS_DB_PASSWORD}
+      POSTGRES_USER: tipi
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test: pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+      timeout: 5s
+    image: postgres:14
+    networks:
+      appnet:
+        aliases:
+        - librephotos_librephotos-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  librephotos-frontend:
+    depends_on:
+    - librephotos-backend
+    image: reallibrephotos/librephotos-frontend:2023w48
+    networks:
+      appnet:
+        aliases:
+        - librephotos_librephotos-frontend_1
+    restart: unless-stopped
+  librephotos-redis:
+    image: redis:6
+    networks:
+      appnet:
+        aliases:
+        - librephotos_librephotos-redis_1
+    restart: unless-stopped

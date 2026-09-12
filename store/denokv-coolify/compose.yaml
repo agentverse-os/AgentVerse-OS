@@ -1,0 +1,29 @@
+# denokv-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  denokv:
+    command: --sqlite-path /data/denokv.sqlite serve --access-token ${SERVICE_PASSWORD_DENOKV}
+    environment:
+    - ACCESS_TOKEN=${SERVICE_PASSWORD_DENOKV}
+    - SERVICE_URL_DENOKV_4512=${SERVICE_URL_DENOKV_4512}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD
+      - nc
+      - -zv
+      - 127.0.0.1
+      - '4512'
+      timeout: 5s
+    image: ghcr.io/denoland/denokv:latest
+    networks:
+      appnet:
+        aliases:
+        - denokv-coolify_denokv_1
+    restart: unless-stopped
+    volumes:
+    - ${COOLIFY_VOLUME_APP}:/data

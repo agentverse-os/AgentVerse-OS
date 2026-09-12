@@ -1,0 +1,57 @@
+# ee-gateway-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  init_perms:
+    entrypoint:
+    - sh
+    - -c
+    - chown -R 1000:1000 /data
+    image: encryptedenergy/ee-gateway-worker:0.8.1@sha256:cd0aa7400fedf314e826e00c6152025c1fe60d5a5c7594cafc49a7f3ddaa6258
+    networks:
+      appnet:
+        aliases:
+        - ee-gateway_init_perms_1
+    restart: on-failure
+    user: 0:0
+    volumes:
+    - ${APP_DATA_DIR}/data:/data
+  ui:
+    depends_on:
+      init_perms:
+        condition: service_completed_successfully
+    environment:
+      EE_DATA_DIR: /data
+      EE_GATEWAY_VERSION: 0.10.7
+      EE_UI_PORT: 8080
+    image: encryptedenergy/ee-gateway-ui:0.6.5@sha256:cdfb8866e677ab206549c5ffab6bff7e9055969997230601ac098e2778ff0b5f
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - ee-gateway_ui_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/data
+  worker:
+    cap_add:
+    - NET_ADMIN
+    - NET_RAW
+    depends_on:
+      init_perms:
+        condition: service_completed_successfully
+    device_cgroup_rules:
+    - c 188:* rwm
+    - c 166:* rwm
+    environment:
+      EE_DATA_DIR: /data
+    image: encryptedenergy/ee-gateway-worker:0.8.1@sha256:cd0aa7400fedf314e826e00c6152025c1fe60d5a5c7594cafc49a7f3ddaa6258
+    init: true
+    network_mode: host
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/data
+    - /var/run/dbus:/var/run/dbus:ro
+    - /dev:/dev

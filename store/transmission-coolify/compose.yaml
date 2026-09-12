@@ -1,0 +1,53 @@
+# transmission-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  transmission:
+    environment:
+    - SERVICE_URL_TRANSMISSION_9091=${SERVICE_URL_TRANSMISSION_9091}
+    - PUID=1000
+    - PGID=1000
+    - USER=${SERVICE_USER_ADMIN}
+    - PASS=${SERVICE_PASSWORD_ADMIN}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -sSfL
+      - -u
+      - ${SERVICE_USER_ADMIN}:${SERVICE_PASSWORD_ADMIN}
+      - http://localhost:9091/
+      timeout: 10s
+    image: lscr.io/linuxserver/transmission:latest
+    networks:
+      appnet:
+        aliases:
+        - transmission-coolify_transmission_1
+    restart: unless-stopped
+    volumes:
+    - transmission-config:/config
+    - transmission-downloads:/downloads
+    - transmission-watch:/watch
+volumes:
+  transmission-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/transmission-config
+      o: bind
+      type: none
+  transmission-downloads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/transmission-downloads
+      o: bind
+      type: none
+  transmission-watch:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/transmission-watch
+      o: bind
+      type: none

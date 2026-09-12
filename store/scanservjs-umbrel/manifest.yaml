@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/scanservjs-umbrel
+description: Web-based interface for your SANE-compatible scanners
+endpoint:
+  port: 8080
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/scanservjs/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/scanservjs/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/scanservjs/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/scanservjs/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: scanservjs-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: scanservjs
+type: app
+upstream:
+  author: sbs20
+  categories:
+  - files
+  release_notes: |-
+    This update includes:
+      - Added new external resources and scanning recipes, including Paperless, rotation filters, and HP driver setup
+      - Improved output-pipe handling when scan output is not consumed
+      - Refreshed dependencies and Docker build maintenance
+
+
+    Full release notes can be found at https://github.com/sbs20/scanservjs/releases/tag/v3.3.0
+  source: https://github.com/sbs20/scanservjs
+  version: 3.3.0
+  website: https://sbs20.github.io/scanservjs/
+website: https://sbs20.github.io/scanservjs/

@@ -1,0 +1,39 @@
+# satisfactory-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  satisfactory-server:
+    environment:
+    - AUTOSAVENUM=${AUTOSAVE_NUM:-5}
+    - DEBUG=${DEBUG:-false}
+    - DISABLESEASONALEVENTS=${DISABLE_SEASONAL_EVENTS:-false}
+    - LOG=${LOG:-false}
+    - MAXOBJECTS=
+    - MAXPLAYERS=
+    - MAXTICKRATE=${MAX_TICK_RATE:-30}
+    - MULTIHOME=${MULTI_HOME:-::}
+    - PGID=
+    - PUID=
+    - SERVERGAMEPORT=${SERVER_GAME_PORT:-7777}
+    - SERVERMESSAGINGPORT=${SERVER_MESSAGING_PORT:-8888}
+    - SERVERSTREAMING=${SERVER_STREAMING:-true}
+    - SKIPUPDATE=${SKIP_UPDATE:-false}
+    - STEAMBETA=${STEAM_BETA:-false}
+    - TIMEOUT=${TIMEOUT:-30}
+    image: wolveix/satisfactory-server:v1.9.10
+    networks:
+      appnet:
+        aliases:
+        - satisfactory-coolify_satisfactory-server_1
+    restart: unless-stopped
+    volumes:
+    - satisfactory-server:/config
+volumes:
+  satisfactory-server:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/satisfactory-server
+      o: bind
+      type: none

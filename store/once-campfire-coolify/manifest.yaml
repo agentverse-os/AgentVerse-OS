@@ -1,0 +1,109 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/once-campfire-coolify
+description: Super simple group chat, without a subscription.
+endpoint:
+  port: 80
+  service: campfire
+env:
+  DISABLE_SSL: 'true'
+  SENTRY_DSN: ''
+  SERVICE_BASE64_64_CAMPFIRE:
+    generate: hex64
+  SERVICE_URL_CAMPFIRE_80: https://${APP_DOMAIN}
+  SKIP_TELEMETRY: 'true'
+  SSL_DOMAIN: 'false'
+  TAG: main
+  VAPID_PRIVATE_KEY: ''
+  VAPID_PUBLIC_KEY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: once-campfire-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TAG
+  hint: 'по умолчанию: main'
+  label: tag
+  options: null
+  required: false
+  type: text
+- env: VAPID_PUBLIC_KEY
+  hint: null
+  label: vapid public key
+  options: null
+  required: false
+  type: password
+- env: VAPID_PRIVATE_KEY
+  hint: null
+  label: vapid private key
+  options: null
+  required: false
+  type: password
+- env: DISABLE_SSL
+  hint: 'по умолчанию: true'
+  label: disable ssl
+  options: null
+  required: false
+  type: text
+- env: SSL_DOMAIN
+  hint: 'по умолчанию: false'
+  label: ssl domain
+  options: null
+  required: false
+  type: text
+- env: SKIP_TELEMETRY
+  hint: 'по умолчанию: true'
+  label: skip telemetry
+  options: null
+  required: false
+  type: text
+- env: SENTRY_DSN
+  hint: null
+  label: sentry dsn
+  options: null
+  required: false
+  type: text
+tags:
+- campfire
+- chat
+- communication
+- rails
+- once
+- basecamp
+- 37signals
+title: Once Campfire
+type: app
+upstream:
+  categories:
+  - messaging
+  source: https://github.com/basecamp/once-campfire
+  tags:
+  - campfire
+  - chat
+  - communication
+  - rails
+  - once
+  - basecamp
+  - 37signals
+  template: once-campfire.yaml
+website: https://github.com/basecamp/once-campfire

@@ -1,0 +1,15 @@
+# glance: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  glance:
+    image: glanceapp/glance:v0.8.5
+    networks:
+      appnet:
+        aliases:
+        - glance_glance_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/:/app/config/

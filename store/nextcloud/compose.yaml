@@ -1,0 +1,65 @@
+# nextcloud: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cron:
+    depends_on:
+    - db-nextcloud
+    - redis-nextcloud
+    entrypoint: /cron.sh
+    image: nextcloud:33-apache
+    networks:
+      appnet:
+        aliases:
+        - nextcloud_cron_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/nextcloud:/var/www/html
+  db-nextcloud:
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_PASSWORD: tipi
+      POSTGRES_USER: tipi
+    image: postgres:14.2
+    networks:
+      appnet:
+        aliases:
+        - nextcloud_db-nextcloud_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  nextcloud:
+    depends_on:
+    - db-nextcloud
+    - redis-nextcloud
+    environment:
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
+      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER}
+      NEXTCLOUD_TRUSTED_DOMAINS: ${APP_DOMAIN}
+      OVERWRITEPROTOCOL: ${APP_PROTOCOL:-http}
+      POSTGRES_DB: nextcloud
+      POSTGRES_HOST: db-nextcloud
+      POSTGRES_PASSWORD: tipi
+      POSTGRES_USER: tipi
+      REDIS_HOST: redis-nextcloud
+      TRUSTED_PROXIES: 172.16.0.0/12
+    image: nextcloud:33-apache
+    networks:
+      appnet:
+        aliases:
+        - nextcloud_nextcloud_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/nextcloud:/var/www/html
+  redis-nextcloud:
+    image: redis:6.2.6
+    networks:
+      appnet:
+        aliases:
+        - nextcloud_redis-nextcloud_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

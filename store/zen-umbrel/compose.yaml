@@ -1,0 +1,17 @@
+# zen-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    image: ghcr.io/sheshbabu/zen/zen:1.5.0@sha256:370d7ae0d8b4d06593b44ffa1cfde5d15c7f80abe4bbe8d94e86d8d29e250270
+    networks:
+      appnet:
+        aliases:
+        - zen_app_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/data
+    - ${APP_DATA_DIR}/data/images:/images

@@ -1,0 +1,137 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/calibre-web-automated-book-downloader-coolify
+description: An intuitive web interface for searching and requesting book downloads, designed to work seamlessly with Calibre-Web-Automated.
+endpoint:
+  port: 8083
+  service: calibre-web-automated
+env:
+  BOOK_LANGUAGE: en
+  CWA_DB_PATH: /cwa-config/app.db
+  FLASK_PORT: '8084'
+  GID: '100'
+  LOG_LEVEL: info
+  NETWORK_SHARE_MODE: 'false'
+  PGID: '1000'
+  PUID: '1000'
+  SERVICE_URL_CWA_8083: https://${APP_DOMAIN}
+  SERVICE_URL_DOWNLOADER_8084: https://${APP_DOMAIN}
+  UID: '1000'
+  USE_BOOK_TITLE: 'true'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: calibre-web-automated-book-downloader-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PUID
+  hint: 'по умолчанию: 1000'
+  label: puid
+  options: null
+  required: false
+  type: text
+- env: PGID
+  hint: 'по умолчанию: 1000'
+  label: pgid
+  options: null
+  required: false
+  type: text
+- env: NETWORK_SHARE_MODE
+  hint: 'по умолчанию: false'
+  label: network share mode
+  options: null
+  required: false
+  type: text
+- env: FLASK_PORT
+  hint: 'по умолчанию: 8084'
+  label: flask port
+  options: null
+  required: false
+  type: text
+- env: LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: BOOK_LANGUAGE
+  hint: 'по умолчанию: en'
+  label: book language
+  options: null
+  required: false
+  type: text
+- env: USE_BOOK_TITLE
+  hint: 'по умолчанию: true'
+  label: use book title
+  options: null
+  required: false
+  type: text
+- env: UID
+  hint: 'по умолчанию: 1000'
+  label: uid
+  options: null
+  required: false
+  type: text
+- env: GID
+  hint: 'по умолчанию: 100'
+  label: gid
+  options: null
+  required: false
+  type: text
+- env: CWA_DB_PATH
+  hint: 'по умолчанию: /cwa-config/app.db'
+  label: cwa db path
+  options: null
+  required: false
+  type: text
+tags:
+- calibre
+- calibre-web
+- ebook
+- library
+- epub
+- ereader
+- kindle
+- book
+- reader
+- download
+- downloader
+title: Calibre Web Automated Book Downloader
+type: app
+upstream:
+  categories:
+  - media
+  source: https://github.com/calibrain/calibre-web-automated-book-downloader
+  tags:
+  - calibre
+  - calibre-web
+  - ebook
+  - library
+  - epub
+  - ereader
+  - kindle
+  - book
+  - reader
+  - download
+  - downloader
+  template: calibre-web-automated-book-downloader.yaml
+website: https://github.com/calibrain/calibre-web-automated-book-downloader

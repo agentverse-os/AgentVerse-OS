@@ -1,0 +1,51 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/paperless-coolify
+description: Paperless-ngx is a community-supported open-source document management system that transforms your physical documents into a searchable online archive so you can keep, well, less paper.
+endpoint:
+  port: 8000
+  service: paperless
+env:
+  SERVICE_PASSWORD_PAPERLESS:
+    generate: password
+  SERVICE_REALBASE64_64_PAPERLESS:
+    generate: hex64
+  SERVICE_URL_PAPERLESS: https://${APP_DOMAIN}
+  SERVICE_URL_PAPERLESS_8000: https://${APP_DOMAIN}
+  SERVICE_USER_PAPERLESS:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_PAPERLESS
+  path: null
+  user: SERVICE_USER_PAPERLESS
+name: paperless-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Paperless
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.paperless-ngx.com/configuration/
+  tags: []
+  template: paperless.yaml
+website: https://docs.paperless-ngx.com/configuration/

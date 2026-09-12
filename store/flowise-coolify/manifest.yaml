@@ -1,0 +1,97 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/flowise-coolify
+description: Flowise is an open source low-code tool for developers to build customized LLM orchestration flows & AI agents.
+endpoint:
+  port: 3001
+  service: flowise
+env:
+  DEBUG: 'false'
+  DISABLE_FLOWISE_TELEMETRY: 'true'
+  PORT: '3001'
+  SERVICE_PASSWORD_FLOWISE:
+    generate: password
+  SERVICE_URL_FLOWISE_3001: https://${APP_DOMAIN}
+  SERVICE_USER_FLOWISE:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_FLOWISE
+  path: null
+  user: SERVICE_USER_FLOWISE
+name: flowise-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DEBUG
+  hint: 'по умолчанию: false'
+  label: debug
+  options: null
+  required: false
+  type: text
+- env: DISABLE_FLOWISE_TELEMETRY
+  hint: 'по умолчанию: true'
+  label: disable flowise telemetry
+  options: null
+  required: false
+  type: text
+- env: PORT
+  hint: 'по умолчанию: 3001'
+  label: port
+  options: null
+  required: false
+  type: text
+tags:
+- lowcode
+- nocode
+- ai
+- llm
+- openai
+- anthropic
+- machine-learning
+- rag
+- agents
+- chatbot
+- api
+- team
+- bot
+- flows
+title: Flowise
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://docs.flowiseai.com/
+  tags:
+  - lowcode
+  - nocode
+  - ai
+  - llm
+  - openai
+  - anthropic
+  - machine-learning
+  - rag
+  - agents
+  - chatbot
+  - api
+  - team
+  - bot
+  - flows
+  template: flowise.yaml
+website: https://docs.flowiseai.com/

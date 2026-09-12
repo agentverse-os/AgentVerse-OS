@@ -1,0 +1,251 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/minecraft-coolify
+description: Minecraft Server that will automatically download selected version at startup.
+endpoint:
+  port: 25565
+  service: mc
+env:
+  MINECRAFT_ALLOW_NETHER: 'true'
+  MINECRAFT_ANNOUNCE_PLAYER_ACHIEVEMENTS: 'true'
+  MINECRAFT_DIFFICULTY: normal
+  MINECRAFT_ENABLE_AUTOPAUSE: 'false'
+  MINECRAFT_ENABLE_COMMAND_BLOCK: 'false'
+  MINECRAFT_FORCE_GAMEMODE: 'false'
+  MINECRAFT_GAME_MODE: survival
+  MINECRAFT_GENERATE_STRUCTURES: 'true'
+  MINECRAFT_GUI: 'false'
+  MINECRAFT_HARDCORE: 'false'
+  MINECRAFT_INIT_MEMORY: 256M
+  MINECRAFT_MAX_BUILD_HEIGHT: '256'
+  MINECRAFT_MAX_MEMORY: 1G
+  MINECRAFT_MAX_PLAYERS: '10'
+  MINECRAFT_MAX_TICK_TIME: '60000'
+  MINECRAFT_MAX_WORLD_SIZE: '10000'
+  MINECRAFT_MOTD: Minecraft Server powered by §aCoolify§r
+  MINECRAFT_ONLINE_MODE: 'true'
+  MINECRAFT_PLAYER_IDLE_TIMEOUT: '0'
+  MINECRAFT_PVP: 'true'
+  MINECRAFT_SERVER_NAME: Minecraft Server
+  MINECRAFT_SNOOPER_ENABLED: 'false'
+  MINECRAFT_SPAWN_ANIMALS: 'true'
+  MINECRAFT_SPAWN_MONSTERS: 'true'
+  MINECRAFT_SPAWN_NPCS: 'true'
+  MINECRAFT_TYPE: VANILLA
+  MINECRAFT_VERSION: latest
+  MINECRAFT_VIEW_DISTANCE: '10'
+  PORT: ''
+  SERVICE_PASSWORD_RCON:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_RCON
+  path: null
+  user: null
+name: minecraft-coolify
+notes:
+- 'порт ${PORT}:25565 (mc) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PORT
+  hint: null
+  label: port
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_VERSION
+  hint: 'по умолчанию: latest'
+  label: minecraft version
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_TYPE
+  hint: 'по умолчанию: VANILLA'
+  label: minecraft type
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_SERVER_NAME
+  hint: 'по умолчанию: Minecraft Server'
+  label: minecraft server name
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_MOTD
+  hint: 'по умолчанию: Minecraft Server powered by §aCoolify§r'
+  label: minecraft motd
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_DIFFICULTY
+  hint: 'по умолчанию: normal'
+  label: minecraft difficulty
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_MAX_PLAYERS
+  hint: 'по умолчанию: 10'
+  label: minecraft max players
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_MAX_WORLD_SIZE
+  hint: 'по умолчанию: 10000'
+  label: minecraft max world size
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_VIEW_DISTANCE
+  hint: 'по умолчанию: 10'
+  label: minecraft view distance
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_MAX_BUILD_HEIGHT
+  hint: 'по умолчанию: 256'
+  label: minecraft max build height
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_MAX_TICK_TIME
+  hint: 'по умолчанию: 60000'
+  label: minecraft max tick time
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_ALLOW_NETHER
+  hint: 'по умолчанию: true'
+  label: minecraft allow nether
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_ANNOUNCE_PLAYER_ACHIEVEMENTS
+  hint: 'по умолчанию: true'
+  label: minecraft announce player achievements
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_GENERATE_STRUCTURES
+  hint: 'по умолчанию: true'
+  label: minecraft generate structures
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_PVP
+  hint: 'по умолчанию: true'
+  label: minecraft pvp
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_GAME_MODE
+  hint: 'по умолчанию: survival'
+  label: minecraft game mode
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_FORCE_GAMEMODE
+  hint: 'по умолчанию: false'
+  label: minecraft force gamemode
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_HARDCORE
+  hint: 'по умолчанию: false'
+  label: minecraft hardcore
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_ENABLE_COMMAND_BLOCK
+  hint: 'по умолчанию: false'
+  label: minecraft enable command block
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_SPAWN_ANIMALS
+  hint: 'по умолчанию: true'
+  label: minecraft spawn animals
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_SPAWN_MONSTERS
+  hint: 'по умолчанию: true'
+  label: minecraft spawn monsters
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_SPAWN_NPCS
+  hint: 'по умолчанию: true'
+  label: minecraft spawn npcs
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_SNOOPER_ENABLED
+  hint: 'по умолчанию: false'
+  label: minecraft snooper enabled
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_ONLINE_MODE
+  hint: 'по умолчанию: true'
+  label: minecraft online mode
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_PLAYER_IDLE_TIMEOUT
+  hint: 'по умолчанию: 0'
+  label: minecraft player idle timeout
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_INIT_MEMORY
+  hint: 'по умолчанию: 256M'
+  label: minecraft init memory
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_MAX_MEMORY
+  hint: 'по умолчанию: 1G'
+  label: minecraft max memory
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_GUI
+  hint: 'по умолчанию: false'
+  label: minecraft gui
+  options: null
+  required: false
+  type: text
+- env: MINECRAFT_ENABLE_AUTOPAUSE
+  hint: 'по умолчанию: false'
+  label: minecraft enable autopause
+  options: null
+  required: false
+  type: text
+tags:
+- minecraft
+title: Minecraft
+type: app
+upstream:
+  categories:
+  - games
+  source: https://github.com/itzg/docker-minecraft-server
+  tags:
+  - minecraft
+  template: minecraft.yaml
+website: https://github.com/itzg/docker-minecraft-server

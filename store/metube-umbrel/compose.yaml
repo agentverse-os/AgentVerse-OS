@@ -1,0 +1,17 @@
+# metube-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  metube:
+    environment:
+    - DELETE_FILE_ON_TRASHCAN=true
+    image: ghcr.io/alexta69/metube:2026.08.28@sha256:397778fccf13d83adf9325fe813b260617a082d1772aff6d678c5b9256dd01fb
+    networks:
+      appnet:
+        aliases:
+        - metube_metube_1
+    restart: on-failure
+    volumes:
+    - ${UMBREL_ROOT}/data/storage/downloads/metube:/downloads

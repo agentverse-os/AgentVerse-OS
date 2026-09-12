@@ -1,0 +1,94 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sftpgo-coolify
+description: SFTPGo is an event-driven SFTP, FTP/S, HTTP/S and WebDAV server.
+endpoint:
+  port: 8080
+  service: sftpgo
+env:
+  LOG_LEVEL: info
+  PORT_SFTPGO: '2222'
+  POSTGRES_DATABASE: sftpgo-db
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_FQDN_SFTPGO_8080: ${APP_DOMAIN}
+  SERVICE_PASSWORD_64_POSTGRES:
+    generate: hex64
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: sftpgo-coolify
+notes:
+- 'порт 2222:2222 (sftpgo) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DATABASE
+  hint: 'по умолчанию: sftpgo-db'
+  label: postgres database
+  options: null
+  required: false
+  type: text
+- env: PORT_SFTPGO
+  hint: 'по умолчанию: 2222'
+  label: port sftpgo
+  options: null
+  required: false
+  type: text
+- env: LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- sftpgo
+- sftp
+- ftp
+- file
+- webdav
+title: Sftpgo
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://docs.sftpgo.com/2.7/
+  tags:
+  - sftpgo
+  - sftp
+  - ftp
+  - file
+  - webdav
+  template: sftpgo.yaml
+website: https://docs.sftpgo.com/2.7/

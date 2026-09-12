@@ -1,0 +1,21 @@
+# qbittorrent: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  qbittorrent:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+      WEBUI_PORT: ${APP_PORT}
+    image: lscr.io/linuxserver/qbittorrent:5.2.3
+    networks:
+      appnet:
+        aliases:
+        - qbittorrent_qbittorrent_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${ROOT_FOLDER_HOST}/media/torrents:/media/torrents

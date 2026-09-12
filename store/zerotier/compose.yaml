@@ -1,0 +1,18 @@
+# zerotier: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  zerotier:
+    cap_add:
+    - NET_ADMIN
+    - SYS_ADMIN
+    command: ${NETWORK_ID}
+    devices:
+    - /dev/net/tun
+    healthcheck:
+      test: 'true'
+    image: zerotier/zerotier:1.14.2
+    network_mode: host
+    restart: unless-stopped

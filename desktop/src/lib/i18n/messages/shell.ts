@@ -1,0 +1,71 @@
+// Оболочка Desktop: окна (Windows.svelte), мобильная оболочка (MobileShell.svelte), меню запуска (StartMenu.svelte),
+// панель задач (Taskbar.svelte), иконки рабочего стола (DesktopIcons.svelte). Заголовки системных окон — sys.* в common.ts,
+// «Закрыть все окна»/«Перезагрузить оболочку» в меню запуска — ctx.* оттуда же (тот же текст и действие, что в контекстном меню).
+import { defineMessages } from '../define';
+export default defineMessages({
+  en: {
+    // окно: заголовок, кнопки управления, поповер данных для входа
+    'shell.barAria': 'window title bar', 'shell.mbarAria': 'title bar', 'shell.winHome': 'Home', 'shell.controlsAria': 'window controls', 'shell.resize': 'resize',
+    'shell.loginDetails': 'Login details', 'shell.loginDetailsAria': 'login details', 'shell.openInBrowser': 'Open in browser', 'shell.openNewTab': 'Open in a new tab',
+    'shell.minimize': 'Minimize', 'shell.restore': 'Restore', 'shell.maximize': 'Maximize',
+    // мобильная оболочка: статус-бар, домашний экран, недавние, нижняя навигация
+    'shell.theme': 'theme', 'shell.healthLow': 'core health', 'shell.searchApps': 'Search apps and projects', 'shell.recents': 'recents',
+    'shell.openApps': 'Open apps', 'shell.closeAll': 'Close all', 'shell.nothingOpen': 'nothing open',
+    'shell.navAria': 'navigation', 'shell.navBack': 'back', 'shell.navHome': 'home',
+    // меню запуска
+    'shell.startMenuAria': 'start menu', 'shell.searchPlaceholder': 'Search apps and projects…', 'shell.wsStatus': 'workspace {status}', 'shell.noProjects': 'no projects',
+    'shell.installedApps': 'Installed apps', 'shell.nothingInstalled': 'nothing installed', 'shell.nothingFound': 'nothing found', 'shell.inStore': 'In Store',
+    'shell.installEllipsis': 'install…', 'shell.addWidget': '+ Widget', 'shell.caCert': 'CA certificate',
+    // панель задач и трей
+    'shell.taskbarAria': 'taskbar', 'shell.startMenu': 'Start menu', 'shell.health': 'Core health', 'shell.coreOk': 'core ok',
+    'shell.failures.one': '{n} failure', 'shell.failures.few': '{n} failures', 'shell.failures.many': '{n} failures', 'shell.failures.other': '{n} failures',
+    'shell.sysUpdate': 'System update available', 'shell.appUpdates': 'App updates: {n}', 'shell.toggleTheme': 'Toggle theme',
+    // иконки рабочего стола
+    'shell.desktopAria': 'desktop', 'shell.sysIconTitle': '{title} — part of AgentVerse OS', 'shell.projectIconTitle': 'project {name}: workspace {status}', 'shell.storeApps': 'Apps from Store',
+  },
+  ru: {
+    'shell.barAria': 'заголовок окна', 'shell.mbarAria': 'заголовок', 'shell.winHome': 'Домой', 'shell.controlsAria': 'управление окном', 'shell.resize': 'изменить размер',
+    'shell.loginDetails': 'Данные для входа', 'shell.loginDetailsAria': 'данные для входа', 'shell.openInBrowser': 'Открыть в браузере', 'shell.openNewTab': 'Открыть в новой вкладке',
+    'shell.minimize': 'Свернуть', 'shell.restore': 'Восстановить', 'shell.maximize': 'На весь экран',
+    'shell.theme': 'тема', 'shell.healthLow': 'здоровье ядра', 'shell.searchApps': 'Поиск приложений и проектов', 'shell.recents': 'недавние',
+    'shell.openApps': 'Открытые приложения', 'shell.closeAll': 'Закрыть все', 'shell.nothingOpen': 'ничего не открыто',
+    'shell.navAria': 'навигация', 'shell.navBack': 'назад', 'shell.navHome': 'домой',
+    'shell.startMenuAria': 'меню запуска', 'shell.searchPlaceholder': 'Поиск приложений и проектов…', 'shell.wsStatus': 'workspace {status}', 'shell.noProjects': 'нет проектов',
+    'shell.installedApps': 'Установленные приложения', 'shell.nothingInstalled': 'ничего не установлено', 'shell.nothingFound': 'ничего не найдено', 'shell.inStore': 'В Store',
+    'shell.installEllipsis': 'установить…', 'shell.addWidget': '+ Виджет', 'shell.caCert': 'сертификат CA',
+    'shell.taskbarAria': 'панель задач', 'shell.startMenu': 'Меню запуска', 'shell.health': 'Здоровье ядра', 'shell.coreOk': 'ядро ok',
+    'shell.failures.one': '{n} сбой', 'shell.failures.few': '{n} сбоя', 'shell.failures.many': '{n} сбоев', 'shell.failures.other': '{n} сбоев',
+    'shell.sysUpdate': 'Доступно обновление системы', 'shell.appUpdates': 'Обновления приложений: {n}', 'shell.toggleTheme': 'Переключить тему',
+    'shell.desktopAria': 'рабочий стол', 'shell.sysIconTitle': '{title} — часть AgentVerse OS', 'shell.projectIconTitle': 'проект {name}: workspace {status}', 'shell.storeApps': 'Приложения из Store',
+  },
+  uk: {
+    'shell.barAria': 'заголовок вікна', 'shell.mbarAria': 'заголовок', 'shell.winHome': 'Додому', 'shell.controlsAria': 'керування вікном', 'shell.resize': 'змінити розмір',
+    'shell.loginDetails': 'Дані для входу', 'shell.loginDetailsAria': 'дані для входу', 'shell.openInBrowser': 'Відкрити в браузері', 'shell.openNewTab': 'Відкрити в новій вкладці',
+    'shell.minimize': 'Згорнути', 'shell.restore': 'Відновити', 'shell.maximize': 'На весь екран',
+    'shell.theme': 'тема', 'shell.healthLow': 'здоров’я ядра', 'shell.searchApps': 'Пошук застосунків і проєктів', 'shell.recents': 'недавні',
+    'shell.openApps': 'Відкриті застосунки', 'shell.closeAll': 'Закрити всі', 'shell.nothingOpen': 'нічого не відкрито',
+    'shell.navAria': 'навігація', 'shell.navBack': 'назад', 'shell.navHome': 'додому',
+    'shell.startMenuAria': 'меню запуску', 'shell.searchPlaceholder': 'Пошук застосунків і проєктів…', 'shell.wsStatus': 'workspace {status}', 'shell.noProjects': 'немає проєктів',
+    'shell.installedApps': 'Встановлені застосунки', 'shell.nothingInstalled': 'нічого не встановлено', 'shell.nothingFound': 'нічого не знайдено', 'shell.inStore': 'У Store',
+    'shell.installEllipsis': 'встановити…', 'shell.addWidget': '+ Віджет', 'shell.caCert': 'сертифікат CA',
+    'shell.taskbarAria': 'панель завдань', 'shell.startMenu': 'Меню запуску', 'shell.health': 'Здоров’я ядра', 'shell.coreOk': 'ядро ok',
+    'shell.failures.one': '{n} збій', 'shell.failures.few': '{n} збої', 'shell.failures.many': '{n} збоїв', 'shell.failures.other': '{n} збоїв',
+    'shell.sysUpdate': 'Доступне оновлення системи', 'shell.appUpdates': 'Оновлення застосунків: {n}', 'shell.toggleTheme': 'Перемкнути тему',
+    'shell.desktopAria': 'робочий стіл', 'shell.sysIconTitle': '{title} — частина AgentVerse OS', 'shell.projectIconTitle': 'проєкт {name}: workspace {status}', 'shell.storeApps': 'Застосунки зі Store',
+  },
+  es: {
+    'shell.barAria': 'barra de título de la ventana', 'shell.mbarAria': 'barra de título', 'shell.winHome': 'Inicio', 'shell.controlsAria': 'controles de la ventana', 'shell.resize': 'cambiar tamaño',
+    'shell.loginDetails': 'Datos de acceso', 'shell.loginDetailsAria': 'datos de acceso', 'shell.openInBrowser': 'Abrir en el navegador', 'shell.openNewTab': 'Abrir en una pestaña nueva',
+    'shell.minimize': 'Minimizar', 'shell.restore': 'Restaurar', 'shell.maximize': 'Maximizar',
+    'shell.theme': 'tema', 'shell.healthLow': 'estado del núcleo', 'shell.searchApps': 'Buscar aplicaciones y proyectos', 'shell.recents': 'recientes',
+    'shell.openApps': 'Aplicaciones abiertas', 'shell.closeAll': 'Cerrar todo', 'shell.nothingOpen': 'no hay nada abierto',
+    'shell.navAria': 'navegación', 'shell.navBack': 'atrás', 'shell.navHome': 'inicio',
+    'shell.startMenuAria': 'menú de inicio', 'shell.searchPlaceholder': 'Buscar aplicaciones y proyectos…', 'shell.wsStatus': 'espacio de trabajo {status}', 'shell.noProjects': 'no hay proyectos',
+    'shell.installedApps': 'Aplicaciones instaladas', 'shell.nothingInstalled': 'no hay nada instalado', 'shell.nothingFound': 'no se encontró nada', 'shell.inStore': 'En Store',
+    'shell.installEllipsis': 'instalar…', 'shell.addWidget': '+ Widget', 'shell.caCert': 'certificado CA',
+    'shell.taskbarAria': 'barra de tareas', 'shell.startMenu': 'Menú de inicio', 'shell.health': 'Estado del núcleo', 'shell.coreOk': 'núcleo ok',
+    'shell.failures.one': '{n} fallo', 'shell.failures.few': '{n} fallos', 'shell.failures.many': '{n} fallos', 'shell.failures.other': '{n} fallos',
+    'shell.sysUpdate': 'Actualización del sistema disponible', 'shell.appUpdates': 'Actualizaciones de aplicaciones: {n}', 'shell.toggleTheme': 'Cambiar tema',
+    'shell.desktopAria': 'escritorio', 'shell.sysIconTitle': '{title} — parte de AgentVerse OS', 'shell.projectIconTitle': 'proyecto {name}: espacio de trabajo {status}', 'shell.storeApps': 'Aplicaciones de Store',
+  },
+});

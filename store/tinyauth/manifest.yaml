@@ -1,0 +1,102 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tinyauth
+description: The tiniest authentication and authorization server you have ever seen.
+endpoint:
+  port: 3000
+  service: tinyauth
+env:
+  TINYAUTH_APP_TITLE: ''
+  TINYAUTH_APP_URL: ''
+  TINYAUTH_GITHUB_CLIENT_ID: ''
+  TINYAUTH_GITHUB_CLIENT_SECRET:
+    generate: password
+  TINYAUTH_GOOGLE_CLIENT_ID: ''
+  TINYAUTH_GOOGLE_CLIENT_SECRET:
+    generate: password
+  TINYAUTH_OAUTH_WHITELIST: ''
+  TINYAUTH_USERS: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: tinyauth
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TINYAUTH_APP_URL
+  hint: The URL Tinyauth will use to redirect you to the login screen and back, this needs to match with the local domain or the expose domain, e.g. 'https://tinyauth.example.com'.
+  label: App URL
+  options: null
+  required: true
+  type: text
+- env: TINYAUTH_USERS
+  hint: A comma separated list of users in the format username:hash (bcrypt hash), make sure to use double dollar signs ($$) in the bcrypt hash to escape them.
+  label: Users
+  options: null
+  required: true
+  type: text
+- env: TINYAUTH_GITHUB_CLIENT_ID
+  hint: Fill this with your GitHub client ID if you want to enable GitHub login.
+  label: GitHub Client ID
+  options: null
+  required: false
+  type: text
+- env: TINYAUTH_GITHUB_CLIENT_SECRET
+  hint: Fill this with your GitHub client secret if you want to enable GitHub login.
+  label: GitHub Client Secret
+  options: null
+  required: false
+  type: password
+- env: TINYAUTH_GOOGLE_CLIENT_ID
+  hint: Fill this with your Google client ID if you want to enable Google login.
+  label: Google Client ID
+  options: null
+  required: false
+  type: text
+- env: TINYAUTH_GOOGLE_CLIENT_SECRET
+  hint: Fill this with your Google client secret if you want to enable Google login.
+  label: Google Client Secret
+  options: null
+  required: false
+  type: password
+- env: TINYAUTH_OAUTH_WHITELIST
+  hint: A comma separated list of emails that are allowed to use the OAuth login, leave empty to allow all emails.
+  label: OAuth Whitelist
+  options: null
+  required: false
+  type: text
+- env: TINYAUTH_APP_TITLE
+  hint: Set a custom title for the login screen, e.g. 'My Homelab'.
+  label: Title
+  options: null
+  required: false
+  type: text
+tags: []
+title: Tinyauth
+type: app
+upstream:
+  author: steveiliop56
+  categories:
+  - security
+  source: https://github.com/tinyauthapp/tinyauth
+  tipi_version: 27
+  version: v5.1.3
+website: https://github.com/tinyauthapp/tinyauth

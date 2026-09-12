@@ -1,0 +1,87 @@
+# listmonk-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  listmonk:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_LISTMONK_9000=${SERVICE_URL_LISTMONK_9000}
+    - LISTMONK_app__address=0.0.0.0:9000
+    - LISTMONK_db__host=postgres
+    - LISTMONK_db__database=listmonk
+    - LISTMONK_db__user=$SERVICE_USER_POSTGRES
+    - LISTMONK_db__password=$SERVICE_PASSWORD_POSTGRES
+    - LISTMONK_db__port=5432
+    - TZ=Etc/UTC
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:9000
+      timeout: 20s
+    image: listmonk/listmonk:v6.0.0
+    networks:
+      appnet:
+        aliases:
+        - listmonk-coolify_listmonk_1
+    restart: unless-stopped
+    volumes:
+    - listmonk-data:/listmonk/uploads
+  listmonk-initial-database-setup:
+    command: ./listmonk --install --yes --idempotent
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - LISTMONK_db__host=postgres
+    - LISTMONK_db__database=listmonk
+    - LISTMONK_db__user=$SERVICE_USER_POSTGRES
+    - LISTMONK_db__password=$SERVICE_PASSWORD_POSTGRES
+    - LISTMONK_db__port=5432
+    image: listmonk/listmonk:v6.0.0
+    networks:
+      appnet:
+        aliases:
+        - listmonk-coolify_listmonk-initial-database-setup_1
+    restart: no
+  postgres:
+    environment:
+    - POSTGRES_DB=listmonk
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:18-alpine
+    networks:
+      appnet:
+        aliases:
+        - listmonk-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - postgres-data:/var/lib/postgresql
+volumes:
+  listmonk-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/listmonk-data
+      o: bind
+      type: none
+  postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgres-data
+      o: bind
+      type: none

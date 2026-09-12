@@ -1,0 +1,87 @@
+# redmine-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_64_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DATABASE:-redmine-db}
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 5s
+    image: postgres:17-alpine
+    networks:
+      appnet:
+        aliases:
+        - redmine-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+  redmine:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_FQDN_REDMINE_3000=${SERVICE_FQDN_REDMINE_3000}
+    - SECRET_KEY_BASE=${SERVICE_PASSWORD_64_REDMINE}
+    - REDMINE_DB_POSTGRES=postgresql
+    - REDMINE_DB_PORT=5432
+    - REDMINE_DB_USERNAME=${SERVICE_USER_POSTGRES}
+    - REDMINE_DB_PASSWORD=${SERVICE_PASSWORD_64_POSTGRES}
+    - REDMINE_DB_DATABASE=${POSTGRES_DATABASE:-redmine-db}
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:3000/
+      timeout: 5s
+    image: redmine:6-alpine
+    networks:
+      appnet:
+        aliases:
+        - redmine-coolify_redmine_1
+    restart: unless-stopped
+    volumes:
+    - redmine-config:/usr/src/redmine/config
+    - redmine-files:/usr/src/redmine/files
+    - redmine-themes:/usr/src/redmine/themes
+    - redmine-plugins:/usr/src/redmine/plugins
+volumes:
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none
+  redmine-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redmine-config
+      o: bind
+      type: none
+  redmine-files:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redmine-files
+      o: bind
+      type: none
+  redmine-plugins:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redmine-plugins
+      o: bind
+      type: none
+  redmine-themes:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redmine-themes
+      o: bind
+      type: none

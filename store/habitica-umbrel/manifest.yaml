@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/habitica-umbrel
+description: An RPG for your life
+endpoint:
+  port: 3000
+  service: server
+env:
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/6.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/habitica/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: habitica-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Habitica
+type: app
+upstream:
+  author: HabitRPG, Inc.
+  categories:
+  - files
+  release_notes: |-
+    This update fixes scheduled sales and promotions so they no longer automatically repeat from year to year.
+
+    Full release notes can be found at https://github.com/HabitRPG/habitica/releases/tag/v5.50.1
+  source: https://github.com/HabitRPG/habitica
+  version: 5.50.1
+  website: https://habitica.com/
+website: https://habitica.com/

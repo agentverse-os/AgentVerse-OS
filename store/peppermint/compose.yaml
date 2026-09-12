@@ -1,0 +1,33 @@
+# peppermint: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  peppermint:
+    depends_on:
+    - peppermint-db
+    environment:
+      API_URL: ${APP_PROTOCOL:-http}://${PEPPERMINT_DOMAIN_API}
+      DB_HOST: peppermint-db
+      DB_PASSWORD: ${PEPPERMINT_DB_PASSWORD}
+      DB_USERNAME: tipi
+    image: pepperlabs/peppermint:latest
+    networks:
+      appnet:
+        aliases:
+        - peppermint_peppermint_1
+    restart: unless-stopped
+  peppermint-db:
+    environment:
+      POSTGRES_DB: peppermint
+      POSTGRES_PASSWORD: ${PEPPERMINT_DB_PASSWORD}
+      POSTGRES_USER: tipi
+    image: postgres:latest
+    networks:
+      appnet:
+        aliases:
+        - peppermint_peppermint-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data

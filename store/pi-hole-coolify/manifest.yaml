@@ -1,0 +1,60 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pi-hole-coolify
+description: Network-wide Ad Blocking
+endpoint:
+  port: 80
+  service: pihole
+env:
+  SERVICE_PASSWORD_PIHOLE:
+    generate: password
+  SERVICE_URL_PIHOLE_80: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pi-hole-coolify
+notes:
+- 'порт 53:53/tcp (pihole) не публикуется: доступ только через edge/gate'
+- 'порт 53:53/udp (pihole) не публикуется: доступ только через edge/gate'
+- 'порт 67:67/udp (pihole) не публикуется: доступ только через edge/gate'
+- 'порт 123:123/udp (pihole) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- ad-block
+- dns
+- sinkhole
+- ntp
+- dhcp
+title: Pi Hole
+type: app
+upstream:
+  categories:
+  - proxy
+  source: https://pi-hole.net/
+  tags:
+  - ad-block
+  - dns
+  - sinkhole
+  - ntp
+  - dhcp
+  template: pi-hole.yaml
+website: https://pi-hole.net/

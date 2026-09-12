@@ -1,0 +1,68 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/stalwart-coolify
+description: Modern mail server platform
+endpoint:
+  port: 8080
+  service: stalwart
+env:
+  SERVICE_URL_STALWART_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: stalwart-coolify
+notes:
+- 'порт 25:25 (stalwart) не публикуется: доступ только через edge/gate'
+- 'порт 465:465 (stalwart) не публикуется: доступ только через edge/gate'
+- 'порт 587:587 (stalwart) не публикуется: доступ только через edge/gate'
+- 'порт 993:993 (stalwart) не публикуется: доступ только через edge/gate'
+- 'порт 995:995 (stalwart) не публикуется: доступ только через edge/gate'
+- 'порт 143:143 (stalwart) не публикуется: доступ только через edge/gate'
+- 'порт 110:110 (stalwart) не публикуется: доступ только через edge/gate'
+- 'порт 4190:4190 (stalwart) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- mail
+- smtp
+- imap
+- pop3
+- jmap
+- email
+- sieve
+- messaging
+title: Stalwart
+type: app
+upstream:
+  categories:
+  - Mail
+  source: https://stalw.art/docs/
+  tags:
+  - mail
+  - smtp
+  - imap
+  - pop3
+  - jmap
+  - email
+  - sieve
+  - messaging
+  template: stalwart.yaml
+website: https://stalw.art/docs/

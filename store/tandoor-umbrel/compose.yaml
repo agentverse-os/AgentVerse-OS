@@ -1,0 +1,56 @@
+# tandoor-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      POSTGRES_DB: tandoor
+      POSTGRES_PASSWORD: ${APP_TANDOOR_DB_PASSWORD}
+      POSTGRES_USER: tandoor
+    healthcheck:
+      interval: 10s
+      retries: 10
+      start_period: 45s
+      test:
+      - CMD-SHELL
+      - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      timeout: 5s
+    image: postgres:16-alpine@sha256:16bc17c64a573ef34162af9298258d1aec548232985b33ed7b1eac33ba35c229
+    networks:
+      appnet:
+        aliases:
+        - tandoor_db_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  web:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ALLOWED_HOSTS: '*'
+      CSRF_TRUSTED_ORIGINS: http://${DEVICE_DOMAIN_NAME}:${APP_TANDOOR_PORT},http://${DEVICE_HOSTNAME}:${APP_TANDOOR_PORT},http://*.ts.net:${APP_TANDOOR_PORT},https://*.ts.net:${APP_TANDOOR_PORT},${APP_TANDOOR_LOCAL_URLS}
+      DB_ENGINE: django.db.backends.postgresql
+      ENABLE_SIGNUP: '0'
+      POSTGRES_DB: tandoor
+      POSTGRES_HOST: tandoor_db_1
+      POSTGRES_PASSWORD: ${APP_TANDOOR_DB_PASSWORD}
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: tandoor
+      SECRET_KEY: ${APP_TANDOOR_SECRET_KEY}
+      TANDOOR_PORT: 80
+      TZ: Etc/UTC
+    image: vabene1111/recipes:2.6.13@sha256:f6c58afdea7a721d079ebd6ee5483f2c9da77dd1e709e16d60a82c218e80a451
+    networks:
+      appnet:
+        aliases:
+        - tandoor_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/mediafiles:/opt/recipes/mediafiles
+    - ${APP_DATA_DIR}/data/staticfiles:/opt/recipes/staticfiles

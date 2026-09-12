@@ -1,0 +1,47 @@
+# gotosocial: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  gotosocial:
+    depends_on:
+    - gotosocial-db
+    environment:
+      GTS_ACCOUNTS_REGISTRATION_OPEN: ${GTS_ACCOUNTS_REGISTRATION_OPEN}
+      GTS_DB_ADDRESS: gotosocial-db
+      GTS_DB_DATABASE: gotosocial-db
+      GTS_DB_PASSWORD: ${GTS_DB_PASSWORD}
+      GTS_DB_PORT: '5432'
+      GTS_DB_TYPE: postgres
+      GTS_DB_USER: tipi
+      GTS_HOST: ${APP_DOMAIN}
+      GTS_LETSENCRYPT_ENABLED: 'false'
+      GTS_SMTP_FROM: ${GTS_SMTP_FROM}
+      GTS_SMTP_HOST: ${GTS_SMTP_HOST}
+      GTS_SMTP_PASSWORD: ${GTS_SMTP_PASSWORD}
+      GTS_SMTP_PORT: ${GTS_SMTP_PORT}
+      GTS_SMTP_USERNAME: ${GTS_SMTP_USERNAME}
+    image: superseriousbusiness/gotosocial:0.22.1
+    networks:
+      appnet:
+        aliases:
+        - gotosocial_gotosocial_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/gotosocial:/gotosocial/storage
+  gotosocial-db:
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_DB: gotosocial-db
+      POSTGRES_PASSWORD: ${GTS_DB_PASSWORD}
+      POSTGRES_USER: tipi
+    image: postgres:14
+    networks:
+      appnet:
+        aliases:
+        - gotosocial_gotosocial-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data

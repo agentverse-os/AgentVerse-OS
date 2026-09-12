@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wizarr-umbrel
+description: An advanced invitation and management system for media servers
+endpoint:
+  port: 5690
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/wizarr/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wizarr-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Wizarr
+type: app
+upstream:
+  author: Wizarr
+  categories:
+  - media
+  release_notes: |-
+    This update adds an activity tracking toggle and makes invitation deletion safer with confirmation. It also fixes media-server invitation edge cases, including library scans and Plex/Overseerr/Jellyseerr connection handling.
+
+    Full release notes can be found at https://github.com/wizarrrr/wizarr/releases/tag/v2026.9.0
+  source: https://github.com/wizarrrr/wizarr
+  version: 2026.9.0
+  website: https://github.com/wizarrrr/wizarr
+website: https://github.com/wizarrrr/wizarr

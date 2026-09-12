@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/docmost-umbrel
+description: An collaborative wiki and documentation software
+endpoint:
+  port: 3000
+  service: web
+env:
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/6.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/docmost/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: docmost-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Docmost
+type: app
+upstream:
+  author: Docmost, Inc.
+  categories:
+  - files
+  release_notes: |-
+    This release adds a workspace-level default edit preference, a /time editor slash command, translation-aware slash command search, and fixes for templates, PDF table headers, and draw.io copied blocks.
+
+    This release includes security fixes. Upgrade is recommended.
+
+    Full release notes can be found at https://github.com/docmost/docmost/releases/tag/v0.95.0
+  source: https://github.com/docmost/docmost
+  version: 0.95.0
+  website: https://docmost.com/
+website: https://docmost.com/

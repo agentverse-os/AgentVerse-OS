@@ -1,0 +1,57 @@
+# ctfd: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  ctfd:
+    depends_on:
+    - ctfd-db
+    environment:
+      ACCESS_LOG: '-'
+      DATABASE_URL: mysql+pymysql://tipi:${CTFD_MYSQL_DB_PASSWORD}@ctfd-db/ctfd
+      ERROR_LOG: '-'
+      LOG_FOLDER: /var/log/CTFd
+      REDIS_URL: redis://ctfd-redis:6379
+      REVERSE_PROXY: 'true'
+      SECRET_KEY: ${CTFD_SECRET_KEY}
+      UPLOAD_FOLDER: /var/uploads
+      WORKERS: '1'
+    image: ctfd/ctfd:3.8.7
+    networks:
+      appnet:
+        aliases:
+        - ctfd_ctfd_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/uploads:/var/log/CTFd
+    - ${APP_DATA_DIR}/data/uploads:/var/uploads
+  ctfd-db:
+    command:
+    - mysqld
+    - --character-set-server=utf8mb4
+    - --collation-server=utf8mb4_unicode_ci
+    - --wait_timeout=28800
+    - --log-warnings=0
+    environment:
+      MYSQL_DATABASE: ctfd
+      MYSQL_PASSWORD: ${CTFD_MYSQL_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${CTFD_MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: tipi
+    image: mariadb:10.4.12
+    networks:
+      appnet:
+        aliases:
+        - ctfd_ctfd-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql
+  ctfd-redis:
+    image: redis:4
+    networks:
+      appnet:
+        aliases:
+        - ctfd_ctfd-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

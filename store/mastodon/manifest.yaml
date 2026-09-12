@@ -1,0 +1,143 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mastodon
+description: Your self-hosted, globally interconnected microblogging community
+endpoint:
+  port: 443
+  service: mastodon
+env:
+  MASTODON_ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY:
+    generate: token
+  MASTODON_ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT:
+    generate: token
+  MASTODON_ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY:
+    generate: token
+  MASTODON_LOCAL_DOMAIN: ''
+  MASTODON_OTP_SECRET:
+    generate: hex64
+  MASTODON_POSTGRES_PASSWORD:
+    generate: token
+  MASTODON_REDIS_PASSWORD:
+    generate: token
+  MASTODON_SECRET_KEY_BASE:
+    generate: hex64
+  MASTODON_SMTP_FROM_ADDRESS: ''
+  MASTODON_SMTP_LOGIN: ''
+  MASTODON_SMTP_PASSWORD:
+    generate: password
+  MASTODON_SMTP_PORT: ''
+  MASTODON_SMTP_SERVER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mastodon
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MASTODON_REDIS_PASSWORD
+  hint: null
+  label: Mastodon Redis Password
+  options: null
+  required: false
+  type: random
+- env: MASTODON_POSTGRES_PASSWORD
+  hint: null
+  label: Mastodon Postgres Password
+  options: null
+  required: false
+  type: random
+- env: MASTODON_SECRET_KEY_BASE
+  hint: null
+  label: Mastodon Secret Key Base
+  options: null
+  required: false
+  type: random
+- env: MASTODON_OTP_SECRET
+  hint: null
+  label: Mastodon OTP Secret
+  options: null
+  required: false
+  type: random
+- env: MASTODON_SMTP_SERVER
+  hint: Your SMTP Server
+  label: SMTP Host
+  options: null
+  required: true
+  type: text
+- env: MASTODON_SMTP_PORT
+  hint: Your SMTP Port
+  label: SMTP Port
+  options: null
+  required: true
+  type: text
+- env: MASTODON_SMTP_LOGIN
+  hint: Your SMTP Server User/Username
+  label: SMTP Username
+  options: null
+  required: true
+  type: text
+- env: MASTODON_SMTP_PASSWORD
+  hint: Your SMTP Server Password
+  label: SMTP Password
+  options: null
+  required: true
+  type: password
+- env: MASTODON_SMTP_FROM_ADDRESS
+  hint: Make sure the Format is like noreply@example.com
+  label: SMTP From Address
+  options: null
+  required: true
+  type: text
+- env: MASTODON_LOCAL_DOMAIN
+  hint: 'Could be the same of the Exposed Domain. Ex: social.example.com'
+  label: Mastodon Local domain
+  options: null
+  required: true
+  type: text
+- env: MASTODON_ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY
+  hint: null
+  label: Mastodon Active Record Encryption Deterministic Key
+  options: null
+  required: false
+  type: random
+- env: MASTODON_ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT
+  hint: null
+  label: Mastodon Active Record Encryption Key
+  options: null
+  required: false
+  type: random
+- env: MASTODON_ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY
+  hint: null
+  label: Mastodon Active Record Encryption Primary Key
+  options: null
+  required: false
+  type: random
+tags: []
+title: Mastodon
+type: app
+upstream:
+  author: Mastodon
+  categories:
+  - social
+  source: https://github.com/mastodon/mastodon
+  tipi_version: 74
+  version: 4.7.0
+website: https://github.com/mastodon/mastodon

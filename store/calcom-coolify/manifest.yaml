@@ -1,0 +1,133 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/calcom-coolify
+description: Scheduling infrastructure for everyone.
+endpoint:
+  port: 3000
+  service: calcom
+env:
+  DATABASE_HOST: postgresql
+  EMAIL_FROM: ''
+  EMAIL_FROM_NAME: ''
+  EMAIL_SERVER_HOST: ''
+  EMAIL_SERVER_PASSWORD: ''
+  EMAIL_SERVER_PORT: ''
+  EMAIL_SERVER_USER: ''
+  NEXT_PUBLIC_WEBAPP_URL: ''
+  POSTGRES_DB: calendso
+  POSTGRES_USER: ''
+  SERVICE_BASE64_CALCOMKEY:
+    generate: hex64
+  SERVICE_BASE64_CALCOMSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_CALCOM: https://${APP_DOMAIN}
+  SERVICE_URL_CALCOM_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: calcom-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NEXT_PUBLIC_WEBAPP_URL
+  hint: null
+  label: next public webapp url
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: calendso'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: DATABASE_HOST
+  hint: 'по умолчанию: postgresql'
+  label: database host
+  options: null
+  required: false
+  type: text
+- env: EMAIL_FROM
+  hint: null
+  label: email from
+  options: null
+  required: false
+  type: text
+- env: EMAIL_FROM_NAME
+  hint: null
+  label: email from name
+  options: null
+  required: false
+  type: text
+- env: EMAIL_SERVER_HOST
+  hint: null
+  label: email server host
+  options: null
+  required: false
+  type: text
+- env: EMAIL_SERVER_PORT
+  hint: null
+  label: email server port
+  options: null
+  required: false
+  type: text
+- env: EMAIL_SERVER_USER
+  hint: null
+  label: email server user
+  options: null
+  required: false
+  type: text
+- env: EMAIL_SERVER_PASSWORD
+  hint: null
+  label: email server password
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- calcom
+- calendso
+- scheduling
+- open
+- source
+title: Calcom
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://cal.com/docs/developing/introduction
+  tags:
+  - calcom
+  - calendso
+  - scheduling
+  - open
+  - source
+  template: calcom.yaml
+website: https://cal.com/docs/developing/introduction

@@ -1,0 +1,18 @@
+# picoclaw-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+      PICOCLAW_HOME: /data
+    image: docker.io/sipeed/picoclaw:v0.3.1-launcher@sha256:ed830c6cb71f59785062433159c45c2363465cd02046f8dd2822bd24a39510c2
+    networks:
+      appnet:
+        aliases:
+        - picoclaw_server_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

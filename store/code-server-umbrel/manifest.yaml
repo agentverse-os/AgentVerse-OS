@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/code-server-umbrel
+description: Run VS Code on your Umbrel
+endpoint:
+  port: 8080
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/code-server/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/code-server/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/code-server/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/code-server/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: code-server-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: code-server
+type: app
+upstream:
+  author: Coder
+  categories:
+  - developer
+  release_notes: |-
+    This release updates the underlying VS Code editor to 1.135.0.
+
+    Full release notes are available at https://github.com/coder/code-server/releases/tag/v4.135.0
+  source: https://github.com/cdr/code-server
+  version: 4.135.0
+  website: https://coder.com
+website: https://coder.com

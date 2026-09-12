@@ -1,0 +1,26 @@
+# drizzle-gateway-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  drizzle-gateway:
+    environment:
+    - SERVICE_URL_DRIZZLE_4983=${SERVICE_URL_DRIZZLE_4983}
+    - STORE_PATH=/app
+    - MASTERPASS=$SERVICE_PASSWORD_DRIZZLE
+    image: ghcr.io/drizzle-team/gateway:latest
+    networks:
+      appnet:
+        aliases:
+        - drizzle-gateway-coolify_drizzle-gateway_1
+    restart: unless-stopped
+    volumes:
+    - drizzle-gateway-data:/app
+volumes:
+  drizzle-gateway-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/drizzle-gateway-data
+      o: bind
+      type: none

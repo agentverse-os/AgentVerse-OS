@@ -1,0 +1,75 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kitchenowl-umbrel
+description: A grocery list and recipe manager
+endpoint:
+  port: 8080
+  service: web
+env:
+  APP_PASSWORD:
+    generate: password
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/6.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: kitchenowl-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags: []
+title: KitchenOwl
+type: app
+upstream:
+  author: Tom Bursch
+  categories:
+  - files
+  release_notes: |-
+    This release includes security improvements and fixes:
+      - Fixed a recipe privacy issue where logged-in users could access private recipes
+      - Fixed recipe authorization when adding recipes to the meal planner
+      - Disabled background sync on iOS
+      - Updated translations
+
+
+    Full release notes: https://github.com/TomBursch/kitchenowl/releases/tag/v0.7.10
+  source: https://github.com/TomBursch/kitchenowl
+  version: 0.7.10
+  website: https://kitchenowl.org/
+website: https://kitchenowl.org/

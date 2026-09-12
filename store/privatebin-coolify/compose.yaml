@@ -1,0 +1,31 @@
+# privatebin-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  privatebin:
+    environment:
+    - SERVICE_URL_PRIVATEBIN_8080=${SERVICE_URL_PRIVATEBIN_8080}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:8080/
+      timeout: 20s
+    image: privatebin/nginx-fpm-alpine
+    networks:
+      appnet:
+        aliases:
+        - privatebin-coolify_privatebin_1
+    restart: unless-stopped
+    volumes:
+    - privatebin_data:/srv/data
+volumes:
+  privatebin_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/privatebin_data
+      o: bind
+      type: none

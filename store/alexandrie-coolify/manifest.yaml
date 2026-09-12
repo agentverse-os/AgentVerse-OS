@@ -1,0 +1,155 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/alexandrie-coolify
+description: A powerful Markdown workspace designed for speed, clarity, and creativity.
+endpoint:
+  port: 8200
+  service: rustfs
+env:
+  ALLOW_UNSECURE: 'false'
+  CDN_ENDPOINT: /alexandrie/
+  CONFIG_DISABLE_LANDING: 'false'
+  CONFIG_DISABLE_SIGNUP: 'false'
+  MINIO_BUCKET: alexandrie
+  MINIO_SECURE: 'false'
+  MYSQL_DATABASE: alexandrie-db
+  RUSTFS_CONSOLE_ENABLE: 'false'
+  RUSTFS_LOG_LEVEL: info
+  SERVICE_PASSWORD_JWT:
+    generate: password
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_PASSWORD_RUSTFS:
+    generate: password
+  SERVICE_URL_BACKEND: https://${APP_DOMAIN}
+  SERVICE_URL_BACKEND_8201: https://${APP_DOMAIN}
+  SERVICE_URL_FRONTEND: https://${APP_DOMAIN}
+  SERVICE_URL_FRONTEND_8200: https://${APP_DOMAIN}
+  SERVICE_URL_RUSTFS: https://${APP_DOMAIN}
+  SERVICE_URL_RUSTFS_9000: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+  SERVICE_USER_RUSTFS:
+    generate: password
+  SMTP_HOST: ''
+  SMTP_MAIL: ''
+  SMTP_PASSWORD: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: alexandrie-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CONFIG_DISABLE_SIGNUP
+  hint: 'по умолчанию: false'
+  label: config disable signup
+  options: null
+  required: false
+  type: text
+- env: CONFIG_DISABLE_LANDING
+  hint: 'по умолчанию: false'
+  label: config disable landing
+  options: null
+  required: false
+  type: text
+- env: CDN_ENDPOINT
+  hint: 'по умолчанию: /alexandrie/'
+  label: cdn endpoint
+  options: null
+  required: false
+  type: text
+- env: ALLOW_UNSECURE
+  hint: 'по умолчанию: false'
+  label: allow unsecure
+  options: null
+  required: false
+  type: text
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: alexandrie-db'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: MINIO_SECURE
+  hint: 'по умолчанию: false'
+  label: minio secure
+  options: null
+  required: false
+  type: text
+- env: MINIO_BUCKET
+  hint: 'по умолчанию: alexandrie'
+  label: minio bucket
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST
+  hint: null
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_MAIL
+  hint: null
+  label: smtp mail
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: null
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: RUSTFS_CONSOLE_ENABLE
+  hint: 'по умолчанию: false'
+  label: rustfs console enable
+  options: null
+  required: false
+  type: text
+- env: RUSTFS_LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: rustfs log level
+  options: null
+  required: false
+  type: text
+tags:
+- note-taking
+- markdown
+- knowledge-management
+- personal-wiki
+- productivity
+title: Alexandrie
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/Smaug6739/Alexandrie/tree/main/docs
+  tags:
+  - note-taking
+  - markdown
+  - knowledge-management
+  - personal-wiki
+  - productivity
+  template: alexandrie.yaml
+website: https://github.com/Smaug6739/Alexandrie/tree/main/docs

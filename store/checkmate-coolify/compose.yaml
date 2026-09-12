@@ -1,0 +1,61 @@
+# checkmate-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  checkmate:
+    depends_on:
+    - mongodb
+    environment:
+    - SERVICE_URL_CHECKMATE_52345=${SERVICE_URL_CHECKMATE_52345}
+    - UPTIME_APP_API_BASE_URL=${SERVICE_URL_CHECKMATE}/api/v1
+    - UPTIME_APP_CLIENT_HOST=${SERVICE_URL_CHECKMATE}
+    - DB_CONNECTION_STRING=mongodb://mongodb:27017/uptime_db
+    - CLIENT_HOST=${SERVICE_URL_CHECKMATE}
+    - JWT_SECRET=${SERVICE_PASSWORD_64_JWT}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - node
+      - -e
+      - 'require(''http'').get(''http://127.0.0.1:52345/health'', r => process.exit(r.statusCode === 200 ? 0 : 1)).on(''error'', () => process.exit(1))'
+      timeout: 5s
+    image: ghcr.io/bluewave-labs/checkmate-backend-mono-multiarch:v3.2.0
+    networks:
+      appnet:
+        aliases:
+        - checkmate-coolify_checkmate_1
+    restart: unless-stopped
+  mongodb:
+    command:
+    - mongod
+    - --quiet
+    - --bind_ip_all
+    healthcheck:
+      interval: 5s
+      start_period: 10s
+      test:
+      - CMD
+      - mongosh
+      - --eval
+      - db.adminCommand('ping')
+      - --quiet
+      timeout: 30s
+    image: ghcr.io/bluewave-labs/checkmate-mongo:v3.2.0
+    networks:
+      appnet:
+        aliases:
+        - checkmate-coolify_mongodb_1
+    restart: unless-stopped
+    volumes:
+    - checkmate-mongo:/data/db
+volumes:
+  checkmate-mongo:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/checkmate-mongo
+      o: bind
+      type: none

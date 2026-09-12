@@ -1,0 +1,88 @@
+# bookstack-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  bookstack:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_BOOKSTACK_80=${SERVICE_URL_BOOKSTACK_80}
+    - APP_URL=${SERVICE_URL_BOOKSTACK}
+    - APP_KEY=${SERVICE_PASSWORD_APPKEY}
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-Europe/Berlin}
+    - DB_HOST=mariadb
+    - DB_PORT=3306
+    - DB_USERNAME=${SERVICE_USER_MYSQL}
+    - DB_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - DB_DATABASE=${MYSQL_DATABASE:-bookstackapp}
+    - QUEUE_CONNECTION=${QUEUE_CONNECTION}
+    - GITHUB_APP_ID=${GITHUB_APP_ID}
+    - GITHUB_APP_SECRET=${GITHUB_APP_SECRET}
+    - MAIL_DRIVER=${MAIL_DRIVER:-smtp}
+    - MAIL_HOST=${MAIL_HOST}
+    - MAIL_PORT=${MAIL_PORT:-587}
+    - MAIL_ENCRYPTION=${MAIL_ENCRYPTION:-tls}
+    - MAIL_USERNAME=${MAIL_USERNAME}
+    - MAIL_PASSWORD=${MAIL_PASSWORD}
+    - MAIL_FROM=${MAIL_FROM}
+    - MAIL_FROM_NAME=${MAIL_FROM_NAME:-BookStack}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - curl -f http://127.0.0.1:80/
+      timeout: 20s
+    image: lscr.io/linuxserver/bookstack:latest
+    networks:
+      appnet:
+        aliases:
+        - bookstack-coolify_bookstack_1
+    restart: unless-stopped
+    volumes:
+    - bookstack-data:/config
+  mariadb:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-Europe/Berlin}
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-bookstack}
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - 127.0.0.1
+      timeout: 20s
+    image: lscr.io/linuxserver/mariadb:latest
+    networks:
+      appnet:
+        aliases:
+        - bookstack-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - bookstack-mariadb-data:/config
+volumes:
+  bookstack-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/bookstack-data
+      o: bind
+      type: none
+  bookstack-mariadb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/bookstack-mariadb-data
+      o: bind
+      type: none

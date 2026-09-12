@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/metube-umbrel
+description: Download videos from YouTube
+endpoint:
+  port: 8081
+  service: metube
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/metube/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/metube/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/metube/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/metube/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: metube-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: MeTube
+type: app
+upstream:
+  author: Alex Shnitman
+  categories:
+  - media
+  release_notes: |-
+    Key highlights:
+      - Adds collapsible Downloading, Completed, and Subscriptions sections
+      - Shows post-download processing progress in the web UI
+      - Improves HOST=* support for IPv6 and dual-stack bindings
+
+
+    Full release notes can be found at https://github.com/alexta69/metube/releases/tag/2026.08.28
+  source: https://github.com/alexta69/metube
+  version: 2026.08.28
+  website: https://github.com/alexta69/metube
+website: https://github.com/alexta69/metube

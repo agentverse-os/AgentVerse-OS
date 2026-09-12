@@ -1,0 +1,135 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/labelstudio-coolify
+description: Label Studio is a multi-type data labeling and annotation tool with standardized output format
+endpoint:
+  port: 8080
+  service: labelstudio
+env:
+  DATA_UPLOAD_MAX_NUMBER_FILES: '10000'
+  DJANGO_DB: default
+  EXPERIMENTAL_FEATURES: 'false'
+  LABEL_STUDIO_DISABLE_SIGNUP_WITHOUT_LINK: 'true'
+  LABEL_STUDIO_USERNAME: admin@example.com
+  POSTGRES_DB: labelstudio
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_LABELSTUDIO:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_LABELSTUDIO: https://${APP_DOMAIN}
+  SERVICE_URL_LABELSTUDIO_8080: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SSRF_PROTECTION_ENABLED: 'true'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_LABELSTUDIO
+  path: null
+  user: LABEL_STUDIO_USERNAME
+name: labelstudio-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: EXPERIMENTAL_FEATURES
+  hint: 'по умолчанию: false'
+  label: experimental features
+  options: null
+  required: false
+  type: text
+- env: DJANGO_DB
+  hint: 'по умолчанию: default'
+  label: django db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: labelstudio'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: SSRF_PROTECTION_ENABLED
+  hint: 'по умолчанию: true'
+  label: ssrf protection enabled
+  options: null
+  required: false
+  type: text
+- env: LABEL_STUDIO_DISABLE_SIGNUP_WITHOUT_LINK
+  hint: 'по умолчанию: true'
+  label: label studio disable signup without link
+  options: null
+  required: false
+  type: text
+- env: DATA_UPLOAD_MAX_NUMBER_FILES
+  hint: 'по умолчанию: 10000'
+  label: data upload max number files
+  options: null
+  required: false
+  type: text
+- env: LABEL_STUDIO_USERNAME
+  hint: 'по умолчанию: admin@example.com'
+  label: label studio username
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- workflow
+- orchestration
+- data-pipeline
+- python
+- labelstudio
+- ai
+- elasticsearch
+- datasets
+- data
+- machine-learning
+- data-science
+- nlp
+- images
+- vision
+title: Labelstudio
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://labelstud.io/guide/
+  tags:
+  - workflow
+  - orchestration
+  - data-pipeline
+  - python
+  - labelstudio
+  - ai
+  - elasticsearch
+  - datasets
+  - data
+  - machine-learning
+  - data-science
+  - nlp
+  - images
+  - vision
+  template: labelstudio.yaml
+website: https://labelstud.io/guide/

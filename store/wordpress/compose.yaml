@@ -1,0 +1,36 @@
+# wordpress: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  wordpress:
+    depends_on:
+    - wordpress-db
+    environment:
+      WORDPRESS_DB_HOST: wordpress-db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_USER: tipi
+    image: wordpress:7.1.0
+    networks:
+      appnet:
+        aliases:
+        - wordpress_wordpress_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/wordpress:/var/www/html
+  wordpress-db:
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: tipi
+    image: mariadb:11.1.3
+    networks:
+      appnet:
+        aliases:
+        - wordpress_wordpress-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mariadb:/var/lib/mysql

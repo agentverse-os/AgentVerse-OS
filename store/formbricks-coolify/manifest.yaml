@@ -1,0 +1,382 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/formbricks-coolify
+description: Open Source Survey Platform
+endpoint:
+  port: 3000
+  service: formbricks
+env:
+  AIRTABLE_CLIENT_ID: ''
+  ASSET_PREFIX_URL: ''
+  AZUREAD_CLIENT_ID: ''
+  AZUREAD_CLIENT_SECRET: ''
+  AZUREAD_TENANT_ID: ''
+  DEFAULT_ORGANIZATION_ID: ''
+  DEFAULT_ORGANIZATION_ROLE: owner
+  EMAIL_AUTH_DISABLED: '0'
+  EMAIL_VERIFICATION_DISABLED: '1'
+  ENTERPRISE_LICENSE_KEY: ''
+  GITHUB_ID: ''
+  GITHUB_SECRET: ''
+  GOOGLE_CLIENT_ID: ''
+  GOOGLE_CLIENT_SECRET: ''
+  GOOGLE_SHEETS_CLIENT_ID: ''
+  GOOGLE_SHEETS_CLIENT_SECRET: ''
+  GOOGLE_SHEETS_REDIRECT_URL: ''
+  IMPRINT_URL: ''
+  INVITE_DISABLED: '0'
+  MAIL_FROM: test@example.com
+  NOTION_OAUTH_CLIENT_ID: ''
+  NOTION_OAUTH_CLIENT_SECRET: ''
+  OIDC_CLIENT_ID: ''
+  OIDC_CLIENT_SECRET: ''
+  OIDC_DISPLAY_NAME: ''
+  OIDC_ISSUER: ''
+  OIDC_SIGNING_ALGORITHM: ''
+  OPENTELEMETRY_LISTENER_URL: ''
+  PASSWORD_RESET_DISABLED: '1'
+  POSTGRESQL_DATABASE: formbricks
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  PRIVACY_URL: ''
+  RATE_LIMITING_DISABLED: '0'
+  SERVICE_BASE64_CRON:
+    generate: hex64
+  SERVICE_BASE64_ENCRYPTION:
+    generate: hex64
+  SERVICE_BASE64_NEXTAUTH:
+    generate: hex64
+  SERVICE_PASSWORD_MINIO:
+    generate: password
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_FORMBRICKS: https://${APP_DOMAIN}
+  SERVICE_URL_FORMBRICKS_3000: https://${APP_DOMAIN}
+  SERVICE_USER_MINIO:
+    generate: password
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+  SHORT_URL_BASE: ''
+  SLACK_CLIENT_ID: ''
+  SLACK_CLIENT_SECRET: ''
+  SMTP_HOST: test.example.com
+  SMTP_PASSWORD: test
+  SMTP_PORT: '587'
+  SMTP_REJECT_UNAUTHORIZED_TLS: '1'
+  SMTP_SECURE_ENABLED: '0'
+  SMTP_USER: test
+  TERMS_URL: ''
+  UNSPLASH_ACCESS_KEY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: formbricks-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: formbricks'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: ENTERPRISE_LICENSE_KEY
+  hint: null
+  label: enterprise license key
+  options: null
+  required: false
+  type: password
+- env: MAIL_FROM
+  hint: 'по умолчанию: test@example.com'
+  label: mail from
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST
+  hint: 'по умолчанию: test.example.com'
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: 'по умолчанию: 587'
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_USER
+  hint: 'по умолчанию: test'
+  label: smtp user
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: 'по умолчанию: test'
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: SMTP_SECURE_ENABLED
+  hint: 'по умолчанию: 0'
+  label: smtp secure enabled
+  options: null
+  required: false
+  type: text
+- env: SMTP_REJECT_UNAUTHORIZED_TLS
+  hint: 'по умолчанию: 1'
+  label: smtp reject unauthorized tls
+  options: null
+  required: false
+  type: text
+- env: SHORT_URL_BASE
+  hint: null
+  label: short url base
+  options: null
+  required: false
+  type: text
+- env: EMAIL_VERIFICATION_DISABLED
+  hint: 'по умолчанию: 1'
+  label: email verification disabled
+  options: null
+  required: false
+  type: text
+- env: PASSWORD_RESET_DISABLED
+  hint: 'по умолчанию: 1'
+  label: password reset disabled
+  options: null
+  required: false
+  type: password
+- env: EMAIL_AUTH_DISABLED
+  hint: 'по умолчанию: 0'
+  label: email auth disabled
+  options: null
+  required: false
+  type: text
+- env: INVITE_DISABLED
+  hint: 'по умолчанию: 0'
+  label: invite disabled
+  options: null
+  required: false
+  type: text
+- env: ASSET_PREFIX_URL
+  hint: null
+  label: asset prefix url
+  options: null
+  required: false
+  type: text
+- env: UNSPLASH_ACCESS_KEY
+  hint: null
+  label: unsplash access key
+  options: null
+  required: false
+  type: password
+- env: GITHUB_ID
+  hint: null
+  label: github id
+  options: null
+  required: false
+  type: text
+- env: GITHUB_SECRET
+  hint: null
+  label: github secret
+  options: null
+  required: false
+  type: password
+- env: GOOGLE_CLIENT_ID
+  hint: null
+  label: google client id
+  options: null
+  required: false
+  type: text
+- env: GOOGLE_CLIENT_SECRET
+  hint: null
+  label: google client secret
+  options: null
+  required: false
+  type: password
+- env: AZUREAD_CLIENT_ID
+  hint: null
+  label: azuread client id
+  options: null
+  required: false
+  type: text
+- env: AZUREAD_CLIENT_SECRET
+  hint: null
+  label: azuread client secret
+  options: null
+  required: false
+  type: password
+- env: AZUREAD_TENANT_ID
+  hint: null
+  label: azuread tenant id
+  options: null
+  required: false
+  type: text
+- env: OIDC_CLIENT_ID
+  hint: null
+  label: oidc client id
+  options: null
+  required: false
+  type: text
+- env: OIDC_CLIENT_SECRET
+  hint: null
+  label: oidc client secret
+  options: null
+  required: false
+  type: password
+- env: OIDC_ISSUER
+  hint: null
+  label: oidc issuer
+  options: null
+  required: false
+  type: text
+- env: OIDC_DISPLAY_NAME
+  hint: null
+  label: oidc display name
+  options: null
+  required: false
+  type: text
+- env: OIDC_SIGNING_ALGORITHM
+  hint: null
+  label: oidc signing algorithm
+  options: null
+  required: false
+  type: text
+- env: NOTION_OAUTH_CLIENT_ID
+  hint: null
+  label: notion oauth client id
+  options: null
+  required: false
+  type: text
+- env: NOTION_OAUTH_CLIENT_SECRET
+  hint: null
+  label: notion oauth client secret
+  options: null
+  required: false
+  type: password
+- env: GOOGLE_SHEETS_CLIENT_ID
+  hint: null
+  label: google sheets client id
+  options: null
+  required: false
+  type: text
+- env: GOOGLE_SHEETS_CLIENT_SECRET
+  hint: null
+  label: google sheets client secret
+  options: null
+  required: false
+  type: password
+- env: GOOGLE_SHEETS_REDIRECT_URL
+  hint: null
+  label: google sheets redirect url
+  options: null
+  required: false
+  type: text
+- env: AIRTABLE_CLIENT_ID
+  hint: null
+  label: airtable client id
+  options: null
+  required: false
+  type: text
+- env: SLACK_CLIENT_ID
+  hint: null
+  label: slack client id
+  options: null
+  required: false
+  type: text
+- env: SLACK_CLIENT_SECRET
+  hint: null
+  label: slack client secret
+  options: null
+  required: false
+  type: password
+- env: PRIVACY_URL
+  hint: null
+  label: privacy url
+  options: null
+  required: false
+  type: text
+- env: TERMS_URL
+  hint: null
+  label: terms url
+  options: null
+  required: false
+  type: text
+- env: IMPRINT_URL
+  hint: null
+  label: imprint url
+  options: null
+  required: false
+  type: text
+- env: RATE_LIMITING_DISABLED
+  hint: 'по умолчанию: 0'
+  label: rate limiting disabled
+  options: null
+  required: false
+  type: text
+- env: OPENTELEMETRY_LISTENER_URL
+  hint: null
+  label: opentelemetry listener url
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_ORGANIZATION_ID
+  hint: null
+  label: default organization id
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_ORGANIZATION_ROLE
+  hint: 'по умолчанию: owner'
+  label: default organization role
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- form
+- builder
+- forms
+- survey
+title: Formbricks
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://formbricks.com/docs/self-hosting/setup/docker
+  tags:
+  - form
+  - builder
+  - forms
+  - survey
+  template: formbricks.yaml
+website: https://formbricks.com/docs/self-hosting/setup/docker

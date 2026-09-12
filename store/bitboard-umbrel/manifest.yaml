@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bitboard-umbrel
+description: A customizable crypto price dashboard for Umbrel
+endpoint:
+  port: 3711
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bitboard/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitboard/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitboard/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bitboard/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bitboard-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: bitBoard
+type: app
+upstream:
+  author: egzola
+  categories:
+  - finance
+  release_notes: null
+  source: https://github.com/egzola/bitboard
+  version: 1.0.0
+  website: https://github.com/egzola/bitboard
+website: https://github.com/egzola/bitboard

@@ -1,0 +1,42 @@
+# nocodb-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NC_DB: pg://nocodb_postgres_1:5432?u=nocodb&p=itworkslocally&d=nocodb
+    image: nocodb/nocodb:2026.08.1@sha256:2aacc3c704d4f74b27e2a39ac838ac9019c0b008bbbfff673b541a3a75ee1579
+    networks:
+      appnet:
+        aliases:
+        - nocodb_app_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/usr/app/data
+  postgres:
+    environment:
+      PGDATA: /data/pgdata
+      POSTGRES_DB: nocodb
+      POSTGRES_PASSWORD: itworkslocally
+      POSTGRES_USER: nocodb
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      test: pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      timeout: 5s
+    image: postgres:18.3-alpine@sha256:52098013b4b64a746626437d38afc03cabff6cdeb4d3d92e2342aa95f0ce56ea
+    networks:
+      appnet:
+        aliases:
+        - nocodb_postgres_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/data

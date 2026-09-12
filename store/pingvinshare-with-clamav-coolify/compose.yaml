@@ -1,0 +1,50 @@
+# pingvinshare-with-clamav-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  clamav:
+    image: clamav/clamav
+    networks:
+      appnet:
+        aliases:
+        - pingvinshare-with-clamav-coolify_clamav_1
+    platform: linux/amd64
+    restart: unless-stopped
+  pingvinshare:
+    depends_on:
+      clamav:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_PINGVINSHARE_3000=${SERVICE_URL_PINGVINSHARE_3000}
+    - TRUST_PROXY=${TRUST_PROXY:-true}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1
+      timeout: 20s
+    image: ghcr.io/stonith404/pingvin-share
+    networks:
+      appnet:
+        aliases:
+        - pingvinshare-with-clamav-coolify_pingvinshare_1
+    restart: unless-stopped
+    volumes:
+    - pingvinshare_data:/opt/app/backend/data
+    - pingvinshare_images:/opt/app/frontend/public/img
+volumes:
+  pingvinshare_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pingvinshare_data
+      o: bind
+      type: none
+  pingvinshare_images:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pingvinshare_images
+      o: bind
+      type: none

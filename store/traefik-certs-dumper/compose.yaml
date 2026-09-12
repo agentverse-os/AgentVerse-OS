@@ -1,0 +1,23 @@
+# traefik-certs-dumper: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  traefik-certs-dumper:
+    environment:
+      ACME_FILE_PATH: /traefik/acme.json
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test: /usr/bin/healthcheck
+      timeout: 10s
+    image: humenius/traefik-certs-dumper:1.6.1-alpine
+    networks:
+      appnet:
+        aliases:
+        - traefik-certs-dumper_traefik-certs-dumper_1
+    restart: unless-stopped
+    volumes:
+    - ${ROOT_FOLDER_HOST}/traefik/shared/acme.json:/traefik/acme.json:ro
+    - ${APP_DATA_DIR}/data/certs:/output

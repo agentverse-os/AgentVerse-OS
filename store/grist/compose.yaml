@@ -1,0 +1,18 @@
+# grist: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  grist:
+    environment:
+      APP_HOME_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      GRIST_SANDBOX_FLAVOR: ${GRIST_SANDBOX_FLAVOR}
+    image: gristlabs/grist:1.7.17
+    networks:
+      appnet:
+        aliases:
+        - grist_grist_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/grist-data:/persist

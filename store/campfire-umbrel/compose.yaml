@@ -1,0 +1,53 @@
+# campfire-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  redis:
+    command: redis-server --save 60 1 --save 300 10 --save 900 100 --appendonly yes --loglevel warning
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    image: redis:7-alpine@sha256:ee64a64eaab618d88051c3ade8f6352d11531fcf79d9a4818b9b183d8c1d18ba
+    networks:
+      appnet:
+        aliases:
+        - campfire_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  server:
+    depends_on:
+    - redis
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    environment:
+      DISABLE_SSL: 'true'
+      RAILS_ENV: production
+      REDIS_URL: redis://campfire_redis_1:6379
+      SECRET_KEY_BASE: ${APP_SEED}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+    image: ghcr.io/basecamp/once-campfire:1.4.9@sha256:0c50e967c317e2863dbcd16e513f6b814db80d945c487ac047b432b24c29b74b
+    networks:
+      appnet:
+        aliases:
+        - campfire_server_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/rails/storage

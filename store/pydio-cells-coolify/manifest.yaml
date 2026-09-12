@@ -1,0 +1,60 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pydio-cells-coolify
+description: High-performance large file sharing, native no-code automation, and a collaboration-centric architecture that simplifies access control without compromising security or compliance.
+endpoint:
+  port: 8080
+  service: cells
+env:
+  MYSQL_DATABASE: cells
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_CELLS: https://${APP_DOMAIN}
+  SERVICE_URL_CELLS_8080: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pydio-cells-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: cells'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+tags:
+- storage
+title: Pydio Cells
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://docs.pydio.com/
+  tags:
+  - storage
+  template: pydio-cells.yml
+website: https://docs.pydio.com/

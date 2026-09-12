@@ -1,0 +1,73 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wger-umbrel
+description: A fitness tracker for workouts and nutrition
+endpoint:
+  port: 80
+  service: nginx
+env:
+  APP_SEED:
+    generate: hex64
+  APP_WGER_LOCAL_IPS: ${local_ips}
+  APP_WGER_LOCAL_URLS: ${ips_with_port}
+  APP_WGER_PORT: '8450'
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  DEVICE_HOSTNAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/6.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/wger/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wger-umbrel
+notes:
+- 'celery_beat: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'celery_worker: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'powersync_setup: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'web: env_file из каталога проигнорирован (значения — через настройки приложения)'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: wger
+type: app
+upstream:
+  author: wger Project
+  categories:
+  - files
+  release_notes: |-
+    ⚠️ Major update: wger 2.6 adds a new PowerSync service and JWT-based authentication. You may need to log in again after updating, and custom scripts that used the removed legacy token endpoints must switch to the new allauth/JWT flow or a user API key.
+
+    Key highlights in this release include:
+      - Backend support for offline mode in the mobile app, including PowerSync data synchronization
+      - Social login and two-factor authentication support
+      - Exercise image API responses now include small and medium thumbnails
+      - Ingredient API filtering now supports nutriscore ranges
+      - Username suggestions are shown when a requested username is already taken
+
+
+    Full release notes are available at https://github.com/wger-project/wger/releases/tag/2.6
+  source: https://github.com/wger-project/wger
+  version: '2.6'
+  website: https://wger.de/
+website: https://wger.de/

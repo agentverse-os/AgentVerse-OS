@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nostrudel-umbrel
+description: A sandbox for exploring nostr
+endpoint:
+  port: 80
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/nostrudel/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nostrudel/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nostrudel/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/nostrudel/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nostrudel-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: noStrudel
+type: app
+upstream:
+  author: hzrd149
+  categories:
+  - social
+  release_notes: |-
+    This update includes a larger noStrudel upgrade from 0.46.1 to 1.1.0.
+
+    Highlights include refreshed feeds and notification views, support for highlights in the timeline, contacts outbox feeds, relay favorites, username search improvements, Blossom servers, NIP-29 group chat improvements, and separate direct-reply/thread-reply notification views.
+
+    It also fixes several issues including app hangs from Capacitor modules, mobile navigation overlap, muted replies in threads, publishing to relays, user lookup behavior, and new tabs not using the last active account.
+  source: https://github.com/hzrd149/nostrudel
+  version: 1.1.0
+  website: https://github.com/hzrd149/nostrudel
+website: https://github.com/hzrd149/nostrudel

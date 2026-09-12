@@ -1,0 +1,54 @@
+# audiobookshelf-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  audiobookshelf:
+    environment:
+    - SERVICE_URL_AUDIOBOOKSHELF_80=${SERVICE_URL_AUDIOBOOKSHELF_80}
+    - TZ=${TIMEZONE:-America/Toronto}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 15s
+      test:
+      - CMD-SHELL
+      - wget --quiet --tries=1 --timeout=5 http://localhost:80/ping -O /dev/null || exit 1
+      timeout: 10s
+    image: ghcr.io/advplyr/audiobookshelf:2.34.0
+    networks:
+      appnet:
+        aliases:
+        - audiobookshelf-coolify_audiobookshelf_1
+    restart: unless-stopped
+    volumes:
+    - audiobookshelf-audiobooks:/audiobooks
+    - audiobookshelf-podcasts:/podcasts
+    - audiobookshelf-config:/config
+    - audiobookshelf-metadata:/metadata
+volumes:
+  audiobookshelf-audiobooks:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/audiobookshelf-audiobooks
+      o: bind
+      type: none
+  audiobookshelf-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/audiobookshelf-config
+      o: bind
+      type: none
+  audiobookshelf-metadata:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/audiobookshelf-metadata
+      o: bind
+      type: none
+  audiobookshelf-podcasts:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/audiobookshelf-podcasts
+      o: bind
+      type: none

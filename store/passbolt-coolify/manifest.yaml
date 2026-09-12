@@ -1,0 +1,65 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/passbolt-coolify
+description: Passbolt Community Edition (CE) API. The JSON API for the open source password manager for teams!
+endpoint:
+  port: 80
+  service: passbolt
+env:
+  MYSQL_DB: passbolt-db
+  SERVICE_PASSWORD_PASSBOLT:
+    generate: password
+  SERVICE_PASSWORD_ROOTMARIADB:
+    generate: password
+  SERVICE_URL_PASSBOLT: https://${APP_DOMAIN}
+  SERVICE_USER_PASSBOLT:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: passbolt-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DB
+  hint: 'по умолчанию: passbolt-db'
+  label: mysql db
+  options: null
+  required: false
+  type: text
+tags:
+- security
+- credentials
+- password-manager
+- open source
+title: Passbolt
+type: app
+upstream:
+  categories:
+  - auth
+  source: https://www.passbolt.com/ce/docker
+  tags:
+  - security
+  - credentials
+  - password-manager
+  - open source
+  template: passbolt.yaml
+website: https://www.passbolt.com/ce/docker

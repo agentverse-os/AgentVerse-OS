@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ee-gateway-umbrel
+description: Self-hosted Bluetooth gateway for open BLE networks
+endpoint:
+  port: 8080
+  service: ui
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/ee-gateway/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ee-gateway/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ee-gateway/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/ee-gateway/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ee-gateway-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: EE Gateway
+type: app
+upstream:
+  author: encryptedenergy.com
+  categories:
+  - networking
+  release_notes: 'Pick your gateway''s location on a map or use a GPS dongle''s fix with one tap. Quiet areas now show a standing-by state: the dashboard says the radio check is passing and explains that silence means no beacons have passed yet, not a broken install. The worker also reports its platform so fleet stats read one format. Worker 0.8.1, UI 0.6.5.'
+  source: https://github.com/Encrypted-Energy/gateway
+  version: 0.10.8
+  website: https://encryptedenergy.com
+website: https://encryptedenergy.com

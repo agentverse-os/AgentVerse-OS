@@ -1,0 +1,19 @@
+# firefox-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    image: linuxserver/firefox:139.0.4@sha256:01c090309f63bc619a1df80bf14fdc87cb6fd922d956da48a968a60ab5a0df6d
+    networks:
+      appnet:
+        aliases:
+        - firefox_server_1
+    restart: on-failure
+    shm_size: 1gb
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config

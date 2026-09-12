@@ -1,0 +1,75 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/movary
+description: 'Movary is a self-hosted web application to track and rate your watched movies. '
+endpoint:
+  port: 80
+  service: movary
+env:
+  MOVARY_JELLYFIN_IDENTIFIER:
+    generate: token
+  MOVARY_MYSQL_PASSWORD:
+    generate: token
+  MOVARY_PLEX_IDENTIFIER:
+    generate: token
+  MOVARY_TMDB_API_KEY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: movary
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MOVARY_MYSQL_PASSWORD
+  hint: null
+  label: MySQL Password
+  options: null
+  required: false
+  type: random
+- env: MOVARY_PLEX_IDENTIFIER
+  hint: null
+  label: Plex Identifier
+  options: null
+  required: false
+  type: random
+- env: MOVARY_JELLYFIN_IDENTIFIER
+  hint: null
+  label: Jellyfin Identifier
+  options: null
+  required: false
+  type: random
+- env: MOVARY_TMDB_API_KEY
+  hint: Get from https://www.themoviedb.org/settings/api
+  label: The MovieDB API Key
+  options: null
+  required: true
+  type: text
+tags: []
+title: Movary
+type: app
+upstream:
+  author: leepeuker
+  categories:
+  - media
+  source: https://github.com/leepeuker/movary
+  tipi_version: 67
+  version: 0.72.0
+website: https://github.com/leepeuker/movary

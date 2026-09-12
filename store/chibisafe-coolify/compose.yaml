@@ -1,0 +1,125 @@
+# chibisafe-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  caddy-inline-1:
+    content: |
+      # chibisafe/Caddyfile
+      # https://chibisafe.moe/guides/running-with-docker
+      :80 {
+        route {
+          file_server * {
+              root /app/uploads
+              pass_thru
+          }
+          @api path /api/*
+          reverse_proxy @api http://chibisafe-server:8000 {
+              header_up Host {http.reverse_proxy.upstream.hostport}
+              header_up X-Real-IP {http.request.header.X-Real-IP}
+          }
+          @docs path /docs*
+          reverse_proxy @docs http://chibisafe-server:8000 {
+              header_up Host {http.reverse_proxy.upstream.hostport}
+              header_up X-Real-IP {http.request.header.X-Real-IP}
+          }
+          reverse_proxy http://chibisafe:8001 {
+              header_up Host {http.reverse_proxy.upstream.hostport}
+              header_up X-Real-IP {http.request.header.X-Real-IP}
+          }
+        }
+      }
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  caddy:
+    configs:
+    - source: caddy-inline-1
+      target: /etc/caddy/Caddyfile
+    environment:
+    - SERVICE_URL_CHIBISAFE_80=${SERVICE_URL_CHIBISAFE_80}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - --quiet
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: caddy:2-alpine
+    networks:
+      appnet:
+        aliases:
+        - chibisafe-coolify_caddy_1
+    restart: unless-stopped
+    volumes:
+    - uploads:/app/uploads:ro
+  chibisafe:
+    environment:
+    - BASE_API_URL=http://chibisafe-server:8000
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - --quiet
+      - http://127.0.0.1:8001
+      timeout: 10s
+    image: chibisafe/chibisafe:v6.5.5
+    networks:
+      appnet:
+        aliases:
+        - chibisafe-coolify_chibisafe_1
+    restart: unless-stopped
+  chibisafe-server:
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - --quiet
+      - http://127.0.0.1:8000/api/health
+      timeout: 10s
+    image: chibisafe/chibisafe-server:v6.5.5
+    networks:
+      appnet:
+        aliases:
+        - chibisafe-coolify_chibisafe-server_1
+    restart: unless-stopped
+    volumes:
+    - chibisafe-database:/app/database:rw
+    - chibisafe-uploads:/app/uploads:rw
+    - chibisafe-logs:/app/logs:rw
+volumes:
+  chibisafe-database:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/chibisafe-database
+      o: bind
+      type: none
+  chibisafe-logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/chibisafe-logs
+      o: bind
+      type: none
+  chibisafe-uploads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/chibisafe-uploads
+      o: bind
+      type: none
+  uploads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/uploads
+      o: bind
+      type: none

@@ -1,0 +1,61 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/vikunja-umbrel
+description: The open-source, self-hostable to-do app
+endpoint:
+  port: 3456
+  service: web
+env:
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/vikunja/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/vikunja/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/vikunja/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/vikunja/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: vikunja-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Vikunja
+type: app
+upstream:
+  author: Vikunja
+  categories:
+  - files
+  release_notes: |-
+    🚨 This release includes eighteen security fixes. Upgrading is highly recommended.
+
+    Key highlights in this release:
+      - Import tasks and projects from Planka
+      - Preview image, audio, and video attachments directly in Vikunja
+      - Safer email changes that keep the old address active until the new one is confirmed
+      - Fixes and performance improvements for CalDAV, imports, notifications, task permissions, and project/task queries
+
+
+    Full release notes are available at https://vikunja.io/changelog/vikunja-2.6.0-was-released/
+  source: https://github.com/go-vikunja/vikunja
+  version: 2.6.0
+  website: https://vikunja.io/
+website: https://vikunja.io/

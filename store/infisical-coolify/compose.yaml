@@ -1,0 +1,92 @@
+# infisical-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  backend:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_BACKEND_8080=${SERVICE_URL_BACKEND_8080}
+    - SITE_URL=${SERVICE_URL_BACKEND_8080}
+    - NODE_ENV=${NODE_ENV:-production}
+    - ENCRYPTION_KEY=${SERVICE_PASSWORD_ENCRYPTIONKEY}
+    - AUTH_SECRET=${SERVICE_REALBASE64_64_AUTHSECRET}
+    - SMTP_HOST=${SMTP_HOST}
+    - SMTP_USERNAME=${SMTP_USERNAME}
+    - SMTP_PASSWORD=${SMTP_PASSWORD}
+    - SMTP_PORT=${SMTP_PORT}
+    - SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS}
+    - SMTP_FROM_NAME=${SMTP_FROM_NAME}
+    - INF_APP_CONNECTION_GITHUB_APP_CLIENT_ID=${INF_APP_CONNECTION_GITHUB_APP_CLIENT_ID}
+    - INF_APP_CONNECTION_GITHUB_APP_CLIENT_SECRET=${INF_APP_CONNECTION_GITHUB_APP_CLIENT_SECRET}
+    - INF_APP_CONNECTION_GITHUB_APP_SLUG=${INF_APP_CONNECTION_GITHUB_APP_SLUG}
+    - INF_APP_CONNECTION_GITHUB_APP_ID=${INF_APP_CONNECTION_GITHUB_APP_ID}
+    - INF_APP_CONNECTION_GITHUB_APP_PRIVATE_KEY=${INF_APP_CONNECTION_GITHUB_APP_PRIVATE_KEY}
+    - DB_CONNECTION_URI=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@db:5432/${POSTGRES_DB}
+    - REDIS_URL=redis://redis:6379
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/api/status || exit 1
+    image: infisical/infisical:v0.154.6
+    networks:
+      appnet:
+        aliases:
+        - infisical-coolify_backend_1
+    restart: unless-stopped
+  db:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-infisical}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -h localhost -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 10s
+    image: postgres:14-alpine
+    networks:
+      appnet:
+        aliases:
+        - infisical-coolify_db_1
+    restart: unless-stopped
+    volumes:
+    - pg_data:/var/lib/postgresql/data
+  redis:
+    environment:
+    - ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD:-yes}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - redis-cli -h localhost -p 6379 ping
+      timeout: 5s
+    image: redis:7
+    networks:
+      appnet:
+        aliases:
+        - infisical-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - redis-data:/data
+volumes:
+  pg_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pg_data
+      o: bind
+      type: none
+  redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis-data
+      o: bind
+      type: none

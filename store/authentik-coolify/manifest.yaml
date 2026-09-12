@@ -1,0 +1,162 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/authentik-coolify
+description: An open-source Identity Provider, focused on flexibility and versatility.
+endpoint:
+  port: 9000
+  service: authentik-server
+env:
+  AUTHENTIK_EMAIL__FROM: ''
+  AUTHENTIK_EMAIL__HOST: ''
+  AUTHENTIK_EMAIL__PASSWORD: ''
+  AUTHENTIK_EMAIL__PORT: ''
+  AUTHENTIK_EMAIL__TIMEOUT: ''
+  AUTHENTIK_EMAIL__USERNAME: ''
+  AUTHENTIK_EMAIL__USE_SSL: ''
+  AUTHENTIK_EMAIL__USE_TLS: ''
+  AUTHENTIK_ERROR_REPORTING__ENABLED: 'true'
+  AUTHENTIK_TAG: 2025.10.3
+  POSTGRES_DB: authentik
+  POSTGRES_HOST: postgresql
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_64_AUTHENTIKSERVER:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_AUTHENTIKSERVER_9000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: authentik-coolify
+notes:
+- 'authentik-worker: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: AUTHENTIK_TAG
+  hint: 'по умолчанию: 2025.10.3'
+  label: authentik tag
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_HOST
+  hint: 'по умолчанию: postgresql'
+  label: postgres host
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: authentik'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: AUTHENTIK_ERROR_REPORTING__ENABLED
+  hint: 'по умолчанию: true'
+  label: authentik error reporting  enabled
+  options: null
+  required: false
+  type: text
+- env: AUTHENTIK_EMAIL__HOST
+  hint: null
+  label: authentik email  host
+  options: null
+  required: false
+  type: text
+- env: AUTHENTIK_EMAIL__PORT
+  hint: null
+  label: authentik email  port
+  options: null
+  required: false
+  type: text
+- env: AUTHENTIK_EMAIL__USERNAME
+  hint: null
+  label: authentik email  username
+  options: null
+  required: false
+  type: text
+- env: AUTHENTIK_EMAIL__PASSWORD
+  hint: null
+  label: authentik email  password
+  options: null
+  required: false
+  type: password
+- env: AUTHENTIK_EMAIL__USE_TLS
+  hint: null
+  label: authentik email  use tls
+  options: null
+  required: false
+  type: text
+- env: AUTHENTIK_EMAIL__USE_SSL
+  hint: null
+  label: authentik email  use ssl
+  options: null
+  required: false
+  type: text
+- env: AUTHENTIK_EMAIL__TIMEOUT
+  hint: null
+  label: authentik email  timeout
+  options: null
+  required: false
+  type: text
+- env: AUTHENTIK_EMAIL__FROM
+  hint: null
+  label: authentik email  from
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- identity
+- login
+- user
+- oauth
+- openid
+- oidc
+- authentication
+- saml
+- auth0
+- okta
+title: Authentik
+type: app
+upstream:
+  categories:
+  - auth
+  source: https://docs.goauthentik.io/docs/installation/docker-compose
+  tags:
+  - identity
+  - login
+  - user
+  - oauth
+  - openid
+  - oidc
+  - authentication
+  - saml
+  - auth0
+  - okta
+  template: authentik.yaml
+website: https://docs.goauthentik.io/docs/installation/docker-compose

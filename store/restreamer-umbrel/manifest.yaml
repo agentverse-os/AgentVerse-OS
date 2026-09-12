@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/restreamer-umbrel
+description: An easy to use open source video server
+endpoint:
+  port: 8080
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/restreamer/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/restreamer/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/restreamer/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/restreamer/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/restreamer/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/restreamer/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: restreamer-umbrel
+notes:
+- 'порт 8181:8181 (web) не публикуется: доступ только через edge/gate'
+- 'порт 1935:1935 (web) не публикуется: доступ только через edge/gate'
+- 'порт 1936:1936 (web) не публикуется: доступ только через edge/gate'
+- 'порт 6000:6000/udp (web) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Restreamer
+type: app
+upstream:
+  author: datarhei
+  categories:
+  - files
+  release_notes: null
+  source: https://github.com/datarhei/restreamer
+  version: 2.12.0
+  website: https://datarhei.com/
+website: https://datarhei.com/

@@ -1,0 +1,49 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/chantools-umbrel
+description: lnd and cln channel rescue utility
+endpoint:
+  port: 7682
+  service: chantools
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/chantools/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/chantools/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/chantools/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/chantools/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: chantools-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: chantools CLI
+type: app
+upstream:
+  author: guggero
+  categories:
+  - bitcoin
+  release_notes: null
+  source: https://github.com/lightninglabs/chantools
+  version: v1.14.1
+  website: https://github.com/lightninglabs/chantools
+website: https://github.com/lightninglabs/chantools

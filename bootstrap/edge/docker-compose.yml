@@ -1,0 +1,31 @@
+# Edge Caddy (bootstrap-набор). Конфигурацию целиком загружает cloudd через Admin API (POST /load) — Caddyfile здесь
+# только стартовый: admin на 0.0.0.0:2019 (опубликован на 127.0.0.1 хоста) и ничего больше.
+# Сети приложений и coder-net cloudd подключает к этому контейнеру сам при install/старте.
+#   docker compose up -d
+services:
+  caddy:
+    image: caddy:2
+    container_name: cloudos-edge
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8444:8444"                 # Coder (route: port)
+      - "8450-8499:8450-8499"       # приложения route: port (CLOUDD_APP_PORT_MIN..MAX)
+      - "127.0.0.1:2019:2019"       # Admin API — только для cloudd на хосте
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # upstream cloudd на хосте
+    networks:
+      - default
+      - coder-net
+    volumes:
+      - ./Caddyfile.bootstrap:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      - /var/run/tailscale:/var/run/tailscale   # сертификаты для <box>.<tailnet>.ts.net от tailscaled (Tailscale); без Tailscale каталог пустой
+networks:
+  coder-net:
+    external: true
+volumes:
+  caddy-data:
+  caddy-config:

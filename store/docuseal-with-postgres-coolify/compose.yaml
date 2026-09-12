@@ -1,0 +1,65 @@
+# docuseal-with-postgres-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  docuseal:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_DOCUSEAL_3000=${SERVICE_URL_DOCUSEAL_3000}
+    - HOST=${SERVICE_URL_DOCUSEAL}
+    - DATABASE_URL=postgresql://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgresql:5432/${POSTGRES_DB}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:3000
+      timeout: 20s
+    image: docuseal/docuseal:latest
+    networks:
+      appnet:
+        aliases:
+        - docuseal-with-postgres-coolify_docuseal_1
+    restart: unless-stopped
+    volumes:
+    - docuseal-data:/data
+  postgresql:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_DB=${POSTGRES_DB:-docuseal}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - docuseal-with-postgres-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+volumes:
+  docuseal-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/docuseal-data
+      o: bind
+      type: none
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none

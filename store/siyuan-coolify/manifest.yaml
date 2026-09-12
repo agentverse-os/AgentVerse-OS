@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/siyuan-coolify
+description: A privacy-first, self-hosted, fully open source personal knowledge management software, written in typescript and golang.
+endpoint:
+  port: 6806
+  service: siyuan
+env:
+  SERVICE_PASSWORD_SIYUAN:
+    generate: password
+  SERVICE_URL_SIYUAN_6806: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_SIYUAN
+  path: null
+  user: null
+name: siyuan-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- note-taking
+- markdown
+- pkm
+title: Siyuan
+type: app
+upstream:
+  categories:
+  - documentation
+  source: https://github.com/siyuan-note/siyuan
+  tags:
+  - note-taking
+  - markdown
+  - pkm
+  template: siyuan.yaml
+website: https://github.com/siyuan-note/siyuan

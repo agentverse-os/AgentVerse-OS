@@ -1,0 +1,20 @@
+# email-oauth2-proxy: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  email-oauth2-proxy:
+    environment:
+      CACHE_STORE: /config/credstore.config
+      DEBUG: 'true'
+      LOCAL_SERVER_AUTH: 'true'
+      LOGFILE: 'true'
+    image: ghcr.io/blacktirion/email-oauth2-proxy-docker:2026.01.06
+    networks:
+      appnet:
+        aliases:
+        - email-oauth2-proxy_email-oauth2-proxy_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config

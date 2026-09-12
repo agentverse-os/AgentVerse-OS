@@ -1,0 +1,24 @@
+# wg-easy-1: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  wg-easy:
+    cap_add:
+    - NET_ADMIN
+    - SYS_MODULE
+    environment:
+      DISABLE_IPV6: ${WIREGUARD_DISABLE_IPV6}
+      INSECURE: ${WIREGUARD_INSECURE}
+    image: ghcr.io/wg-easy/wg-easy:15.4.0
+    networks:
+      appnet:
+        aliases:
+        - wg-easy-1_wg-easy_1
+    restart: unless-stopped
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
+      net.ipv4.ip_forward: 1
+    volumes:
+    - ${APP_DATA_DIR}/data:/etc/wireguard

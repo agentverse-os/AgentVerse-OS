@@ -1,0 +1,18 @@
+# rotki-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: rotki/rotki:v1.44.0@sha256:918e35cfbcce68633eafc9cdcc206bb2b45a1110f86e544d48d1fded04c280ff
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - rotki_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/data:/data
+    - ${APP_DATA_DIR}/data/logs:/logs

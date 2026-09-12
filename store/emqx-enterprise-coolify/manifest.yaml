@@ -1,0 +1,62 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/emqx-enterprise-coolify
+description: Open-source MQTT broker for IoT, IIoT, and connected vehicles.
+endpoint:
+  port: 18083
+  service: emqx
+env:
+  SERVICE_PASSWORD_EMQX:
+    generate: password
+  SERVICE_URL_EMQX_18083: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_EMQX
+  path: null
+  user: null
+name: emqx-enterprise-coolify
+notes:
+- 'порт 1883:1883 (emqx) не публикуется: доступ только через edge/gate'
+- 'порт 8083:8083 (emqx) не публикуется: доступ только через edge/gate'
+- 'порт 8084:8084 (emqx) не публикуется: доступ только через edge/gate'
+- 'порт 8883:8883 (emqx) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- mqtt
+- broker
+- iot
+- messaging
+- emqx
+- iiot
+title: Emqx Enterprise
+type: app
+upstream:
+  categories:
+  - Networking
+  source: https://www.emqx.io/docs/en/latest/deploy/install-docker.html
+  tags:
+  - mqtt
+  - broker
+  - iot
+  - messaging
+  - emqx
+  - iiot
+  template: emqx-enterprise.yaml
+website: https://www.emqx.io/docs/en/latest/deploy/install-docker.html

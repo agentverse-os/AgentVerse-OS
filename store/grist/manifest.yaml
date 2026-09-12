@@ -1,0 +1,55 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/grist
+description: Grist is the evolution of spreadsheets.
+endpoint:
+  port: 8484
+  service: grist
+env:
+  GRIST_SANDBOX_FLAVOR: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: grist
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GRIST_SANDBOX_FLAVOR
+  hint: null
+  label: GRIST_SANDBOX_FLAVOR
+  options:
+  - label: unsandboxed
+    value: unsandboxed
+  - label: gvisor
+    value: gvisor
+  required: true
+  type: text
+tags: []
+title: Grist
+type: app
+upstream:
+  author: https://github.com/gristlabs
+  categories:
+  - utilities
+  source: https://github.com/gristlabs/grist-core
+  tipi_version: 58
+  version: 1.7.17
+website: https://github.com/gristlabs/grist-core

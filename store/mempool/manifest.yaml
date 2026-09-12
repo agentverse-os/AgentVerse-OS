@@ -1,0 +1,80 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mempool
+description: Bitcoin mempool visualizer and blockchain explorer
+endpoint:
+  port: 8080
+  service: mempool
+env:
+  BITCOIND_DIR: ''
+  CORE_RPC_HOST: ''
+  ELECTRUM_HOST: ''
+  ELECTRUM_PORT: '50001'
+  MEMPOOL_DB_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mempool
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: BITCOIND_DIR
+  hint: Default, tipi bitcoin folder
+  label: Custom Bitcoin data folder location (for .cookie file)
+  options: null
+  required: true
+  type: text
+- env: CORE_RPC_HOST
+  hint: Default, tipi bitcoin host
+  label: Custom Bitcoin node host address
+  options: null
+  required: false
+  type: text
+- env: ELECTRUM_HOST
+  hint: Default, tipi electrs host
+  label: Custom Electrs host address
+  options: null
+  required: false
+  type: text
+- env: ELECTRUM_PORT
+  hint: Default, tipi electrs host
+  label: Custom Electrs host port
+  options: null
+  required: false
+  type: number
+- env: MEMPOOL_DB_PASSWORD
+  hint: null
+  label: Mempool DB password
+  options: null
+  required: false
+  type: random
+tags: []
+title: Mempool
+type: app
+upstream:
+  author: The mempool team
+  categories:
+  - finance
+  source: https://github.com/mempool/mempool
+  tipi_version: 18
+  version: v3.3.1
+website: https://github.com/mempool/mempool

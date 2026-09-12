@@ -1,0 +1,39 @@
+# booklore-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      MARIADB_DATABASE: booklore
+      MARIADB_PASSWORD: booklorepass
+      MARIADB_ROOT_PASSWORD: rootpass
+      MARIADB_USER: bookloreuser
+    image: mariadb:12.0.2@sha256:b30cc65b57a11a2e791ad5c06284e599fe9f1bf3fe9081a88d85bcf36389be4a
+    networks:
+      appnet:
+        aliases:
+        - booklore_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql
+  web:
+    depends_on:
+      db:
+        condition: service_started
+    environment:
+      DATABASE_PASSWORD: booklorepass
+      DATABASE_URL: jdbc:mariadb://booklore_db_1:3306/booklore
+      DATABASE_USERNAME: bookloreuser
+    image: ghcr.io/booklore-app/booklore:v2.3.1@sha256:d3d3af34bc2cc44349178535ce19e86049968fba2e7d2acf965f770bf37bad01
+    networks:
+      appnet:
+        aliases:
+        - booklore_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/app/data
+    - ${APP_DATA_DIR}/data/books:/books
+    - ${APP_DATA_DIR}/data/bookdrop:/bookdrop

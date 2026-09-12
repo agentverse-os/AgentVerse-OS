@@ -1,0 +1,76 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/neon-ws-proxy-coolify
+description: The database you love, on a serverless platform designed to help you build reliable and scalable applications faster.
+endpoint:
+  port: 2112
+  service: neon-proxy
+env:
+  POSTGRESQL_DATABASE: postgres
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_NEONPROMETHEUS_2112: https://${APP_DOMAIN}
+  SERVICE_URL_NEONPROXY: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: neon-ws-proxy-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: postgres'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- proxy
+- neon
+- postgresql
+title: Neon Ws Proxy
+type: app
+upstream:
+  categories:
+  - proxy
+  source: https://neon.tech
+  tags:
+  - proxy
+  - neon
+  - postgresql
+  template: neon-ws-proxy.yaml
+website: https://neon.tech

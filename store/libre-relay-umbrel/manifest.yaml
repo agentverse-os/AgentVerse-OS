@@ -1,0 +1,113 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/libre-relay-umbrel
+description: Run your personal node powered by Libre Relay
+endpoint:
+  port: 3005
+  service: bitcoind
+env:
+  '"$bitcoin_var"': ${!bitcoin_var:=${!libre_relay_var}}
+  APP_LIBRE_RELAY_COMMAND: ''
+  APP_LIBRE_RELAY_DATA_DIR: ${APP_DATA_DIR}/data/bitcoin
+  APP_LIBRE_RELAY_I2P_DAEMON_IP: 10.21.22.22
+  APP_LIBRE_RELAY_IP: 10.21.22.20
+  APP_LIBRE_RELAY_NETWORK_ELECTRS: $APP_LIBRE_RELAY_NETWORK
+  APP_LIBRE_RELAY_NODE_IP: 10.21.21.20
+  APP_LIBRE_RELAY_P2P_HIDDEN_SERVICE: ''
+  APP_LIBRE_RELAY_P2P_PORT: '8453'
+  APP_LIBRE_RELAY_RPC_HIDDEN_SERVICE: ''
+  APP_LIBRE_RELAY_RPC_PASS: ''
+  APP_LIBRE_RELAY_RPC_PORT: '8452'
+  APP_LIBRE_RELAY_RPC_USER: ''
+  APP_LIBRE_RELAY_TOR_PORT: '8454'
+  APP_LIBRE_RELAY_TOR_PROXY_IP: 10.21.22.21
+  APP_LIBRE_RELAY_ZMQ_HASHBLOCK_PORT: '28444'
+  APP_LIBRE_RELAY_ZMQ_RAWBLOCK_PORT: '28442'
+  APP_LIBRE_RELAY_ZMQ_RAWTX_PORT: '28443'
+  APP_LIBRE_RELAY_ZMQ_SEQUENCE_PORT: '28445'
+  BITCOIN_DEFAULT_NETWORK: ${BITCOIN_CHAIN}
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  TOR_DATA_DIR: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/libre-relay/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/libre-relay/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/libre-relay/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/libre-relay/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: libre-relay-umbrel
+notes:
+- 'порт ${APP_LIBRE_RELAY_P2P_PORT}:${APP_LIBRE_RELAY_P2P_PORT} (bitcoind) не публикуется: доступ только через edge/gate'
+- 'порт ${APP_LIBRE_RELAY_RPC_PORT}:${APP_LIBRE_RELAY_RPC_PORT} (bitcoind) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_LIBRE_RELAY_COMMAND
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app libre relay command
+  options: null
+  required: false
+  type: text
+- env: APP_LIBRE_RELAY_P2P_HIDDEN_SERVICE
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app libre relay p2p hidden service
+  options: null
+  required: false
+  type: text
+- env: APP_LIBRE_RELAY_RPC_HIDDEN_SERVICE
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app libre relay rpc hidden service
+  options: null
+  required: false
+  type: text
+- env: APP_LIBRE_RELAY_RPC_PASS
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app libre relay rpc pass
+  options: null
+  required: false
+  type: text
+- env: APP_LIBRE_RELAY_RPC_USER
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app libre relay rpc user
+  options: null
+  required: false
+  type: text
+- env: TOR_DATA_DIR
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: tor data dir
+  options: null
+  required: false
+  type: text
+tags: []
+title: Libre Relay
+type: app
+upstream:
+  author: Peter Todd
+  categories:
+  - bitcoin
+  release_notes: |-
+    This security update upgrades the bundled Tor sidecar to 0.4.9.11, restoring Tor connectivity and including the latest Tor security fixes. The primary app version is unchanged.
+
+    Fixes a port conflict that could prevent Libre Relay from running alongside Mattermost.
+
+    Libre Relay now uses ports 8452, 8453, and 8454 for RPC, P2P, and Tor. Most users do not need to do anything manually, but restart any apps connected to Libre Relay so they pick up the new settings. If you manually configured clients, firewall rules, or port forwarding with the previous Libre Relay ports, update them to the new ports.
+  source: https://github.com/petertodd/bitcoin
+  version: 30.2-patch.2
+  website: https://umbrel.com
+website: https://umbrel.com

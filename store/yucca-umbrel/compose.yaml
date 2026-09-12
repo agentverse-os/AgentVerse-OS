@@ -1,0 +1,20 @@
+# yucca-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  yucca:
+    environment:
+      YUCCA_SERVER_DATA_DIR: /opt/yucca/data
+      YUCCA_SMTP_SERVER_LISTEN_ADDRESS: :10925
+    image: yuccastream/yucca:0.13.4@sha256:1304ad68fa866f2cf426d8c0bddf238cd2bbaeb3aeedd7a2b65eeafdd2b79917
+    networks:
+      appnet:
+        aliases:
+        - yucca_yucca_1
+    restart: on-failure
+    shm_size: 128mb
+    volumes:
+    - ${APP_DATA_DIR}/data/data:/opt/yucca/data
+    working_dir: /opt/yucca

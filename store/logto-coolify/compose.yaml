@@ -1,0 +1,65 @@
+# logto-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  logto:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint:
+    - sh
+    - -c
+    - npm run cli db seed -- --swe && npm run alteration deploy latest && npm start
+    environment:
+    - SERVICE_URL_LOGTO=${SERVICE_URL_LOGTO}
+    - TRUST_PROXY_HEADER=1
+    - DB_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/${POSTGRES_DB:-logto}
+    - ENDPOINT=$LOGTO_ENDPOINT
+    - ADMIN_ENDPOINT=$LOGTO_ADMIN_ENDPOINT
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - exit 0
+      timeout: 20s
+    image: svhd/logto:${TAG-latest}
+    networks:
+      appnet:
+        aliases:
+        - logto-coolify_logto_1
+    restart: unless-stopped
+  postgres:
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-logto}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+      POSTGRES_USER: ${SERVICE_USER_POSTGRES}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - pg_isready
+      - -U
+      - $SERVICE_USER_POSTGRES
+      - -d
+      - $POSTGRES_DB
+      timeout: 20s
+    image: postgres:14-alpine
+    networks:
+      appnet:
+        aliases:
+        - logto-coolify_postgres_1
+    restart: unless-stopped
+    user: postgres
+    volumes:
+    - logto-postgres-data:/var/lib/postgresql/data
+volumes:
+  logto-postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/logto-postgres-data
+      o: bind
+      type: none

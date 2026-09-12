@@ -1,0 +1,60 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/soketi-app-manager-coolify
+description: Manage soketi websocket server and apps with ease.
+endpoint:
+  port: 8080
+  service: soketi-app-manager
+env:
+  AUTORUN_LARAVEL_MIGRATION: 'true'
+  SERVICE_FQDN_SOKETIAPPMANAGER: ${APP_DOMAIN}
+  SERVICE_FQDN_SOKETIAPPMANAGER_8080: ${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: soketi-app-manager-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: AUTORUN_LARAVEL_MIGRATION
+  hint: 'по умолчанию: true'
+  label: autorun laravel migration
+  options: null
+  required: false
+  type: text
+tags:
+- soketi
+- websockets
+- app-manager
+- dashboard
+title: Soketi App Manager
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://github.com/rahulhaque/soketi-app-manager-filament
+  tags:
+  - soketi
+  - websockets
+  - app-manager
+  - dashboard
+  template: soketi-app-manager.yaml
+website: https://github.com/rahulhaque/soketi-app-manager-filament

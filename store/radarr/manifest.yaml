@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/radarr
+description: Movie collection manager for Usenet and BitTorrent users.
+endpoint:
+  port: 7878
+  service: radarr
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: radarr
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Radarr
+type: app
+upstream:
+  author: radarr.video
+  categories:
+  - media
+  - utilities
+  source: https://github.com/Radarr/Radarr
+  tipi_version: 45
+  version: 6.3.0
+website: https://github.com/Radarr/Radarr

@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/audiobookshelf-umbrel
+description: Audiobook and podcast server
+endpoint:
+  port: 80
+  service: web
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/audiobookshelf/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/audiobookshelf/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/audiobookshelf/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/audiobookshelf/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: audiobookshelf-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Audiobookshelf
+type: app
+upstream:
+  author: advplyr
+  categories:
+  - media
+  release_notes: |-
+    This update adds account session management, including a sessions table and controls to log out individual devices or all devices.
+    It also includes security fixes for OIDC callback validation, refresh-token authentication paths, root account deletion, and bulk library item download access checks.
+    Password changes now invalidate existing sessions, and podcast episode matching has been improved.
+    Full release notes can be found at https://github.com/advplyr/audiobookshelf/releases/tag/v2.36.0
+  source: https://github.com/advplyr/audiobookshelf
+  version: 2.36.0
+  website: https://audiobookshelf.org
+website: https://audiobookshelf.org

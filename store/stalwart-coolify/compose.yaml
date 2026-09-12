@@ -1,0 +1,43 @@
+# stalwart-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  stalwart:
+    environment:
+    - SERVICE_URL_STALWART_8080=${SERVICE_URL_STALWART_8080}
+    expose:
+    - '8080'
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8080/
+      timeout: 10s
+    image: stalwartlabs/stalwart:v0.16.13
+    networks:
+      appnet:
+        aliases:
+        - stalwart-coolify_stalwart_1
+    restart: unless-stopped
+    volumes:
+    - stalwart-mail:/etc/stalwart
+    - stalwart-data:/var/lib/stalwart
+    - /etc/localtime:/etc/localtime:ro
+volumes:
+  stalwart-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/stalwart-data
+      o: bind
+      type: none
+  stalwart-mail:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/stalwart-mail
+      o: bind
+      type: none

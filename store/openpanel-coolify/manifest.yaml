@@ -1,0 +1,125 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/openpanel-coolify
+description: Open source alternative to Mixpanel and Plausible for product analytics
+endpoint:
+  port: 3000
+  service: clickhouse
+env:
+  DISABLE_BULLBOARD: '1'
+  OPENPANEL_ALLOW_INVITATION: 'false'
+  OPENPANEL_ALLOW_REGISTRATION: 'false'
+  OPENPANEL_EMAIL_SENDER: ''
+  OPENPANEL_POSTGRES_DB: openpanel-db
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  RESEND_API_KEY: ''
+  SERVICE_BASE64_COOKIESECRET:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_URL_OPAPI: https://${APP_DOMAIN}
+  SERVICE_URL_OPBULLBOARD: https://${APP_DOMAIN}
+  SERVICE_URL_OPDASHBOARD: https://${APP_DOMAIN}
+  SERVICE_URL_OPDASHBOARD_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: openpanel-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: OPENPANEL_POSTGRES_DB
+  hint: 'по умолчанию: openpanel-db'
+  label: openpanel postgres db
+  options: null
+  required: false
+  type: text
+- env: OPENPANEL_ALLOW_REGISTRATION
+  hint: 'по умолчанию: false'
+  label: openpanel allow registration
+  options: null
+  required: false
+  type: text
+- env: OPENPANEL_ALLOW_INVITATION
+  hint: 'по умолчанию: false'
+  label: openpanel allow invitation
+  options: null
+  required: false
+  type: text
+- env: OPENPANEL_EMAIL_SENDER
+  hint: null
+  label: openpanel email sender
+  options: null
+  required: false
+  type: text
+- env: RESEND_API_KEY
+  hint: null
+  label: resend api key
+  options: null
+  required: false
+  type: password
+- env: DISABLE_BULLBOARD
+  hint: 'по умолчанию: 1'
+  label: disable bullboard
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- analytics
+- insights
+- privacy
+- mixpanel
+- plausible
+- google
+- alternative
+title: Openpanel
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://openpanel.dev/docs
+  tags:
+  - analytics
+  - insights
+  - privacy
+  - mixpanel
+  - plausible
+  - google
+  - alternative
+  template: openpanel.yaml
+website: https://openpanel.dev/docs

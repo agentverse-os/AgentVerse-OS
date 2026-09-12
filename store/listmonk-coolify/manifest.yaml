@@ -1,0 +1,70 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/listmonk-coolify
+description: Self-hosted newsletter and mailing list manager
+endpoint:
+  port: 9000
+  service: listmonk
+env:
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_LISTMONK_9000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: listmonk-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- newsletter
+- mailing list
+- self-hosted
+- open source
+title: Listmonk
+type: app
+upstream:
+  categories:
+  - email
+  source: https://listmonk.app/
+  tags:
+  - newsletter
+  - mailing list
+  - self-hosted
+  - open source
+  template: listmonk.yaml
+website: https://listmonk.app/

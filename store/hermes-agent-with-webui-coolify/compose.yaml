@@ -1,0 +1,81 @@
+# hermes-agent-with-webui-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  hermes-agent:
+    command: gateway run
+    environment:
+    - HERMES_HOME=/home/hermes/.hermes
+    - HERMES_UID=1000
+    - HERMES_GID=1000
+    - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    - OPENAI_API_KEY=${OPENAI_API_KEY}
+    - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - test -d /home/hermes/.hermes || exit 1
+      timeout: 5s
+    image: nousresearch/hermes-agent@sha256:2f1f2f1725e5dc9a61cf6a2dea5aca52a776ec4d022cb29679e6aa3ff303e77a
+    networks:
+      appnet:
+        aliases:
+        - hermes-agent-with-webui-coolify_hermes-agent_1
+    restart: unless-stopped
+    volumes:
+    - hermes-home:/home/hermes/.hermes
+    - hermes-agent-src:/opt/hermes
+  hermes-webui:
+    depends_on:
+    - hermes-agent
+    environment:
+    - SERVICE_URL_HERMESWEBUI_8787=${SERVICE_URL_HERMESWEBUI_8787}
+    - HERMES_WEBUI_HOST=0.0.0.0
+    - HERMES_WEBUI_PORT=8787
+    - HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui
+    - WANTED_UID=1000
+    - WANTED_GID=1000
+    - HERMES_WEBUI_PASSWORD=${SERVICE_PASSWORD_HERMESWEBUI}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8787/health
+      timeout: 5s
+    image: ghcr.io/nesquena/hermes-webui:0.51.92
+    networks:
+      appnet:
+        aliases:
+        - hermes-agent-with-webui-coolify_hermes-webui_1
+    restart: unless-stopped
+    volumes:
+    - hermes-home:/home/hermeswebui/.hermes
+    - hermes-agent-src:/home/hermeswebui/.hermes/hermes-agent:ro
+    - hermes-workspace:/workspace
+volumes:
+  hermes-agent-src:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/hermes-agent-src
+      o: bind
+      type: none
+  hermes-home:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/hermes-home
+      o: bind
+      type: none
+  hermes-workspace:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/hermes-workspace
+      o: bind
+      type: none

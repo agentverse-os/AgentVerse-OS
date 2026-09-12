@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/zigbee2mqtt
+description: Zigbee to MQTT bridge
+endpoint:
+  port: 8080
+  service: zigbee2mqtt
+env:
+  Z2M_DEVICE: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: zigbee2mqtt
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: Z2M_DEVICE
+  hint: /dev/ttyUSB0
+  label: zigbee device path
+  options: null
+  required: true
+  type: text
+tags: []
+title: Zigbee2MQTT
+type: app
+upstream:
+  author: '@Koenkk'
+  categories:
+  - utilities
+  - automation
+  source: https://github.com/Koenkk/zigbee2mqtt
+  tipi_version: 49
+  version: 2.13.0
+website: https://github.com/Koenkk/zigbee2mqtt

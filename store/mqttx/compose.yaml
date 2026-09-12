@@ -1,0 +1,16 @@
+# mqttx: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mqttx:
+    image: emqx/mqttx-web:v1.13.0
+    networks:
+      appnet:
+        aliases:
+        - mqttx_mqttx_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mqttx:/app/data
+    - /etc/localtime:/etc/localtime:ro

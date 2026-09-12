@@ -1,0 +1,67 @@
+# cap-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cap-db:
+    command:
+    - --max_connections=1000
+    - --default-authentication-plugin=mysql_native_password
+    environment:
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-planetscale}
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
+    - MYSQL_ALLOW_EMPTY_PASSWORD=${MYSQL_ALLOW_EMPTY_PASSWORD:-yes}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - 127.0.0.1
+      timeout: 10s
+    image: mysql:8.0
+    networks:
+      appnet:
+        aliases:
+        - cap-coolify_cap-db_1
+    restart: unless-stopped
+    volumes:
+    - cap_db:/var/lib/mysql
+  cap-web:
+    depends_on:
+      cap-db:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_CAP_3000=${SERVICE_URL_CAP_3000}
+    - DATABASE_URL=mysql://$SERVICE_USER_MYSQL:$SERVICE_PASSWORD_MYSQL@cap-db:3306/${MYSQL_DATABASE:-planetscale}
+    - WEB_URL=${SERVICE_URL_CAP}
+    - NEXTAUTH_URL=${SERVICE_URL_CAP}
+    - DATABASE_ENCRYPTION_KEY=${SERVICE_PASSWORD_64_DATABASEENCRYPTIONKEY}
+    - NEXTAUTH_SECRET=${SERVICE_PASSWORD_64_NEXTAUTHSECRET}
+    - CAP_AWS_ACCESS_KEY=
+    - CAP_AWS_SECRET_KEY=
+    - CAP_AWS_BUCKET=
+    - CAP_AWS_REGION=
+    - S3_PUBLIC_ENDPOINT=
+    - S3_INTERNAL_ENDPOINT=
+    - NEXT_RUNTIME=nodejs
+    - S3_PATH_STYLE=${S3_PATH_STYLE:-true}
+    - CAP_AWS_ENDPOINT=
+    image: ghcr.io/capsoftware/cap-web:latest
+    networks:
+      appnet:
+        aliases:
+        - cap-coolify_cap-web_1
+    restart: unless-stopped
+volumes:
+  cap_db:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/cap_db
+      o: bind
+      type: none

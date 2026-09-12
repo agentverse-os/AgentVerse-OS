@@ -1,0 +1,68 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tooljet
+description: Alternative to retool to construct CRM dashboard
+endpoint:
+  port: 80
+  service: tooljet
+env:
+  DB_PASSWORD:
+    generate: token
+  LOCKBOX_MASTER_KEY:
+    generate: hex64
+  SECRET_KEY_BASE:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: tooljet
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DB_PASSWORD
+  hint: null
+  label: Database password
+  options: null
+  required: false
+  type: random
+- env: SECRET_KEY_BASE
+  hint: null
+  label: Secret key base
+  options: null
+  required: false
+  type: random
+- env: LOCKBOX_MASTER_KEY
+  hint: null
+  label: Lock master key
+  options: null
+  required: false
+  type: random
+tags: []
+title: Tooljet
+type: app
+upstream:
+  author: tooljet.com
+  categories:
+  - automation
+  source: https://github.com/ToolJet/ToolJet
+  tipi_version: 27
+  version: 2.4.2
+website: https://github.com/ToolJet/ToolJet

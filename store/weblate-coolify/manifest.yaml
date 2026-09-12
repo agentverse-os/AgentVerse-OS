@@ -1,0 +1,95 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/weblate-coolify
+description: Weblate is a libre software web-based continuous localization system.
+endpoint:
+  port: 8080
+  service: weblate
+env:
+  POSTGRES_DB: weblate
+  POSTGRES_USER: ''
+  SERVICE_FQDN_WEBLATE: ${APP_DOMAIN}
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_PASSWORD_WEBLATE:
+    generate: password
+  SERVICE_URL_WEBLATE_8080: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  WEBLATE_ADMIN_EMAIL: admin@example.com
+  WEBLATE_ADMIN_NAME: Admin
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_WEBLATE
+  path: null
+  user: WEBLATE_ADMIN_NAME
+name: weblate-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: WEBLATE_ADMIN_NAME
+  hint: 'по умолчанию: Admin'
+  label: weblate admin name
+  options: null
+  required: false
+  type: text
+- env: WEBLATE_ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: weblate admin email
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: weblate'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- localization
+- translation
+- web
+- web-based
+- continuous
+- libre
+- software
+title: Weblate
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://weblate.org
+  tags:
+  - localization
+  - translation
+  - web
+  - web-based
+  - continuous
+  - libre
+  - software
+  template: weblate.yaml
+website: https://weblate.org

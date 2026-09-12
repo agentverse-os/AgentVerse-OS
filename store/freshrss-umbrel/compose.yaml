@@ -1,0 +1,18 @@
+# freshrss-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    image: linuxserver/freshrss:1.29.1@sha256:5292f1d623f621d65c8ecd0034b7cf637531f0ad6008b08affd6a73e32b902ea
+    networks:
+      appnet:
+        aliases:
+        - freshrss_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/config

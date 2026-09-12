@@ -1,0 +1,58 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sessy-coolify
+description: Email observability platform for monitoring and analyzing email systems.
+endpoint:
+  port: 80
+  service: sessy
+env:
+  SERVICE_HEX_64_SESSYSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_SESSY:
+    generate: password
+  SERVICE_URL_SESSY_80: https://${APP_DOMAIN}
+  SERVICE_USER_SESSY:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_SESSY
+  path: null
+  user: SERVICE_USER_SESSY
+name: sessy-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- email
+- observability
+- monitoring
+- analytics
+title: Sessy
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://github.com/marckohlbrugge/sessy/blob/main/docs/docker-deployment.md
+  tags:
+  - email
+  - observability
+  - monitoring
+  - analytics
+  template: sessy.yaml
+website: https://github.com/marckohlbrugge/sessy/blob/main/docs/docker-deployment.md

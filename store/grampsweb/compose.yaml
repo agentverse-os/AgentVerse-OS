@@ -1,0 +1,25 @@
+# grampsweb: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  grampsweb:
+    environment:
+      GRAMPSWEB_TREE: ${GRAMPSWEB_TREE}
+      GUNICORN_NUM_WORKERS: '1'
+    image: ghcr.io/gramps-project/grampsweb:26.8.1
+    networks:
+      appnet:
+        aliases:
+        - grampsweb_grampsweb_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/users:/app/users
+    - ${APP_DATA_DIR}/index:/app/indexdir
+    - ${APP_DATA_DIR}/thumb_cache:/app/thumbnail_cache
+    - ${APP_DATA_DIR}/cache:/app/cache
+    - ${APP_DATA_DIR}/secret:/app/secret
+    - ${APP_DATA_DIR}/db:/root/.gramps/grampsdb
+    - ${APP_DATA_DIR}/media:/app/media
+    - ${APP_DATA_DIR}/tmp:/tmp

@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mqttx
+description: MQTT websocket browser client tool
+endpoint:
+  port: 80
+  service: mqttx
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mqttx
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: MQTTX
+type: app
+upstream:
+  author: EMQX
+  categories:
+  - utilities
+  source: https://github.com/emqx/MQTTX/
+  tipi_version: 11
+  version: v1.13.0
+website: https://github.com/emqx/MQTTX/

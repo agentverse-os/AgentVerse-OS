@@ -1,0 +1,195 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/redlib-coolify
+description: An alternative private front-end to Reddit, with its origins in Libreddit.
+endpoint:
+  port: 8080
+  service: redlib
+env:
+  REDLIB_BANNER: '""'
+  REDLIB_DEFAULT_AUTOPLAY_VIDEOS: off
+  REDLIB_DEFAULT_BLUR_NSFW: off
+  REDLIB_DEFAULT_BLUR_SPOILER: off
+  REDLIB_DEFAULT_COMMENT_SORT: confidence
+  REDLIB_DEFAULT_DISABLE_VISIT_REDDIT_CONFIRMATION: off
+  REDLIB_DEFAULT_FIXED_NAVBAR: on
+  REDLIB_DEFAULT_FRONT_PAGE: worldnews
+  REDLIB_DEFAULT_HIDE_AWARDS: off
+  REDLIB_DEFAULT_HIDE_HLS_NOTIFICATION: off
+  REDLIB_DEFAULT_HIDE_SCORE: off
+  REDLIB_DEFAULT_HIDE_SIDEBAR_AND_SUMMARY: off
+  REDLIB_DEFAULT_LAYOUT: card
+  REDLIB_DEFAULT_POST_SORT: hot
+  REDLIB_DEFAULT_SHOW_NSFW: off
+  REDLIB_DEFAULT_SUBSCRIPTIONS: '""'
+  REDLIB_DEFAULT_USE_HLS: off
+  REDLIB_DEFAULT_WIDE: off
+  REDLIB_PUSHSHIFT_FRONTEND: undelete.pullpush.io
+  REDLIB_ROBOTS_DISABLE_INDEXING: off
+  REDLIB_SFW_ONLY: off
+  SERVICE_URL_REDLIB_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: redlib-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: REDLIB_SFW_ONLY
+  hint: 'по умолчанию: off'
+  label: redlib sfw only
+  options: null
+  required: false
+  type: text
+- env: REDLIB_BANNER
+  hint: 'по умолчанию: ""'
+  label: redlib banner
+  options: null
+  required: false
+  type: text
+- env: REDLIB_ROBOTS_DISABLE_INDEXING
+  hint: 'по умолчанию: off'
+  label: redlib robots disable indexing
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_FRONT_PAGE
+  hint: 'по умолчанию: worldnews'
+  label: redlib default front page
+  options: null
+  required: false
+  type: text
+- env: REDLIB_PUSHSHIFT_FRONTEND
+  hint: 'по умолчанию: undelete.pullpush.io'
+  label: redlib pushshift frontend
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_LAYOUT
+  hint: 'по умолчанию: card'
+  label: redlib default layout
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_WIDE
+  hint: 'по умолчанию: off'
+  label: redlib default wide
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_POST_SORT
+  hint: 'по умолчанию: hot'
+  label: redlib default post sort
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_COMMENT_SORT
+  hint: 'по умолчанию: confidence'
+  label: redlib default comment sort
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_BLUR_SPOILER
+  hint: 'по умолчанию: off'
+  label: redlib default blur spoiler
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_SHOW_NSFW
+  hint: 'по умолчанию: off'
+  label: redlib default show nsfw
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_BLUR_NSFW
+  hint: 'по умолчанию: off'
+  label: redlib default blur nsfw
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_USE_HLS
+  hint: 'по умолчанию: off'
+  label: redlib default use hls
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_HIDE_HLS_NOTIFICATION
+  hint: 'по умолчанию: off'
+  label: redlib default hide hls notification
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_AUTOPLAY_VIDEOS
+  hint: 'по умолчанию: off'
+  label: redlib default autoplay videos
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_SUBSCRIPTIONS
+  hint: 'по умолчанию: ""'
+  label: redlib default subscriptions
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_HIDE_AWARDS
+  hint: 'по умолчанию: off'
+  label: redlib default hide awards
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_HIDE_SIDEBAR_AND_SUMMARY
+  hint: 'по умолчанию: off'
+  label: redlib default hide sidebar and summary
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_DISABLE_VISIT_REDDIT_CONFIRMATION
+  hint: 'по умолчанию: off'
+  label: redlib default disable visit reddit confirmation
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_HIDE_SCORE
+  hint: 'по умолчанию: off'
+  label: redlib default hide score
+  options: null
+  required: false
+  type: text
+- env: REDLIB_DEFAULT_FIXED_NAVBAR
+  hint: 'по умолчанию: on'
+  label: redlib default fixed navbar
+  options: null
+  required: false
+  type: text
+tags:
+- frontend
+- feed
+title: Redlib
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/redlib-org/redlib
+  tags:
+  - frontend
+  - feed
+  template: redlib.yaml
+website: https://github.com/redlib-org/redlib

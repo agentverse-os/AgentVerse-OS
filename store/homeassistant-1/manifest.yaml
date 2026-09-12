@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/homeassistant-1
+description: Open source home automation that puts local control and privacy first
+endpoint:
+  port: 8123
+  service: homeassistant-1
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: homeassistant-1
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Home Assistant
+type: app
+upstream:
+  author: Home Assistant
+  categories:
+  - automation
+  source: https://github.com/home-assistant/core
+  tipi_version: 155
+  version: 2026.8.3
+website: https://github.com/home-assistant/core

@@ -1,0 +1,86 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/hoppscotch-coolify
+description: The Open Source API Development Platform
+endpoint:
+  port: 80
+  service: backend
+env:
+  MAILER_USE_CUSTOM_CONFIGS: 'true'
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_BASE64_DATAENCRYPTIONKEY:
+    generate: hex64
+  SERVICE_FQDN_HOPPSCOTCH: ${APP_DOMAIN}
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_HOPPSCOTCH: https://${APP_DOMAIN}
+  SERVICE_URL_HOPPSCOTCH_80: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  VITE_ALLOWED_AUTH_PROVIDERS: GOOGLE,GITHUB,MICROSOFT,EMAIL
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: hoppscotch-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: VITE_ALLOWED_AUTH_PROVIDERS
+  hint: 'по умолчанию: GOOGLE,GITHUB,MICROSOFT,EMAIL'
+  label: vite allowed auth providers
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: MAILER_USE_CUSTOM_CONFIGS
+  hint: 'по умолчанию: true'
+  label: mailer use custom configs
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- api
+- development
+- platform
+title: Hoppscotch
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://docs.hoppscotch.io
+  tags:
+  - api
+  - development
+  - platform
+  template: hoppscotch.yaml
+website: https://docs.hoppscotch.io

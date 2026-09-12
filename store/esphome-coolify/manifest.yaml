@@ -1,0 +1,56 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/esphome-coolify
+description: Smart Home Made Simple.
+endpoint:
+  port: 6052
+  service: esphome
+env:
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_URL_ESPHOME_6052: https://${APP_DOMAIN}
+  SERVICE_USER_ADMIN:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: SERVICE_USER_ADMIN
+name: esphome-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- home
+- smart
+- assistant
+- microcontroller
+title: Esphome
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://esphome.io/guides/getting_started_command_line/
+  tags:
+  - home
+  - smart
+  - assistant
+  - microcontroller
+  template: esphome.yaml
+website: https://esphome.io/guides/getting_started_command_line/

@@ -1,0 +1,16 @@
+# home-assistant-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    image: homeassistant/home-assistant:2026.9.0@sha256:372d991e58882a1d8c68c07e9aa3f3b509276e695355f73ccdb03baa70407293
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/config
+    - ${UMBREL_ROOT}/data/storage/downloads:/media
+    - /dev:/dev
+    - /run/dbus:/run/dbus:ro

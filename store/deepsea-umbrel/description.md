@@ -1,0 +1,59 @@
+This open-source dashboard monitors Ocean.xyz pool miners in real time. It presents hashrate, profitability, worker status and network metrics through a retro terminal interface. The goal is to keep miners fully informed with minimal fuss.
+
+## ⚡ Key Features
+- **⛏️ Live Mining Metrics**  
+  - Real-time hashrate tracking: 60s, 10min, 3h, and 24h  
+  - Profitability analysis in BTC & fiat  
+  - Automatic revenue, cost, and net profit calculation  
+  - Sparkline trend charts for quick insights  
+  - Break-even electricity rate estimator  
+  - Dynamic reward modeling (subsidy + fees)  
+  - Network stats: BTC price, difficulty, hashrate, avg. fees  
+  - Payout monitoring & estimated payout time  
+  - Pool fee alerts with optimal range highlighting  
+  - Ocean.xyz API integration + scraper fallback  
+  - Low Hashrate Mode keeps charts visible during dips  
+
+- **🌍 Multi-Currency Support**  
+  - Choose from USD, EUR, GBP, JPY, CNY, BRL, and more  
+  - Real-time exchange rates  
+  - Persistent currency preferences  
+  - All earnings & notifications shown in your currency  
+
+- **👷 Worker Management**  
+  - Centralized fleet overview  
+  - Real-time online/offline status  
+  - Device-level hashrate, temp, and acceptance rate  
+  - Sort & filter by type or status  
+
+- **🔎 Bitcoin Block Explorer**  
+  - View latest blocks & transaction data  
+  - Details on fees, miner, and difficulty  
+  - Persistent block timer & seamless pagination  
+
+- **💰 Earnings Overview**  
+  - Daily, weekly, monthly breakdown  
+  - Live fiat conversion  
+  - Historical earnings archive  
+
+- **🛡️ System Resilience**  
+  - Auto reconnect on network loss  
+  - Polling fallback if live feed fails  
+  - Ocean API fallback for worker list  
+  - Syncs across browser tabs  
+  - Health watchdog & memory protection  
+  - Friendly error page with centralized handling  
+
+- **🖥️ Retro Meets Modern UI**  
+  - Terminal-style aesthetic with boot sequence  
+  - Floating system monitor  
+  - Responsive for mobile & desktop  
+  - Default **DeepSea** mode with ambient ocean audio  
+  - Live-editable Docker container layout  
+
+## 🌊 DeepSea Theme
+- Immersive underwater visuals with digital distortions   - Ambient audio with seamless crossfades   - Bitcoin theme cycles through custom audio tracks   - Audio control with volume slider & persistent playback   - Optional new block sound (block.mp3) support  
+## 💻 Secret Matrix Theme (Easter Egg)
+- Unlock with Konami Code + "MATRIX"   - Animated green matrix rain with rare word drops   - Mobile shortcut: tap card header 10x   - Boot shortcut: press "M" to enter Matrix mode   - Rotating falling characters with cinema-style fonts   - Matrix-themed audio with custom soundtrack  
+
+(This community project is not affiliated with OCEAN)

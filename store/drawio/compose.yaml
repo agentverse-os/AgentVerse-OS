@@ -1,0 +1,15 @@
+# drawio: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  drawio:
+    image: jgraph/drawio:31.3.2
+    networks:
+      appnet:
+        aliases:
+        - drawio_drawio_1
+    restart: unless-stopped
+    stdin_open: true
+    tty: true

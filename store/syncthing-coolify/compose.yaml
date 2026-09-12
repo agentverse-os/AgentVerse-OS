@@ -1,0 +1,48 @@
+# syncthing-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  syncthing:
+    environment:
+    - SERVICE_URL_SYNCTHING_8384=${SERVICE_URL_SYNCTHING_8384}
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-Etc/UTC}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:8384/
+      timeout: 20s
+    image: lscr.io/linuxserver/syncthing:latest
+    networks:
+      appnet:
+        aliases:
+        - syncthing-coolify_syncthing_1
+    restart: unless-stopped
+    volumes:
+    - syncthing_config:/config
+    - syncthing_data1:/data1
+    - syncthing_data2:/data2
+volumes:
+  syncthing_config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/syncthing_config
+      o: bind
+      type: none
+  syncthing_data1:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/syncthing_data1
+      o: bind
+      type: none
+  syncthing_data2:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/syncthing_data2
+      o: bind
+      type: none

@@ -1,0 +1,20 @@
+# 2fauth: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  2fauth:
+    environment:
+    - ASSET_URL=${APP_PROTOCOL:-http}://${APP_DOMAIN}
+    - APP_URL=${APP_PROTOCOL:-http}://${APP_DOMAIN}
+    - APP_KEY=${TWOFAUTH_APP_KEY}
+    - TRUSTED_PROXIES=172.18.0.0/16
+    image: 2fauth/2fauth:8.0.2
+    networks:
+      appnet:
+        aliases:
+        - 2fauth_2fauth_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/2fauth

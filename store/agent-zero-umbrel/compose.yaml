@@ -1,0 +1,23 @@
+# agent-zero-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+    - ALLOWED_ORIGINS=http://${DEVICE_DOMAIN_NAME}:${APP_AGENTZERO_PORT},http://${DEVICE_HOSTNAME}:${APP_AGENTZERO_PORT},${APP_AGENTZERO_LOCAL_URLS}
+    extra_hosts:
+    - host.docker.internal:host-gateway
+    image: agent0ai/agent-zero:v2.11@sha256:a38802ee1ddb83747836521931a99b8f6af000c586e1176478c533dcb08de8c4
+    networks:
+      appnet:
+        aliases:
+        - agent-zero_web_1
+    restart: on-failure
+    ulimits:
+      nofile:
+        hard: 65535
+        soft: 65535
+    volumes:
+    - ${APP_DATA_DIR}/data/usr:/a0/usr

@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/hello-world
+description: Hello World web server in under 2 MB
+endpoint:
+  port: 8000
+  service: hello-world
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: hello-world
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Hello World
+type: app
+upstream:
+  author: crccheck
+  categories:
+  - utilities
+  source: https://github.com/crccheck/docker-hello-world
+  tipi_version: 6
+  version: latest
+website: https://github.com/crccheck/docker-hello-world

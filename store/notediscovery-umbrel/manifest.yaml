@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/notediscovery-umbrel
+description: A lightweight, privacy-focused note-taking application
+endpoint:
+  port: 8000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/notediscovery/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/notediscovery/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/notediscovery/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/notediscovery/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/notediscovery/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/notediscovery/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: notediscovery-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: NoteDiscovery
+type: app
+upstream:
+  author: Guillermo Villar
+  categories:
+  - files
+  release_notes: |-
+    - Added archive downloads so folders or the whole vault can be downloaded as ZIP files.
+    - Improved share and export security by escaping wikilink targets, labels, and note titles in generated HTML.
+    - Logout now uses POST-only session handling to prevent forced logouts from simple GET requests.
+  source: https://github.com/gamosoft/NoteDiscovery
+  version: 0.31.4
+  website: https://www.notediscovery.com/
+website: https://www.notediscovery.com/

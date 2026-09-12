@@ -1,0 +1,19 @@
+# watch-your-lan-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      HOST: 0.0.0.0
+      IFACES: eth0 wlan0 enp1s0
+      PORT: '8840'
+      TZ: UTC
+    image: aceberg/watchyourlan:2.1.4@sha256:f77532ca7c3c9a4398cb094df7674013a3d7fcf4699386f1e456c24df6fef00e
+    init: true
+    network_mode: host
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/data/WatchYourLAN

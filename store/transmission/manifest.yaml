@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/transmission
+description: Fast, easy, and free BitTorrent client
+endpoint:
+  port: 9091
+  service: transmission
+env:
+  TRANSMISSION_PASSWORD:
+    generate: password
+  TRANSMISSION_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: TRANSMISSION_PASSWORD
+  path: null
+  user: TRANSMISSION_USERNAME
+name: transmission
+notes:
+- 'порт 51413→51413 (transmission) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TRANSMISSION_USERNAME
+  hint: null
+  label: Username
+  options: null
+  required: true
+  type: text
+- env: TRANSMISSION_PASSWORD
+  hint: null
+  label: Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Transmission
+type: app
+upstream:
+  author: Transmission Project
+  categories:
+  - utilities
+  source: https://github.com/transmission/transmission
+  tipi_version: 20
+  version: 4.1.3
+website: https://github.com/transmission/transmission

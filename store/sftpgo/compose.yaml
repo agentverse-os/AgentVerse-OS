@@ -1,0 +1,59 @@
+# sftpgo: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  sftpgo:
+    depends_on:
+      sftpgo-db:
+        condition: service_healthy
+    environment:
+      SFTPGO_DATA_PROVIDER__CREATE_DEFAULT_ADMIN: ${SFTPGO_CREATE_DEFAULT_ADMIN-1}
+      SFTPGO_DATA_PROVIDER__DRIVER: postgresql
+      SFTPGO_DATA_PROVIDER__HOST: sftpgo-db
+      SFTPGO_DATA_PROVIDER__NAME: sftpgo
+      SFTPGO_DATA_PROVIDER__PASSWORD: ${SFTPGO_DATABASE_PASSWORD-sftpgo}
+      SFTPGO_DATA_PROVIDER__PORT: '5432'
+      SFTPGO_DATA_PROVIDER__USERNAME: sftpgo
+      SFTPGO_DEFAULT_ADMIN_PASSWORD: ${SFTPGO_ADMIN_PASSWORD}
+      SFTPGO_DEFAULT_ADMIN_USERNAME: ${SFTPGO_ADMIN_USERNAME}
+      SFTPGO_GRACE_TIME: ${SFTPGO_GRACE_TIME-5}
+      SFTPGO_HTTPD__BINDINGS__0__PORT: ${SFTPGO_BINDING_PORT-8080}
+      SFTPGO_MINIO_SHA256_SIMD: '1'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 30s
+      test: wget --no-verbose --tries=1 --spider http://localhost:${SFTPGO_BINDING_PORT-8080}/healthz
+      timeout: 5s
+    image: drakkan/sftpgo:v2.7.5-alpine
+    networks:
+      appnet:
+        aliases:
+        - sftpgo_sftpgo_1
+    restart: unless-stopped
+    user: root
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/var/lib/sftpgo
+    - ${APP_DATA_DIR}/data/files:/srv/sftpgo/data
+    - ${APP_DATA_DIR}/data/backups:/srv/sftpgo/backups
+  sftpgo-db:
+    environment:
+      PGUSER: sftpgo
+      POSTGRES_DB: sftpgo
+      POSTGRES_PASSWORD: ${SFTPGO_DATABASE_PASSWORD-sftpgo}
+      POSTGRES_USER: sftpgo
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test: pg_isready -d sftpgo
+      timeout: 5s
+    image: postgres:17.2-alpine
+    networks:
+      appnet:
+        aliases:
+        - sftpgo_sftpgo-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/db:/var/lib/postgresql/data

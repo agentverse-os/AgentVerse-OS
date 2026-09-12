@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cheshire-cat-ai
+description: A production-ready AI framework to develop AI agents.
+endpoint:
+  port: 80
+  service: cheshire-cat-ai
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cheshire-cat-ai
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Cheshire Cat AI
+type: app
+upstream:
+  author: pieroit
+  categories:
+  - ai
+  source: https://github.com/cheshire-cat-ai/core
+  tipi_version: 14
+  version: 1.9.2
+website: https://github.com/cheshire-cat-ai/core

@@ -1,0 +1,424 @@
+# opnform-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  nginx-inline-1:
+    content: |
+      map $original_uri $api_uri {
+          ~^/api(/.*$) $1;
+          default $original_uri;
+      }
+
+      server {
+          listen 80 default_server;
+          root /usr/share/nginx/html/public;
+
+          access_log /dev/stdout;
+          error_log /dev/stderr error;
+
+          index index.html index.htm index.php;
+
+          location / {
+              proxy_http_version 1.1;
+              proxy_pass http://opnform-ui:3000;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-Host $host;
+              proxy_set_header X-Forwarded-Port $server_port;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "Upgrade";
+          }
+
+          location ~/(api|open|local\/temp|forms\/assets)/ {
+              set $original_uri $uri;
+              try_files $uri $uri/ /index.php$is_args$args;
+          }
+
+          location ~ \.php$ {
+              fastcgi_split_path_info ^(.+\.php)(/.+)$;
+              fastcgi_pass opnform-api:9000;
+              fastcgi_index index.php;
+              include fastcgi_params;
+              fastcgi_param SCRIPT_FILENAME /usr/share/nginx/html/public/index.php;
+              fastcgi_param REQUEST_URI $api_uri;
+          }
+      }
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  api-scheduler:
+    command:
+    - php
+    - artisan
+    - schedule:work
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<:
+        APP_DEBUG: ${APP_DEBUG:-false}
+        APP_ENV: production
+        APP_KEY: ${SERVICE_BASE64_APIKEY}
+        APP_NAME: OpnForm
+        APP_URL: ${SERVICE_URL_NGINX}
+        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+        AWS_BUCKET: ${AWS_BUCKET}
+        AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+        AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+        CACHE_DRIVER: redis
+        DB_CONNECTION: pgsql
+        DB_DATABASE: ${POSTGRESQL_DATABASE:-opnform}
+        DB_HOST: postgresql
+        DB_PASSWORD: ${SERVICE_PASSWORD_POSTGRESQL}
+        DB_USERNAME: ${SERVICE_USER_POSTGRESQL}
+        FILESYSTEM_DRIVER: ${FILESYSTEM_DRIVER:-local}
+        FRONT_API_SECRET: ${SERVICE_PASSWORD_FRONTAPISECRET}
+        FRONT_URL: ${SERVICE_URL_NGINX}
+        LOCAL_FILESYSTEM_VISIBILITY: public
+        LOG_CHANNEL: errorlog
+        LOG_LEVEL: ${LOG_LEVEL:-debug}
+        MAIL_ENCRYPTION: ${MAIL_ENCRYPTION}
+        MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-your@email.com}
+        MAIL_FROM_NAME: ${MAIL_FROM_NAME:-OpnForm}
+        MAIL_HOST: ${MAIL_HOST}
+        MAIL_MAILER: ${MAIL_MAILER:-log}
+        MAIL_PASSWORD: ${MAIL_PASSWORD}
+        MAIL_PORT: ${MAIL_PORT}
+        MAIL_USERNAME: ${MAIL_USERNAME:-your@email.com}
+        OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
+        PHP_MAX_EXECUTION_TIME: '600'
+        PHP_MEMORY_LIMIT: 1G
+        PHP_POST_MAX_SIZE: 64M
+        PHP_UPLOAD_MAX_FILESIZE: 64M
+        PUBLIC_UPLOADS_RATE_LIMIT_PER_HOUR: ${PUBLIC_UPLOADS_RATE_LIMIT_PER_HOUR:-300}
+        PUBLIC_UPLOADS_RATE_LIMIT_PER_MINUTE: ${PUBLIC_UPLOADS_RATE_LIMIT_PER_MINUTE:-30}
+        QUEUE_CONNECTION: redis
+        REDIS_HOST: redis
+        REDIS_PASSWORD: ${SERVICE_PASSWORD_64_REDIS}
+        SESSION_DRIVER: redis
+        SESSION_LIFETIME: 120
+        TELEGRAM_BOT_ID: ${TELEGRAM_BOT_ID}
+        TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    healthcheck:
+      interval: 60s
+      retries: 3
+      start_period: 70s
+      test:
+      - CMD-SHELL
+      - php /usr/share/nginx/html/artisan app:scheduler-status --mode=check --max-minutes=3 || exit 1
+      timeout: 30s
+    image: jhumanj/opnform-api:2.2.4
+    networks:
+      appnet:
+        aliases:
+        - opnform-coolify_api-scheduler_1
+    restart: unless-stopped
+    volumes:
+    - api-storage:/usr/share/nginx/html/storage
+  api-worker:
+    command:
+    - php
+    - artisan
+    - queue:work
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<:
+        APP_DEBUG: ${APP_DEBUG:-false}
+        APP_ENV: production
+        APP_KEY: ${SERVICE_BASE64_APIKEY}
+        APP_NAME: OpnForm
+        APP_URL: ${SERVICE_URL_NGINX}
+        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+        AWS_BUCKET: ${AWS_BUCKET}
+        AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+        AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+        CACHE_DRIVER: redis
+        DB_CONNECTION: pgsql
+        DB_DATABASE: ${POSTGRESQL_DATABASE:-opnform}
+        DB_HOST: postgresql
+        DB_PASSWORD: ${SERVICE_PASSWORD_POSTGRESQL}
+        DB_USERNAME: ${SERVICE_USER_POSTGRESQL}
+        FILESYSTEM_DRIVER: ${FILESYSTEM_DRIVER:-local}
+        FRONT_API_SECRET: ${SERVICE_PASSWORD_FRONTAPISECRET}
+        FRONT_URL: ${SERVICE_URL_NGINX}
+        LOCAL_FILESYSTEM_VISIBILITY: public
+        LOG_CHANNEL: errorlog
+        LOG_LEVEL: ${LOG_LEVEL:-debug}
+        MAIL_ENCRYPTION: ${MAIL_ENCRYPTION}
+        MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-your@email.com}
+        MAIL_FROM_NAME: ${MAIL_FROM_NAME:-OpnForm}
+        MAIL_HOST: ${MAIL_HOST}
+        MAIL_MAILER: ${MAIL_MAILER:-log}
+        MAIL_PASSWORD: ${MAIL_PASSWORD}
+        MAIL_PORT: ${MAIL_PORT}
+        MAIL_USERNAME: ${MAIL_USERNAME:-your@email.com}
+        OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
+        PHP_MAX_EXECUTION_TIME: '600'
+        PHP_MEMORY_LIMIT: 1G
+        PHP_POST_MAX_SIZE: 64M
+        PHP_UPLOAD_MAX_FILESIZE: 64M
+        PUBLIC_UPLOADS_RATE_LIMIT_PER_HOUR: ${PUBLIC_UPLOADS_RATE_LIMIT_PER_HOUR:-300}
+        PUBLIC_UPLOADS_RATE_LIMIT_PER_MINUTE: ${PUBLIC_UPLOADS_RATE_LIMIT_PER_MINUTE:-30}
+        QUEUE_CONNECTION: redis
+        REDIS_HOST: redis
+        REDIS_PASSWORD: ${SERVICE_PASSWORD_64_REDIS}
+        SESSION_DRIVER: redis
+        SESSION_LIFETIME: 120
+        TELEGRAM_BOT_ID: ${TELEGRAM_BOT_ID}
+        TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    healthcheck:
+      interval: 60s
+      retries: 3
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - pgrep -f 'php artisan queue:work' > /dev/null || exit 1
+      timeout: 10s
+    image: jhumanj/opnform-api:2.2.4
+    networks:
+      appnet:
+        aliases:
+        - opnform-coolify_api-worker_1
+    restart: unless-stopped
+    volumes:
+    - api-storage:/usr/share/nginx/html/storage
+  nginx:
+    configs:
+    - source: nginx-inline-1
+      target: /etc/nginx/conf.d/default.conf
+    depends_on:
+    - opnform-api
+    - opnform-ui
+    environment:
+    - SERVICE_URL_NGINX=${SERVICE_URL_NGINX}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - nginx
+      - -t
+      timeout: 10s
+    image: nginx:1.31.3
+    networks:
+      appnet:
+        aliases:
+        - opnform-coolify_nginx_1
+    restart: unless-stopped
+    volumes: []
+  opnform-api:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<:
+        APP_DEBUG: ${APP_DEBUG:-false}
+        APP_ENV: production
+        APP_KEY: ${SERVICE_BASE64_APIKEY}
+        APP_NAME: OpnForm
+        APP_URL: ${SERVICE_URL_NGINX}
+        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+        AWS_BUCKET: ${AWS_BUCKET}
+        AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+        AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+        CACHE_DRIVER: redis
+        DB_CONNECTION: pgsql
+        DB_DATABASE: ${POSTGRESQL_DATABASE:-opnform}
+        DB_HOST: postgresql
+        DB_PASSWORD: ${SERVICE_PASSWORD_POSTGRESQL}
+        DB_USERNAME: ${SERVICE_USER_POSTGRESQL}
+        FILESYSTEM_DRIVER: ${FILESYSTEM_DRIVER:-local}
+        FRONT_API_SECRET: ${SERVICE_PASSWORD_FRONTAPISECRET}
+        FRONT_URL: ${SERVICE_URL_NGINX}
+        LOCAL_FILESYSTEM_VISIBILITY: public
+        LOG_CHANNEL: errorlog
+        LOG_LEVEL: ${LOG_LEVEL:-debug}
+        MAIL_ENCRYPTION: ${MAIL_ENCRYPTION}
+        MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-your@email.com}
+        MAIL_FROM_NAME: ${MAIL_FROM_NAME:-OpnForm}
+        MAIL_HOST: ${MAIL_HOST}
+        MAIL_MAILER: ${MAIL_MAILER:-log}
+        MAIL_PASSWORD: ${MAIL_PASSWORD}
+        MAIL_PORT: ${MAIL_PORT}
+        MAIL_USERNAME: ${MAIL_USERNAME:-your@email.com}
+        OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
+        PHP_MAX_EXECUTION_TIME: '600'
+        PHP_MEMORY_LIMIT: 1G
+        PHP_POST_MAX_SIZE: 64M
+        PHP_UPLOAD_MAX_FILESIZE: 64M
+        PUBLIC_UPLOADS_RATE_LIMIT_PER_HOUR: ${PUBLIC_UPLOADS_RATE_LIMIT_PER_HOUR:-300}
+        PUBLIC_UPLOADS_RATE_LIMIT_PER_MINUTE: ${PUBLIC_UPLOADS_RATE_LIMIT_PER_MINUTE:-30}
+        QUEUE_CONNECTION: redis
+        REDIS_HOST: redis
+        REDIS_PASSWORD: ${SERVICE_PASSWORD_64_REDIS}
+        SESSION_DRIVER: redis
+        SESSION_LIFETIME: 120
+        TELEGRAM_BOT_ID: ${TELEGRAM_BOT_ID}
+        TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      H_CAPTCHA_SECRET_KEY: ${H_CAPTCHA_SECRET_KEY}
+      H_CAPTCHA_SITE_KEY: ${H_CAPTCHA_SITE_KEY}
+      JWT_SECRET: ${SERVICE_PASSWORD_JWTSECRET}
+      JWT_SKIP_IP_UA_VALIDATION: ${JWT_SKIP_IP_UA_VALIDATION:-false}
+      JWT_TTL: ${JWT_TTL:-1440}
+      RE_CAPTCHA_SECRET_KEY: ${RE_CAPTCHA_SECRET_KEY}
+      RE_CAPTCHA_SITE_KEY: ${RE_CAPTCHA_SITE_KEY}
+      SHOW_OFFICIAL_TEMPLATES: ${SHOW_OFFICIAL_TEMPLATES:-true}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 60s
+      test:
+      - CMD-SHELL
+      - php /usr/share/nginx/html/artisan about || exit 1
+      timeout: 15s
+    image: jhumanj/opnform-api:2.2.4
+    networks:
+      appnet:
+        aliases:
+        - opnform-coolify_opnform-api_1
+    restart: unless-stopped
+    volumes:
+    - api-storage:/usr/share/nginx/html/storage
+  opnform-ui:
+    depends_on:
+      opnform-api:
+        condition: service_healthy
+    environment:
+    - NUXT_PUBLIC_APP_URL=/
+    - NUXT_PUBLIC_API_BASE=/api
+    - NUXT_PRIVATE_API_BASE=http://nginx/api
+    - NUXT_PUBLIC_ENV=production
+    - NUXT_PUBLIC_H_CAPTCHA_SITE_KEY=${H_CAPTCHA_SITE_KEY}
+    - NUXT_PUBLIC_RE_CAPTCHA_SITE_KEY=${RE_CAPTCHA_SITE_KEY}
+    - NUXT_API_SECRET=${SERVICE_PASSWORD_FRONTAPISECRET}
+    - NUXT_PUBLIC_LICENSE_API_ENDPOINT=${NUXT_PUBLIC_LICENSE_API_ENDPOINT:-https://api.opnform.com}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 45s
+      test:
+      - CMD-SHELL
+      - wget --spider -q http://opnform-ui:3000/login || exit 1
+      timeout: 10s
+    image: jhumanj/opnform-client:2.2.4
+    networks:
+      appnet:
+        aliases:
+        - opnform-coolify_opnform-ui_1
+    restart: unless-stopped
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-opnform}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:18
+    networks:
+      appnet:
+        aliases:
+        - opnform-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - opnform-postgresql-data:/var/lib/postgresql
+  redis:
+    command:
+    - redis-server
+    - --requirepass
+    - ${SERVICE_PASSWORD_64_REDIS}
+    environment:
+    - REDIS_PASSWORD=${SERVICE_PASSWORD_64_REDIS}
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+      - CMD
+      - redis-cli
+      - -a
+      - ${SERVICE_PASSWORD_64_REDIS}
+      - PING
+      timeout: 30s
+    image: redis:7
+    networks:
+      appnet:
+        aliases:
+        - opnform-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - redis-data:/data
+volumes:
+  api-storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/api-storage
+      o: bind
+      type: none
+  opnform-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/opnform-postgresql-data
+      o: bind
+      type: none
+  redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis-data
+      o: bind
+      type: none
+x-shared-env:
+  APP_DEBUG: ${APP_DEBUG:-false}
+  APP_ENV: production
+  APP_KEY: ${SERVICE_BASE64_APIKEY}
+  APP_NAME: OpnForm
+  APP_URL: ${SERVICE_URL_NGINX}
+  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+  AWS_BUCKET: ${AWS_BUCKET}
+  AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+  CACHE_DRIVER: redis
+  DB_CONNECTION: pgsql
+  DB_DATABASE: ${POSTGRESQL_DATABASE:-opnform}
+  DB_HOST: postgresql
+  DB_PASSWORD: ${SERVICE_PASSWORD_POSTGRESQL}
+  DB_USERNAME: ${SERVICE_USER_POSTGRESQL}
+  FILESYSTEM_DRIVER: ${FILESYSTEM_DRIVER:-local}
+  FRONT_API_SECRET: ${SERVICE_PASSWORD_FRONTAPISECRET}
+  FRONT_URL: ${SERVICE_URL_NGINX}
+  LOCAL_FILESYSTEM_VISIBILITY: public
+  LOG_CHANNEL: errorlog
+  LOG_LEVEL: ${LOG_LEVEL:-debug}
+  MAIL_ENCRYPTION: ${MAIL_ENCRYPTION}
+  MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-your@email.com}
+  MAIL_FROM_NAME: ${MAIL_FROM_NAME:-OpnForm}
+  MAIL_HOST: ${MAIL_HOST}
+  MAIL_MAILER: ${MAIL_MAILER:-log}
+  MAIL_PASSWORD: ${MAIL_PASSWORD}
+  MAIL_PORT: ${MAIL_PORT}
+  MAIL_USERNAME: ${MAIL_USERNAME:-your@email.com}
+  OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
+  PHP_MAX_EXECUTION_TIME: '600'
+  PHP_MEMORY_LIMIT: 1G
+  PHP_POST_MAX_SIZE: 64M
+  PHP_UPLOAD_MAX_FILESIZE: 64M
+  PUBLIC_UPLOADS_RATE_LIMIT_PER_HOUR: ${PUBLIC_UPLOADS_RATE_LIMIT_PER_HOUR:-300}
+  PUBLIC_UPLOADS_RATE_LIMIT_PER_MINUTE: ${PUBLIC_UPLOADS_RATE_LIMIT_PER_MINUTE:-30}
+  QUEUE_CONNECTION: redis
+  REDIS_HOST: redis
+  REDIS_PASSWORD: ${SERVICE_PASSWORD_64_REDIS}
+  SESSION_DRIVER: redis
+  SESSION_LIFETIME: 120
+  TELEGRAM_BOT_ID: ${TELEGRAM_BOT_ID}
+  TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}

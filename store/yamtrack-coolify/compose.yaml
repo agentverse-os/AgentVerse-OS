@@ -1,0 +1,62 @@
+# yamtrack-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 20s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - yamtrack-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - yamtrack_redis_data:/data
+  yamtrack:
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_YAMTRACK_8000=${SERVICE_URL_YAMTRACK_8000}
+    - URLS=${SERVICE_URL_YAMTRACK}
+    - TZ=${TZ:-Europe/Berlin}
+    - SECRET=${SERVICE_PASSWORD_SECRET}
+    - REGISTRATION=${REGISTRATION_ENABLED:-true}
+    - REDIS_URL=redis://redis:6379
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget --quiet --tries=1 --spider http://127.0.0.1:8000/health/ || exit 1
+      timeout: 20s
+    image: ghcr.io/fuzzygrim/yamtrack
+    networks:
+      appnet:
+        aliases:
+        - yamtrack-coolify_yamtrack_1
+    restart: unless-stopped
+    volumes:
+    - yamtrack_data:/yamtrack/db
+volumes:
+  yamtrack_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/yamtrack_data
+      o: bind
+      type: none
+  yamtrack_redis_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/yamtrack_redis_data
+      o: bind
+      type: none

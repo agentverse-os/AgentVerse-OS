@@ -1,0 +1,94 @@
+# affine-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: affine
+      POSTGRES_PASSWORD: affine
+      POSTGRES_USER: affine
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U affine
+      timeout: 5s
+    image: postgres:16.2@sha256:f58300ac8d393b2e3b09d36ea12d7d24ee9440440e421472a300e929ddb63460
+    networks:
+      appnet:
+        aliases:
+        - affine_db_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/storage/postgres:/var/lib/postgresql/data
+  migration:
+    command:
+    - sh
+    - -c
+    - node ./scripts/self-host-predeploy.js
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - AFFINE_CONFIG_PATH=/root/.affine/config
+    - REDIS_SERVER_HOST=affine_redis_1
+    - DATABASE_URL=postgres://affine:affine@affine_db_1:5432/affine
+    - AFFINE_INDEXER_ENABLED=false
+    - NODE_ENV=production
+    image: ghcr.io/toeverything/affine:0.27.4@sha256:b649f5ce2384ffdf13c23bccf81d759e15973d59d0b0058af65d895a84373099
+    networks:
+      appnet:
+        aliases:
+        - affine_migration_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/root/.affine/config
+    - ${APP_DATA_DIR}/data/storage/blob:/root/.affine/storage
+  redis:
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - redis-cli
+      - --raw
+      - incr
+      - ping
+      timeout: 5s
+    image: redis:7.2.4@sha256:e647cfe134bf5e8e74e620f66346f93418acfc240b71dd85640325cb7cd01402
+    networks:
+      appnet:
+        aliases:
+        - affine_redis_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/storage/redis:/data
+  web:
+    depends_on:
+      db:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    environment:
+    - AFFINE_CONFIG_PATH=/root/.affine/config
+    - REDIS_SERVER_HOST=affine_redis_1
+    - DATABASE_URL=postgres://affine:affine@affine_db_1:5432/affine
+    - AFFINE_INDEXER_ENABLED=false
+    - NODE_ENV=production
+    image: ghcr.io/toeverything/affine:0.27.4@sha256:b649f5ce2384ffdf13c23bccf81d759e15973d59d0b0058af65d895a84373099
+    networks:
+      appnet:
+        aliases:
+        - affine_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/root/.affine/config
+    - ${APP_DATA_DIR}/data/storage/blob:/root/.affine/storage

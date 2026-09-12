@@ -1,0 +1,110 @@
+# homepage-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  homepage-inline-1:
+    content: |
+      ---
+      # For configuration options and examples, please see:
+      # https://gethomepage.dev/configs/bookmarks
+
+      - Developer:
+          - Github:
+              - abbr: GH
+                href: https://github.com/
+
+      - Social:
+          - Reddit:
+              - abbr: RE
+                href: https://reddit.com/
+
+      - Entertainment:
+          - YouTube:
+              - abbr: YT
+                href: https://youtube.com/
+  homepage-inline-2:
+    content: ''
+  homepage-inline-3:
+    content: ''
+  homepage-inline-4:
+    content: |
+      ---
+      # sample kubernetes config
+  homepage-inline-5:
+    content: |
+      ---
+      # For configuration options and examples, please see:
+      # https://gethomepage.dev/configs/services
+
+      - My First Group:
+          - My First Service:
+              href: http://localhost/
+              description: Homepage is awesome
+
+      - My Second Group:
+          - My Second Service:
+              href: http://localhost/
+              description: Homepage is the best
+
+      - My Third Group:
+          - My Third Service:
+              href: http://localhost/
+              description: Homepage is 😎
+  homepage-inline-6:
+    content: |
+      ---
+      # For configuration options and examples, please see:
+      # https://gethomepage.dev/configs/settings
+
+      providers:
+        openweathermap: openweathermapapikey
+        weatherapi: weatherapiapikey
+  homepage-inline-7:
+    content: |
+      ---
+      # For configuration options and examples, please see:
+      # https://gethomepage.dev/widgets/services
+
+      - resources:
+          cpu: true
+          memory: true
+          disk: /
+
+      - search:
+          provider: duckduckgo
+          target: _blank
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  homepage:
+    configs:
+    - source: homepage-inline-1
+      target: /app/config/bookmarks.yaml
+    - source: homepage-inline-2
+      target: /app/config/custom.css
+    - source: homepage-inline-3
+      target: /app/config/custom.js
+    - source: homepage-inline-4
+      target: /app/config/kubernetes.yaml
+    - source: homepage-inline-5
+      target: /app/config/services.yaml
+    - source: homepage-inline-6
+      target: /app/config/settings.yaml
+    - source: homepage-inline-7
+      target: /app/config/widgets.yaml
+    environment:
+    - SERVICE_URL_HOMEPAGE_3000=${SERVICE_URL_HOMEPAGE_3000}
+    - HOMEPAGE_VAR_BASE=${SERVICE_URL_HOMEPAGE}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    image: ghcr.io/gethomepage/homepage:latest
+    networks:
+      appnet:
+        aliases:
+        - homepage-coolify_homepage_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - ./images:/app/public/images

@@ -1,0 +1,92 @@
+# kuzzle-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  elasticsearch:
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:9200
+      timeout: 2s
+    image: kuzzleio/elasticsearch:7
+    networks:
+      appnet:
+        aliases:
+        - kuzzle-coolify_elasticsearch_1
+    restart: unless-stopped
+    ulimits:
+      nofile: 65536
+  kuzzle:
+    cap_add:
+    - SYS_PTRACE
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_KUZZLE_7512=${SERVICE_URL_KUZZLE_7512}
+    - kuzzle_services__storageEngine__client__node=http://elasticsearch:9200
+    - kuzzle_services__storageEngine__commonMapping__dynamic=true
+    - kuzzle_services__internalCache__node__host=redis
+    - kuzzle_services__memoryStorage__node__host=redis
+    - kuzzle_server__protocols__mqtt__enabled=true
+    - kuzzle_server__protocols__mqtt__developmentMode=false
+    - kuzzle_limits__loginsPerSecond=50
+    - NODE_ENV=production
+    - DEBUG=${DEBUG:-kuzzle:cluster:sync}
+    - DEBUG_DEPTH=${DEBUG_DEPTH:-0}
+    - DEBUG_MAX_ARRAY_LENGTH=${DEBUG_MAX_ARRAY:-100}
+    - DEBUG_EXPAND=${DEBUG_EXPAND:-off}
+    - DEBUG_SHOW_HIDDEN={$DEBUG_SHOW_HIDDEN:-on}
+    - DEBUG_COLORS=${DEBUG_COLORS:-on}
+    healthcheck:
+      interval: 2s
+      retries: 30
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:7512/_healthcheck
+      timeout: 1s
+    image: kuzzleio/kuzzle:latest
+    networks:
+      appnet:
+        aliases:
+        - kuzzle-coolify_kuzzle_1
+    restart: unless-stopped
+    sysctls:
+    - net.core.somaxconn=8192
+    ulimits:
+      nofile: 65536
+  redis:
+    command: redis-server --appendonly yes
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 20s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - kuzzle-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - elastic-redis-data:/data
+volumes:
+  elastic-redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/elastic-redis-data
+      o: bind
+      type: none

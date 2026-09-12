@@ -1,0 +1,85 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/superset-with-postgresql-coolify
+description: Modern data exploration and visualization platform (unofficial community docker image)
+endpoint:
+  port: 8088
+  service: superset
+env:
+  MAPBOX_API_KEY: ''
+  POSTGRES_DB: superset-db
+  POSTGRES_USER: ''
+  SERVICE_BASE64_64_SUPERSETSECRETKEY:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_URL_SUPERSET_8088: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: superset-with-postgresql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MAPBOX_API_KEY
+  hint: null
+  label: mapbox api key
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_DB
+  hint: 'по умолчанию: superset-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- analytics
+- bi
+- dashboard
+- database
+- sql
+- unofficial
+title: Superset With Postgresql
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://github.com/amancevice/docker-superset
+  tags:
+  - analytics
+  - bi
+  - dashboard
+  - database
+  - sql
+  - unofficial
+  template: superset-with-postgresql.yaml
+website: https://github.com/amancevice/docker-superset

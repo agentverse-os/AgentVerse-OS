@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kimai-umbrel
+description: Time tracking for project-driven teams
+endpoint:
+  port: 8001
+  service: app
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/kimai/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kimai/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kimai/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/kimai/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: changeme
+  path: null
+  user: umbrel@umbrel.local
+name: kimai-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Kimai
+type: app
+upstream:
+  author: Kevin Papst
+  categories:
+  - files
+  release_notes: |-
+    This update includes security hardening for activity/team permissions in timesheet listings and team management API routes.
+
+    Other improvements include:
+      - Improved timesheet list performance by pre-fetching team information
+      - Improved the default team creation flow
+      - Added Serbian translations and updated other translations
+      - Dependency and maintenance updates
+
+
+    For full release notes, visit https://github.com/kimai/kimai/releases/tag/2.65.0
+  source: https://github.com/kimai/kimai
+  version: 2.65.0
+  website: https://www.kimai.org/
+website: https://www.kimai.org/

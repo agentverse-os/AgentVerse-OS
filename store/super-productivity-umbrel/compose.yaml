@@ -1,0 +1,13 @@
+# super-productivity-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: johannesjo/super-productivity:v18.21.2@sha256:7bf1dc87be356bb049c03782b62aa81f7ebc49a064bb4ae3934da868e05b3840
+    networks:
+      appnet:
+        aliases:
+        - super-productivity_web_1
+    restart: on-failure

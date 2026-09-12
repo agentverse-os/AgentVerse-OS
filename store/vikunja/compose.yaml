@@ -1,0 +1,44 @@
+# vikunja: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  vikunja:
+    depends_on:
+      vikunja-db:
+        condition: service_healthy
+    environment:
+      VIKUNJA_DATABASE_DATABASE: vikunja
+      VIKUNJA_DATABASE_HOST: vikunja-db
+      VIKUNJA_DATABASE_PASSWORD: ${VIKUNJA_DB_PASSWORD}
+      VIKUNJA_DATABASE_TYPE: postgres
+      VIKUNJA_DATABASE_USER: tipi
+      VIKUNJA_SERVICE_JWTSECRET: ${VIKUNJA_SERVICE_SECRET}
+      VIKUNJA_SERVICE_PUBLICURL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}/
+    image: vikunja/vikunja:2.5.0
+    networks:
+      appnet:
+        aliases:
+        - vikunja_vikunja_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/files:/app/vikunja/files
+  vikunja-db:
+    environment:
+      POSTGRES_DB: vikunja
+      POSTGRES_PASSWORD: ${VIKUNJA_DB_PASSWORD}
+      POSTGRES_USER: tipi
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test: pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+      timeout: 5s
+    image: postgres:14
+    networks:
+      appnet:
+        aliases:
+        - vikunja_vikunja-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data

@@ -1,0 +1,36 @@
+# umami-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+    - db
+    environment:
+      APP_SECRET: ${APP_SEED}
+      DATABASE_TYPE: postgresql
+      DATABASE_URL: postgresql://umami:umami@umami_db_1:5432/umami
+      TWO_FACTOR_ENCRYPTION_KEY: ${APP_SEED}
+    image: ghcr.io/umami-software/umami:3.3.1@sha256:fa32d116cf20cad52cbc3fad9a63b46e7fa02299d8f967168eb453d49c476b4a
+    networks:
+      appnet:
+        aliases:
+        - umami_app_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1001:1001
+  db:
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_PASSWORD: umami
+      POSTGRES_USER: umami
+    image: postgres:15-alpine@sha256:8a8d55343d6fc456cb183453e3094ff140b984157b36b48f817dd581654f2aec
+    networks:
+      appnet:
+        aliases:
+        - umami_db_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data

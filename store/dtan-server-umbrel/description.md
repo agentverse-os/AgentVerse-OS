@@ -1,0 +1,2 @@
+DTAN Server is a specialized nostr relay for NIP-35 torrents. It combines a Nostr relay with DHT-based peer discovery to enable decentralized torrent distribution through the Nostr network.
+The server acts as both a Nostr relay for torrent metadata and a tracker for peer discovery using DHT. It includes a web UI built with DTAN for managing torrents and monitoring the relay.

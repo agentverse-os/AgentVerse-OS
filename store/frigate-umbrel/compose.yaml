@@ -1,0 +1,21 @@
+# frigate-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      FRIGATE_RTSP_PASSWORD: ${APP_PASSWORD}
+    image: ghcr.io/blakeblackshear/frigate:0.17.2@sha256:d4351369984d4a9e2a49ac59736f6490856a7ea11f7790040746d21496967010
+    networks:
+      appnet:
+        aliases:
+        - frigate_web_1
+    privileged: true
+    restart: on-failure
+    shm_size: 128mb
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${APP_DATA_DIR}/data/storage:/media/frigate

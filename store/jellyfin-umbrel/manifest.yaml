@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/jellyfin-umbrel
+description: The Free Software Media System
+endpoint:
+  port: 8096
+  service: server
+env:
+  DEVICE_HOSTNAME: ${EDGE_HOST}
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/jellyfin/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jellyfin/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jellyfin/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/jellyfin/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: jellyfin-umbrel
+notes:
+- 'порт 7359:7359/udp (server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Jellyfin
+type: app
+upstream:
+  author: Jellyfin
+  categories:
+  - media
+  release_notes: |-
+    This bugfix release improves Jellyfin server reliability.
+
+    Key improvements in this release:
+      - Improved user management reliability by adding locking around UserManager operations
+
+
+    Full release notes can be found at https://github.com/jellyfin/jellyfin/releases/tag/v10.11.11
+  source: https://github.com/jellyfin/jellyfin
+  version: 10.11.11
+  website: https://jellyfin.org/
+website: https://jellyfin.org/

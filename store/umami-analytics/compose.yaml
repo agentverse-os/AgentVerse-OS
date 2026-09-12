@@ -1,0 +1,37 @@
+# umami-analytics: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  umami-analytics:
+    depends_on:
+      umami-analytics-db:
+        condition: service_healthy
+    environment:
+      APP_SECRET: ${UMAMI_ANALYTICS_APP_SECRET}
+      DATABASE_TYPE: postgresql
+      DATABASE_URL: postgresql://umami:${UMAMI_ANALYTICS_DB_PASSWORD}@umami-analytics-db:5432/umami-analytics-db
+    image: ghcr.io/umami-software/umami:3.3.1
+    networks:
+      appnet:
+        aliases:
+        - umami-analytics_umami-analytics_1
+    restart: unless-stopped
+  umami-analytics-db:
+    environment:
+      POSTGRES_DB: umami-analytics-db
+      POSTGRES_PASSWORD: ${UMAMI_ANALYTICS_DB_PASSWORD}
+      POSTGRES_USER: umami
+    healthcheck:
+      retries: 3
+      test: pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+    image: postgres:15-alpine
+    networks:
+      appnet:
+        aliases:
+        - umami-analytics_umami-analytics-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data

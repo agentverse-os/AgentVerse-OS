@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pinchflat
+description: Your next YouTube media manager
+endpoint:
+  port: 8945
+  service: pinchflat
+env:
+  PINCHFLAT_BASIC_AUTH_PASSWORD:
+    generate: password
+  PINCHFLAT_BASIC_AUTH_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: PINCHFLAT_BASIC_AUTH_PASSWORD
+  path: null
+  user: PINCHFLAT_BASIC_AUTH_USERNAME
+name: pinchflat
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PINCHFLAT_BASIC_AUTH_USERNAME
+  hint: if not set, no basic auth is used
+  label: Basic Auth Username
+  options: null
+  required: false
+  type: text
+- env: PINCHFLAT_BASIC_AUTH_PASSWORD
+  hint: if not set, no basic auth is used
+  label: Basic Auth Password
+  options: null
+  required: false
+  type: password
+tags: []
+title: Pinchflat
+type: app
+upstream:
+  author: Kieran Eglin
+  categories:
+  - media
+  source: https://github.com/kieraneglin/pinchflat
+  tipi_version: 29
+  version: v2025.6.6
+website: https://github.com/kieraneglin/pinchflat

@@ -1,0 +1,230 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/grist-coolify
+description: Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database.
+endpoint:
+  port: 8484
+  service: grist
+env:
+  ALLOWED_WEBHOOK_DOMAINS: ''
+  COMMENTS: 'true'
+  CONTACT_SUPPORT_URL: ''
+  COOKIE_MAX_AGE: '86400000'
+  DEFAULT_EMAIL: '?'
+  FORCE_LOGIN: 'true'
+  FREE_COACHING_CALL_URL: ''
+  HIDE_UI_ELEMENTS: billing,sendToDrive,supportGrist,multiAccounts,tutorials
+  HOME_INCLUDE_STATIC: 'true'
+  OIDC_IDP_SCOPES: openid profile email
+  OIDC_IDP_SKIP_END_SESSION_ENDPOINT: 'false'
+  ORG_IN_PATH: 'true'
+  PAGE_TITLE_SUFFIX: ' - Suffix'
+  POSTGRES_DATABASE: grist-db
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  REDIS_URL: redis://redis:6379
+  SANDBOX_FLAVOR: gvisor
+  SERVICE_FQDN_GRIST: ${APP_DOMAIN}
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_REALBASE64_128:
+    generate: hex64
+  SERVICE_URL_GRIST: https://${APP_DOMAIN}
+  SERVICE_URL_GRIST_8484: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SUPPORT_ANON: 'false'
+  TYPEORM_HOST: postgres
+  TYPEORM_LOGGING: 'false'
+  TYPEORM_PORT: '5432'
+  TYPEORM_TYPE: postgres
+  UI_FEATURES: helpCenter,billing,templates,createSite,multiSite,sendToDrive,tutorials,supportGrist
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: FORCE_LOGIN
+name: grist-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SUPPORT_ANON
+  hint: 'по умолчанию: false'
+  label: support anon
+  options: null
+  required: false
+  type: text
+- env: FORCE_LOGIN
+  hint: 'по умолчанию: true'
+  label: force login
+  options: null
+  required: false
+  type: text
+- env: COOKIE_MAX_AGE
+  hint: 'по умолчанию: 86400000'
+  label: cookie max age
+  options: null
+  required: false
+  type: text
+- env: PAGE_TITLE_SUFFIX
+  hint: 'по умолчанию:  - Suffix'
+  label: page title suffix
+  options: null
+  required: false
+  type: text
+- env: HIDE_UI_ELEMENTS
+  hint: 'по умолчанию: billing,sendToDrive,supportGrist,multiAccounts,tutorials'
+  label: hide ui elements
+  options: null
+  required: false
+  type: text
+- env: UI_FEATURES
+  hint: 'по умолчанию: helpCenter,billing,templates,createSite,multiSite,sendToDrive,tutorials,supportGrist'
+  label: ui features
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_EMAIL
+  hint: 'по умолчанию: ?'
+  label: default email
+  options: null
+  required: false
+  type: text
+- env: ORG_IN_PATH
+  hint: 'по умолчанию: true'
+  label: org in path
+  options: null
+  required: false
+  type: text
+- env: OIDC_IDP_SCOPES
+  hint: 'по умолчанию: openid profile email'
+  label: oidc idp scopes
+  options: null
+  required: false
+  type: text
+- env: OIDC_IDP_SKIP_END_SESSION_ENDPOINT
+  hint: 'по умолчанию: false'
+  label: oidc idp skip end session endpoint
+  options: null
+  required: false
+  type: text
+- env: HOME_INCLUDE_STATIC
+  hint: 'по умолчанию: true'
+  label: home include static
+  options: null
+  required: false
+  type: text
+- env: SANDBOX_FLAVOR
+  hint: 'по умолчанию: gvisor'
+  label: sandbox flavor
+  options: null
+  required: false
+  type: text
+- env: ALLOWED_WEBHOOK_DOMAINS
+  hint: null
+  label: allowed webhook domains
+  options: null
+  required: false
+  type: text
+- env: COMMENTS
+  hint: 'по умолчанию: true'
+  label: comments
+  options: null
+  required: false
+  type: text
+- env: TYPEORM_TYPE
+  hint: 'по умолчанию: postgres'
+  label: typeorm type
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DATABASE
+  hint: 'по умолчанию: grist-db'
+  label: postgres database
+  options: null
+  required: false
+  type: text
+- env: TYPEORM_HOST
+  hint: 'по умолчанию: postgres'
+  label: typeorm host
+  options: null
+  required: false
+  type: text
+- env: TYPEORM_PORT
+  hint: 'по умолчанию: 5432'
+  label: typeorm port
+  options: null
+  required: false
+  type: text
+- env: TYPEORM_LOGGING
+  hint: 'по умолчанию: false'
+  label: typeorm logging
+  options: null
+  required: false
+  type: text
+- env: REDIS_URL
+  hint: 'по умолчанию: redis://redis:6379'
+  label: redis url
+  options: null
+  required: false
+  type: text
+- env: FREE_COACHING_CALL_URL
+  hint: null
+  label: free coaching call url
+  options: null
+  required: false
+  type: text
+- env: CONTACT_SUPPORT_URL
+  hint: null
+  label: contact support url
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- lowcode
+- nocode
+- spreadsheet
+- database
+- relational
+title: Grist
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://support.getgrist.com/
+  tags:
+  - lowcode
+  - nocode
+  - spreadsheet
+  - database
+  - relational
+  template: grist.yaml
+website: https://support.getgrist.com/

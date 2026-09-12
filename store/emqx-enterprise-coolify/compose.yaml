@@ -1,0 +1,42 @@
+# emqx-enterprise-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  emqx:
+    environment:
+    - SERVICE_URL_EMQX_18083=${SERVICE_URL_EMQX_18083}
+    - EMQX_DASHBOARD__DEFAULT_PASSWORD=${SERVICE_PASSWORD_EMQX}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      test:
+      - CMD
+      - /opt/emqx/bin/emqx
+      - ctl
+      - status
+      timeout: 30s
+    image: emqx/emqx-enterprise:6.2.0
+    networks:
+      appnet:
+        aliases:
+        - emqx-enterprise-coolify_emqx_1
+    restart: unless-stopped
+    volumes:
+    - emqx_data:/opt/emqx/data
+    - emqx_log:/opt/emqx/log
+volumes:
+  emqx_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/emqx_data
+      o: bind
+      type: none
+  emqx_log:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/emqx_log
+      o: bind
+      type: none

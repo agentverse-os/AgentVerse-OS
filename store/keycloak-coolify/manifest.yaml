@@ -1,0 +1,111 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/keycloak-coolify
+description: Keycloak is an open-source Identity and Access Management tool.
+endpoint:
+  port: 8080
+  service: keycloak
+env:
+  KC_HEALTH_ENABLED: 'true'
+  KC_HTTP_ENABLED: 'true'
+  KC_PROXY_HEADERS: xforwarded
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_URL_KEYCLOAK: https://${APP_DOMAIN}
+  SERVICE_URL_KEYCLOAK_8080: https://${APP_DOMAIN}
+  SERVICE_USER_ADMIN:
+    generate: password
+  TIMEZONE: UTC
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: SERVICE_USER_ADMIN
+name: keycloak-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TIMEZONE
+  hint: 'по умолчанию: UTC'
+  label: timezone
+  options: null
+  required: false
+  type: text
+- env: KC_HTTP_ENABLED
+  hint: 'по умолчанию: true'
+  label: kc http enabled
+  options: null
+  required: false
+  type: text
+- env: KC_HEALTH_ENABLED
+  hint: 'по умолчанию: true'
+  label: kc health enabled
+  options: null
+  required: false
+  type: text
+- env: KC_PROXY_HEADERS
+  hint: 'по умолчанию: xforwarded'
+  label: kc proxy headers
+  options: null
+  required: false
+  type: text
+tags:
+- keycloak
+- identity
+- access
+- management
+- iam
+- authentication
+- authorization
+- security
+- oauth2
+- openid-connect
+- sso
+- single-sign-on
+- saml
+- rbac
+- ldap
+- jwt
+- social-login
+title: Keycloak
+type: app
+upstream:
+  categories:
+  - auth
+  source: https://www.keycloak.org
+  tags:
+  - keycloak
+  - identity
+  - access
+  - management
+  - iam
+  - authentication
+  - authorization
+  - security
+  - oauth2
+  - openid-connect
+  - sso
+  - single-sign-on
+  - saml
+  - rbac
+  - ldap
+  - jwt
+  - social-login
+  template: keycloak.yaml
+website: https://www.keycloak.org

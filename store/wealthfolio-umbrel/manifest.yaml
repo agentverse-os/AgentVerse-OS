@@ -1,0 +1,69 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wealthfolio-umbrel
+description: Private investment portfolio tracking
+endpoint:
+  port: 8088
+  service: server
+env:
+  APP_WEALTHFOLIO_SECRET_KEY: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/wealthfolio/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wealthfolio/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wealthfolio/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wealthfolio/4.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/wealthfolio/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wealthfolio-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_WEALTHFOLIO_SECRET_KEY
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app wealthfolio secret key
+  options: null
+  required: false
+  type: password
+tags: []
+title: Wealthfolio
+type: app
+upstream:
+  author: Wealthfolio
+  categories:
+  - finance
+  release_notes: |-
+    Wealthfolio 3.7.0 adds closed positions and cash to the holdings table, with open/closed views, realized P&L columns, cash filtering, and instrument-aware quantity labels.
+
+    Japanese and Korean translations are now included, and UI language can be set independently from regional number, date, time, and currency formatting.
+
+    The add-on runtime was rebuilt so add-ons load reliably on WebKit and iOS, with a new private asset registry for packaged add-on resources.
+
+    Broker sync now preserves exact contract multipliers and resolves share-class suffixes more accurately, while the AI assistant has a clearer financial-safety boundary for drafts and untrusted attachment/tool output.
+
+    This release also fixes negative-opening account returns, credit/refund accounting, allocation residuals, phantom $0 rows, foreign-currency gain display, retirement and goal money fields, mobile finance views, and several table, account-selection, localization, and dependency issues.
+
+    Note: Wealthfolio now requires iOS/iPadOS 16, macOS 12, and Chrome/Edge 107, Firefox 104, or Safari 16 and newer.
+
+    Full release notes can be found at https://github.com/wealthfolio/wealthfolio/releases/tag/v3.7.0
+  source: https://github.com/wealthfolio/wealthfolio
+  version: 3.7.0
+  website: https://wealthfolio.app/
+website: https://wealthfolio.app/

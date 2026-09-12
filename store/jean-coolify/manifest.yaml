@@ -1,0 +1,116 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/jean-coolify
+description: Open-source desktop and server client for orchestrating AI coding agents.
+endpoint:
+  port: 3456
+  service: jean
+env:
+  JEAN_ALLOWED_ORIGINS: ''
+  JEAN_ALLOW_NATIVE_OPEN: '0'
+  JEAN_ALLOW_UNSAFE_NO_TOKEN: '0'
+  JEAN_HEADLESS: '1'
+  JEAN_HOST: 0.0.0.0
+  JEAN_NO_TOKEN: '0'
+  JEAN_PORT: '3456'
+  JEAN_VERSION: latest
+  SERVICE_PASSWORD_64_JEAN:
+    generate: hex64
+  SERVICE_URL_JEAN_3456: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: jean-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: JEAN_VERSION
+  hint: 'по умолчанию: latest'
+  label: jean version
+  options: null
+  required: false
+  type: text
+- env: JEAN_HEADLESS
+  hint: 'по умолчанию: 1'
+  label: jean headless
+  options: null
+  required: false
+  type: text
+- env: JEAN_HOST
+  hint: 'по умолчанию: 0.0.0.0'
+  label: jean host
+  options: null
+  required: false
+  type: text
+- env: JEAN_PORT
+  hint: 'по умолчанию: 3456'
+  label: jean port
+  options: null
+  required: false
+  type: text
+- env: JEAN_NO_TOKEN
+  hint: 'по умолчанию: 0'
+  label: jean no token
+  options: null
+  required: false
+  type: password
+- env: JEAN_ALLOW_UNSAFE_NO_TOKEN
+  hint: 'по умолчанию: 0'
+  label: jean allow unsafe no token
+  options: null
+  required: false
+  type: password
+- env: JEAN_ALLOW_NATIVE_OPEN
+  hint: 'по умолчанию: 0'
+  label: jean allow native open
+  options: null
+  required: false
+  type: text
+- env: JEAN_ALLOWED_ORIGINS
+  hint: null
+  label: jean allowed origins
+  options: null
+  required: false
+  type: text
+tags:
+- jean
+- ai
+- coding
+- agents
+- development
+- git
+- worktrees
+title: Jean
+type: app
+upstream:
+  categories:
+  - development
+  source: https://github.com/coollabsio/jean/blob/main/docs/headless-server.md
+  tags:
+  - jean
+  - ai
+  - coding
+  - agents
+  - development
+  - git
+  - worktrees
+  template: jean.yaml
+website: https://github.com/coollabsio/jean/blob/main/docs/headless-server.md

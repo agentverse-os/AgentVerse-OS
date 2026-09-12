@@ -1,0 +1,68 @@
+# invidious-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  companion:
+    cap_drop:
+    - ALL
+    environment:
+    - SERVER_SECRET_KEY=${APP_INV_SECRET_KEY}
+    image: quay.io/invidious/invidious-companion:master-6c76cab@sha256:aaec4e18b3cffb5457633f427c834299677f2c2a7e27b598404ab815643c3747
+    networks:
+      appnet:
+        aliases:
+        - invidious_companion_1
+    read_only: true
+    restart: on-failure
+    security_opt:
+    - no-new-privileges:true
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/companioncache:/var/tmp/youtubei.js:rw
+  postgres:
+    environment:
+      POSTGRES_DB: invidious
+      POSTGRES_PASSWORD: moneyprintergobrrr
+      POSTGRES_USER: umbrel
+    image: postgres:13.7@sha256:03652c675ae177af98ddd50f9f4b4b2cf8ad38d0e116aa68fe670fbc2cf250fc
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - invidious_postgres_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  web:
+    depends_on:
+    - postgres
+    environment:
+      INVIDIOUS_CONFIG: |
+        db:
+          dbname: invidious
+          user: umbrel
+          password: moneyprintergobrrr
+          host: invidious_postgres_1
+          port: 5432
+        check_tables: true
+        invidious_companion:
+        - private_url: "http://invidious_companion_1:8282/companion"
+        invidious_companion_key: ${APP_INV_SECRET_KEY}
+        hmac_key: ${APP_SEED}
+        default_user_preferences:
+          feed_menu: ["Trending", "Subscriptions", "Playlists"]
+          default_home: Trending
+    healthcheck:
+      disable: true
+    image: ceramicwhite/invidious:build-fda8d1b@sha256:39fe17102eb65ff34ac83e4d2b7f4233e735c1221e3c881fd0e0919b78760f81
+    networks:
+      appnet:
+        aliases:
+        - invidious_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000

@@ -1,0 +1,50 @@
+# emby-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  emby:
+    environment:
+    - SERVICE_URL_EMBY_8096=${SERVICE_URL_EMBY_8096}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8096
+      timeout: 10s
+    image: lscr.io/linuxserver/emby:latest
+    networks:
+      appnet:
+        aliases:
+        - emby-coolify_emby_1
+    restart: unless-stopped
+    volumes:
+    - emby-config:/config
+    - emby-tvshows:/tvshows
+    - emby-movies:/movies
+volumes:
+  emby-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/emby-config
+      o: bind
+      type: none
+  emby-movies:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/emby-movies
+      o: bind
+      type: none
+  emby-tvshows:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/emby-tvshows
+      o: bind
+      type: none

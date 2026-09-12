@@ -1,0 +1,82 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sftpgo
+description: Fully featured and highly configurable SFTP server
+endpoint:
+  port: 8002
+  service: sftpgo
+env:
+  SFTPGO_ADMIN_PASSWORD:
+    generate: password
+  SFTPGO_ADMIN_USERNAME: ''
+  SFTPGO_BINDING_PORT: ''
+  SFTPGO_DATABASE_PASSWORD:
+    generate: token
+  SFTPGO_GRACE_TIME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: SFTPGO_ADMIN_PASSWORD
+  path: null
+  user: SFTPGO_ADMIN_USERNAME
+name: sftpgo
+notes:
+- 'порт 2022→2022 (sftpgo) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SFTPGO_DATABASE_PASSWORD
+  hint: null
+  label: Database password
+  options: null
+  required: false
+  type: random
+- env: SFTPGO_ADMIN_USERNAME
+  hint: Username for the web admin user
+  label: Web Admin User
+  options: null
+  required: true
+  type: text
+- env: SFTPGO_ADMIN_PASSWORD
+  hint: Password for the web admin user
+  label: Web Admin Password
+  options: null
+  required: true
+  type: password
+- env: SFTPGO_BINDING_PORT
+  hint: Port used to run application in container
+  label: Binding Port
+  options: null
+  required: false
+  type: number
+- env: SFTPGO_GRACE_TIME
+  hint: Waiting time before killing app after requesting a stop
+  label: Grace Time on stop
+  options: null
+  required: false
+  type: number
+tags: []
+title: SFTPGo
+type: app
+upstream:
+  author: drakkan
+  categories:
+  - utilities
+  source: https://github.com/drakkan/sftpgo
+  tipi_version: 22
+  version: 2.7.5
+website: https://github.com/drakkan/sftpgo

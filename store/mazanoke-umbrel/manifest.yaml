@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mazanoke-umbrel
+description: A self-hosted local image optimizer
+endpoint:
+  port: 80
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/mazanoke/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mazanoke/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mazanoke/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/mazanoke/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mazanoke-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Mazanoke
+type: app
+upstream:
+  author: civilblur
+  categories:
+  - files
+  release_notes: This update improves stability and fixes several image conversion issues in Firefox, including incorrect output extensions and SVG conversion failures. It also includes minor PWA caching improvements and dependency updates.
+  source: https://github.com/civilblur/mazanoke
+  version: 1.1.6
+  website: https://mazanoke.com/
+website: https://mazanoke.com/

@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/docker-registry-coolify
+description: The Docker Registry lets you distribute Docker images.
+endpoint:
+  port: 5000
+  service: registry
+env:
+  SERVICE_PASSWORD_REGISTRY:
+    generate: password
+  SERVICE_URL_REGISTRY_5000: https://${APP_DOMAIN}
+  SERVICE_USER_REGISTRY:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_REGISTRY
+  path: null
+  user: SERVICE_USER_REGISTRY
+name: docker-registry-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- registry
+- images
+- docker
+title: Docker Registry
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://distribution.github.io/distribution/
+  tags:
+  - registry
+  - images
+  - docker
+  template: docker-registry.yaml
+website: https://distribution.github.io/distribution/

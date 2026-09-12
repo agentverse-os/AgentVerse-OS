@@ -1,0 +1,32 @@
+# portainer-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  portainer:
+    environment:
+    - SERVICE_URL_PORTAINER_9000=${SERVICE_URL_PORTAINER_9000}
+    healthcheck:
+      interval: 20s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:9000/
+      timeout: 20s
+    image: portainer/portainer-ce:alpine
+    networks:
+      appnet:
+        aliases:
+        - portainer-coolify_portainer_1
+    restart: unless-stopped
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - portainer_data:/data
+volumes:
+  portainer_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/portainer_data
+      o: bind
+      type: none

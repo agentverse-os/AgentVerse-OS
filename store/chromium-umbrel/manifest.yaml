@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/chromium-umbrel
+description: The open-source browser project
+endpoint:
+  port: 3000
+  service: chromium
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/chromium/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/chromium/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/chromium/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/chromium/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: chromium-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Chromium
+type: app
+upstream:
+  author: The Chromium Project
+  categories:
+  - networking
+  release_notes: |-
+    This release includes various new features, security and performance improvements.
+
+    It is recommended to update to this version for an enhanced browsing experience and increased security.
+
+    Full release notes can be found at https://developer.chrome.com/release-notes
+  source: https://github.com/linuxserver/docker-chromium
+  version: 8d3cb5f1
+  website: https://www.chromium.org/Home/
+website: https://www.chromium.org/Home/

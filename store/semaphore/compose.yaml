@@ -1,0 +1,43 @@
+# semaphore: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  semaphore:
+    environment:
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: ${SEMAPHORE_ACCESS_KEY_ENCRYPTION}
+      SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN_NAME}
+      SEMAPHORE_ADMIN_EMAIL: ${SEMAPHORE_ADMIN_EMAIL}
+      SEMAPHORE_ADMIN_NAME: ${SEMAPHORE_ADMIN_NAME}
+      SEMAPHORE_ADMIN_PASSWORD: ${SEMAPHORE_ADMIN_PASSWORD}
+      SEMAPHORE_DB: semaphore
+      SEMAPHORE_DB_DIALECT: postgres
+      SEMAPHORE_DB_HOST: semaphore-db
+      SEMAPHORE_DB_PASS: ${SEMAPHORE_DB_PASSWORD}
+      SEMAPHORE_DB_PORT: '5432'
+      SEMAPHORE_DB_USER: semaphore
+      SEMAPHORE_LDAP_ACTIVATED: no
+      SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore
+      TZ: ${TZ}
+    image: semaphoreui/semaphore:v2.19.11
+    networks:
+      appnet:
+        aliases:
+        - semaphore_semaphore_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/repositories:/repositories
+  semaphore-db:
+    environment:
+      POSTGRES_DB: semaphore
+      POSTGRES_PASSWORD: ${SEMAPHORE_DB_PASSWORD}
+      POSTGRES_USER: semaphore
+    image: postgres:14
+    networks:
+      appnet:
+        aliases:
+        - semaphore_semaphore-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data

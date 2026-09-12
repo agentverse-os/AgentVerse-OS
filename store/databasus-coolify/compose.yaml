@@ -1,0 +1,33 @@
+# databasus-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  databasus:
+    environment:
+    - SERVICE_URL_DATABASUS_4005=${SERVICE_URL_DATABASUS_4005}
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD
+      - wget
+      - -qO-
+      - http://localhost:4005/api/v1/system/health
+      timeout: 10s
+    image: databasus/databasus:v3.16.2
+    networks:
+      appnet:
+        aliases:
+        - databasus-coolify_databasus_1
+    restart: unless-stopped
+    volumes:
+    - databasus-data:/databasus-data
+volumes:
+  databasus-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/databasus-data
+      o: bind
+      type: none

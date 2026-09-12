@@ -1,0 +1,51 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/moneroblock
+description: Decentralized and trustless Monero block explorer
+endpoint:
+  port: 31312
+  service: moneroblock
+env:
+  DAEMON_ADDRESS: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: moneroblock
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DAEMON_ADDRESS
+  hint: Address in format node.host.name:port, i.e. node.sethforprivacy.com:18089
+  label: Monero Daemon
+  options: null
+  required: false
+  type: text
+tags: []
+title: Moneroblock
+type: app
+upstream:
+  author: duggavo
+  categories:
+  - utilities
+  source: https://github.com/duggavo/MoneroBlock
+  tipi_version: 6
+  version: 0.1.2
+website: https://github.com/duggavo/MoneroBlock

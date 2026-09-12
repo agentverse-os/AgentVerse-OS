@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/originless-umbrel
+description: Private, decentralized file sharing for Nostr and the web
+endpoint:
+  port: 3232
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/originless/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/originless/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/originless/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/originless/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: originless-umbrel
+notes:
+- 'порт 4003:4001/tcp (app) не публикуется: доступ только через edge/gate'
+- 'порт 4003:4001/udp (app) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Originless
+type: app
+upstream:
+  author: besoeasy
+  categories:
+  - files
+  release_notes: null
+  source: https://github.com/besoeasy/Originless
+  version: 0.1.0
+  website: https://github.com/besoeasy/Originless
+website: https://github.com/besoeasy/Originless

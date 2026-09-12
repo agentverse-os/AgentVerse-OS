@@ -1,0 +1,65 @@
+# uptime-kuma-with-mysql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mysql:
+    environment:
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-uptime-kuma-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - 127.0.0.1
+      timeout: 20s
+    image: mysql:8
+    networks:
+      appnet:
+        aliases:
+        - uptime-kuma-with-mysql-coolify_mysql_1
+    restart: unless-stopped
+    volumes:
+    - mysql-data:/var/lib/mysql
+  uptime-kuma:
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_UPTIMEKUMA_3001=${SERVICE_URL_UPTIMEKUMA_3001}
+    - TZ=${TZ:-Etc/UTC}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - extra/healthcheck
+      timeout: 5s
+    image: louislam/uptime-kuma:2
+    networks:
+      appnet:
+        aliases:
+        - uptime-kuma-with-mysql-coolify_uptime-kuma_1
+    restart: unless-stopped
+    volumes:
+    - uptime-kuma-data:/app/data
+volumes:
+  mysql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mysql-data
+      o: bind
+      type: none
+  uptime-kuma-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/uptime-kuma-data
+      o: bind
+      type: none

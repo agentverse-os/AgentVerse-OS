@@ -1,0 +1,46 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/resilio-sync
+description: Fast, reliable, and simple file sync and share solution.
+endpoint:
+  port: 8888
+  service: resilio-sync
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: resilio-sync
+notes:
+- 'порт 55555→55555 (resilio-sync) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Resilio
+type: app
+upstream:
+  author: Resilio, Inc.
+  categories:
+  - data
+  - utilities
+  source: https://github.com/bt-sync
+  tipi_version: 12
+  version: 3.1.2
+website: https://github.com/bt-sync

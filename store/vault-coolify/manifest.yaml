@@ -1,0 +1,61 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/vault-coolify
+description: HashiCorp Vault securely stores and controls access to secrets.
+endpoint:
+  port: 8200
+  service: vault
+env:
+  SERVICE_URL_VAULT_8200: https://${APP_DOMAIN}
+  VAULT_VERSION: latest
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: vault-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: VAULT_VERSION
+  hint: 'по умолчанию: latest'
+  label: vault version
+  options: null
+  required: false
+  type: text
+tags:
+- vault
+- hashicorp
+- secrets
+- security
+- encryption
+title: Vault
+type: app
+upstream:
+  categories:
+  - security
+  source: https://developer.hashicorp.com/vault/docs/deploy/run-container
+  tags:
+  - vault
+  - hashicorp
+  - secrets
+  - security
+  - encryption
+  template: vault.yaml
+website: https://developer.hashicorp.com/vault/docs/deploy/run-container

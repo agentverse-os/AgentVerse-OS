@@ -1,0 +1,36 @@
+# nitropage-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nitropage:
+    environment:
+    - SERVICE_URL_NITROPAGE_3000=${SERVICE_URL_NITROPAGE_3000}
+    - NP_AUTH_SALT=${SERVICE_BASE64_SALT}
+    - NP_AUTH_PASSWORD=${SERVICE_PASSWORD_64_SESSION}
+    - DATABASE_URL=file:../.data/dev.db
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000/admin
+      timeout: 10s
+    image: nitropage/nitropage:sqlite
+    networks:
+      appnet:
+        aliases:
+        - nitropage-coolify_nitropage_1
+    restart: unless-stopped
+    volumes:
+    - nitropage-data:/app/.data
+volumes:
+  nitropage-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nitropage-data
+      o: bind
+      type: none

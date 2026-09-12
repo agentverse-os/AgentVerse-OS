@@ -1,0 +1,67 @@
+# edgedb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  edgedb:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_EDGEDB_5656=${SERVICE_URL_EDGEDB_5656}
+    - EDGEDB_SERVER_ADMIN_UI=${EDGEDB_SERVER_ADMIN_UI:-enabled}
+    - EDGEDB_SERVER_BACKEND_DSN=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB:-edgedb}
+    - EDGEDB_SERVER_SECURITY=${EDGEDB_SERVER_SECURITY:-strict}
+    - EDGEDB_SERVER_PASSWORD=${SERVICE_PASSWORD_EDGEDB}
+    - POSTGRES_DB=${POSTGRES_DB:-edgedb}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:5656/server/status/alive
+      timeout: 20s
+    image: edgedb/edgedb
+    networks:
+      appnet:
+        aliases:
+        - edgedb-coolify_edgedb_1
+    restart: unless-stopped
+    volumes:
+    - edgedb-data:/dbschema
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-edgedb}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - edgedb-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - edgedb-postgresql-data:/var/lib/postgresql/data
+volumes:
+  edgedb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/edgedb-data
+      o: bind
+      type: none
+  edgedb-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/edgedb-postgresql-data
+      o: bind
+      type: none

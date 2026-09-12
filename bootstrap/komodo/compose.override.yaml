@@ -1,0 +1,7 @@
+# AgentVerse OS · поверх upstream ferretdb.compose.yaml (moghtech/komodo): UI и API Komodo только на localhost —
+# Komodo Periphery управляет docker.sock хоста, наружу он не нужен (cloudd ходит на 127.0.0.1:9120, пользователь — через
+# Desktop). При необходимости панель Komodo открывается SSH-туннелем: ssh -L 9120:127.0.0.1:9120 <хост>.
+services:
+  core:
+    ports: !override
+      - "127.0.0.1:9120:9120"

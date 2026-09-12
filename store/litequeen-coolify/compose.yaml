@@ -1,0 +1,34 @@
+# litequeen-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  litequeen:
+    environment:
+    - SERVICE_URL_LITEQUEEN_8000=${SERVICE_URL_LITEQUEEN_8000}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/8000' || exit 1
+      timeout: 5s
+    image: kivsegrob/lite-queen:latest
+    networks:
+      appnet:
+        aliases:
+        - litequeen-coolify_litequeen_1
+    restart: unless-stopped
+    volumes:
+    - litequeen-data:/home/litequeen/data
+    - source: ./databases
+      target: /srv
+      type: bind
+volumes:
+  litequeen-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/litequeen-data
+      o: bind
+      type: none

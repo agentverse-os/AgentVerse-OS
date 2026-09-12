@@ -1,0 +1,32 @@
+# qdrant-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  qdrant:
+    environment:
+    - SERVICE_URL_QDRANT_6333=${SERVICE_URL_QDRANT_6333}
+    - QDRANT__SERVICE__API_KEY=${SERVICE_PASSWORD_QDRANTAPIKEY}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1
+      timeout: 5s
+    image: qdrant/qdrant:latest
+    networks:
+      appnet:
+        aliases:
+        - qdrant-coolify_qdrant_1
+    restart: unless-stopped
+    volumes:
+    - qdrant-storage:/qdrant/storage
+volumes:
+  qdrant-storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/qdrant-storage
+      o: bind
+      type: none

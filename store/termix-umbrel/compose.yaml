@@ -1,0 +1,32 @@
+# termix-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  guacd:
+    image: guacamole/guacd:1.6.0@sha256:8974eaa9ba32f713daf311e7cc8cd7e4cdfba1edea39eed75524e78ef4b08f4f
+    networks:
+      appnet:
+        aliases:
+        - termix_guacd_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/termix-data
+  web:
+    depends_on:
+    - guacd
+    environment:
+      ENABLE_TELEMETRY: 'false'
+      GUACD_HOST: guacd
+      GUACD_RECORDING_PATH: /termix-data/session_recordings/guacamole
+      GUACD_TUNNEL_HOST: web
+      POSTHOG_API_KEY: ''
+    image: ghcr.io/lukegus/termix:release-2.7.1@sha256:931e4ce466f4d29b157eb8d6dcd4d36ee5114495c6edddbb19d4e360e2a60f8d
+    networks:
+      appnet:
+        aliases:
+        - termix_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data

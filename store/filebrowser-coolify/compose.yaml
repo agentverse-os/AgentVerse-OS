@@ -1,0 +1,33 @@
+# filebrowser-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  filebrowser-inline-1:
+    content: ''
+  filebrowser-inline-2:
+    content: |
+      {
+        "address": "0.0.0.0",
+        "port": 80
+      }
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  filebrowser:
+    configs:
+    - source: filebrowser-inline-1
+      target: /database.db
+    - source: filebrowser-inline-2
+      target: /.filebrowser.json
+    environment:
+    - SERVICE_URL_FILEBROWSER_80=${SERVICE_URL_FILEBROWSER_80}
+    image: filebrowser/filebrowser:latest
+    networks:
+      appnet:
+        aliases:
+        - filebrowser-coolify_filebrowser_1
+    restart: unless-stopped
+    volumes:
+    - source: ./srv
+      target: /srv
+      type: bind

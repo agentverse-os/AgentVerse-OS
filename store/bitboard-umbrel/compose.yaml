@@ -1,0 +1,19 @@
+# bitboard-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+      PORT: 3711
+    image: ghcr.io/egzola/bitboard:1.0.0@sha256:810d296d9d4adb7757843bcfb6a21f115c2bd5bc54eebddc4a2b96b55bb6b326
+    networks:
+      appnet:
+        aliases:
+        - bitboard_app_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

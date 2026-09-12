@@ -1,0 +1,19 @@
+Element is a new type of messaging app. You choose where your messages are stored, putting you in control of your data. You can connect it to the Synapse app running on your Umbrel, or to any other Matrix homeserver.
+
+
+  - It gives you access to the Matrix open network, so you can talk to anyone. Element provides a new level of security, adding cross-signed device verification to default end-to-end encryption.
+
+  - The very best end-to-end encryption and Element's unique cross-signed device verification means only those that should be in the conversation can read the messages - no eavesdroppers or imposters.
+
+  - Most important of all, Element is open; built on the Matrix network, it connects to all other Matrix-based apps as well as bridging into proprietary systems. You can stay in Element while talking to friends and family in other apps.
+
+  - Element is open source. You know exactly what you're getting. Full transparency, the freedom to extend and customise with the support of a vibrant community of developers.
+
+
+🛠️ Getting Started
+
+An easy way to get started is to install the "Synapse" app on your Umbrel. Synapse is a Matrix homeserver that stores all your personal chat history and user account information.
+
+When you register or login through Element, you will need to change the address of the homeserver you are logging into from the default matrix.org to http://umbrel.local:8008 for local access.
+
+For seamless connection even when you are accessing Element away from home, simply install the "Tailscale" app on your Umbrel and your device you are using to access Element, and use http://umbrel:8008 as the address of your server.

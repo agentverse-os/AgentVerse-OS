@@ -1,0 +1,64 @@
+# monero-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  monerod:
+    command: ${APP_MONERO_COMMAND}
+    image: ghcr.io/sethforprivacy/simple-monerod:v0.18.5.1@sha256:086eeb95174223ed166915d9f93dcfe4a7699efb89a30ca1569153dbf4f65f02
+    networks:
+      appnet:
+        aliases:
+        - monero_monerod_1
+    restart: unless-stopped
+    stop_grace_period: 15m
+    user: 1000:1000
+    volumes:
+    - ${APP_MONERO_DATA_DIR}:/home/monero/.bitmonero
+  server:
+    depends_on:
+    - monerod
+    environment:
+      DEVICE_DOMAIN_NAME: ${DEVICE_DOMAIN_NAME}
+      I2P_DAEMON_IP: ${APP_MONERO_I2P_DAEMON_IP}
+      I2P_DAEMON_PORT: '7656'
+      MONEROD_IP: ${APP_MONERO_NODE_IP}
+      MONERO_DEFAULT_NETWORK: ${MONERO_DEFAULT_NETWORK}
+      MONERO_HOST: ${APP_MONERO_NODE_IP}
+      MONERO_P2P_HIDDEN_SERVICE: ${APP_MONERO_P2P_HIDDEN_SERVICE}
+      MONERO_P2P_PORT: ${APP_MONERO_P2P_PORT}
+      MONERO_RESTRICTED_RPC_PORT: ${APP_MONERO_RESTRICTED_RPC_PORT}
+      MONERO_RPC_HIDDEN_SERVICE: ${APP_MONERO_RPC_HIDDEN_SERVICE}
+      MONERO_RPC_PASSWORD: ${APP_MONERO_RPC_PASS}
+      MONERO_RPC_PORT: ${APP_MONERO_RPC_PORT}
+      MONERO_RPC_USER: ${APP_MONERO_RPC_USER}
+      PORT: '9976'
+      TOR_PROXY_CONTROL_PASSWORD: moneyprintergobrrr
+      TOR_PROXY_CONTROL_PORT: '9051'
+      TOR_PROXY_IP: ${APP_MONERO_TOR_PROXY_IP}
+      TOR_PROXY_PORT: '9050'
+    expose:
+    - '9976'
+    image: deverickapollo/umbrel-monero:v1.0.8@sha256:4cfb0a9b852175b73c9c3cb37771eb28c20fd21140bb85a98726dd6d09ee03f9
+    networks:
+      appnet:
+        aliases:
+        - monero_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/data
+    - ${APP_MONERO_DATA_DIR}:/monero/.monero
+  tor:
+    environment:
+      HOME: /tmp
+    image: ghcr.io/getumbrel/tor:0.4.9.11@sha256:e382b8629c0dfef6ceb396b062622d4e4e955b19d6f16b883fd2c0723ad5671a
+    networks:
+      appnet:
+        aliases:
+        - monero_tor_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/torrc:/etc/tor/torrc:ro
+    - ${TOR_DATA_DIR}:/data

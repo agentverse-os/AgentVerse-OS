@@ -1,0 +1,105 @@
+# immich-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  database:
+    environment:
+      DB_STORAGE_TYPE: ${DB_STORAGE_TYPE:-SSD}
+      POSTGRES_DB: ${DB_DATABASE_NAME:-immich}
+      POSTGRES_INITDB_ARGS: --data-checksums
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+      POSTGRES_USER: ${SERVICE_USER_POSTGRES}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0
+    networks:
+      appnet:
+        aliases:
+        - immich-coolify_database_1
+    restart: unless-stopped
+    volumes:
+    - immich-postgres-data:/var/lib/postgresql/data
+  immich:
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_IMMICH_2283=${SERVICE_URL_IMMICH_2283}
+    - UPLOAD_LOCATION=./library
+    - DB_DATA_LOCATION=./postgres
+    - DB_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - DB_USERNAME=$SERVICE_USER_POSTGRES
+    - DB_DATABASE_NAME=${DB_DATABASE_NAME:-immich}
+    - TZ=${TZ:-Etc/UTC}
+    healthcheck:
+      disable: false
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    networks:
+      appnet:
+        aliases:
+        - immich-coolify_immich_1
+    restart: unless-stopped
+    volumes:
+    - immich-uploads:/usr/src/app/upload
+    - /etc/localtime:/etc/localtime:ro
+  immich-machine-learning:
+    environment:
+    - UPLOAD_LOCATION=./library
+    - DB_DATA_LOCATION=./postgres
+    - DB_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - DB_USERNAME=$SERVICE_USER_POSTGRES
+    - DB_DATABASE_NAME=${DB_DATABASE_NAME:-immich}
+    - TZ=${TZ:-Etc/UTC}
+    healthcheck:
+      disable: false
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    networks:
+      appnet:
+        aliases:
+        - immich-coolify_immich-machine-learning_1
+    restart: unless-stopped
+    volumes:
+    - immich-model-cache:/cache
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test:
+      - CMD
+      - redis-cli
+      - PING
+      timeout: 10s
+    image: redis:7.4-alpine
+    networks:
+      appnet:
+        aliases:
+        - immich-coolify_redis_1
+    restart: unless-stopped
+volumes:
+  immich-model-cache:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/immich-model-cache
+      o: bind
+      type: none
+  immich-postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/immich-postgres-data
+      o: bind
+      type: none
+  immich-uploads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/immich-uploads
+      o: bind
+      type: none

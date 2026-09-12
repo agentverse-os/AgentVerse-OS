@@ -1,0 +1,70 @@
+# authentik-1: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  authentik-1:
+    command: server
+    depends_on:
+    - authentik-db
+    environment:
+    - AUTHENTIK_POSTGRESQL__HOST=authentik-db
+    - AUTHENTIK_POSTGRESQL__USER=authentik
+    - AUTHENTIK_POSTGRESQL__NAME=authentik
+    - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_DB_PASSWORD}
+    - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+    image: ghcr.io/goauthentik/server:2026.8.1
+    networks:
+      appnet:
+        aliases:
+        - authentik-1_authentik-1_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/authentik-media:/media
+    - ${APP_DATA_DIR}/data/authentik-custom-templates:/templates
+  authentik-db:
+    environment:
+    - POSTGRES_PASSWORD=${AUTHENTIK_DB_PASSWORD}
+    - POSTGRES_USER=authentik
+    - POSTGRES_DB=authentik
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test: pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      timeout: 5s
+    image: postgres:18-alpine
+    networks:
+      appnet:
+        aliases:
+        - authentik-1_authentik-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql
+  authentik-worker:
+    command: worker
+    depends_on:
+    - authentik-db
+    environment:
+    - AUTHENTIK_POSTGRESQL__HOST=authentik-db
+    - AUTHENTIK_POSTGRESQL__USER=authentik
+    - AUTHENTIK_POSTGRESQL__NAME=authentik
+    - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_DB_PASSWORD}
+    - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    image: ghcr.io/goauthentik/server:2026.8.1
+    networks:
+      appnet:
+        aliases:
+        - authentik-1_authentik-worker_1
+      dockerro: {}
+    restart: unless-stopped
+    user: root
+    volumes:
+    - ${APP_DATA_DIR}/data/authentik-media:/media
+    - ${APP_DATA_DIR}/data/authentik-certs:/certs
+    - ${APP_DATA_DIR}/data/authentik-custom-templates:/templates

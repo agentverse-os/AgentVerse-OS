@@ -1,0 +1,75 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/invoice-ninja
+description: Invoices, Expenses and Tasks built with Laravel, Flutter and React.
+endpoint:
+  port: 80
+  service: invoice-ninja-web
+env:
+  INVOICE_NINJA_APP_KEY:
+    generate: password
+  INVOICE_NINJA_BDD_PASSWORD:
+    generate: token
+  INVOICE_NINJA_USER_MAIL: ''
+  INVOICE_NINJA_USER_PASSWORD:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: INVOICE_NINJA_USER_PASSWORD
+  path: null
+  user: null
+name: invoice-ninja
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: INVOICE_NINJA_USER_MAIL
+  hint: null
+  label: Invoice Ninja User Mail
+  options: null
+  required: true
+  type: email
+- env: INVOICE_NINJA_USER_PASSWORD
+  hint: null
+  label: Invoice Ninja User Password
+  options: null
+  required: true
+  type: password
+- env: INVOICE_NINJA_BDD_PASSWORD
+  hint: null
+  label: MySQL Password
+  options: null
+  required: false
+  type: random
+- env: INVOICE_NINJA_APP_KEY
+  hint: null
+  label: Encryption key - used for encryption / decryption of some datapoints within the application. Backup this key in a secure location. (cf. Installation Notice in Readme)
+  options: null
+  required: true
+  type: password
+tags: []
+title: Invoice Ninja
+type: app
+upstream:
+  author: https://www.invoiceninja.org/
+  categories:
+  - finance
+  source: https://github.com/invoiceninja/invoiceninja
+  tipi_version: 118
+  version: '5.13'
+website: https://github.com/invoiceninja/invoiceninja

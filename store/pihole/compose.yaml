@@ -1,0 +1,22 @@
+# pihole: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  pihole:
+    cap_add:
+    - NET_ADMIN
+    environment:
+      FTLCONF_webserver_api_password: ${APP_PASSWORD}
+      TZ: ${TZ}
+    hostname: pihole
+    image: pihole/pihole:2026.07.2
+    networks:
+      appnet:
+        aliases:
+        - pihole_pihole_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/pihole:/etc/pihole
+    - ${APP_DATA_DIR}/data/dnsmasq:/etc/dnsmasq.d

@@ -1,0 +1,44 @@
+# emqx: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  emqx:
+    environment:
+      EMQX_CLUSTER__DISCOVERY_STRATEGY: static
+      EMQX_CLUSTER__STATIC__SEEDS: '[emqx@emqx,emqx@emqx-n2]'
+      EMQX_NODE_NAME: emqx@emqx
+      TZ: ${TZ}
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test: /opt/emqx/bin/emqx ctl status
+      timeout: 25s
+    image: emqx/emqx:6.2.3
+    networks:
+      appnet:
+        aliases:
+        - emqx_emqx_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/n1:/opt/emqx/data
+  emqx-n2:
+    environment:
+      EMQX_CLUSTER__DISCOVERY_STRATEGY: static
+      EMQX_CLUSTER__STATIC__SEEDS: '[emqx@emqx,emqx@emqx-n2]'
+      EMQX_NODE_NAME: emqx@emqx-n2
+      TZ: ${TZ}
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test: /opt/emqx/bin/emqx ctl status
+      timeout: 25s
+    image: emqx/emqx:6.2.3
+    networks:
+      appnet:
+        aliases:
+        - emqx_emqx-n2_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/n2:/opt/emqx/data

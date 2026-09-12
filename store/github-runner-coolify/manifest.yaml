@@ -1,0 +1,101 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/github-runner-coolify
+description: A GitHub Actions runner for Docker
+endpoint:
+  port: 80
+  service: runner
+env:
+  ACCESS_TOKEN: ''
+  LABELS: default
+  ORG_NAME: ''
+  REPO_URL: ''
+  RUNNER_NAME_PREFIX: coolify-runner
+  RUNNER_NAME_SUFFIX: 'false'
+  RUNNER_SCOPE: repo
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: github-runner-coolify
+notes:
+- 'runner: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: REPO_URL
+  hint: null
+  label: repo url
+  options: null
+  required: false
+  type: text
+- env: RUNNER_NAME_PREFIX
+  hint: 'по умолчанию: coolify-runner'
+  label: runner name prefix
+  options: null
+  required: false
+  type: text
+- env: RUNNER_NAME_SUFFIX
+  hint: 'по умолчанию: false'
+  label: runner name suffix
+  options: null
+  required: false
+  type: text
+- env: ACCESS_TOKEN
+  hint: null
+  label: access token
+  options: null
+  required: false
+  type: password
+- env: RUNNER_SCOPE
+  hint: 'по умолчанию: repo'
+  label: runner scope
+  options: null
+  required: false
+  type: text
+- env: LABELS
+  hint: 'по умолчанию: default'
+  label: labels
+  options: null
+  required: false
+  type: text
+- env: ORG_NAME
+  hint: null
+  label: org name
+  options: null
+  required: false
+  type: text
+tags:
+- github
+- actions
+- runner
+- docker
+title: Github Runner
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://github.com/myoung34/docker-github-actions-runner/wiki/Usage
+  tags:
+  - github
+  - actions
+  - runner
+  - docker
+  template: github-runner.yaml
+website: https://github.com/myoung34/docker-github-actions-runner/wiki/Usage

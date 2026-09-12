@@ -1,0 +1,21 @@
+# syncthing: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  syncthing:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+    hostname: ${SYNCTHING_HOSTNAME:-tipi}
+    image: syncthing/syncthing:2.1.3
+    networks:
+      appnet:
+        aliases:
+        - syncthing_syncthing_1
+    restart: unless-stopped
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/var/syncthing
+    - ${ROOT_FOLDER_HOST}/media/data/syncthing:/media/data/syncthing

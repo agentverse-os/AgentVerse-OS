@@ -1,0 +1,19 @@
+# wallos: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  wallos:
+    environment:
+      TZ: ${TZ}
+    image: bellamy/wallos:5.4.5
+    networks:
+      appnet:
+        aliases:
+        - wallos_wallos_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${APP_DATA_DIR}/data/db:/var/www/html/db
+    - ${APP_DATA_DIR}/data/logos:/var/www/html/images/uploads/logos

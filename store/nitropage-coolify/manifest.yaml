@@ -1,0 +1,62 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nitropage-coolify
+description: Nitropage is an extensible, visual website builder, offering a growing library of versatile building blocks, focal-point image cropping and sovereign font management.
+endpoint:
+  port: 3000
+  service: nitropage
+env:
+  SERVICE_BASE64_SALT:
+    generate: hex64
+  SERVICE_PASSWORD_64_SESSION:
+    generate: hex64
+  SERVICE_URL_NITROPAGE_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nitropage-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- nitropage
+- builder
+- editor
+- wysiwyg
+- cms
+- content
+- management
+title: Nitropage
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://nitropage.org
+  tags:
+  - nitropage
+  - builder
+  - editor
+  - wysiwyg
+  - cms
+  - content
+  - management
+  template: nitropage.yaml
+website: https://nitropage.org

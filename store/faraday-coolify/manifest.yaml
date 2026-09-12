@@ -1,0 +1,68 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/faraday-coolify
+description: Faraday is a powerful, open-source, web-based vulnerability management tool.
+endpoint:
+  port: 5985
+  service: faraday
+env:
+  POSTGRES_DB: faraday
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_FARADAY_5985: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: faraday-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: faraday'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- vulnerability
+- management
+- tool
+title: Faraday
+type: app
+upstream:
+  categories:
+  - security
+  source: https://faradaysec.com/
+  tags:
+  - vulnerability
+  - management
+  - tool
+  template: faraday.yaml
+website: https://faradaysec.com/

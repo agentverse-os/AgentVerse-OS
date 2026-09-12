@@ -1,0 +1,46 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/grav-2
+description: Fast, Simple, and Flexible, file-based Web-platform.
+endpoint:
+  port: 80
+  service: grav-2
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: grav-2
+notes:
+- 'порт ${APP_PORT}:80 (grav-2) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Grav V2
+type: app
+upstream:
+  author: Grav
+  categories:
+  - social
+  - media
+  source: https://github.com/getgrav/grav
+  tipi_version: 3
+  version: 2.0.21
+website: https://github.com/getgrav/grav

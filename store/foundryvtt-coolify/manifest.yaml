@@ -1,0 +1,173 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/foundryvtt-coolify
+description: Foundry Virtual Tabletop is a self-hosted & modern roleplaying platform
+endpoint:
+  port: 30000
+  service: foundryvtt
+env:
+  FOUNDRY_ADMIN: atropos
+  FOUNDRY_AWS_CONFIG: ''
+  FOUNDRY_CSS_THEME: foundry
+  FOUNDRY_DATA: /data/foundryvtt
+  FOUNDRY_HOSTNAME: ''
+  FOUNDRY_LANGUAGE: en.core
+  FOUNDRY_LICENSE_KEY: ''
+  FOUNDRY_MINIFY_STATIC_FILES: 'true'
+  FOUNDRY_PASSWORD: ''
+  FOUNDRY_PROXY_PORT: '80'
+  FOUNDRY_PROXY_SSL: 'true'
+  FOUNDRY_RELEASE_URL: ''
+  FOUNDRY_ROUTE_PREFIX: ''
+  FOUNDRY_TELEMETRY: 'false'
+  FOUNDRY_USERNAME: ''
+  FOUNDRY_WORLD: ''
+  SERVICE_URL_FOUNDRY_30000: https://${APP_DOMAIN}
+  TIMEZONE: UTC
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: FOUNDRY_USERNAME
+name: foundryvtt-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: FOUNDRY_USERNAME
+  hint: null
+  label: foundry username
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_PASSWORD
+  hint: null
+  label: foundry password
+  options: null
+  required: false
+  type: password
+- env: FOUNDRY_RELEASE_URL
+  hint: null
+  label: foundry release url
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_LICENSE_KEY
+  hint: null
+  label: foundry license key
+  options: null
+  required: false
+  type: password
+- env: FOUNDRY_ADMIN
+  hint: 'по умолчанию: atropos'
+  label: foundry admin
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_HOSTNAME
+  hint: null
+  label: foundry hostname
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_ROUTE_PREFIX
+  hint: null
+  label: foundry route prefix
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_PROXY_PORT
+  hint: 'по умолчанию: 80'
+  label: foundry proxy port
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_PROXY_SSL
+  hint: 'по умолчанию: true'
+  label: foundry proxy ssl
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_AWS_CONFIG
+  hint: null
+  label: foundry aws config
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_LANGUAGE
+  hint: 'по умолчанию: en.core'
+  label: foundry language
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_CSS_THEME
+  hint: 'по умолчанию: foundry'
+  label: foundry css theme
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_MINIFY_STATIC_FILES
+  hint: 'по умолчанию: true'
+  label: foundry minify static files
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_WORLD
+  hint: null
+  label: foundry world
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_TELEMETRY
+  hint: 'по умолчанию: false'
+  label: foundry telemetry
+  options: null
+  required: false
+  type: text
+- env: TIMEZONE
+  hint: 'по умолчанию: UTC'
+  label: timezone
+  options: null
+  required: false
+  type: text
+- env: FOUNDRY_DATA
+  hint: 'по умолчанию: /data/foundryvtt'
+  label: foundry data
+  options: null
+  required: false
+  type: text
+tags:
+- foundryvtt
+- foundry
+- vtt
+- ttrpg
+- roleplaying
+title: Foundryvtt
+type: app
+upstream:
+  categories:
+  - games
+  source: https://foundryvtt.com/kb/
+  tags:
+  - foundryvtt
+  - foundry
+  - vtt
+  - ttrpg
+  - roleplaying
+  template: foundryvtt.yaml
+website: https://foundryvtt.com/kb/

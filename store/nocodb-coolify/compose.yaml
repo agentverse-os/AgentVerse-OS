@@ -1,0 +1,34 @@
+# nocodb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nocodb:
+    environment:
+    - SERVICE_URL_NOCODB_8080=${SERVICE_URL_NOCODB_8080}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:8080/api/v1/health
+      timeout: 20s
+    image: nocodb/nocodb
+    networks:
+      appnet:
+        aliases:
+        - nocodb-coolify_nocodb_1
+    restart: unless-stopped
+    volumes:
+    - nocodb-data:/usr/app/data/
+volumes:
+  nocodb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nocodb-data
+      o: bind
+      type: none

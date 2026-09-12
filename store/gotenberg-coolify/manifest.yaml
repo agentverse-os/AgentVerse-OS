@@ -1,0 +1,56 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gotenberg-coolify
+description: Gotenberg is a Docker-powered stateless API for PDF files.
+endpoint:
+  port: 3000
+  service: gotenberg
+env:
+  SERVICE_PASSWORD_GOTENBERG:
+    generate: password
+  SERVICE_URL_GOTENBERG_3000: https://${APP_DOMAIN}
+  SERVICE_USER_GOTENBERG:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: gotenberg-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- api
+- backend
+- pdf
+- tool
+title: Gotenberg
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://gotenberg.dev/docs/getting-started/introduction
+  tags:
+  - api
+  - backend
+  - pdf
+  - tool
+  template: gotenberg.yaml
+website: https://gotenberg.dev/docs/getting-started/introduction

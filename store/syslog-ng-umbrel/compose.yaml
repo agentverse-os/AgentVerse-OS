@@ -1,0 +1,47 @@
+# syslog-ng-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  syslog:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ}
+    healthcheck:
+      interval: 5s
+      retries: 5
+      start_period: 5s
+      test:
+      - CMD-SHELL
+      - test -f /var/log/messages-kv.log || touch /var/log/messages-kv.log
+      timeout: 5s
+    image: linuxserver/syslog-ng:4.10.2@sha256:b77c32d93b9e9b84f4fdd9261d7dd1db3b8a6f90391459b1ca51c82af9828bf8
+    networks:
+      appnet:
+        aliases:
+        - syslog-ng_syslog_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${APP_DATA_DIR}/data/logs:/var/log
+  web:
+    depends_on:
+      syslog:
+        condition: service_healthy
+    environment:
+      LOGDY_FOLLOW_FILES: /data/*.log
+      LOGDY_MODE: follow
+      LOGDY_PASS: ${APP_PASSWORD}
+    image: rickraven/logdy:0.17.1@sha256:a1438c758ed3735e9b06205168a3c63e39bd0895bc5f0cd1adf4ed2270ae66cb
+    networks:
+      appnet:
+        aliases:
+        - syslog-ng_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/logs:/data:ro

@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/emby-coolify
+description: A media server software that allows you to organize, stream, and access your multimedia content effortlessly.
+endpoint:
+  port: 8096
+  service: emby
+env:
+  SERVICE_URL_EMBY_8096: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: emby-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- media
+- server
+- movies
+- tv
+- music
+title: Emby
+type: app
+upstream:
+  categories:
+  - media
+  source: https://emby.media/support/articles/Home.html
+  tags:
+  - media
+  - server
+  - movies
+  - tv
+  - music
+  template: emby.yaml
+website: https://emby.media/support/articles/Home.html

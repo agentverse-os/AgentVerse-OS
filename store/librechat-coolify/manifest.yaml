@@ -1,0 +1,155 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/librechat-coolify
+description: Self-hosted, powerful, and privacy-focused chat UI for multiple AI models
+endpoint:
+  port: 3080
+  service: librechat
+env:
+  ALLOW_EMAIL_LOGIN: 'true'
+  ALLOW_PASSWORD_RESET: 'false'
+  ALLOW_REGISTRATION: 'true'
+  ALLOW_SOCIAL_LOGIN: 'false'
+  ALLOW_SOCIAL_REGISTRATION: 'false'
+  ALLOW_UNVERIFIED_EMAIL_LOGIN: 'true'
+  DEBUG_LOGGING: 'false'
+  DEBUG_OPENAI: 'false'
+  MEILI_NO_ANALYTICS: 'false'
+  NO_INDEX: 'true'
+  SERVICE_PASSWORD_64_CREDS:
+    generate: hex64
+  SERVICE_PASSWORD_64_JWT:
+    generate: hex64
+  SERVICE_PASSWORD_CREDS:
+    generate: password
+  SERVICE_PASSWORD_JWT:
+    generate: password
+  SERVICE_PASSWORD_MEILI:
+    generate: password
+  SERVICE_PASSWORD_MONGO:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_LIBRECHAT: https://${APP_DOMAIN}
+  SERVICE_URL_LIBRECHAT_3080: https://${APP_DOMAIN}
+  SERVICE_USER_MONGO:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_CREDS
+  path: null
+  user: ALLOW_SOCIAL_LOGIN
+name: librechat-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ALLOW_EMAIL_LOGIN
+  hint: 'по умолчанию: true'
+  label: allow email login
+  options: null
+  required: false
+  type: text
+- env: ALLOW_REGISTRATION
+  hint: 'по умолчанию: true'
+  label: allow registration
+  options: null
+  required: false
+  type: text
+- env: ALLOW_SOCIAL_LOGIN
+  hint: 'по умолчанию: false'
+  label: allow social login
+  options: null
+  required: false
+  type: text
+- env: ALLOW_SOCIAL_REGISTRATION
+  hint: 'по умолчанию: false'
+  label: allow social registration
+  options: null
+  required: false
+  type: text
+- env: ALLOW_PASSWORD_RESET
+  hint: 'по умолчанию: false'
+  label: allow password reset
+  options: null
+  required: false
+  type: password
+- env: ALLOW_UNVERIFIED_EMAIL_LOGIN
+  hint: 'по умолчанию: true'
+  label: allow unverified email login
+  options: null
+  required: false
+  type: text
+- env: DEBUG_LOGGING
+  hint: 'по умолчанию: false'
+  label: debug logging
+  options: null
+  required: false
+  type: text
+- env: DEBUG_OPENAI
+  hint: 'по умолчанию: false'
+  label: debug openai
+  options: null
+  required: false
+  type: text
+- env: NO_INDEX
+  hint: 'по умолчанию: true'
+  label: no index
+  options: null
+  required: false
+  type: text
+- env: MEILI_NO_ANALYTICS
+  hint: 'по умолчанию: false'
+  label: meili no analytics
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- chat
+- gpt
+- claude
+- palm
+- openai
+- azure
+- huggingface
+- anthropic
+- ollama
+- llm
+title: Librechat
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://docs.librechat.ai/install/configuration/dotenv.html
+  tags:
+  - ai
+  - chat
+  - gpt
+  - claude
+  - palm
+  - openai
+  - azure
+  - huggingface
+  - anthropic
+  - ollama
+  - llm
+  template: librechat.yaml
+website: https://docs.librechat.ai/install/configuration/dotenv.html

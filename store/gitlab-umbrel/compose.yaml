@@ -1,0 +1,31 @@
+# gitlab-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  gitlab:
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        # Add any other gitlab.rb configuration here, each on its own line
+        gitlab_rails['initial_root_password'] = '${APP_PASSWORD}'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2424
+        nginx['listen_port'] = 8929
+        nginx['listen_https'] = false
+      PGID: 1000
+      PUID: 1000
+    image: gitlab/gitlab-ce:19.3.1-ce.0@sha256:f63df4c43029fe91db370609c0b40a1e3585cebd06e3e9637d93a9a3030eb86e
+    networks:
+      appnet:
+        aliases:
+        - gitlab_gitlab_1
+    restart: on-failure
+    shm_size: 256m
+    ulimits:
+      nofile:
+        hard: 8192
+        soft: 4096
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/etc/gitlab
+    - ${APP_DATA_DIR}/data/logs:/var/log/gitlab
+    - ${APP_DATA_DIR}/data/data:/var/opt/gitlab

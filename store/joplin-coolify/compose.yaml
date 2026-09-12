@@ -1,0 +1,62 @@
+# joplin-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  joplin:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_JOPLIN_22300=${SERVICE_URL_JOPLIN_22300}
+    - APP_BASE_URL=${SERVICE_URL_JOPLIN}
+    - DB_CLIENT=pg
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_64_POSTGRES}
+    - POSTGRES_DATABASE=joplin
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PORT=5432
+    - POSTGRES_HOST=postgres
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/22300' || exit 1
+      timeout: 20s
+    image: joplin/server:latest
+    networks:
+      appnet:
+        aliases:
+        - joplin-coolify_joplin_1
+    platform: linux/amd64
+    restart: unless-stopped
+  postgres:
+    environment:
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_64_POSTGRES}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_DB=joplin
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - pg_isready
+      - -d
+      - joplin
+      timeout: 5s
+    image: postgres:16
+    networks:
+      appnet:
+        aliases:
+        - joplin-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - joplin-postgresql-data:/var/lib/postgresql/data
+volumes:
+  joplin-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/joplin-postgresql-data
+      o: bind
+      type: none

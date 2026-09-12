@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nostr-relay-umbrel
+description: Backup all your Nostr activity with your private relay
+endpoint:
+  port: 3000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/nostr-relay/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nostr-relay/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nostr-relay/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/nostr-relay/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nostr-relay-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Nostr Relay
+type: app
+upstream:
+  author: Umbrel
+  categories:
+  - social
+  release_notes: |-
+    🎉 Widgets are here for umbrelOS 1.0.
+
+    This update brings two new widgets for Nostr Relay, allowing you to see your latest notes and latest event kinds at a glance right from your Umbrel's home screen:
+
+    - Latest Notes: A widget that displays the latest notes that are synced to your Nostr Relay.
+
+    - Latest Events: A widget that shows the latest event kinds that are synced to your Nostr Relay, including posts, reactions, profile updates, and more.
+
+    After updating to umbrelOS 1.0, you can add widgets by right-clicking on the home screen and selecting "Edit widgets", or by clicking on Widgets in the Dock.
+  source: https://github.com/getumbrel/umbrel-nostr-relay
+  version: 1.2.0
+  website: https://umbrel.com
+website: https://umbrel.com

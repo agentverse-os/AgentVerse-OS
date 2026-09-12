@@ -1,0 +1,23 @@
+# ntfy с включённой авторизацией: без токена ничего нельзя (deny-all). Пользователи и токены создаются хуками через CLI в контейнере.
+services:
+  ntfy:
+    image: binwiederhier/ntfy:v2.15.0
+    restart: unless-stopped
+    command: ["serve"]
+    environment:
+      NTFY_BASE_URL: https://${APP_DOMAIN}
+      NTFY_LISTEN_HTTP: ":80"
+      NTFY_CACHE_FILE: /var/cache/ntfy/cache.db
+      NTFY_AUTH_FILE: /var/lib/ntfy/user.db
+      NTFY_AUTH_DEFAULT_ACCESS: deny-all
+      NTFY_ENABLE_LOGIN: "true"
+      NTFY_BEHIND_PROXY: "true"
+      NTFY_ATTACHMENT_CACHE_DIR: /var/cache/ntfy/attachments
+    volumes:
+      - ${APP_DATA_DIR}/cache:/var/cache/ntfy
+      - ${APP_DATA_DIR}/lib:/var/lib/ntfy
+    networks: [appnet]
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}

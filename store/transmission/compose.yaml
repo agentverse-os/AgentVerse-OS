@@ -1,0 +1,22 @@
+# transmission: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  transmission:
+    environment:
+      PASS: ${TRANSMISSION_PASSWORD}
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+      USER: ${TRANSMISSION_USERNAME}
+    image: lscr.io/linuxserver/transmission:4.1.3
+    networks:
+      appnet:
+        aliases:
+        - transmission_transmission_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${ROOT_FOLDER_HOST}/media/torrents:/media/torrents

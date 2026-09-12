@@ -1,0 +1,25 @@
+# Тестовое приложение Store: HTTP-эхо. Показывает контракт манифеста (2.6) целиком на самом простом сервисе.
+schema: 1
+origin: manual
+name: whoami
+title: whoami
+description: "HTTP echo for checking edge and gate routes"
+i18n:
+  ru: { description: "HTTP-эхо для проверки маршрутов edge и gate" }
+  uk: { description: "HTTP-ехо для перевірки маршрутів edge і gate" }
+  es: { description: "Eco HTTP para comprobar las rutas de edge y gate" }
+icon: 🪞
+type: app
+compose: ./compose.yaml
+provides: [demo.http]            # проект с capabilities: [demo.http] получит http://demo.http.gate
+requires: []
+route: { mode: port, open: iframe }
+auth: own
+env: {}
+data: []
+health: http://whoami:80/
+endpoint: { service: whoami, port: 80 }
+
+# входа нет: доступ ограничен сетью Cloud OS
+login:
+  mode: none

@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/maybe-umbrel
+description: The OS for your personal finances
+endpoint:
+  port: 3063
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/maybe/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/maybe/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/maybe/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/maybe/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: maybe-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Maybe
+type: app
+upstream:
+  author: Maybe
+  categories:
+  - finance
+  release_notes: |-
+    🚨 Maybe is pivoting to B2B financial forecasting and scenario planning and will no longer be actively maintaining the project.
+
+    This final release is a working, "as-is" version of the software.
+
+    Full release notes are found at https://github.com/maybe-finance/maybe/releases
+  source: https://github.com/maybe-finance/maybe
+  version: 0.6.0
+  website: https://maybe.co/
+website: https://maybe.co/

@@ -1,0 +1,21 @@
+# mazanoke-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 90s
+      test:
+      - CMD-SHELL
+      - nc -z 127.0.0.1 80 || exit 1
+      timeout: 5s
+    image: ghcr.io/civilblur/mazanoke:v1.1.6@sha256:92cc7474deb789af6549318563b7a9ee750131f9f7b297cc9c87ab67e656c22c
+    networks:
+      appnet:
+        aliases:
+        - mazanoke_web_1
+    restart: on-failure

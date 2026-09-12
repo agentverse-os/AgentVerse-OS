@@ -1,0 +1,80 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/plunk-coolify
+description: Plunk, The Open-Source Email Platform for AWS
+endpoint:
+  port: 3000
+  service: plunk
+env:
+  DISABLE_SIGNUPS: 'False'
+  POSTGRES_DB: plunk-db
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_JWTSECRET:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_PLUNK: https://${APP_DOMAIN}
+  SERVICE_URL_PLUNK_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: plunk-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DISABLE_SIGNUPS
+  hint: 'по умолчанию: False'
+  label: disable signups
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: plunk-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- plunk
+- email
+- automation
+- aws
+title: Plunk
+type: app
+upstream:
+  categories:
+  - email
+  source: https://docs.useplunk.com/getting-started/introduction
+  tags:
+  - plunk
+  - email
+  - automation
+  - aws
+  template: plunk.yaml
+website: https://docs.useplunk.com/getting-started/introduction

@@ -1,0 +1,18 @@
+# vaultwarden: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  vaultwarden:
+    environment:
+      ADMIN_TOKEN: ${VAULTWARDEN_ADMIN_PASSWORD}
+      WEBSOCKET_ENABLED: 'true'
+    image: vaultwarden/server:1.37.2
+    networks:
+      appnet:
+        aliases:
+        - vaultwarden_vaultwarden_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

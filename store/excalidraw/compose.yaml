@@ -1,0 +1,13 @@
+# excalidraw: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  excalidraw:
+    image: excalidraw/excalidraw:latest
+    networks:
+      appnet:
+        aliases:
+        - excalidraw_excalidraw_1
+    restart: unless-stopped

@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/formicaio-umbrel
+description: Run nodes on the Autonomi peer-to-peer (P2P) network
+endpoint:
+  port: 52100
+  service: proxy
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/formicaio/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/formicaio/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/formicaio/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/formicaio/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: formicaio-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Formicaio
+type: app
+upstream:
+  author: bochaco
+  categories:
+  - crypto
+  release_notes: |-
+    The interface was redesigned with a fresh visual style, and a range of new features were added to give users more visibility and control over their nodes, earnings, and AI tooling:
+    - Redesigned look and feel with an updated GUI visual style - Nodes view now supports both tile and list layouts, togglable by the user - Disk usage reported per node and in aggregate, with a configurable polling frequency - Rewards addresses panel on the dashboard listing each address and its balance - Earnings analytics on the dashboard showing rewards payments and totals per period,
+      with a toggle to enable/disable monitoring
+    - New AI section with an MCP server status page, activation instructions, and a
+      dedicated Agent page for interacting with an LLM agent that can manage your nodes
+    - Agent chat displays formatted tool output and responses, with its own settings
+      and background autonomous task support
+    - Nodes can be sorted by binary version - Single-node actions applied directly, bypassing the batch queue - Batch failures stay in the queue until dismissed, with more detail on in-progress failures - Persistent notifications history so users can review past notifications at any time - Log level option when adding new nodes - Clicking the "total nodes" dashboard card navigates to the nodes list - Charts show an empty-state message when switching nodes instead of stale data - Placeholder cards show a title while nodes are being created - Various icon and styling fixes across light and dark themes - A new metric collection mode can be used which doesn't rely on the node's metrics HTTP endpoint. - Allow user to configure a custom node binary full download URL.
+  source: https://github.com/bochaco/formicaio
+  version: 0.8.4
+  website: https://github.com/bochaco/formicaio
+website: https://github.com/bochaco/formicaio

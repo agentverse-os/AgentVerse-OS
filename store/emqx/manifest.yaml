@@ -1,0 +1,49 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/emqx
+description: Scalable open-source MQTT broker.
+endpoint:
+  port: 18083
+  service: emqx
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: emqx
+notes:
+- 'порт 1883→1883 (emqx) не публикуется: доступ только через edge/gate'
+- 'порт 8083→8083 (emqx) не публикуется: доступ только через edge/gate'
+- 'порт 8084→8084 (emqx) не публикуется: доступ только через edge/gate'
+- 'порт 8883→8883 (emqx) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: EMQX Open Source
+type: app
+upstream:
+  author: EMQ Technologies Co., Ltd.
+  categories:
+  - utilities
+  - automation
+  source: https://github.com/emqx/emqx
+  tipi_version: 40
+  version: 6.2.3
+website: https://github.com/emqx/emqx

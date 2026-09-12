@@ -1,0 +1,36 @@
+# dokuwiki-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  dokuwiki:
+    environment:
+    - SERVICE_URL_DOKUWIKI=${SERVICE_URL_DOKUWIKI}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: lscr.io/linuxserver/dokuwiki:latest
+    networks:
+      appnet:
+        aliases:
+        - dokuwiki-coolify_dokuwiki_1
+    restart: unless-stopped
+    volumes:
+    - dokuwiki-config:/config
+volumes:
+  dokuwiki-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/dokuwiki-config
+      o: bind
+      type: none

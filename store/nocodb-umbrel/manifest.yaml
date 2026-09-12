@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nocodb-umbrel
+description: No-code platform for database management, self-hosted Airtable alternative
+endpoint:
+  port: 8080
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/nocodb/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nocodb-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: NocoDB
+type: app
+upstream:
+  author: NocoDB Inc.
+  categories:
+  - files
+  release_notes: |-
+    New features and improvements in this release:
+      - Adds realtime presence in Grid views so collaborators can see where others are working
+      - Adds folders for grouping tables, documents, dashboards, and views
+      - Adds support for freezing multiple fields in Grid views
+      - Improves Interfaces with copied view settings, field sizing, dashboard permissions, and layout polish
+      - Improves API support for v3 records upsert link fields and currency-field schema details
+      - Fixes two-factor sign-in in the installed app, scheduled snapshot naming, rich text previews, AI response recovery, API field updates, link-field permissions, and interface permissions
+
+
+    Full release notes can be found at https://github.com/nocodb/nocodb/releases/tag/2026.08.1
+  source: https://github.com/nocodb/nocodb
+  version: 2026.08.1
+  website: https://nocodb.com
+website: https://nocodb.com

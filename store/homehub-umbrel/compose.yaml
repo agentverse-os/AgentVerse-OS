@@ -1,0 +1,22 @@
+# homehub-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+    - FLASK_ENV=production
+    - SECRET_KEY=${APP_SEED}
+    image: ghcr.io/surajverma/homehub:0.2.4@sha256:fd1a7172b56f01dff3fb9fb5c9c2268baa7ab63ed5d7e348907107a34dee83e8
+    networks:
+      appnet:
+        aliases:
+        - homehub_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/uploads:/app/uploads
+    - ${APP_DATA_DIR}/data/media:/app/media
+    - ${APP_DATA_DIR}/data/pdfs:/app/pdfs
+    - ${APP_DATA_DIR}/data/app_data:/app/data
+    - ${APP_DATA_DIR}/data/config/config.yml:/app/config.yml:ro

@@ -1,0 +1,74 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/grafana-with-postgresql-coolify
+description: Grafana is the open source analytics & monitoring solution for every database.
+endpoint:
+  port: 3000
+  service: grafana
+env:
+  POSTGRES_DB: grafana
+  POSTGRES_USER: ''
+  SERVICE_FQDN_GRAFANA: ${APP_DOMAIN}
+  SERVICE_PASSWORD_GRAFANA:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_GRAFANA: https://${APP_DOMAIN}
+  SERVICE_URL_GRAFANA_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_GRAFANA
+  path: null
+  user: null
+name: grafana-with-postgresql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: grafana'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- grafana
+- analytics
+- monitoring
+- dashboard
+title: Grafana With Postgresql
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://grafana.com
+  tags:
+  - grafana
+  - analytics
+  - monitoring
+  - dashboard
+  template: grafana-with-postgresql.yaml
+website: https://grafana.com

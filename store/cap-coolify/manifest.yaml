@@ -1,0 +1,88 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cap-coolify
+description: Cap is the open source alternative to Loom. Lightweight, powerful, and cross-platform. Record and share in seconds.
+endpoint:
+  port: 5679
+  service: cap-db
+env:
+  MYSQL_ALLOW_EMPTY_PASSWORD: yes
+  MYSQL_DATABASE: planetscale
+  S3_PATH_STYLE: 'true'
+  SERVICE_PASSWORD_64_DATABASEENCRYPTIONKEY:
+    generate: hex64
+  SERVICE_PASSWORD_64_NEXTAUTHSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_CAP: https://${APP_DOMAIN}
+  SERVICE_URL_CAP_3000: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cap-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: planetscale'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: S3_PATH_STYLE
+  hint: 'по умолчанию: true'
+  label: s3 path style
+  options: null
+  required: false
+  type: text
+- env: MYSQL_ALLOW_EMPTY_PASSWORD
+  hint: 'по умолчанию: yes'
+  label: mysql allow empty password
+  options: null
+  required: false
+  type: password
+tags:
+- cap
+- loom
+- open
+- source
+- low
+- code
+title: Cap
+type: app
+upstream:
+  categories:
+  - media
+  source: https://cap.so
+  tags:
+  - cap
+  - loom
+  - open
+  - source
+  - low
+  - code
+  template: cap.yaml
+website: https://cap.so

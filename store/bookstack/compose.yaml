@@ -1,0 +1,40 @@
+# bookstack: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  bookstack:
+    depends_on:
+    - bookstack-db
+    environment:
+      APP_KEY: base64:${APP_KEY}
+      APP_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      DB_DATABASE: bookstackapp
+      DB_HOST: bookstack-db
+      DB_PASSWORD: ${BOOKSTACK_DB_PASS}
+      DB_USERNAME: tipi
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/bookstack:26.05.20260608
+    networks:
+      appnet:
+        aliases:
+        - bookstack_bookstack_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+  bookstack-db:
+    environment:
+      MYSQL_DATABASE: bookstackapp
+      MYSQL_PASSWORD: ${BOOKSTACK_DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${ROOT_ACCESS_PASSWORD}
+      MYSQL_USER: tipi
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/mariadb
+    networks:
+      appnet:
+        aliases:
+        - bookstack_bookstack-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/config

@@ -1,0 +1,53 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/homarr-coolify
+description: Homarr is a self-hosted homepage for your services.
+endpoint:
+  port: 7575
+  service: homarr
+env:
+  SERVICE_HEX_64_HOMARR:
+    generate: hex64
+  SERVICE_URL_HOMARR_7575: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: homarr-coolify
+notes:
+- 'homarr: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- homarr
+- self-hosted
+- homepage
+title: Homarr
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://homarr.dev
+  tags:
+  - homarr
+  - self-hosted
+  - homepage
+  template: homarr.yaml
+website: https://homarr.dev

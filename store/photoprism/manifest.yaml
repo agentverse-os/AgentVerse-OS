@@ -1,0 +1,68 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/photoprism
+description: AI-Powered Photos App for the Decentralized Web. We are on a mission to protect your freedom and privacy.
+endpoint:
+  port: 2342
+  service: photoprism
+env:
+  DB_PASSWORD:
+    generate: token
+  DB_ROOT_PASSWORD:
+    generate: token
+  PHOTOPRISM_ADMIN_PASSWORD:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: PHOTOPRISM_ADMIN_PASSWORD
+  path: null
+  user: null
+name: photoprism
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PHOTOPRISM_ADMIN_PASSWORD
+  hint: null
+  label: Photoprism admin password
+  options: null
+  required: true
+  type: password
+- env: DB_PASSWORD
+  hint: null
+  label: Photoprism DB password
+  options: null
+  required: false
+  type: random
+- env: DB_ROOT_PASSWORD
+  hint: null
+  label: Photoprism root DB password
+  options: null
+  required: false
+  type: random
+tags: []
+title: PhotoPrism
+type: app
+upstream:
+  author: PhotoPrism
+  categories:
+  - photography
+  source: https://github.com/photoprism/photoprism
+  tipi_version: 10
+  version: latest
+website: https://github.com/photoprism/photoprism

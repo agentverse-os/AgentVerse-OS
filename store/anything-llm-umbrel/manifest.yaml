@@ -1,0 +1,75 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/anything-llm-umbrel
+description: AI workspace for chat, documents, and agents
+endpoint:
+  port: 3001
+  service: app
+env:
+  APP_ANYTHING_LLM_JWT_SECRET: ''
+  APP_ANYTHING_LLM_SIG_KEY: ''
+  APP_ANYTHING_LLM_SIG_SALT: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/anything-llm/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/anything-llm/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/anything-llm/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/anything-llm/4.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/anything-llm/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: anything-llm-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_ANYTHING_LLM_JWT_SECRET
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app anything llm jwt secret
+  options: null
+  required: false
+  type: password
+- env: APP_ANYTHING_LLM_SIG_KEY
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app anything llm sig key
+  options: null
+  required: false
+  type: password
+- env: APP_ANYTHING_LLM_SIG_SALT
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app anything llm sig salt
+  options: null
+  required: false
+  type: text
+tags: []
+title: AnythingLLM
+type: app
+upstream:
+  author: Mintplex Labs
+  categories:
+  - ai
+  release_notes: |-
+    This release improves agent activity, provider support, and chat reliability.
+
+    - Added a cleaner collapsible chain-of-thought and agent activity view - Warns before leaving a chat while a response is still generating - Added AWS Bedrock cross-region inference profiles and LocalAI image generation support - Improved prompt draft persistence, onboarding, LLM selection, and streaming UI behavior - Fixed Gemini and Anthropic/Bedrock streaming crashes, workspace creation, agent websocket timing, memory cleanup, and PDF OCR handling
+
+    Full release notes can be found at https://github.com/Mintplex-Labs/anything-llm/releases/tag/v1.16.1
+  source: https://github.com/Mintplex-Labs/anything-llm
+  version: 1.16.1
+  website: https://anythingllm.com
+website: https://anythingllm.com

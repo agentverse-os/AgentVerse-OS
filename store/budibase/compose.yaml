@@ -1,0 +1,15 @@
+# budibase: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  budibase:
+    image: budibase/budibase:v3.43.0
+    networks:
+      appnet:
+        aliases:
+        - budibase_budibase_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}:/data

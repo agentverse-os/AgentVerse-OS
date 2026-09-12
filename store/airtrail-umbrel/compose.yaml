@@ -1,0 +1,44 @@
+# airtrail-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: postgres://airtrail:itworkslocally@airtrail_postgres_1:5432/airtrail
+      UPLOAD_LOCATION: /app/uploads
+    image: johly/airtrail:v3.12.0@sha256:c5616704defabd82d2dde97e93a5417e59c7acfdb06c0e589209257543b50f8c
+    networks:
+      appnet:
+        aliases:
+        - airtrail_app_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/uploads:/app/uploads
+  postgres:
+    environment:
+      PGDATA: /data/pgdata
+      POSTGRES_DB: airtrail
+      POSTGRES_PASSWORD: itworkslocally
+      POSTGRES_USER: airtrail
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      test: pg_isready -U airtrail -h localhost -d airtrail
+      timeout: 5s
+    image: postgres:18.3-alpine@sha256:52098013b4b64a746626437d38afc03cabff6cdeb4d3d92e2342aa95f0ce56ea
+    networks:
+      appnet:
+        aliases:
+        - airtrail_postgres_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/data

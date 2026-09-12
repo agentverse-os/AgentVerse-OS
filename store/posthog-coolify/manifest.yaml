@@ -1,0 +1,65 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/posthog-coolify
+description: The single platform to analyze, test, observe, and deploy new features
+endpoint:
+  port: 8000
+  service: web
+env:
+  SERVICE_BASE64_64_SECRETKEY:
+    generate: hex64
+  SERVICE_PASSWORD_MINIO:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_WEB: https://${APP_DOMAIN}
+  SERVICE_URL_WEB_8000: https://${APP_DOMAIN}
+  SERVICE_USER_MINIO:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: posthog-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- analytics
+- product
+- open-source
+- self-hosted
+- ab-testing
+- event-tracking
+title: Posthog
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://posthog.com
+  tags:
+  - analytics
+  - product
+  - open-source
+  - self-hosted
+  - ab-testing
+  - event-tracking
+  template: posthog.yaml
+website: https://posthog.com

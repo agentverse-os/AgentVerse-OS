@@ -1,0 +1,43 @@
+# dozzle-with-auth-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  dozzle-inline-1:
+    content: |
+      users:
+        # "admin" is the username
+        admin:
+          email: test@email.com
+          name: Admin
+          # A sha-256 hash of the password you want to use. Can be computed with "echo -n password | shasum -a 256". Default password is "Test".
+          password: $2a$11$viucCvFLlHWvBNOOI6uypuVU.D09UWb.zswRxEg0MkDPi1q/bKbdG
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  dozzle:
+    configs:
+    - source: dozzle-inline-1
+      target: /data/users.yml:ro
+    environment:
+    - SERVICE_URL_DOZZLE_8080=${SERVICE_URL_DOZZLE_8080}
+    - DOZZLE_AUTH_PROVIDER=simple
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 3s
+      retries: 5
+      test:
+      - CMD
+      - /dozzle
+      - healthcheck
+      timeout: 30s
+    image: amir20/dozzle:latest
+    networks:
+      appnet:
+        aliases:
+        - dozzle-with-auth-coolify_dozzle_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes: []

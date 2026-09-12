@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/karakeep-umbrel
+description: A bookmark-everything app
+endpoint:
+  port: 3000
+  service: web
+env:
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/karakeep/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/karakeep/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/karakeep/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/karakeep/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/karakeep/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: karakeep-umbrel
+notes:
+- 'web: env_file из каталога проигнорирован (значения — через настройки приложения)'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Karakeep
+type: app
+upstream:
+  author: karakeep.app
+  categories:
+  - files
+  release_notes: |-
+    This patch release replaces the old Alpine Chrome crawler sidecar with Karakeep's new upstream Chrome image, fixes the default OpenAI token setting for the current default model, and pins Node.js to avoid a startup crash loop.
+
+    It also improves crawler asset handling, avoids metadata extraction failures on large SingleFile archives, adds theme-aware favicons, and lets the CLI upload custom SingleFile archives.
+
+    Full release notes can be found at https://github.com/karakeep-app/karakeep/releases/tag/v0.33.2
+  source: https://github.com/karakeep-app/karakeep
+  version: 0.33.2
+  website: https://karakeep.app/
+website: https://karakeep.app/

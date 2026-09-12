@@ -1,0 +1,69 @@
+# affine: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  affine:
+    command:
+    - sh
+    - -c
+    - node ./scripts/self-host-predeploy && node ./dist/main.js
+    depends_on:
+      affine-postgres:
+        condition: service_healthy
+      affine-redis:
+        condition: service_healthy
+    environment:
+    - AFFINE_CONFIG_PATH=/root/.affine/config
+    - REDIS_SERVER_HOST=affine-redis
+    - DATABASE_URL=postgres://tipi:${AFFINE_POSTGRES_PASSWORD}@affine-postgres:5432/affine
+    - NODE_ENV=production
+    - AFFINE_ADMIN_EMAIL=${AFFINE_ADMIN_EMAIL}
+    - AFFINE_ADMIN_PASSWORD=${AFFINE_ADMIN_PASSWORD}
+    - TELEMETRY_ENABLE=${AFFINE_TELEMETRY_ENABLE}
+    image: ghcr.io/toeverything/affine:stable
+    logging:
+      driver: json-file
+      options:
+        max-size: 1000m
+    networks:
+      appnet:
+        aliases:
+        - affine_affine_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/root/.affine/config
+    - ${APP_DATA_DIR}/data/storage:/root/.affine/storage
+  affine-postgres:
+    environment:
+    - POSTGRES_USER=tipi
+    - POSTGRES_PASSWORD=${AFFINE_POSTGRES_PASSWORD}
+    - POSTGRES_DB=affine
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test: pg_isready -d postgres://tipi:${AFFINE_POSTGRES_PASSWORD}@affine-postgres:5432/affine
+      timeout: 5s
+    image: postgres:16
+    networks:
+      appnet:
+        aliases:
+        - affine_affine-postgres_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  affine-redis:
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test: redis-cli --raw incr ping
+      timeout: 5s
+    image: redis
+    networks:
+      appnet:
+        aliases:
+        - affine_affine-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

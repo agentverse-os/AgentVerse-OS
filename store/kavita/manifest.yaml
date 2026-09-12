@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kavita
+description: Kavita is a fast, feature rich, cross platform reading server
+endpoint:
+  port: 5000
+  service: kavita
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: kavita
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Kavita
+type: app
+upstream:
+  author: Kareadita
+  categories:
+  - media
+  source: https://github.com/Kareadita/Kavita
+  tipi_version: 27
+  version: 0.9.0
+website: https://github.com/Kareadita/Kavita

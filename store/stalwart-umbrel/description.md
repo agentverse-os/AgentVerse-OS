@@ -1,0 +1,30 @@
+📧 Stalwart is a fast, secure, and scalable open-source server for email, calendars, contacts, and file sharing, built in Rust for top-tier performance and safety.
+
+All-in-One Communication Platform
+  - Full Email Protocol Support: JMAP, IMAP4, POP3, and SMTP with advanced authentication, security, and filtering.
+  - Collaboration Tools: CalDAV calendars, CardDAV contacts, WebDAV file storage and sharing.
+  - Spam & Phishing Protection: AI-powered filtering, DNS blocklists, greylisting, sender reputation tracking, and more.
+
+
+Powerful Features for Any Scale
+  - Flexible storage backends: PostgreSQL, MySQL, SQLite, S3, Redis, ElasticSearch, and more.
+  - Built-in encryption, 2FA, and automated TLS certificates.
+  - Fault-tolerant, cluster-ready design with Kubernetes and Docker support.
+  - Rich admin dashboard, real-time monitoring, and user self-service tools.
+
+
+Whether you're running a small private server or a large enterprise deployment, Stalwart delivers modern, secure, and efficient communication you can trust.
+
+These are the configured external port mappings:
+  - **10443:443** (HTTPS)
+  - **10025:25** (SMTP)
+  - **10465:465** (SMTPS)
+  - **10587:587** (SMTP Submission)
+  - **10143:143** (IMAP)
+  - **10993:993** (IMAPS)
+  - **14190:4190** (Sieve)
+  - **10110:110**  (POP3)
+  - **10995:995**  (POP3S)
+
+
+You can find more details on how to properly setup your instance here: https://stalw.art/docs/install/platform/docker/

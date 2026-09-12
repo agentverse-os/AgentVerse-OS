@@ -1,0 +1,149 @@
+# matrix-synapse-with-postgresql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRES_DB:-synapse-db}
+    - POSTGRES_INITDB_ARGS=--encoding=UTF8 --lc-collate=C --lc-ctype=C
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB:-synapse-db}
+      timeout: 5s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - matrix-synapse-with-postgresql-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - postgres-data:/var/lib/postgresql/data
+  synapse:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint:
+    - /bin/bash
+    - -c
+    - |
+      ! test -f /data/homeserver.yaml && /start.py generate
+
+      # Extract secrets from generated config
+      grep "registration_shared_secret" /data/homeserver.yaml \
+      | awk '{print $2}' > ./registration_shared_secret
+
+      grep "macaroon_secret_key" /data/homeserver.yaml \
+      | awk '{print $2}' > ./macaroon_secret_key
+
+      grep "form_secret" /data/homeserver.yaml \
+      | awk '{print $2}' > ./form_secret
+
+      # Create homeserver.yaml with PostgreSQL
+      cat <<EOF > /data/homeserver.yaml
+      server_name: "${SYNAPSE_SERVER_NAME}"
+      pid_file: /data/homeserver.pid
+      public_baseurl: "${SERVICE_URL_SYNAPSE}/"
+
+      listeners:
+        - port: 8008
+          tls: false
+          type: http
+          x_forwarded: true
+          bind_addresses: ['0.0.0.0']
+          resources:
+            - names: [client, federation]
+              compress: false
+
+      database:
+        name: psycopg2
+        args:
+          user: ${SERVICE_USER_POSTGRESQL}
+          password: ${SERVICE_PASSWORD_POSTGRESQL}
+          database: ${POSTGRES_DB:-synapse-db}
+          host: postgres
+          port: 5432
+          cp_min: 5
+          cp_max: 10
+
+      log_config: "/data/${SYNAPSE_SERVER_NAME}.log.config"
+      media_store_path: /data/media_store
+      report_stats: ${SYNAPSE_REPORT_STATS}
+
+      registration_shared_secret: $(<./registration_shared_secret)
+      macaroon_secret_key: $(<./macaroon_secret_key)
+      form_secret: $(<./form_secret)
+      signing_key_path: "/data/${SYNAPSE_SERVER_NAME}.signing.key"
+
+      trusted_key_servers:
+        - server_name: "matrix.org"
+      EOF
+
+      [ "${ENABLE_REGISTRATION}" = "true" ] && ! grep "#registration" /data/homeserver.yaml &>/dev/null \
+      && echo >> /data/homeserver.yaml \
+      && cat <<EOF >> /data/homeserver.yaml
+      enable_registration: true
+      EOF
+
+      # Register admin user if provided
+      register_admin(){
+        while ! curl -sf http://localhost:8008/health > /dev/null; do
+          sleep 2
+        done
+        register_new_matrix_user \
+          -a \
+          -u ${SERVICE_USER_ADMIN} \
+          -p ${SERVICE_PASSWORD_ADMIN} \
+          -c /data/homeserver.yaml \
+          http://localhost:8008 &>/dev/null
+      }
+      [ -n "${SERVICE_USER_ADMIN}" ] && register_admin &
+
+      /start.py
+    environment:
+    - SERVICE_URL_SYNAPSE_8008=${SERVICE_URL_SYNAPSE_8008}
+    - SYNAPSE_SERVER_NAME=
+    - SYNAPSE_REPORT_STATS=${SYNAPSE_REPORT_STATS:-no}
+    - ENABLE_REGISTRATION=${ENABLE_REGISTRATION:-false}
+    - SERVICE_USER_ADMIN=${SERVICE_USER_ADMIN}
+    - SERVICE_PASSWORD_ADMIN=${SERVICE_PASSWORD_ADMIN}
+    - SERVICE_USER_POSTGRESQL=${SERVICE_USER_POSTGRESQL}
+    - SERVICE_PASSWORD_POSTGRESQL=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRES_DB:-synapse-db}
+    healthcheck:
+      interval: 10s
+      retries: 10
+      start_period: 10s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8008/health
+      timeout: 5s
+    image: matrixdotorg/synapse:latest
+    networks:
+      appnet:
+        aliases:
+        - matrix-synapse-with-postgresql-coolify_synapse_1
+    restart: unless-stopped
+    volumes:
+    - synapse-data:/data
+volumes:
+  postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgres-data
+      o: bind
+      type: none
+  synapse-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/synapse-data
+      o: bind
+      type: none

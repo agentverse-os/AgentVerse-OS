@@ -1,0 +1,62 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/duplicati-umbrel
+description: Store securely encrypted backups in the cloud
+endpoint:
+  port: 8200
+  service: duplicati
+env:
+  APP_PASSWORD:
+    generate: password
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/duplicati/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/duplicati/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/duplicati/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/duplicati/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: null
+name: duplicati-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Duplicati
+type: app
+upstream:
+  author: Duplicati
+  categories:
+  - files
+  release_notes: |-
+    This release patches Duplicati 2.3.0.3 with stability, security, and backend fixes.
+
+    New in 2.3.0.4:
+      - Improved privacy handling for filtered paths and reported log data
+      - Fixed backup crashes caused by metadata errors and a macOS Photos memory leak
+      - Added backend authentication timeouts and retry handling for transient HTTP failures
+      - Fixed MSSQL default instance handling, S3 lock mode option values, and several remote-source edge cases
+      - Improved secret provider loading, licensing flexibility, KDE libsecret support, rclone, and ngclient browser/filter behavior
+
+
+    Full release notes can be found at https://github.com/duplicati/duplicati/releases/tag/v2.3.0.4_stable_2026-07-09
+  source: https://github.com/duplicati/duplicati
+  version: v2.3.0.4_stable_2026-07-09
+  website: https://duplicati.com/
+website: https://duplicati.com/

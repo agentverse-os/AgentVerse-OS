@@ -1,0 +1,51 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/joplin-coolify
+description: Self-hosted sync server for Joplin
+endpoint:
+  port: 22300
+  service: joplin
+env:
+  SERVICE_PASSWORD_64_POSTGRES:
+    generate: hex64
+  SERVICE_URL_JOPLIN: https://${APP_DOMAIN}
+  SERVICE_URL_JOPLIN_22300: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: joplin-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- joplin
+title: Joplin
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/laurent22/joplin/blob/dev/packages/server/README.md
+  tags:
+  - joplin
+  template: joplin.yaml
+website: https://github.com/laurent22/joplin/blob/dev/packages/server/README.md

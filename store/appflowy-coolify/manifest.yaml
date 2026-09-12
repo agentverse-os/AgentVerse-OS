@@ -1,0 +1,225 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/appflowy-coolify
+description: AppFlowy is the AI collaborative workspace where you achieve more without losing control of your data.
+endpoint:
+  port: 80
+  service: admin_frontend
+env:
+  AI_OPENAI_API_KEY: ''
+  APPFLOWY_MAILER_SMTP_EMAIL: notify@appflowy.io
+  APPFLOWY_MAILER_SMTP_HOST: smtp.gmail.com
+  APPFLOWY_MAILER_SMTP_PASSWORD: email_sender_password
+  APPFLOWY_MAILER_SMTP_PORT: '587'
+  APPFLOWY_MAILER_SMTP_TLS_KIND: none
+  APPFLOWY_MAILER_SMTP_USERNAME: notify@appflowy.io
+  APPFLOWY_S3_BUCKET: appflowy
+  APPFLOWY_S3_CREATE_BUCKET: 'true'
+  APPFLOWY_S3_REGION: us-east-1
+  AZURE_OPENAI_API_KEY: ''
+  AZURE_OPENAI_API_VERSION: ''
+  AZURE_OPENAI_ENDPOINT: ''
+  GOTRUE_ADMIN_EMAIL: admin@example.com
+  GOTRUE_JWT_EXP: '7200'
+  GOTRUE_SMTP_ADMIN_EMAIL: ''
+  GOTRUE_SMTP_HOST: ''
+  GOTRUE_SMTP_PASS: ''
+  GOTRUE_SMTP_PORT: '587'
+  GOTRUE_SMTP_USER: ''
+  POSTGRES_DB: appflowy
+  RUST_LOG: info
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_JWT:
+    generate: password
+  SERVICE_PASSWORD_MINIO:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_ADMIN: https://${APP_DOMAIN}
+  SERVICE_URL_APPFLOWYWEB: https://${APP_DOMAIN}
+  SERVICE_USER_MINIO:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: GOTRUE_ADMIN_EMAIL
+name: appflowy-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: RUST_LOG
+  hint: 'по умолчанию: info'
+  label: rust log
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: appflowy'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: APPFLOWY_S3_CREATE_BUCKET
+  hint: 'по умолчанию: true'
+  label: appflowy s3 create bucket
+  options: null
+  required: false
+  type: text
+- env: APPFLOWY_S3_BUCKET
+  hint: 'по умолчанию: appflowy'
+  label: appflowy s3 bucket
+  options: null
+  required: false
+  type: text
+- env: APPFLOWY_S3_REGION
+  hint: 'по умолчанию: us-east-1'
+  label: appflowy s3 region
+  options: null
+  required: false
+  type: text
+- env: APPFLOWY_MAILER_SMTP_HOST
+  hint: 'по умолчанию: smtp.gmail.com'
+  label: appflowy mailer smtp host
+  options: null
+  required: false
+  type: text
+- env: APPFLOWY_MAILER_SMTP_PORT
+  hint: 'по умолчанию: 587'
+  label: appflowy mailer smtp port
+  options: null
+  required: false
+  type: text
+- env: APPFLOWY_MAILER_SMTP_USERNAME
+  hint: 'по умолчанию: notify@appflowy.io'
+  label: appflowy mailer smtp username
+  options: null
+  required: false
+  type: text
+- env: APPFLOWY_MAILER_SMTP_EMAIL
+  hint: 'по умолчанию: notify@appflowy.io'
+  label: appflowy mailer smtp email
+  options: null
+  required: false
+  type: text
+- env: APPFLOWY_MAILER_SMTP_PASSWORD
+  hint: 'по умолчанию: email_sender_password'
+  label: appflowy mailer smtp password
+  options: null
+  required: false
+  type: password
+- env: APPFLOWY_MAILER_SMTP_TLS_KIND
+  hint: 'по умолчанию: none'
+  label: appflowy mailer smtp tls kind
+  options: null
+  required: false
+  type: text
+- env: AI_OPENAI_API_KEY
+  hint: null
+  label: ai openai api key
+  options: null
+  required: false
+  type: password
+- env: GOTRUE_ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: gotrue admin email
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_JWT_EXP
+  hint: 'по умолчанию: 7200'
+  label: gotrue jwt exp
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_SMTP_HOST
+  hint: null
+  label: gotrue smtp host
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_SMTP_PORT
+  hint: 'по умолчанию: 587'
+  label: gotrue smtp port
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_SMTP_USER
+  hint: null
+  label: gotrue smtp user
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_SMTP_PASS
+  hint: null
+  label: gotrue smtp pass
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_SMTP_ADMIN_EMAIL
+  hint: null
+  label: gotrue smtp admin email
+  options: null
+  required: false
+  type: text
+- env: AZURE_OPENAI_API_KEY
+  hint: null
+  label: azure openai api key
+  options: null
+  required: false
+  type: password
+- env: AZURE_OPENAI_ENDPOINT
+  hint: null
+  label: azure openai endpoint
+  options: null
+  required: false
+  type: text
+- env: AZURE_OPENAI_API_VERSION
+  hint: null
+  label: azure openai api version
+  options: null
+  required: false
+  type: text
+tags:
+- appflowy
+- notion
+- open-source
+- productivity
+- notes
+- ai
+- self-hosted
+title: Appflowy
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.appflowy.io/docs/documentation/appflowy-cloud
+  tags:
+  - appflowy
+  - notion
+  - open-source
+  - productivity
+  - notes
+  - ai
+  - self-hosted
+  template: appflowy.yaml
+website: https://docs.appflowy.io/docs/documentation/appflowy-cloud

@@ -1,0 +1,45 @@
+# marimo-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  marimo:
+    command:
+    - marimo
+    - edit
+    - --token-password
+    - ${SERVICE_PASSWORD_MARIMO}
+    - --port
+    - '8080'
+    - --host
+    - 0.0.0.0
+    environment:
+    - SERVICE_URL_MARIMO_8080=${SERVICE_URL_MARIMO_8080}
+    - TOKEN_PASSWORD=$SERVICE_PASSWORD_MARIMO
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD
+      - uvx
+      - --with
+      - httpx[cli]
+      - httpx
+      - http://localhost:8080/health
+      timeout: 5s
+    image: ghcr.io/marimo-team/marimo:latest-sql
+    networks:
+      appnet:
+        aliases:
+        - marimo-coolify_marimo_1
+    restart: unless-stopped
+    volumes:
+    - marimo:/app
+volumes:
+  marimo:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/marimo
+      o: bind
+      type: none

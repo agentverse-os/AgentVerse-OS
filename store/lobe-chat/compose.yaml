@@ -1,0 +1,18 @@
+# lobe-chat: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  lobe-chat:
+    environment:
+      ACCESS_CODE: ${ACCESS_CODE}
+      CUSTOM_MODELS: ${CUSTOM_MODELS}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_PROXY_URL: ${OPEANAI_PROXY_URL}
+    image: lobehub/lobe-chat:1.143.3
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat_lobe-chat_1
+    restart: unless-stopped

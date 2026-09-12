@@ -1,0 +1,18 @@
+# kasm-workspaces: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  kasm-workspaces:
+    environment:
+      KASM_PORT: ${APP_PORT}
+    image: lscr.io/linuxserver/kasm:1.120.20221218
+    networks:
+      appnet:
+        aliases:
+        - kasm-workspaces_kasm-workspaces_1
+    privileged: true
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/opt

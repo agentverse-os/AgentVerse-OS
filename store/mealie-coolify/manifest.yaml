@@ -1,0 +1,87 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mealie-coolify
+description: A recipe manager and meal planner.
+endpoint:
+  port: 9000
+  service: mealie
+env:
+  ALLOW_SIGNUP: 'true'
+  MAX_WORKERS: '1'
+  PGID: '1000'
+  PUID: '1000'
+  SERVICE_URL_MEALIE_9000: https://${APP_DOMAIN}
+  WEB_CONCURRENCY: '1'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mealie-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ALLOW_SIGNUP
+  hint: 'по умолчанию: true'
+  label: allow signup
+  options: null
+  required: false
+  type: text
+- env: PUID
+  hint: 'по умолчанию: 1000'
+  label: puid
+  options: null
+  required: false
+  type: text
+- env: PGID
+  hint: 'по умолчанию: 1000'
+  label: pgid
+  options: null
+  required: false
+  type: text
+- env: MAX_WORKERS
+  hint: 'по умолчанию: 1'
+  label: max workers
+  options: null
+  required: false
+  type: text
+- env: WEB_CONCURRENCY
+  hint: 'по умолчанию: 1'
+  label: web concurrency
+  options: null
+  required: false
+  type: text
+tags:
+- recipe manager
+- meal planner
+- cooking
+- food
+title: Mealie
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.mealie.io/
+  tags:
+  - recipe manager
+  - meal planner
+  - cooking
+  - food
+  template: mealie.yaml
+website: https://docs.mealie.io/

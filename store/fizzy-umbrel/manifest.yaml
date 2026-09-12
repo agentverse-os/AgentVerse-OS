@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/fizzy-umbrel
+description: Kanban as it should be. Not as it has been.
+endpoint:
+  port: 80
+  service: server
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/fizzy/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: fizzy-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Fizzy
+type: app
+upstream:
+  author: 37signals
+  categories:
+  - social
+  release_notes: https://github.com/basecamp/fizzy/releases
+  source: https://github.com/basecamp/fizzy
+  version: 5f45e54
+  website: https://www.fizzy.do
+website: https://www.fizzy.do

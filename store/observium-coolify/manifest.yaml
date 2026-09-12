@@ -1,0 +1,72 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/observium-coolify
+description: Observium is a comprehensive network monitoring platform designed to deliver powerful monitoring capabilities, combined with an elegant and intuitive user interface.
+endpoint:
+  port: 80
+  service: observium
+env:
+  MARIADB_DATABASE: observium-db
+  OBSERVIUM_DB_NAME: observium-db
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_MARIADBROOT:
+    generate: password
+  SERVICE_PASSWORD_OBSERVIUMADMIN:
+    generate: password
+  SERVICE_URL_OBSERVIUM: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+  SERVICE_USER_OBSERVIUMADMIN:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_OBSERVIUMADMIN
+  path: null
+  user: SERVICE_USER_OBSERVIUMADMIN
+name: observium-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: OBSERVIUM_DB_NAME
+  hint: 'по умолчанию: observium-db'
+  label: observium db name
+  options: null
+  required: false
+  type: text
+- env: MARIADB_DATABASE
+  hint: 'по умолчанию: observium-db'
+  label: mariadb database
+  options: null
+  required: false
+  type: text
+tags:
+- networking
+- monitoring
+title: Observium
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://docs.observium.org/
+  tags:
+  - networking
+  - monitoring
+  template: observium.yaml
+website: https://docs.observium.org/

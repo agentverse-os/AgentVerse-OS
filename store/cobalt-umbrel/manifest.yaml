@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cobalt-umbrel
+description: Best way to save what you love
+endpoint:
+  port: 9001
+  service: web
+env:
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/cobalt/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cobalt-umbrel
+notes:
+- 'порт 9013:9000 (web) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: cobalt
+type: app
+upstream:
+  author: imputnet
+  categories:
+  - media
+  release_notes: |-
+    This release brings new features and improvements.
+
+    Key Highlights:
+      - Added support for explicitly specifying access tokens in the Vimeo API
+      - Ensured backward compatibility with existing access tokens
+      - Updated youtubei.js to version 15.1.1 for improved stability and compatibility
+      - General improvements to web and API functionality
+  source: https://github.com/imputnet/cobalt
+  version: '11.5'
+  website: https://cobalt.tools/
+website: https://cobalt.tools/

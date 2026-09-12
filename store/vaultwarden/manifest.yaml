@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/vaultwarden
+description: All your passwords in your control!
+endpoint:
+  port: 80
+  service: vaultwarden
+env:
+  VAULTWARDEN_ADMIN_PASSWORD:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: vaultwarden
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: VAULTWARDEN_ADMIN_PASSWORD
+  hint: Check the app description for more details
+  label: Admin Panel Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: VaultWarden
+type: app
+upstream:
+  author: Daniel García
+  categories:
+  - utilities
+  source: https://github.com/dani-garcia/vaultwarden
+  tipi_version: 54
+  version: 1.37.2
+website: https://github.com/dani-garcia/vaultwarden

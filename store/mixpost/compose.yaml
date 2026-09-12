@@ -1,0 +1,64 @@
+# mixpost: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mixpost:
+    depends_on:
+      mixpost-mysql:
+        condition: service_healthy
+      mixpost-redis:
+        condition: service_healthy
+    environment:
+      APP_KEY: '''${MIXPOST_APP_KEY}'''
+      APP_NAME: '''Mixpost'''
+      APP_URL: '''${APP_PROTOCOL:-http}://${APP_DOMAIN}'''
+      DB_DATABASE: mixpost
+      DB_HOST: mixpost-mysql
+      DB_PASSWORD: ${MIXPOST_MYSQL_PASSWORD}
+      DB_USERNAME: tipi
+      REDIS_HOST: mixpost-redis
+      REDIS_PASSWORD: ${MIXPOST_REDIS_PASSWORD}
+    image: inovector/mixpost:v2.6.0
+    networks:
+      appnet:
+        aliases:
+        - mixpost_mixpost_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mixpost-storage:/var/www/html/storage/app
+    - ${APP_DATA_DIR}/data/mixpost-logs:/var/www/html/storage/logs
+    - ${APP_DATA_DIR}/data/nginx/nginx.conf:/etc/nginx/sites-enabled/default
+  mixpost-mysql:
+    environment:
+      MYSQL_DATABASE: mixpost
+      MYSQL_PASSWORD: ${MIXPOST_MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MIXPOST_MYSQL_PASSWORD}
+      MYSQL_USER: tipi
+    healthcheck:
+      retries: 3
+      test: mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD
+      timeout: 5s
+    image: mysql/mysql-server:8.0
+    networks:
+      appnet:
+        aliases:
+        - mixpost_mixpost-mysql_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mysql:/var/lib/mysql
+  mixpost-redis:
+    command: redis-server --appendonly yes --replica-read-only no --requirepass ${MIXPOST_REDIS_PASSWORD}
+    healthcheck:
+      retries: 3
+      test: redis-cli ping
+      timeout: 5s
+    image: redis:latest
+    networks:
+      appnet:
+        aliases:
+        - mixpost_mixpost-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

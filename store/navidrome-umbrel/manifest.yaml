@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/navidrome-umbrel
+description: Your personal streaming service
+endpoint:
+  port: 4533
+  service: server
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/navidrome/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/navidrome/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/navidrome/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/navidrome/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: navidrome-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Navidrome
+type: app
+upstream:
+  author: Navidrome
+  categories:
+  - media
+  release_notes: |-
+    This maintenance release fixes plugin loading, scanner symlink handling, and smart playlist validation.
+
+    Bug fixes include:
+      - Surfaced host service failures when loading plugins
+      - Resolved file symlinks correctly with the production local storage filesystem
+      - Rejected invalid smart playlists that mix top-level "any" and "all" rules
+
+
+    Full release notes can be found at https://github.com/navidrome/navidrome/releases/tag/v0.63.2
+  source: https://github.com/navidrome/navidrome
+  version: 0.63.2
+  website: https://www.navidrome.org/
+website: https://www.navidrome.org/

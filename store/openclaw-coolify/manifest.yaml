@@ -1,0 +1,316 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/openclaw-coolify
+description: AI-powered coding assistant with multi-provider support and browser automation.
+endpoint:
+  port: 8080
+  service: openclaw
+env:
+  AI_GATEWAY_API_KEY: ''
+  ANTHROPIC_API_KEY: ''
+  AWS_ACCESS_KEY_ID: ''
+  AWS_REGION: us-east-1
+  AWS_SECRET_ACCESS_KEY: ''
+  AWS_SESSION_TOKEN: ''
+  BEDROCK_PROVIDER_FILTER: anthropic
+  BROWSER_DEFAULT_PROFILE: openclaw
+  BROWSER_EVALUATE_ENABLED: 'true'
+  BROWSER_REMOTE_HANDSHAKE_TIMEOUT_MS: '3000'
+  BROWSER_REMOTE_TIMEOUT_MS: '1500'
+  BROWSER_SNAPSHOT_MODE: efficient
+  CEREBRAS_API_KEY: ''
+  COPILOT_GITHUB_TOKEN: ''
+  DEEPGRAM_API_KEY: ''
+  GEMINI_API_KEY: ''
+  GROQ_API_KEY: ''
+  HOOKS_ENABLED: 'false'
+  HOOKS_PATH: /hooks
+  KIMI_API_KEY: ''
+  KIMI_BASE_URL: https://api.moonshot.ai/anthropic
+  MINIMAX_API_KEY: ''
+  MISTRAL_API_KEY: ''
+  MOONSHOT_API_KEY: ''
+  MOONSHOT_BASE_URL: https://api.moonshot.ai/v1
+  OLLAMA_BASE_URL: ''
+  OPENAI_API_KEY: ''
+  OPENCLAW_GATEWAY_BIND: loopback
+  OPENCLAW_PRIMARY_MODEL: ''
+  OPENCODE_API_KEY: ''
+  OPENROUTER_API_KEY: ''
+  SERVICE_FQDN_OPENCLAW_8080: ${APP_DOMAIN}
+  SERVICE_PASSWORD_64_GATEWAYTOKEN:
+    generate: hex64
+  SERVICE_PASSWORD_OPENCLAW:
+    generate: password
+  SERVICE_USER_OPENCLAW:
+    generate: password
+  SYNTHETIC_API_KEY: ''
+  VENICE_API_KEY: ''
+  XAI_API_KEY: ''
+  XIAOMI_API_KEY: ''
+  ZAI_API_KEY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_OPENCLAW
+  path: null
+  user: SERVICE_USER_OPENCLAW
+name: openclaw-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ANTHROPIC_API_KEY
+  hint: null
+  label: anthropic api key
+  options: null
+  required: false
+  type: password
+- env: OPENAI_API_KEY
+  hint: null
+  label: openai api key
+  options: null
+  required: false
+  type: password
+- env: OPENROUTER_API_KEY
+  hint: null
+  label: openrouter api key
+  options: null
+  required: false
+  type: password
+- env: GEMINI_API_KEY
+  hint: null
+  label: gemini api key
+  options: null
+  required: false
+  type: password
+- env: XAI_API_KEY
+  hint: null
+  label: xai api key
+  options: null
+  required: false
+  type: password
+- env: GROQ_API_KEY
+  hint: null
+  label: groq api key
+  options: null
+  required: false
+  type: password
+- env: MISTRAL_API_KEY
+  hint: null
+  label: mistral api key
+  options: null
+  required: false
+  type: password
+- env: CEREBRAS_API_KEY
+  hint: null
+  label: cerebras api key
+  options: null
+  required: false
+  type: password
+- env: VENICE_API_KEY
+  hint: null
+  label: venice api key
+  options: null
+  required: false
+  type: password
+- env: MOONSHOT_API_KEY
+  hint: null
+  label: moonshot api key
+  options: null
+  required: false
+  type: password
+- env: KIMI_API_KEY
+  hint: null
+  label: kimi api key
+  options: null
+  required: false
+  type: password
+- env: MINIMAX_API_KEY
+  hint: null
+  label: minimax api key
+  options: null
+  required: false
+  type: password
+- env: ZAI_API_KEY
+  hint: null
+  label: zai api key
+  options: null
+  required: false
+  type: password
+- env: AI_GATEWAY_API_KEY
+  hint: null
+  label: ai gateway api key
+  options: null
+  required: false
+  type: password
+- env: OPENCODE_API_KEY
+  hint: null
+  label: opencode api key
+  options: null
+  required: false
+  type: password
+- env: SYNTHETIC_API_KEY
+  hint: null
+  label: synthetic api key
+  options: null
+  required: false
+  type: password
+- env: COPILOT_GITHUB_TOKEN
+  hint: null
+  label: copilot github token
+  options: null
+  required: false
+  type: password
+- env: XIAOMI_API_KEY
+  hint: null
+  label: xiaomi api key
+  options: null
+  required: false
+  type: password
+- env: OPENCLAW_PRIMARY_MODEL
+  hint: null
+  label: openclaw primary model
+  options: null
+  required: false
+  type: text
+- env: DEEPGRAM_API_KEY
+  hint: null
+  label: deepgram api key
+  options: null
+  required: false
+  type: password
+- env: AWS_ACCESS_KEY_ID
+  hint: null
+  label: aws access key id
+  options: null
+  required: false
+  type: password
+- env: AWS_SECRET_ACCESS_KEY
+  hint: null
+  label: aws secret access key
+  options: null
+  required: false
+  type: password
+- env: AWS_REGION
+  hint: 'по умолчанию: us-east-1'
+  label: aws region
+  options: null
+  required: false
+  type: text
+- env: AWS_SESSION_TOKEN
+  hint: null
+  label: aws session token
+  options: null
+  required: false
+  type: password
+- env: BEDROCK_PROVIDER_FILTER
+  hint: 'по умолчанию: anthropic'
+  label: bedrock provider filter
+  options: null
+  required: false
+  type: text
+- env: OLLAMA_BASE_URL
+  hint: null
+  label: ollama base url
+  options: null
+  required: false
+  type: text
+- env: OPENCLAW_GATEWAY_BIND
+  hint: 'по умолчанию: loopback'
+  label: openclaw gateway bind
+  options: null
+  required: false
+  type: text
+- env: BROWSER_DEFAULT_PROFILE
+  hint: 'по умолчанию: openclaw'
+  label: browser default profile
+  options: null
+  required: false
+  type: text
+- env: BROWSER_EVALUATE_ENABLED
+  hint: 'по умолчанию: true'
+  label: browser evaluate enabled
+  options: null
+  required: false
+  type: text
+- env: BROWSER_SNAPSHOT_MODE
+  hint: 'по умолчанию: efficient'
+  label: browser snapshot mode
+  options: null
+  required: false
+  type: text
+- env: BROWSER_REMOTE_TIMEOUT_MS
+  hint: 'по умолчанию: 1500'
+  label: browser remote timeout ms
+  options: null
+  required: false
+  type: text
+- env: BROWSER_REMOTE_HANDSHAKE_TIMEOUT_MS
+  hint: 'по умолчанию: 3000'
+  label: browser remote handshake timeout ms
+  options: null
+  required: false
+  type: text
+- env: HOOKS_ENABLED
+  hint: 'по умолчанию: false'
+  label: hooks enabled
+  options: null
+  required: false
+  type: text
+- env: HOOKS_PATH
+  hint: 'по умолчанию: /hooks'
+  label: hooks path
+  options: null
+  required: false
+  type: text
+- env: MOONSHOT_BASE_URL
+  hint: 'по умолчанию: https://api.moonshot.ai/v1'
+  label: moonshot base url
+  options: null
+  required: false
+  type: text
+- env: KIMI_BASE_URL
+  hint: 'по умолчанию: https://api.moonshot.ai/anthropic'
+  label: kimi base url
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- coding
+- assistant
+- llm
+- anthropic
+- openai
+- automation
+title: Openclaw
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://coolify.io/docs/services/openclaw
+  tags:
+  - ai
+  - coding
+  - assistant
+  - llm
+  - anthropic
+  - openai
+  - automation
+  template: openclaw.yaml
+website: https://coolify.io/docs/services/openclaw

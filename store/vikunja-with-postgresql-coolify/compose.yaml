@@ -1,0 +1,61 @@
+# vikunja-with-postgresql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - vikunja-with-postgresql-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - vikunja-postgresql-data:/var/lib/postgresql/data
+  vikunja:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_VIKUNJA=${SERVICE_URL_VIKUNJA}
+    - VIKUNJA_SERVICE_PUBLICURL=$SERVICE_URL_VIKUNJA
+    - VIKUNJA_SERVICE_JWTSECRET=$SERVICE_PASSWORD_JWTSECRET
+    - VIKUNJA_SERVICE_ENABLEREGISTRATION=true
+    - VIKUNJA_DATABASE_TYPE=postgres
+    - VIKUNJA_DATABASE_HOST=postgresql
+    - VIKUNJA_DATABASE_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - VIKUNJA_DATABASE_USER=${SERVICE_USER_POSTGRESQL}
+    - VIKUNJA_DATABASE_DATABASE=${POSTGRESQL_DATABASE}
+    image: vikunja/vikunja
+    networks:
+      appnet:
+        aliases:
+        - vikunja-with-postgresql-coolify_vikunja_1
+    restart: unless-stopped
+    volumes:
+    - vikunja-data:/app/vikunja/
+volumes:
+  vikunja-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/vikunja-data
+      o: bind
+      type: none
+  vikunja-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/vikunja-postgresql-data
+      o: bind
+      type: none

@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/music-assistant-umbrel
+description: A music library manager for your offline and online music sources
+endpoint:
+  port: 8896
+  service: web
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/music-assistant/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/music-assistant/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/music-assistant/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/music-assistant/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: music-assistant-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Music Assistant
+type: app
+upstream:
+  author: Music Assistant
+  categories:
+  - media
+  release_notes: |-
+    This release improves player and group playback reliability, including AirPlay seeking and grouping, Snapcast announcements, queue retention, Spotify audiobook seeking, and Spotify Connect volume handling.
+
+    It also lets guest-access speakers play without an extra setup step, makes Sendspin on Cast devices opt-in and experimental, improves Browse audio-source scoping, and fixes several frontend polish issues.
+
+    Full release notes can be found at https://github.com/music-assistant/server/releases/tag/2.10.1
+  source: https://github.com/music-assistant/server
+  version: 2.10.1
+  website: https://www.music-assistant.io
+website: https://www.music-assistant.io

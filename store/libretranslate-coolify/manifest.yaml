@@ -1,0 +1,69 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/libretranslate-coolify
+description: Free and open-source machine translation API, entirely self-hosted.
+endpoint:
+  port: 5000
+  service: libretranslate
+env:
+  LT_LOAD_ONLY: en,es,fr,de,ja
+  LT_SSL: 'true'
+  LT_UPDATE_MODELS: 'true'
+  SERVICE_URL_LIBRETRANSLATE_5000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: libretranslate-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LT_SSL
+  hint: 'по умолчанию: true'
+  label: lt ssl
+  options: null
+  required: false
+  type: text
+- env: LT_UPDATE_MODELS
+  hint: 'по умолчанию: true'
+  label: lt update models
+  options: null
+  required: false
+  type: text
+- env: LT_LOAD_ONLY
+  hint: 'по умолчанию: en,es,fr,de,ja'
+  label: lt load only
+  options: null
+  required: false
+  type: text
+tags:
+- translate
+- api
+title: Libretranslate
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://libretranslate.com/docs/
+  tags:
+  - translate
+  - api
+  template: libretranslate.yaml
+website: https://libretranslate.com/docs/

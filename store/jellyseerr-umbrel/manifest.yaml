@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/jellyseerr-umbrel
+description: Beautiful media discovery and request management
+endpoint:
+  port: 5055
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/jellyseerr/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jellyseerr/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jellyseerr/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/jellyseerr/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: jellyseerr-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Seerr
+type: app
+upstream:
+  author: Seerr Team
+  categories:
+  - media
+  release_notes: |-
+    This update fixes Radarr/Sonarr request cleanup behavior when media is removed or already missing, and improves the user list action button layout.
+    Full release notes are available at https://github.com/seerr-team/seerr/releases/tag/v3.4.1
+  source: https://github.com/seerr-team/seerr
+  version: 3.4.1
+  website: https://docs.seerr.dev/
+website: https://docs.seerr.dev/

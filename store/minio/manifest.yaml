@@ -1,0 +1,67 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/minio
+description: High Performance Object Storage.
+endpoint:
+  port: 9001
+  service: minio
+env:
+  MINIO_API_URL: ''
+  MINIO_ROOT_PASSWORD:
+    generate: password
+  MINIO_ROOT_USER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: MINIO_ROOT_PASSWORD
+  path: null
+  user: MINIO_ROOT_USER
+name: minio
+notes:
+- 'порт 8000→9000 (minio) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MINIO_ROOT_USER
+  hint: null
+  label: Minio root username
+  options: null
+  required: true
+  type: text
+- env: MINIO_ROOT_PASSWORD
+  hint: null
+  label: Minio root password
+  options: null
+  required: true
+  type: password
+- env: MINIO_API_URL
+  hint: null
+  label: Minio S3 API URL (when exposed)
+  options: null
+  required: false
+  type: text
+tags: []
+title: Minio
+type: app
+upstream:
+  author: MinIO, Inc
+  categories:
+  - development
+  source: https://github.com/minio/minio
+  tipi_version: 8
+  version: latest
+website: https://github.com/minio/minio

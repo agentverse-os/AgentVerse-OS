@@ -1,0 +1,23 @@
+# jellyseerr-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    healthcheck:
+      interval: 15s
+      retries: 3
+      start_period: 20s
+      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
+      timeout: 3s
+    image: ghcr.io/seerr-team/seerr:v3.4.1@sha256:f4768de5f616248d723e05891f3345a1402123775d03bf0890dbfedc0831bda1
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - jellyseerr_server_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/app/config

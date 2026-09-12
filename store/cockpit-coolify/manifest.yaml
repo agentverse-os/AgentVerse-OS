@@ -1,0 +1,53 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cockpit-coolify
+description: Cockpit is a headless content platform that is lightweight, fast and ready for takeoff.
+endpoint:
+  port: 80
+  service: cockpit
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cockpit-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- cockpit
+- headless
+- cms
+- database
+- nosql
+title: Cockpit
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://getcockpit.com/documentation/
+  tags:
+  - cockpit
+  - headless
+  - cms
+  - database
+  - nosql
+  template: cockpit.yaml
+website: https://getcockpit.com/documentation/

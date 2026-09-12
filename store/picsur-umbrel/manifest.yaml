@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/picsur-umbrel
+description: An easy to use image sharing service
+endpoint:
+  port: 8286
+  service: web
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/picsur/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/picsur/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/picsur/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/picsur/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/picsur/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/picsur/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: picsur-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Picsur
+type: app
+upstream:
+  author: CaramelFur
+  categories:
+  - files
+  release_notes: null
+  source: https://github.com/CaramelFur/Picsur
+  version: 0.5.6
+  website: https://picsur.org/upload
+website: https://picsur.org/upload

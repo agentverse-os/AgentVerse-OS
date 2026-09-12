@@ -1,0 +1,203 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wakapi-coolify
+description: A minimalist, self-hosted WakaTime-compatible backend for coding statistics
+endpoint:
+  port: 3000
+  service: wakapi
+env:
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_BASE64_64_PASSWORDSALT:
+    generate: hex64
+  SERVICE_PASSWORD_DATABASE:
+    generate: password
+  SERVICE_URL_WAKAPI_3000: https://${APP_DOMAIN}
+  SERVICE_USER_DATABASE:
+    generate: password
+  TIMEZONE: Europe/Berlin
+  WAKAPI_ALLOW_SIGNUP: 'true'
+  WAKAPI_DB_HOST: postgres
+  WAKAPI_DB_NAME: wakapi
+  WAKAPI_DB_PORT: '5432'
+  WAKAPI_DISABLE_FRONTPAGE: 'true'
+  WAKAPI_ENVIRONMENT: production
+  WAKAPI_LEADERBOARD_ENABLED: 'true'
+  WAKAPI_MAIL_ENABLED: 'false'
+  WAKAPI_MAIL_SENDER: ''
+  WAKAPI_MAIL_SMTP_HOST: ''
+  WAKAPI_MAIL_SMTP_PASSWORD: ''
+  WAKAPI_MAIL_SMTP_PORT: '587'
+  WAKAPI_MAIL_SMTP_TLS: 'true'
+  WAKAPI_MAIL_SMTP_USERNAME: ''
+  WAKAPI_PUBLIC_URL: ''
+  WAKAPI_SECURITY_EXPOSE_METRICS: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wakapi-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TIMEZONE
+  hint: 'по умолчанию: Europe/Berlin'
+  label: timezone
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_ENVIRONMENT
+  hint: 'по умолчанию: production'
+  label: wakapi environment
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_SECURITY_EXPOSE_METRICS
+  hint: 'по умолчанию: false'
+  label: wakapi security expose metrics
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_DB_NAME
+  hint: 'по умолчанию: wakapi'
+  label: wakapi db name
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_DB_HOST
+  hint: 'по умолчанию: postgres'
+  label: wakapi db host
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_DB_PORT
+  hint: 'по умолчанию: 5432'
+  label: wakapi db port
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_MAIL_ENABLED
+  hint: 'по умолчанию: false'
+  label: wakapi mail enabled
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_MAIL_SENDER
+  hint: null
+  label: wakapi mail sender
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_MAIL_SMTP_HOST
+  hint: null
+  label: wakapi mail smtp host
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_MAIL_SMTP_PORT
+  hint: 'по умолчанию: 587'
+  label: wakapi mail smtp port
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_MAIL_SMTP_USERNAME
+  hint: null
+  label: wakapi mail smtp username
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_MAIL_SMTP_PASSWORD
+  hint: null
+  label: wakapi mail smtp password
+  options: null
+  required: false
+  type: password
+- env: WAKAPI_MAIL_SMTP_TLS
+  hint: 'по умолчанию: true'
+  label: wakapi mail smtp tls
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_ALLOW_SIGNUP
+  hint: 'по умолчанию: true'
+  label: wakapi allow signup
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_LEADERBOARD_ENABLED
+  hint: 'по умолчанию: true'
+  label: wakapi leaderboard enabled
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_DISABLE_FRONTPAGE
+  hint: 'по умолчанию: true'
+  label: wakapi disable frontpage
+  options: null
+  required: false
+  type: text
+- env: WAKAPI_PUBLIC_URL
+  hint: null
+  label: wakapi public url
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- productivity
+- self-hosted
+- developer-tools
+- time-tracker
+- wakatime
+- wakatime-api
+- coding-statistics
+- statistics
+- timetracking
+- analytics
+title: Wakapi
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://wakapi.dev/
+  tags:
+  - productivity
+  - self-hosted
+  - developer-tools
+  - time-tracker
+  - wakatime
+  - wakatime-api
+  - coding-statistics
+  - statistics
+  - timetracking
+  - analytics
+  template: wakapi.yaml
+website: https://wakapi.dev/

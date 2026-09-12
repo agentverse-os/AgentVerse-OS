@@ -1,0 +1,33 @@
+# navidrome-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  navidrome:
+    environment:
+    - SERVICE_URL_NAVIDROME_4533=${SERVICE_URL_NAVIDROME_4533}
+    - ND_BASEURL=${SERVICE_URL_NAVIDROME}
+    - ND_SCANSCHEDULE=${ND_SCANSCHEDULE:-1h}
+    - ND_LOGLEVEL=${ND_LOGLEVEL:-info}
+    - ND_SESSIONTIMEOUT=${ND_SESSIONTIMEOUT:-24h}
+    - ND_ENABLEINSIGHTSCOLLECTOR=${ND_ENABLEINSIGHTSCOLLECTOR:-false}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - wget
+      - --spider
+      - --quiet
+      - http://127.0.0.1:4533/ping
+      timeout: 5s
+    image: deluan/navidrome:latest
+    networks:
+      appnet:
+        aliases:
+        - navidrome-coolify_navidrome_1
+    restart: unless-stopped
+    volumes:
+    - ./data:/data
+    - ./music:/music:ro

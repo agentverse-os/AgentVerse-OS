@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/portainer
+description: Making Docker and Kubernetes management easy.
+endpoint:
+  port: 9443
+  service: portainer
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: true
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: portainer
+notes:
+- монтирует /var/run/docker.sock хоста — приложение платформенного уровня доверия (в срезе 1 без socket-proxy)
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Portainer
+type: app
+upstream:
+  author: portainer
+  categories:
+  - utilities
+  source: https://github.com/portainer/portainer
+  tipi_version: 70
+  version: 2.44.0
+website: https://github.com/portainer/portainer

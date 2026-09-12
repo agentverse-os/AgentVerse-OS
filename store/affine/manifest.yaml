@@ -1,0 +1,74 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/affine
+description: AFFiNE is a workspace with fully merged docs, whiteboards and databases.
+endpoint:
+  port: 3010
+  service: affine
+env:
+  AFFINE_ADMIN_EMAIL: ''
+  AFFINE_ADMIN_PASSWORD:
+    generate: password
+  AFFINE_POSTGRES_PASSWORD:
+    generate: token
+  AFFINE_TELEMETRY_ENABLE: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: AFFINE_ADMIN_PASSWORD
+  path: null
+  user: AFFINE_ADMIN_EMAIL
+name: affine
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: AFFINE_ADMIN_EMAIL
+  hint: null
+  label: Admin Email
+  options: null
+  required: true
+  type: text
+- env: AFFINE_ADMIN_PASSWORD
+  hint: null
+  label: Admin Password
+  options: null
+  required: true
+  type: password
+- env: AFFINE_TELEMETRY_ENABLE
+  hint: null
+  label: Enable affine telemetry?
+  options: null
+  required: false
+  type: boolean
+- env: AFFINE_POSTGRES_PASSWORD
+  hint: null
+  label: Affine postgres password
+  options: null
+  required: false
+  type: random
+tags: []
+title: AFFiNE
+type: app
+upstream:
+  author: https://github.com/toeverything
+  categories:
+  - utilities
+  source: https://github.com/toeverything/affine
+  tipi_version: 10
+  version: stable
+website: https://github.com/toeverything/affine

@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bitaxe-sentry-umbrel
+description: Bitaxe stats and alerts, all in one
+endpoint:
+  port: 7070
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bitaxe-sentry/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitaxe-sentry/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitaxe-sentry/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bitaxe-sentry/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bitaxe-sentry-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Bitaxe Sentry
+type: app
+upstream:
+  author: Zach Price
+  categories:
+  - bitcoin
+  release_notes: |-
+    This release adds VR temperature monitoring, fan/pool telemetry, ntfy push notifications, pool latency monitoring, and per-miner notification muting, plus several bug fixes:
+      - Added VR temperature tracking and alerting (default threshold 90°C, configurable in settings)
+      - Added fan RPM/%, active pool URL, and session best difficulty to the dashboard
+      - Added ntfy push notification support alongside existing notifiers
+      - Added pool failover alerts when a miner switches between primary and fallback stratum
+      - Added pool latency monitoring with a graph and configurable alert threshold
+      - Added a consecutive-failure counter for miner status
+      - Changed miner polling to run in parallel threads for faster, non-blocking refresh
+      - Changed offline alerts to require 2 consecutive failed checks, reducing false-positive spam
+      - Fixed dark mode flash on page load
+      - Fixed history chart timeframes being shared instead of independent per chart
+      - Fixed a fatal crash on fresh installs caused by an outdated Starlette TemplateResponse call
+  source: https://github.com/zachchan105/bitaxe-sentry
+  version: 0.8.0
+  website: https://github.com/zachchan105/bitaxe-sentry
+website: https://github.com/zachchan105/bitaxe-sentry

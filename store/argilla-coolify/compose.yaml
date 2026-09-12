@@ -1,0 +1,175 @@
+# argilla-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  argilla:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_ARGILLA_6900=${SERVICE_URL_ARGILLA_6900}
+    - ARGILLA_HOME_PATH=/var/lib/argilla
+    - ARGILLA_ELASTICSEARCH=http://elasticsearch:9200
+    - ARGILLA_DATABASE_URL=postgresql+asyncpg://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/${POSTGRES_DB}
+    - ARGILLA_REDIS_URL=redis://redis:6379/0
+    - ARGILLA_AUTH_SECRET_KEY=${SERVICE_PASSWORD_AUTHSECRET}
+    - ARGILLA_ENABLE_TELEMETRY=${ARGILLA_ENABLE_TELEMETRY:-0}
+    - HF_HUB_DISABLE_TELEMETRY=${HF_HUB_DISABLE_TELEMETRY:-1}
+    - REINDEX_DATASETS=${REINDEX_DATASETS:-1}
+    - DEFAULT_USER_ENABLED=${DEFAULT_USER_ENABLED:-true}
+    - USERNAME=${ARGILLA_USERNAME:-argilla}
+    - PASSWORD=${SERVICE_PASSWORD_ARGILLA}
+    - API_KEY=${SERVICE_PASSWORD_APIKEY}
+    - DEFAULT_USER_PASSWORD=${SERVICE_PASSWORD_ARGILLA}
+    - DEFAULT_USER_API_KEY=${SERVICE_PASSWORD_APIKEY}
+    - WORKSPACE=${WORKSPACE:-default}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - python -c "import requests as r;r.get(\"http://localhost:6900/api/_status\").raise_for_status()"
+      timeout: 10s
+    image: argilla/argilla-server:v2.2.0
+    networks:
+      appnet:
+        aliases:
+        - argilla-coolify_argilla_1
+    restart: unless-stopped
+    volumes:
+    - argilla-data:/var/lib/argilla
+  elasticsearch:
+    environment:
+    - node.name=${NODE_NAME:-elasticsearch}
+    - cluster.name=${CLUSTER_NAME:-es-argilla-local}
+    - discovery.type=${DISCOVERY_TYPE:-single-node}
+    - ES_JAVA_OPTS=${ES_JAVA_OPTS:-"-Xms512m -Xmx512m"}
+    - cluster.routing.allocation.disk.threshold_enabled=${CLUSTER_ROUTING_ALLOCATION_DISK_THRESHOLD_ENABLED:-false}
+    - xpack.security.enabled=${XPACK_SECURITY_ENABLED:-false}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - curl --silent --fail http://elasticsearch:9200
+      timeout: 10s
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    networks:
+      appnet:
+        aliases:
+        - argilla-coolify_elasticsearch_1
+    restart: unless-stopped
+    ulimits:
+      memlock:
+        hard: -1
+        soft: -1
+    volumes:
+    - elasticsearch-data:/usr/share/elasticsearch/data/
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-argilla}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - pg_isready -h localhost -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 5s
+    image: postgres:14
+    networks:
+      appnet:
+        aliases:
+        - argilla-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - pg-data:/var/lib/postgresql/data
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - redis-cli -h localhost -p 6379 ping
+      timeout: 5s
+    image: redis:7
+    networks:
+      appnet:
+        aliases:
+        - argilla-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - redis-data:/data
+  worker:
+    command: sh -c 'python -m argilla_server worker --num-workers $${BACKGROUND_NUM_WORKERS}'
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - ARGILLA_HOME_PATH=/var/lib/argilla
+    - ARGILLA_ELASTICSEARCH=http://elasticsearch:9200
+    - ARGILLA_DATABASE_URL=postgresql+asyncpg://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/${POSTGRES_DB}
+    - ARGILLA_REDIS_URL=redis://redis:6379/0
+    - ARGILLA_AUTH_SECRET_KEY=${SERVICE_PASSWORD_AUTHSECRET}
+    - ARGILLA_ENABLE_TELEMETRY=${ARGILLA_ENABLE_TELEMETRY:-0}
+    - HF_HUB_DISABLE_TELEMETRY=${HF_HUB_DISABLE_TELEMETRY:-1}
+    - REINDEX_DATASETS=${REINDEX_DATASETS:-1}
+    - DEFAULT_USER_ENABLED=${DEFAULT_USER_ENABLED:-true}
+    - USERNAME=${ARGILLA_USERNAME:-argilla}
+    - PASSWORD=${SERVICE_PASSWORD_ARGILLA}
+    - API_KEY=${SERVICE_PASSWORD_APIKEY}
+    - DEFAULT_USER_PASSWORD=${SERVICE_PASSWORD_ARGILLA}
+    - DEFAULT_USER_API_KEY=${SERVICE_PASSWORD_APIKEY}
+    - BACKGROUND_NUM_WORKERS=${BACKGROUND_NUM_WORKERS:-1}
+    - WORKSPACE=${WORKSPACE:-default}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pwd
+      timeout: 10s
+    image: argilla/argilla-server:v2.2.0
+    networks:
+      appnet:
+        aliases:
+        - argilla-coolify_worker_1
+    restart: unless-stopped
+    volumes:
+    - argilla-data:/var/lib/argilla
+volumes:
+  argilla-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/argilla-data
+      o: bind
+      type: none
+  elasticsearch-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/elasticsearch-data
+      o: bind
+      type: none
+  pg-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pg-data
+      o: bind
+      type: none
+  redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis-data
+      o: bind
+      type: none

@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/grocy-umbrel
+description: Track groceries, chores, recipes, and household tasks
+endpoint:
+  port: 80
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/grocy/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/grocy/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/grocy/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/grocy/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/grocy/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/grocy/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: admin
+  path: null
+  user: admin
+name: grocy-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Grocy
+type: app
+upstream:
+  author: Grocy
+  categories:
+  - files
+  release_notes: |-
+    This update includes Grocy 4.7.0 with improvements and fixes across stock management, shopping lists, recipes, meal planning, chores, tasks, userfields, and the API.
+
+    It also adds an "Assigned to" task filter, improves accent-insensitive searching, lets users view and delete active user sessions, and fixes login with passwords containing special escape sequences.
+
+    Web sessions are invalidated by this update, so you will need to log in again after Grocy restarts.
+  source: https://github.com/grocy/grocy
+  version: 4.7.0
+  website: https://grocy.info/
+website: https://grocy.info/

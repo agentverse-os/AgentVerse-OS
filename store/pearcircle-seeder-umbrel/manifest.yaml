@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pearcircle-seeder-umbrel
+description: Keep your PearCircle circles online 24/7
+endpoint:
+  port: 8730
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/pearcircle-seeder/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pearcircle-seeder/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pearcircle-seeder/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/pearcircle-seeder/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pearcircle-seeder-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: PearCircle Seeder
+type: app
+upstream:
+  author: PeerLoom
+  categories:
+  - networking
+  release_notes: |-
+    This update upgrades PearCircle Seeder to 1.1.0. The dashboard now shows live progress while a phone is pairing instead of appearing to stall. In PearCircle 1.1.0, the phone app's Seeders screen can also distinguish seeders that have actually checked in for a circle from those that were only approved, and shows when each was last heard from.
+
+    The seeder now warns if a circle member publishes a last-known location without encryption. PearCircle fixed the affected phone-side behavior in 1.0.25, so circle members using older versions should update their phone apps too; updating the seeder alone does not fix an affected phone. No seeder data migration or reconfiguration is required.
+
+    Full upstream release notes: https://github.com/peerloomllc/pearcircle/releases/tag/v1.1.0
+  source: https://github.com/peerloomllc/pearcircle
+  version: 1.1.0
+  website: https://peerloomllc.com
+website: https://peerloomllc.com

@@ -1,0 +1,104 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/flowise
+description: Build LLM Apps Easily
+endpoint:
+  port: 8009
+  service: flowise
+env:
+  DISABLE_FLOWISE_TELEMETRY: ''
+  FLOWISE_PASSWORD:
+    generate: password
+  FLOWISE_SECRETKEY_OVERWRITE:
+    generate: token
+  FLOWISE_USERNAME: ''
+  LANGCHAIN_API_KEY:
+    generate: password
+  LANGCHAIN_ENDPOINT: ''
+  LANGCHAIN_PROJECT: ''
+  LANGCHAIN_TRACING_V2: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: FLOWISE_PASSWORD
+  path: null
+  user: FLOWISE_USERNAME
+name: flowise
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: FLOWISE_USERNAME
+  hint: null
+  label: Flowise Username
+  options: null
+  required: true
+  type: text
+- env: FLOWISE_PASSWORD
+  hint: null
+  label: Flowise Password
+  options: null
+  required: true
+  type: password
+- env: FLOWISE_SECRETKEY_OVERWRITE
+  hint: null
+  label: Flowise Secret
+  options: null
+  required: false
+  type: random
+- env: LANGCHAIN_ENDPOINT
+  hint: URL of your langhchain endpoint
+  label: (Optional) Langchain Endpoint
+  options: null
+  required: false
+  type: url
+- env: LANGCHAIN_API_KEY
+  hint: null
+  label: (Optional) Langchain API Key
+  options: null
+  required: false
+  type: password
+- env: LANGCHAIN_PROJECT
+  hint: null
+  label: (Optional) Langchain Project
+  options: null
+  required: false
+  type: text
+- env: LANGCHAIN_TRACING_V2
+  hint: null
+  label: Enable Langchain Tracing v2
+  options: null
+  required: false
+  type: boolean
+- env: DISABLE_FLOWISE_TELEMETRY
+  hint: null
+  label: Disable Flowise telemetry
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: Flowise AI
+type: app
+upstream:
+  author: flowise.ai
+  categories:
+  - ai
+  - automation
+  source: https://github.com/FlowiseAI/Flowise
+  tipi_version: 63
+  version: 3.1.4
+website: https://github.com/FlowiseAI/Flowise

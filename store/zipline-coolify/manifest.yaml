@@ -1,0 +1,86 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/zipline-coolify
+description: A ShareX/file upload server that is easy to use, packed with features, and with an easy setup!
+endpoint:
+  port: 3000
+  service: zipline
+env:
+  CORE_LOGGER: 'true'
+  CORE_RETURN_HTTPS: 'false'
+  POSTGRES_DB: zipline-db
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_64_ZIPLINE:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_ZIPLINE_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: zipline-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CORE_RETURN_HTTPS
+  hint: 'по умолчанию: false'
+  label: core return https
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: zipline-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: CORE_LOGGER
+  hint: 'по умолчанию: true'
+  label: core logger
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- zipline
+- file-sharing
+- upload
+- sharing
+title: Zipline
+type: app
+upstream:
+  categories:
+  - media
+  source: https://zipline.diced.sh/docs/config
+  tags:
+  - zipline
+  - file-sharing
+  - upload
+  - sharing
+  template: zipline.yaml
+website: https://zipline.diced.sh/docs/config

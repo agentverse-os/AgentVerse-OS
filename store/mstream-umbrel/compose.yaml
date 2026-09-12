@@ -1,0 +1,19 @@
+# mstream-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    image: linuxserver/mstream:6.25.0@sha256:14d211939d650ae78675a232c645884399cec35153d50bdf04897cdd5b85316c
+    networks:
+      appnet:
+        aliases:
+        - mstream_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/config
+    - ${UMBREL_ROOT}/data/storage/downloads/music:/music

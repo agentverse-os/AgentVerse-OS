@@ -1,0 +1,34 @@
+# flaresolverr-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+      LOG_LEVEL: info
+    image: ghcr.io/flaresolverr/flaresolverr:v3.5.0@sha256:139dfee1c6f89249c8d665d1333a42e8ec74ec0a86bc6bb1c8461e10d3a66a47
+    networks:
+      appnet:
+        aliases:
+        - flaresolverr_server_1
+    restart: on-failure
+  web:
+    environment:
+    - URL=http://flaresolverr_server_1:8191/v1
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/health
+      timeout: 10s
+    image: mrsunglasses/flaresolverr-status:0.0.2@sha256:5a12b6ee183b64b87546b5f30537abaf333f7b2cd83856e6e2bcca874d165dc9
+    networks:
+      appnet:
+        aliases:
+        - flaresolverr_web_1
+    restart: on-failure

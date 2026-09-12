@@ -1,0 +1,68 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/libreoffice-coolify
+description: LibreOffice is a free and powerful office suite.
+endpoint:
+  port: 3000
+  service: libreoffice
+env:
+  PGID: '1000'
+  PUID: '1000'
+  SERVICE_URL_LIBREOFFICE_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: libreoffice-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PUID
+  hint: 'по умолчанию: 1000'
+  label: puid
+  options: null
+  required: false
+  type: text
+- env: PGID
+  hint: 'по умолчанию: 1000'
+  label: pgid
+  options: null
+  required: false
+  type: text
+tags:
+- office
+- document
+- spreadsheet
+- presentation
+- open-source
+title: Libreoffice
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.linuxserver.io/images/docker-libreoffice/
+  tags:
+  - office
+  - document
+  - spreadsheet
+  - presentation
+  - open-source
+  template: libreoffice.yaml
+website: https://docs.linuxserver.io/images/docker-libreoffice/

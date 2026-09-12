@@ -1,0 +1,87 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/openobserve-coolify
+description: Cloud-native observability platform for logs, metrics, traces, RUM, errors and session replays — a 140x cheaper alternative to Elasticsearch, Splunk and Datadog.
+endpoint:
+  port: 5080
+  service: openobserve
+env:
+  SERVICE_PASSWORD_OPENOBSERVE:
+    generate: password
+  SERVICE_URL_OPENOBSERVE_5080: https://${APP_DOMAIN}
+  ZO_COOKIE_SECURE_ONLY: 'true'
+  ZO_ROOT_USER_EMAIL: root@example.com
+  ZO_TELEMETRY: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_OPENOBSERVE
+  path: null
+  user: ZO_ROOT_USER_EMAIL
+name: openobserve-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ZO_ROOT_USER_EMAIL
+  hint: 'по умолчанию: root@example.com'
+  label: zo root user email
+  options: null
+  required: false
+  type: text
+- env: ZO_TELEMETRY
+  hint: 'по умолчанию: false'
+  label: zo telemetry
+  options: null
+  required: false
+  type: text
+- env: ZO_COOKIE_SECURE_ONLY
+  hint: 'по умолчанию: true'
+  label: zo cookie secure only
+  options: null
+  required: false
+  type: text
+tags:
+- logs
+- metrics
+- traces
+- observability
+- monitoring
+- opentelemetry
+- otel
+- elasticsearch
+- splunk
+- datadog
+title: Openobserve
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://openobserve.ai/docs/
+  tags:
+  - logs
+  - metrics
+  - traces
+  - observability
+  - monitoring
+  - opentelemetry
+  - otel
+  - elasticsearch
+  - splunk
+  - datadog
+  template: openobserve.yaml
+website: https://openobserve.ai/docs/

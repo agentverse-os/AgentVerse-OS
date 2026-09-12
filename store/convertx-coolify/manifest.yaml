@@ -1,0 +1,84 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/convertx-coolify
+description: A self-hosted online file converter. Supports over a thousand different formats.
+endpoint:
+  port: 3000
+  service: convertx
+env:
+  ACCOUNT_REGISTRATION: 'false'
+  ALLOW_UNAUTHENTICATED: 'false'
+  AUTO_DELETE_EVERY_N_HOURS: '24'
+  HTTP_ALLOWED: 'true'
+  SERVICE_PASSWORD_CONVERTXJWTSECRET:
+    generate: password
+  SERVICE_URL_CONVERTX: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: convertx-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ACCOUNT_REGISTRATION
+  hint: 'по умолчанию: false'
+  label: account registration
+  options: null
+  required: false
+  type: text
+- env: HTTP_ALLOWED
+  hint: 'по умолчанию: true'
+  label: http allowed
+  options: null
+  required: false
+  type: text
+- env: ALLOW_UNAUTHENTICATED
+  hint: 'по умолчанию: false'
+  label: allow unauthenticated
+  options: null
+  required: false
+  type: text
+- env: AUTO_DELETE_EVERY_N_HOURS
+  hint: 'по умолчанию: 24'
+  label: auto delete every n hours
+  options: null
+  required: false
+  type: text
+tags:
+- converter
+- file
+- documents
+- files
+- directories
+title: Convertx
+type: app
+upstream:
+  categories:
+  - backend
+  source: https://github.com/C4illin/ConvertX
+  tags:
+  - converter
+  - file
+  - documents
+  - files
+  - directories
+  template: convertx.yml
+website: https://github.com/C4illin/ConvertX

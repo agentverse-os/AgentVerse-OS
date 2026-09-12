@@ -1,0 +1,65 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wings-coolify
+description: The server control plane for Pterodactyl Panel. Written from the ground-up with security, speed, and stability in mind.
+endpoint:
+  port: 8443
+  service: wings
+env:
+  SERVICE_URL_WINGS_8443: https://${APP_DOMAIN}
+  SERVICE_USER_WINGS:
+    generate: password
+  TIMEZONE: UTC
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: SERVICE_USER_WINGS
+name: wings-coolify
+notes:
+- 'порт 2022:2022 (wings) не публикуется: доступ только через edge/gate'
+- 'wings: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TIMEZONE
+  hint: 'по умолчанию: UTC'
+  label: timezone
+  options: null
+  required: false
+  type: text
+tags:
+- game
+- game server
+- management
+- panel
+- minecraft
+title: Wings
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://pterodactyl.io/
+  tags:
+  - game
+  - game server
+  - management
+  - panel
+  - minecraft
+  template: wings.yaml
+website: https://pterodactyl.io/

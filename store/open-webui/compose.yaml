@@ -1,0 +1,18 @@
+# open-webui: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  open-webui:
+    environment:
+      OLLAMA_BASE_URL: ${OPENWEBUI_OLLAMA_URL}
+      OPENAI_API_KEY: ${OPENWEBUI_OPENAI_KEY}
+    image: ghcr.io/open-webui/open-webui:v0.11.1
+    networks:
+      appnet:
+        aliases:
+        - open-webui_open-webui_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/backend/data

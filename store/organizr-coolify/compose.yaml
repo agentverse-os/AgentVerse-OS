@@ -1,0 +1,32 @@
+# organizr-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  organizr:
+    environment:
+    - SERVICE_URL_ORGANIZR_80=${SERVICE_URL_ORGANIZR_80}
+    - branch=${branch:-v2-master}
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - curl -sf http://localhost:80 || exit 1
+      timeout: 1s
+    image: organizr/organizr:latest
+    networks:
+      appnet:
+        aliases:
+        - organizr-coolify_organizr_1
+    restart: unless-stopped
+    volumes:
+    - organizr-data:/config
+volumes:
+  organizr-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/organizr-data
+      o: bind
+      type: none

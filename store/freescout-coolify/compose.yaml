@@ -1,0 +1,83 @@
+# freescout-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  freescout:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_FREESCOUT_80=${SERVICE_URL_FREESCOUT_80}
+    - DB_HOST=mariadb
+    - DB_NAME=${MARIADB_DATABASE:-freescout}
+    - DB_USER=${SERVICE_USER_MARIADB:-freescout}
+    - DB_PASS=${SERVICE_PASSWORD_MARIADB}
+    - SITE_URL=${SERVICE_URL_FREESCOUT}
+    - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
+    - ADMIN_PASS=${SERVICE_PASSWORD_ADMIN}
+    - DISPLAY_ERRORS=${DISPLAY_ERRORS:-FALSE}
+    - TIMEZONE=${TIMEZONE:-UTC}
+    healthcheck:
+      interval: 5s
+      retries: 15
+      start_period: 10s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: tiredofit/freescout:latest
+    networks:
+      appnet:
+        aliases:
+        - freescout-coolify_freescout_1
+    restart: unless-stopped
+    volumes:
+    - freescout-data:/data
+    - freescout-logs:/www/logs
+  mariadb:
+    environment:
+    - MARIADB_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+    - MARIADB_DATABASE=${MARIADB_DATABASE}
+    - MARIADB_USER=${SERVICE_USER_MARIADB}
+    - MARIADB_PASSWORD=${SERVICE_PASSWORD_MARIADB}
+    healthcheck:
+      interval: 5s
+      retries: 15
+      start_period: 10s
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 10s
+    image: mariadb
+    networks:
+      appnet:
+        aliases:
+        - freescout-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - mariadb-data:/var/lib/mysql
+volumes:
+  freescout-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/freescout-data
+      o: bind
+      type: none
+  freescout-logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/freescout-logs
+      o: bind
+      type: none
+  mariadb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mariadb-data
+      o: bind
+      type: none

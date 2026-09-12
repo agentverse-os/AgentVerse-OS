@@ -1,0 +1,1 @@
+Run your monero node and independently store and validate every single Monero transaction with it. This is a full node that will download the entire Monero blockchain and store it on your Umbrel.  This is the most secure way to run a Monero node, but it will take a long time to sync and will require a lot of storage space.

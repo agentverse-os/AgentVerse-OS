@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/chibisafe-coolify
+description: A beautiful and performant vault to save all your files in the cloud.
+endpoint:
+  port: 80
+  service: chibisafe
+env:
+  SERVICE_URL_CHIBISAFE_80: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: chibisafe-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- storage
+- file-sharing
+- upload
+- sharing
+title: Chibisafe
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://chibisafe.app/docs/intro
+  tags:
+  - storage
+  - file-sharing
+  - upload
+  - sharing
+  template: chibisafe.yaml
+website: https://chibisafe.app/docs/intro

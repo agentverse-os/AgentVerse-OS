@@ -1,0 +1,28 @@
+# pairdrop-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  pairdrop:
+    environment:
+    - SERVICE_URL_PAIRDROP_3000=${SERVICE_URL_PAIRDROP_3000}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    - DEBUG_MODE=false
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000
+      timeout: 10s
+    image: lscr.io/linuxserver/pairdrop:latest
+    networks:
+      appnet:
+        aliases:
+        - pairdrop-coolify_pairdrop_1
+    restart: unless-stopped

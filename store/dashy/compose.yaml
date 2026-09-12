@@ -1,0 +1,15 @@
+# dashy: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  dashy:
+    image: ghcr.io/lissy93/dashy:4.6.6
+    networks:
+      appnet:
+        aliases:
+        - dashy_dashy_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/dashy:/app/user-data

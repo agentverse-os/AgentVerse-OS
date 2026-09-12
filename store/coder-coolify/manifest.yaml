@@ -1,0 +1,74 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/coder-coolify
+description: Coder is an open-source platform for creating and managing cloud development environments on your infrastructure, with the tools and IDEs your developers already love.
+endpoint:
+  port: 7080
+  service: coder
+env:
+  POSTGRES_DB: coder-db
+  POSTGRES_USER: username
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_CODER: https://${APP_DOMAIN}
+  SERVICE_URL_CODER_7080: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: coder-coolify
+notes:
+- 'coder: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: coder-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: 'по умолчанию: username'
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- coder
+- development
+- environment
+- self-hosted
+- postgres
+title: Coder
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://coder.com/docs
+  tags:
+  - coder
+  - development
+  - environment
+  - self-hosted
+  - postgres
+  template: coder.yaml
+website: https://coder.com/docs

@@ -1,0 +1,32 @@
+# gowa-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  gowa:
+    environment:
+    - SERVICE_URL_GOWA_3000=${SERVICE_URL_GOWA_3000}
+    - SERVICE_USER_GOWA=${SERVICE_USER_GOWA}
+    - SERVICE_PASSWORD_GOWA=${SERVICE_PASSWORD_GOWA}
+    - APP_BASIC_AUTH=${SERVICE_USER_GOWA}:${SERVICE_PASSWORD_GOWA}
+    - APP_PORT=3000
+    - APP_DEBUG=${APP_DEBUG:-false}
+    - APP_ACCOUNT_VALIDATION=${APP_ACCOUNT_VALIDATION:-false}
+    - WHATSAPP_WEBHOOK=${WHATSAPP_WEBHOOK}
+    - WHATSAPP_WEBHOOK_SECRET=${WHATSAPP_WEBHOOK_SECRET}
+    image: aldinokemal2104/go-whatsapp-web-multidevice:latest
+    networks:
+      appnet:
+        aliases:
+        - gowa-coolify_gowa_1
+    restart: unless-stopped
+    volumes:
+    - gowa_data:/app/storages
+volumes:
+  gowa_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/gowa_data
+      o: bind
+      type: none

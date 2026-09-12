@@ -1,0 +1,10 @@
+SABnzbd makes Usenet as simple and streamlined as possible by automating everything we can. All you have to do is add an .nzb. SABnzbd takes over from there, where it will be automatically downloaded, verified, repaired, extracted and filed away with zero human interaction.  SABnzbd offers an easy setup wizard and has self-analysis tools to verify your setup.
+
+If you want to know more you can head over to our website: https://sabnzbd.org.
+
+🛠️ SET-UP INSTRUCTIONS
+
+SABnzbd on umbrelOS is set up to work without any additional configuration needed. It will automatically be connected to dependent apps like Radarr, Sonarr, Lidarr, Readarr, and Prowlarr. Simply install additional media apps from the Umbrel App Store, and everything will work seamlessly together.
+
+If you want to modify the default categories that are set up on install, you can do so by navigating to the Categories section in the SABnzbd settings tab. If you do this, you will need to update the categories in your other apps like Sonarr and Radarr to match the ones you set up in SABnzbd in order for them to work together.
+You can also set up API keys for integration with other apps like Sonarr and Radarr by navigating to the General section in the SABnzbd app.

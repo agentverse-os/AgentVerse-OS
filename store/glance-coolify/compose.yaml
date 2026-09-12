@@ -1,0 +1,109 @@
+# glance-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  glance-inline-1:
+    content: |
+      pages:
+        - name: Home
+          server:
+            host: 0.0.0.0
+            port: 8080
+            assets-path: /user/assets
+          columns:
+            - size: small
+              widgets:
+                - type: calendar
+
+                - type: rss
+                  limit: 10
+                  collapse-after: 3
+                  cache: 3h
+                  feeds:
+                    - url: https://ciechanow.ski/atom.xml
+                    - url: https://www.joshwcomeau.com/rss.xml
+                      title: Josh Comeau
+                    - url: https://samwho.dev/rss.xml
+                    - url: https://awesomekling.github.io/feed.xml
+                    - url: https://ishadeed.com/feed.xml
+                      title: Ahmad Shadeed
+
+                - type: twitch-channels
+                  channels:
+                    - theprimeagen
+                    - heyandras
+                    - cohhcarnage
+                    - christitustech
+                    - blurbs
+                    - asmongold
+                    - jembawls
+
+            - size: full
+              widgets:
+                - type: hacker-news
+
+                - type: videos
+                  channels:
+                    - UCR-DXc1voovS8nhAvccRZhg # Jeff Geerling
+                    - UCv6J_jJa8GJqFwQNgNrMuww # ServeTheHome
+                    - UCOk-gHyjcWZNj3Br4oxwh0A # Techno Tim
+
+                - type: reddit
+                  subreddit: selfhosted
+
+            - size: small
+              widgets:
+                - type: weather
+                  location: London, United Kingdom
+
+                - type: stocks
+                  stocks:
+                    - symbol: SPY
+                      name: S&P 500
+                    - symbol: BTC-USD
+                      name: Bitcoin
+                    - symbol: NVDA
+                      name: NVIDIA
+                    - symbol: AAPL
+                      name: Apple
+                    - symbol: MSFT
+                      name: Microsoft
+                    - symbol: GOOGL
+                      name: Google
+                    - symbol: AMD
+                      name: AMD
+                    - symbol: RDDT
+                      name: Reddit
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  glance:
+    configs:
+    - source: glance-inline-1
+      target: /app/config/glance.yml
+    environment:
+    - SERVICE_URL_GLANCE_8080=${SERVICE_URL_GLANCE_8080}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - echo
+      - '[+] Should be working fine.'
+      timeout: 20s
+    image: glanceapp/glance:latest
+    networks:
+      appnet:
+        aliases:
+        - glance-coolify_glance_1
+    restart: unless-stopped
+    volumes:
+    - ./config:/app/config
+    - glance-assets:/user/assets
+volumes:
+  glance-assets:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/glance-assets
+      o: bind
+      type: none

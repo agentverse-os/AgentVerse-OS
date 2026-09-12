@@ -1,0 +1,25 @@
+# unstructured-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  unstructured:
+    environment:
+    - SERVICE_URL_UNSTRUCTURED_8000=${SERVICE_URL_UNSTRUCTURED_8000}
+    - UNSTRUCTURED_API_KEY=${SERVICE_PASSWORD_APIKEY}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -qO-
+      - http://0.0.0.0:8000/healthcheck
+      timeout: 30s
+    image: downloads.unstructured.io/unstructured-io/unstructured-api:latest
+    networks:
+      appnet:
+        aliases:
+        - unstructured-coolify_unstructured_1
+    restart: unless-stopped

@@ -1,0 +1,136 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/docmost-coolify
+description: Open-source collaborative wiki and documentation software
+endpoint:
+  port: 3000
+  service: docmost
+env:
+  MAIL_FROM_ADDRESS: ''
+  MAIL_FROM_NAME: ''
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  POSTMARK_TOKEN: ''
+  SERVICE_BASE64_APPKEY:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_DOCMOST_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SMTP_HOST: ''
+  SMTP_PASSWORD: ''
+  SMTP_PORT: ''
+  SMTP_SECURE: ''
+  SMTP_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: docmost-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SMTP_HOST
+  hint: null
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: null
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_USERNAME
+  hint: null
+  label: smtp username
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: null
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: SMTP_SECURE
+  hint: null
+  label: smtp secure
+  options: null
+  required: false
+  type: text
+- env: MAIL_FROM_ADDRESS
+  hint: null
+  label: mail from address
+  options: null
+  required: false
+  type: text
+- env: MAIL_FROM_NAME
+  hint: null
+  label: mail from name
+  options: null
+  required: false
+  type: text
+- env: POSTMARK_TOKEN
+  hint: null
+  label: postmark token
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- documentation
+- opensource
+- wiki
+- confluence
+- knowledge-base
+- notion
+- realtime-collaboration
+- notion-alternative
+title: Docmost
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docmost.com/docs/
+  tags:
+  - documentation
+  - opensource
+  - wiki
+  - confluence
+  - knowledge-base
+  - notion
+  - realtime-collaboration
+  - notion-alternative
+  template: docmost.yaml
+website: https://docmost.com/docs/

@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/babybuddy-coolify
+description: It helps parents track their baby's daily activities, growth, and health with ease.
+endpoint:
+  port: 8000
+  service: babybuddy
+env:
+  SERVICE_URL_BABYBUDDY: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: babybuddy-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- baby
+- parents
+- health
+- growth
+- activities
+title: Babybuddy
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.baby-buddy.net
+  tags:
+  - baby
+  - parents
+  - health
+  - growth
+  - activities
+  template: babybuddy.yaml
+website: https://docs.baby-buddy.net

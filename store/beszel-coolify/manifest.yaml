@@ -1,0 +1,112 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/beszel-coolify
+description: A lightweight server resource monitoring hub with historical data, docker stats, and alerts.
+endpoint:
+  port: 8090
+  service: beszel
+env:
+  CONTAINER_DETAILS: 'true'
+  DISABLE_SSH: 'false'
+  KEY: ''
+  LOG_LEVEL: warn
+  SERVICE_URL_BESZEL: https://${APP_DOMAIN}
+  SERVICE_URL_BESZEL_8090: https://${APP_DOMAIN}
+  SHARE_ALL_SYSTEMS: 'false'
+  SKIP_GPU: 'false'
+  SYSTEM_NAME: ''
+  TOKEN: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: beszel-coolify
+notes:
+- 'beszel-agent: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CONTAINER_DETAILS
+  hint: 'по умолчанию: true'
+  label: container details
+  options: null
+  required: false
+  type: text
+- env: SHARE_ALL_SYSTEMS
+  hint: 'по умолчанию: false'
+  label: share all systems
+  options: null
+  required: false
+  type: text
+- env: TOKEN
+  hint: null
+  label: token
+  options: null
+  required: false
+  type: password
+- env: KEY
+  hint: null
+  label: key
+  options: null
+  required: false
+  type: password
+- env: DISABLE_SSH
+  hint: 'по умолчанию: false'
+  label: disable ssh
+  options: null
+  required: false
+  type: text
+- env: LOG_LEVEL
+  hint: 'по умолчанию: warn'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: SKIP_GPU
+  hint: 'по умолчанию: false'
+  label: skip gpu
+  options: null
+  required: false
+  type: text
+- env: SYSTEM_NAME
+  hint: null
+  label: system name
+  options: null
+  required: false
+  type: text
+tags:
+- beszel
+- monitoring
+- server
+- stats
+- alerts
+title: Beszel
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://github.com/henrygd/beszel?tab=readme-ov-file#getting-started
+  tags:
+  - beszel
+  - monitoring
+  - server
+  - stats
+  - alerts
+  template: beszel.yaml
+website: https://github.com/henrygd/beszel?tab=readme-ov-file#getting-started

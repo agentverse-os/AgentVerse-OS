@@ -1,0 +1,77 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/redis-insight-coolify
+description: Redis Insight lets you do both GUI- and CLI-based interactions in a fully-featured desktop GUI client.
+endpoint:
+  port: 5540
+  service: redisinsight
+env:
+  RI_FILES_LOGGER: 'true'
+  RI_LOG_LEVEL: info
+  RI_STDOUT_LOGGER: 'true'
+  SERVICE_PASSWORD_RI:
+    generate: password
+  SERVICE_URL_REDISINSIGHT_5540: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_RI
+  path: null
+  user: null
+name: redis-insight-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: RI_LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: ri log level
+  options: null
+  required: false
+  type: text
+- env: RI_FILES_LOGGER
+  hint: 'по умолчанию: true'
+  label: ri files logger
+  options: null
+  required: false
+  type: text
+- env: RI_STDOUT_LOGGER
+  hint: 'по умолчанию: true'
+  label: ri stdout logger
+  options: null
+  required: false
+  type: text
+tags:
+- redis
+- gui
+- database
+- monitoring
+- analytics
+title: Redis Insight
+type: app
+upstream:
+  categories:
+  - database,observability,developer-tools
+  source: https://redis.io/docs/latest/operate/redisinsight/
+  tags:
+  - redis
+  - gui
+  - database
+  - monitoring
+  - analytics
+  template: redis-insight.yaml
+website: https://redis.io/docs/latest/operate/redisinsight/

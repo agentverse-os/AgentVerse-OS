@@ -1,0 +1,16 @@
+Firefly III is a manager for your personal finances. It is self-hosted and open source. This means that it's free, it has no ads and no tracking.
+
+Full transaction management
+Firefly III features a double-entry bookkeeping system. You can quickly enter and organize your transactions in multiple currencies.
+
+Advanced rule engine
+Use rules to quickly convert shorthands to detailed transactions or clean up your bank's abysmal CSV files.
+
+Budgets, categories and tags
+Name your poison. Do you like to work with tags? Need to budget your expenses? Want to categorize all of your hobby expenses? Look no further. Firefly III supports all kinds. Budgets can be expanded with limits in multiple currencies, so you can budget both your daily household expenses and what you spend in Imperial Credits when visiting Tatooine.
+
+Informative reports
+Firefly III has advanced reporting capabilities, showing your expenses per week, month or year. But it can also help you audit your accounts with detailed list views. Or perhaps compare budgets or tags? It's all possible.
+
+JSON rest API
+For the advanced and mobile users out there, Firefly III features an expansive JSON REST API that allows you to tap into Firefly III's most important features. Create transactions, manage categories and get chart data from any app or system.

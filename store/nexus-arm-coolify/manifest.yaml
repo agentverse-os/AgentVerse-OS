@@ -1,0 +1,58 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nexus-arm-coolify
+description: 'Open source Universal Repository Manager (ARM version, community edition), default credentials: admin/admin123'
+endpoint:
+  port: 8081
+  service: nexus
+env:
+  SERVICE_URL_NEXUS_8081: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nexus-arm-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- repository
+- manager
+- open source
+- docker
+- docker
+- registry
+- container
+title: Nexus Arm
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://help.sonatype.com/en/sonatype-nexus-repository.html
+  tags:
+  - repository
+  - manager
+  - open source
+  - docker
+  - docker
+  - registry
+  - container
+  template: nexus-arm.yaml
+website: https://help.sonatype.com/en/sonatype-nexus-repository.html

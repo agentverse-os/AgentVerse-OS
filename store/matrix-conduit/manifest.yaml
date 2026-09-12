@@ -1,0 +1,94 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/matrix-conduit
+description: Conduit is a simple, fast and reliable chat server written in Rust
+endpoint:
+  port: 6167
+  service: matrix-conduit
+env:
+  ALLOW_FEDERATION: ''
+  ALLOW_REGISTRATION: ''
+  LOG: ''
+  MAX_REQUEST_SIZE: ''
+  TRUSTED_SERVERS: ''
+  TURN_SECRET:
+    generate: password
+  TURN_URIS: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: matrix-conduit
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ALLOW_REGISTRATION
+  hint: WARNING! First user will be admin
+  label: Allow Registration
+  options: null
+  required: false
+  type: boolean
+- env: ALLOW_FEDERATION
+  hint: null
+  label: Allow Federation
+  options: null
+  required: false
+  type: boolean
+- env: TRUSTED_SERVERS
+  hint: List of domain names
+  label: Trusted Servers
+  options: null
+  required: false
+  type: text
+- env: MAX_REQUEST_SIZE
+  hint: In bytes, for example 20000000
+  label: Max request size
+  options: null
+  required: false
+  type: number
+- env: LOG
+  hint: 'Available levels: error, warn, info, debug, trace'
+  label: Loggin Level
+  options: null
+  required: false
+  type: text
+- env: TURN_URIS
+  hint: 'List of TURN server URIs turn:/turns:'
+  label: TURN URIs
+  options: null
+  required: false
+  type: text
+- env: TURN_SECRET
+  hint: null
+  label: TURN Secret
+  options: null
+  required: false
+  type: password
+tags: []
+title: Conduit
+type: app
+upstream:
+  author: Timo Kösters
+  categories:
+  - social
+  source: https://gitlab.com/famedly/conduit
+  tipi_version: 14
+  version: 0.10.12
+website: https://gitlab.com/famedly/conduit

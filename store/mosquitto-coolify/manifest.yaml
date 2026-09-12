@@ -1,0 +1,69 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mosquitto-coolify
+description: Mosquitto is lightweight and suitable for use on all devices, from low-power single-board computers to full servers.
+endpoint:
+  port: 1883
+  service: mosquitto
+env:
+  ALLOW_ANONYMOUS: 'true'
+  REQUIRE_CERTIFICATE: 'false'
+  SERVICE_PASSWORD_MOSQUITTO:
+    generate: password
+  SERVICE_URL_MOSQUITTO_1883: https://${APP_DOMAIN}
+  SERVICE_USER_MOSQUITTO:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mosquitto-coolify
+notes:
+- 'порт 8883:8883 (mosquitto) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: REQUIRE_CERTIFICATE
+  hint: 'по умолчанию: false'
+  label: require certificate
+  options: null
+  required: false
+  type: text
+- env: ALLOW_ANONYMOUS
+  hint: 'по умолчанию: true'
+  label: allow anonymous
+  options: null
+  required: false
+  type: text
+tags:
+- mosquitto
+- mqtt
+- open-source
+title: Mosquitto
+type: app
+upstream:
+  categories:
+  - messaging
+  source: https://mosquitto.org/documentation/
+  tags:
+  - mosquitto
+  - mqtt
+  - open-source
+  template: mosquitto.yaml
+website: https://mosquitto.org/documentation/

@@ -1,0 +1,75 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/invidious-umbrel
+description: Browse YouTube without tracking or ads
+endpoint:
+  port: 3000
+  service: web
+env:
+  APP_INV_SECRET_KEY: ''
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/invidious/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/invidious/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/invidious/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/invidious/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: invidious-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_INV_SECRET_KEY
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app inv secret key
+  options: null
+  required: false
+  type: password
+tags: []
+title: Invidious
+type: app
+upstream:
+  author: IV-Org
+  categories:
+  - social
+  release_notes: |-
+    This release hardens the companion pipeline and fixes a wide range of user-facing issues.
+
+    Key highlights:
+      - Livestreams are back on the Trending page and gaming feeds remain accessible
+      - "Watch on YouTube" links no longer carry stale timestamps for livestreams
+      - Downloads can now flow through the Invidious companion when available
+      - Channel pages now display creator pronouns and topic playlist thumbnails
+      - Related video view counts are accurate again
+      - Playlist importer and playlist API handle missing or empty data without crashing
+      - Community posts with unavailable videos and DMCA content toggles work again
+      - Channel name and button overflow issues are fixed
+      - Invalid CAPTCHAs now show a clear "Erroneous CAPTCHA" message
+      - A footer link to the current release has been added
+      - Proxy responses now strip unwanted headers for images and video playback
+      - Companion CSP headers and check identifiers are generated once and reused correctly
+
+
+    For full release notes, visit https://github.com/iv-org/invidious/releases
+  source: https://github.com/iv-org/invidious
+  version: 2.20260207.0
+  website: https://invidious.io/
+website: https://invidious.io/

@@ -1,0 +1,61 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/huly-coolify
+description: Open Source All-in-One Project Management Platform
+endpoint:
+  port: 8080
+  service: account
+env:
+  SERVICE_PASSWORD_SECRET:
+    generate: password
+  SERVICE_URL_HULY_3000: https://${APP_DOMAIN}
+  SERVICE_URL_HULY_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: huly-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- linear
+- jira
+- slack
+- project
+- management
+- notion
+- motion
+title: Huly
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://huly.io/
+  tags:
+  - linear
+  - jira
+  - slack
+  - project
+  - management
+  - notion
+  - motion
+  template: huly.yaml
+website: https://huly.io/

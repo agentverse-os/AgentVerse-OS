@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/actual-budget
+description: Local-first OpenSource Budget tool
+endpoint:
+  port: 5006
+  service: actual-budget
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: actual-budget
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Actual Budget
+type: app
+upstream:
+  author: Shift Reset LLC
+  categories:
+  - finance
+  source: https://github.com/actualbudget/actual
+  tipi_version: 58
+  version: 26.8.1
+website: https://github.com/actualbudget/actual

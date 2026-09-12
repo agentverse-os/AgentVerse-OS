@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/siyuan
+description: SiYuan is a privacy-first personal knowledge management system.
+endpoint:
+  port: 6806
+  service: siyuan
+env:
+  SIYUAN_ACCESS_AUTH_CODE:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: siyuan
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SIYUAN_ACCESS_AUTH_CODE
+  hint: Please be sure to modify, otherwise anyone can read and write your data.
+  label: Access Auth Code
+  options: null
+  required: true
+  type: password
+tags: []
+title: SiYuan
+type: app
+upstream:
+  author: siyuan-note
+  categories:
+  - utilities
+  source: https://github.com/siyuan-note/siyuan
+  tipi_version: 79
+  version: v3.8.2
+website: https://github.com/siyuan-note/siyuan

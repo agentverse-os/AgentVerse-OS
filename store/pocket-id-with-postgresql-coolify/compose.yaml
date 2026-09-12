@@ -1,0 +1,81 @@
+# pocket-id-with-postgresql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  pocket-id:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_POCKETID_1411=${SERVICE_URL_POCKETID_1411}
+    - APP_URL=${SERVICE_URL_POCKETID}
+    - TRUST_PROXY=${TRUST_PROXY:-true}
+    - DB_PROVIDER=postgres
+    - DB_CONNECTION_STRING=postgresql://${SERVICE_USER_POSTGRESQL}:${SERVICE_PASSWORD_POSTGRESQL}@postgresql:5432/${POSTGRES_DB:-pocketid}
+    - ENCRYPTION_KEY=${SERVICE_PASSWORD_64_POCKETID}
+    - KEYS_STORAGE=${KEYS_STORAGE:-database}
+    - MAXMIND_LICENSE_KEY=${MAXMIND_LICENSE_KEY}
+    - SMTP_HOST=${SMTP_HOST}
+    - SMTP_PORT=${SMTP_PORT:-587}
+    - SMTP_FROM=${SMTP_FROM}
+    - SMTP_USER=${SMTP_USER}
+    - SMTP_PASSWORD=${SMTP_PASSWORD}
+    - SMTP_TLS=${SMTP_TLS:-starttls}
+    - SMTP_SKIP_CERT_VERIFY=${SMTP_SKIP_CERT_VERIFY:-false}
+    - EMAIL_LOGIN_NOTIFICATION_ENABLED=${EMAIL_LOGIN_NOTIFICATION_ENABLED:-false}
+    - EMAIL_ONE_TIME_ACCESS_AS_ADMIN_ENABLED=${EMAIL_ONE_TIME_ACCESS_AS_ADMIN_ENABLED:-false}
+    - EMAIL_API_KEY_EXPIRATION_ENABLED=${EMAIL_API_KEY_EXPIRATION_ENABLED:-false}
+    - PUID=${PUID:-1000}
+    - PGID=${PGID:-1000}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - /app/pocket-id
+      - healthcheck
+      timeout: 5s
+    image: ghcr.io/pocket-id/pocket-id:v1.13
+    networks:
+      appnet:
+        aliases:
+        - pocket-id-with-postgresql-coolify_pocket-id_1
+    restart: unless-stopped
+    volumes:
+    - pocket-id-data:/app/data
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRES_DB:-pocketid}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - pocket-id-with-postgresql-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - pocket-id-postgresql-data:/var/lib/postgresql/data
+volumes:
+  pocket-id-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pocket-id-data
+      o: bind
+      type: none
+  pocket-id-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pocket-id-postgresql-data
+      o: bind
+      type: none

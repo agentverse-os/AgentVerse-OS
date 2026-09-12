@@ -1,0 +1,80 @@
+# matrix-synapse-with-sqlite-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  synapse:
+    command:
+    - -c
+    - |
+      # Generate config on first run
+      if [ ! -f /data/homeserver.yaml ]; then
+        # Generate default config using SYNAPSE_SERVER_NAME (permanent, used in user IDs)
+        /start.py generate
+
+        # Set public_baseurl to actual deployment URL (may differ from server_name)
+        # This allows hosting at matrix.example.org while server_name is example.org
+        if ! grep -q "public_baseurl" /data/homeserver.yaml; then
+          sed -i "/^server_name:/a public_baseurl: ${SERVICE_URL_SYNAPSE}/" /data/homeserver.yaml
+        fi
+
+        # Configure listener for reverse proxy
+        sed -i 's/bind_addresses: \[.*\]/bind_addresses: ["0.0.0.0"]/' /data/homeserver.yaml
+        sed -i '/x_forwarded:/d' /data/homeserver.yaml
+        sed -i '/type: http/a \    x_forwarded: true' /data/homeserver.yaml
+
+        # Enable registration if requested
+        if [ "${ENABLE_REGISTRATION}" = "true" ] && ! grep -q "enable_registration" /data/homeserver.yaml; then
+          echo "enable_registration: true" >> /data/homeserver.yaml
+        fi
+      fi
+
+      # Register admin user if credentials provided
+      if [ -n "${SERVICE_USER_ADMIN}" ] && [ -n "${SERVICE_PASSWORD_ADMIN}" ]; then
+        (
+          while ! curl -sf http://localhost:8008/health > /dev/null 2>&1; do
+            sleep 2
+          done
+          register_new_matrix_user -a \
+            -u "${SERVICE_USER_ADMIN}" \
+            -p "${SERVICE_PASSWORD_ADMIN}" \
+            -c /data/homeserver.yaml \
+            http://localhost:8008 2>/dev/null || true
+        ) &
+      fi
+
+      exec /start.py
+    entrypoint: /bin/bash
+    environment:
+    - SERVICE_URL_SYNAPSE_8008=${SERVICE_URL_SYNAPSE_8008}
+    - SYNAPSE_SERVER_NAME=
+    - SYNAPSE_REPORT_STATS=${SYNAPSE_REPORT_STATS:-no}
+    - ENABLE_REGISTRATION=${ENABLE_REGISTRATION:-false}
+    - SERVICE_USER_ADMIN=${SERVICE_USER_ADMIN}
+    - SERVICE_PASSWORD_ADMIN=${SERVICE_PASSWORD_ADMIN}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8008/health
+      timeout: 10s
+    image: matrixdotorg/synapse:latest
+    networks:
+      appnet:
+        aliases:
+        - matrix-synapse-with-sqlite-coolify_synapse_1
+    restart: unless-stopped
+    volumes:
+    - synapse-data:/data
+volumes:
+  synapse-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/synapse-data
+      o: bind
+      type: none

@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/calibre-web-umbrel
+description: A clean web app for your eBooks
+endpoint:
+  port: 8083
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/calibre-web/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: admin123
+  path: null
+  user: admin
+name: calibre-web-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Calibre Web
+type: app
+upstream:
+  author: Janeczku
+  categories:
+  - files
+  release_notes: |-
+    This update includes new features, bug fixes, and security improvements:
+
+
+      - Added MOBI metadata extraction on upload and reverse proxy login with a shared secret header
+      - Fixed Kobo sync behind reverse proxies, shelf dropdown rendering, mobile infinite scroll, and duplicate tag handling
+      - Improved OPDS, metadata search, eReader, conversion, sorting, download, and email behavior
+      - Fixed security issues involving XSS, remote command execution (CVE-2025-7404), ReDoS (CVE-2025-6998), SQL injection, LDAP injection, XXE injection, IDOR, OAuth account relinking, and unauthorized file or shelf access
+
+
+    Full release notes can be found here: https://github.com/janeczku/calibre-web/releases/tag/0.6.27
+  source: https://github.com/janeczku/calibre-web
+  version: 0.6.27
+  website: https://github.com/janeczku/calibre-web
+website: https://github.com/janeczku/calibre-web

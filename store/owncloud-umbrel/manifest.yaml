@@ -1,0 +1,61 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/owncloud-umbrel
+description: A smart cloud for your files
+endpoint:
+  port: 8080
+  service: server
+env:
+  APP_OWNCLOUD_LOCAL_IPS: ${local_ips}
+  APP_PASSWORD:
+    generate: password
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  DEVICE_HOSTNAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/owncloud/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: owncloud-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: ownCloud
+type: app
+upstream:
+  author: ownCloud GmbH
+  categories:
+  - files
+  release_notes: |-
+    This major update includes ownCloud Server 11.0.0 with 11 security fixes, G2 app/code signing, and a newer PHP 8.3 runtime.
+
+    It also includes the 10.16.3 and 10.16.4 security, admin API, WebDAV, and upload-handling fixes since the previous Umbrel package.
+
+    Review the upstream release notes before updating if you rely on group-admin/subadmin behavior or deprecated occ commands, as ownCloud 11 disables group-admin by default and removes several legacy code paths.
+
+    Full release notes can be found at https://github.com/owncloud/core/releases/tag/v11.0.0
+  source: https://github.com/owncloud-docker/server
+  version: 11.0.0
+  website: https://owncloud.com
+website: https://owncloud.com

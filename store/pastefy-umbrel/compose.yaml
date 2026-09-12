@@ -1,0 +1,40 @@
+# pastefy-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+    - db
+    environment:
+      DATABASE_DRIVER: mysql
+      DATABASE_HOST: pastefy_db_1
+      DATABASE_NAME: pastefy
+      DATABASE_PASSWORD: tyooe
+      DATABASE_PORT: '3306'
+      DATABASE_USER: pastefy
+      HTTP_SERVER_CORS: '*'
+      SERVER_NAME: http://${DEVICE_DOMAIN_NAME}:9900
+    image: interaapps/pastefy:7.1.6@sha256:353ce246ccf24ab1dec42e3c387744b47925065c207699f0bf1ce8e560619ca9
+    networks:
+      appnet:
+        aliases:
+        - pastefy_app_1
+    restart: on-failure
+    user: 1000:1000
+  db:
+    environment:
+      MYSQL_DATABASE: pastefy
+      MYSQL_PASSWORD: tyooe
+      MYSQL_ROOT_PASSWORD: tyooe
+      MYSQL_USER: pastefy
+    image: mariadb:11.4.5@sha256:5dfb3093333fa0ea53194ddef0a2bfa21d3b1e1353bd228b22610cd6fc0c04da
+    networks:
+      appnet:
+        aliases:
+        - pastefy_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql:rw

@@ -1,0 +1,27 @@
+# dashy-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  dashy:
+    environment:
+    - SERVICE_URL_DASHY_8080=${SERVICE_URL_DASHY_8080}
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TIMEZONE:-UTC}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:8080/
+      timeout: 20s
+    image: lissy93/dashy
+    networks:
+      appnet:
+        aliases:
+        - dashy-coolify_dashy_1
+    restart: unless-stopped
+    volumes:
+    - ./dashy/conf.yml:/app/public/conf.yml

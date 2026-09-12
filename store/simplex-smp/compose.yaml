@@ -1,0 +1,19 @@
+# simplex-smp: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  simplex-smp:
+    environment:
+      ADDR: ${APP_DOMAIN}
+      PASS: ${SIMPLEX_SMP_PASSWORD}
+    image: simplexchat/smp-server:v6.5.2
+    networks:
+      appnet:
+        aliases:
+        - simplex-smp_simplex-smp_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/simplex/logs:/var/opt/simplex
+    - ${APP_DATA_DIR}/data/simplex/config:/etc/opt/simplex

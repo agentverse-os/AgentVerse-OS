@@ -1,0 +1,24 @@
+# librespeed-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  librespeed:
+    environment:
+    - SERVICE_URL_LIBRESPEED_82=${SERVICE_URL_LIBRESPEED_82}
+    - MODE=standalone
+    - TELEMETRY=false
+    - DISTANCE=km
+    - WEBPORT=82
+    healthcheck:
+      interval: 1m0s
+      retries: 1
+      test: curl 127.0.0.1:82 || exit 1
+      timeout: 1s
+    image: ghcr.io/librespeed/speedtest:latest
+    networks:
+      appnet:
+        aliases:
+        - librespeed-coolify_librespeed_1
+    restart: unless-stopped

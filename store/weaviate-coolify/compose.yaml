@@ -1,0 +1,55 @@
+# weaviate-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  weaviate:
+    command:
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8080'
+    - --scheme
+    - http
+    environment:
+    - SERVICE_URL_WEAVIATE_8080=${SERVICE_URL_WEAVIATE_8080}
+    - DISABLE_TELEMETRY=${DISABLE_TELEMETRY:-true}
+    - QUERY_DEFAULTS_LIMIT=${QUERY_DEFAULTS_LIMIT:-1000}
+    - LOG_LEVEL=${LOG_LEVEL:-info}
+    - GOMEMLIMIT=${GOMEMLIMIT:-1024MiB}
+    - GOMAXPROCS=${GOMAXPROCS:-2}
+    - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=${AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED:-false}
+    - AUTHORIZATION_ADMINLIST_USERS=${AUTHORIZATION_ADMINLIST_USERS:-admin@example.com}
+    - AUTHENTICATION_APIKEY_USERS=${AUTHENTICATION_APIKEY_USERS:-admin@example.com}
+    - AUTHENTICATION_APIKEY_ENABLED=${AUTHENTICATION_APIKEY_ENABLED:-true}
+    - AUTHENTICATION_APIKEY_ALLOWED_KEYS=${SERVICE_PASSWORD_APIKEYS}
+    - PERSISTENCE_DATA_PATH=/var/lib/weaviate
+    - DEFAULT_VECTORIZER_MODULE=${DEFAULT_VECTORIZER_MODULE:-none}
+    - ENABLE_MODULES=${ENABLE_MODULES:-text2vec-openai,generative-openai,qna-openai}
+    - CLUSTER_HOSTNAME=${CLUSTER_HOSTNAME:-node1}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://localhost:8080/v1/.well-known/ready
+      timeout: 30s
+    image: cr.weaviate.io/semitechnologies/weaviate:1.26.4
+    networks:
+      appnet:
+        aliases:
+        - weaviate-coolify_weaviate_1
+    restart: unless-stopped
+    volumes:
+    - weaviate-data:/var/lib/weaviate
+volumes:
+  weaviate-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/weaviate-data
+      o: bind
+      type: none

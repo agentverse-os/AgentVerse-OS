@@ -1,0 +1,46 @@
+# cockpit-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cockpit:
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1/api/system/healthcheck
+      timeout: 20s
+    image: cockpithq/cockpit:core-latest
+    networks:
+      appnet:
+        aliases:
+        - cockpit-coolify_cockpit_1
+    restart: unless-stopped
+    volumes:
+    - cockpit-config:/var/www/html/config
+    - cockpit-spaces:/var/www/html/.spaces
+    - cockpit-storage:/var/www/html/storage
+volumes:
+  cockpit-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/cockpit-config
+      o: bind
+      type: none
+  cockpit-spaces:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/cockpit-spaces
+      o: bind
+      type: none
+  cockpit-storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/cockpit-storage
+      o: bind
+      type: none

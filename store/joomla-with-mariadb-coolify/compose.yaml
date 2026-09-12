@@ -1,0 +1,69 @@
+# joomla-with-mariadb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  joomla:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_JOOMLA=${SERVICE_URL_JOOMLA}
+    - JOOMLA_DB_HOST=mariadb
+    - JOOMLA_DB_USER=${SERVICE_USER_JOOMLA}
+    - JOOMLA_DB_PASSWORD=${SERVICE_PASSWORD_JOOMLA}
+    - JOOMLA_DB_NAME=${MYSQL_DATABASE:-joomla-db}
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: joomla:latest
+    networks:
+      appnet:
+        aliases:
+        - joomla-with-mariadb-coolify_joomla_1
+    restart: unless-stopped
+    volumes:
+    - joomla_data:/var/www/html
+  mariadb:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-joomla-db}
+    - MYSQL_USER=${SERVICE_USER_JOOMLA}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_JOOMLA}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 20s
+    image: mariadb:11
+    networks:
+      appnet:
+        aliases:
+        - joomla-with-mariadb-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - joomla_mariadb_data:/var/lib/mysql
+volumes:
+  joomla_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/joomla_data
+      o: bind
+      type: none
+  joomla_mariadb_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/joomla_mariadb_data
+      o: bind
+      type: none

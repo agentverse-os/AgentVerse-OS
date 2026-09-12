@@ -1,0 +1,69 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/immich
+description: Photo and video backup solution directly from your mobile phone.
+endpoint:
+  port: 2283
+  service: immich
+env:
+  DB_PASSWORD:
+    generate: token
+  IMMICH_TYPESENSE_API_KEY:
+    generate: token
+  JWT_SECRET:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: immich
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DB_PASSWORD
+  hint: null
+  label: DB_PASSWORD
+  options: null
+  required: false
+  type: random
+- env: JWT_SECRET
+  hint: null
+  label: JWT_SECRET
+  options: null
+  required: false
+  type: random
+- env: IMMICH_TYPESENSE_API_KEY
+  hint: null
+  label: IMMICH_TYPESENSE_API_KEY
+  options: null
+  required: false
+  type: random
+tags: []
+title: Immich
+type: app
+upstream:
+  author: Alex Tran
+  categories:
+  - data
+  - photography
+  source: https://github.com/immich-app/immich
+  tipi_version: 218
+  version: v3.1.0
+website: https://github.com/immich-app/immich

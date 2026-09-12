@@ -1,0 +1,18 @@
+# homeassistant-1: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  homeassistant-1:
+    environment:
+      TZ: ${TZ}
+    image: ghcr.io/home-assistant/home-assistant:2026.8.3
+    networks:
+      appnet:
+        aliases:
+        - homeassistant-1_homeassistant-1_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${APP_DATA_DIR}/data/config:/config

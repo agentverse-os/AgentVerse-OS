@@ -1,0 +1,134 @@
+# lobe-chat-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rustfs:
+        condition: service_healthy
+      rustfs-init:
+        condition: service_completed_successfully
+    environment:
+      APP_URL: http://${DEVICE_DOMAIN_NAME}:7455
+      AUTH_TRUSTED_ORIGINS: http://${DEVICE_DOMAIN_NAME}:7455
+      DATABASE_URL: postgresql://postgres:lobehubsecret@lobe-chat_postgres_1:5432/lobehub
+      INTERNAL_APP_URL: http://lobe-chat_app_1:3210
+      LLM_VISION_IMAGE_USE_BASE64: '1'
+      REDIS_PREFIX: lobechat
+      REDIS_TLS: '0'
+      REDIS_URL: redis://lobe-chat_redis_1:6379
+      S3_ACCESS_KEY: lobehub
+      S3_ACCESS_KEY_ID: lobehub
+      S3_BUCKET: lobe
+      S3_ENABLE_PATH_STYLE: '1'
+      S3_ENDPOINT: http://${DEVICE_DOMAIN_NAME}:7458
+      S3_SECRET_ACCESS_KEY: ${APP_PASSWORD}
+      S3_SET_ACL: '0'
+      SEARXNG_URL: http://lobe-chat_searxng_1:8080
+    image: lobehub/lobehub:2.2.15@sha256:9186fbb2a1cd593eada518560695e1f14f0fa570ed987ba1bf1b3008456422ca
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat_app_1
+    restart: on-failure
+  postgres:
+    environment:
+      POSTGRES_DB: lobehub
+      POSTGRES_PASSWORD: lobehubsecret
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres -d lobehub
+      timeout: 5s
+    image: paradedb/paradedb:0.22.3-pg17@sha256:746c263e546b9d8bfdd278d7da9584c47ce838670e6cdfdb32713147548b43ce
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat_postgres_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  redis:
+    command: redis-server --save 60 1000 --appendonly yes
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 5s
+    image: redis:7.4.8@sha256:a5995dfdf108997f8a7c9587f54fad5e94ed5848de5236a6b28119e99efd67e0
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  rustfs:
+    environment:
+      RUSTFS_ACCESS_KEY: lobehub
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: 'true'
+      RUSTFS_OBS_LOG_DIRECTORY: /logs
+      RUSTFS_SECRET_KEY: ${APP_PASSWORD}
+      RUSTFS_VOLUMES: /data
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - sh
+      - -c
+      - curl -f http://127.0.0.1:9000/health && curl -f http://127.0.0.1:9001/rustfs/console/health
+      timeout: 10s
+    image: rustfs/rustfs:1.0.0-alpha.90@sha256:0725587f6fcca83c1898f321424327d6e6da5e01ea20382905dd258ed5af3be4
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat_rustfs_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/rustfs:/data
+    - ${APP_DATA_DIR}/data/rustfs-logs:/logs
+  rustfs-init:
+    command:
+    - -c
+    - |
+      set -eux; mc --version; mc alias set rustfs "http://lobe-chat_rustfs_1:9000" "lobehub" "${APP_PASSWORD}"; mc ls rustfs || true; mc mb "rustfs/lobe" --ignore-existing; mc anonymous set download rustfs/lobe
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat_rustfs-init_1
+    restart: on-failure
+    volumes:
+    - ./bucket.config.json:/bucket.config.json:ro
+  searxng:
+    environment:
+      SEARXNG_SECRET: ${APP_SEED}
+    image: ghcr.io/searxng/searxng:2026.4.22-74f1ca203@sha256:37c616a774b90fb5df9239eb143f1b11866ddf7b830cd1ebcca6ba11b38cc2bf
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat_searxng_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/searxng/settings.yml:/etc/searxng/settings.yml

@@ -1,0 +1,51 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/minecraft-server
+description: Run a minecraft server
+endpoint:
+  port: 25565
+  service: minecraft-server
+env:
+  MC_VERSION: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: minecraft-server
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MC_VERSION
+  hint: The version of Minecraft to use, leave empty for latest
+  label: Minecraft version
+  options: null
+  required: false
+  type: text
+tags: []
+title: Minecraft Server
+type: app
+upstream:
+  author: Geoff Bourne
+  categories:
+  - gaming
+  source: https://github.com/itzg/docker-minecraft-server
+  tipi_version: 6
+  version: latest
+website: https://github.com/itzg/docker-minecraft-server

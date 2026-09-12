@@ -1,0 +1,60 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/appwrite-coolify
+description: A backend-as-a-service platform that simplifies the web & mobile app development.
+endpoint:
+  port: 3003
+  service: appwrite
+env:
+  SERVICE_FQDN_APPWRITE: ${APP_DOMAIN}
+  SERVICE_PASSWORD_64_APPWRITE:
+    generate: hex64
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_MARIADBROOT:
+    generate: password
+  SERVICE_URL_APPWRITE: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: appwrite-coolify
+notes:
+- 'openruntimes-executor: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- backend
+- backend-as-a-service
+- platform
+title: Appwrite
+type: app
+upstream:
+  categories:
+  - backend
+  source: https://appwrite.io/docs
+  tags:
+  - backend
+  - backend-as-a-service
+  - platform
+  template: appwrite.yaml
+website: https://appwrite.io/docs

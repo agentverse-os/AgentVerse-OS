@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/seedtool-umbrel
+description: A toolkit for generating, verifying, and recovering Bitcoin seeds
+endpoint:
+  port: 8080
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/seedtool/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/seedtool/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/seedtool/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/seedtool/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: seedtool-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Bitcoin Seed Tool
+type: app
+upstream:
+  author: BitcoinQnA
+  categories:
+  - bitcoin
+  release_notes: null
+  source: https://github.com/BitcoinQnA/seedtool
+  version: 2.3.0
+  website: https://bitcoiner.guide/seed/
+website: https://bitcoiner.guide/seed/

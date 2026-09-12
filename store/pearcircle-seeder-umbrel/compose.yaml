@@ -1,0 +1,23 @@
+# pearcircle-seeder-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+      SEEDER_HOST: 0.0.0.0
+      SEEDER_NO_AUTH: '1'
+      SEEDER_NO_UPDATE_CHECK: '1'
+      SEEDER_PORT: '8730'
+    image: ghcr.io/peerloomllc/pearcircle-seeder:1.1.0@sha256:da0a9f7b86a54f1ea277e70eadc719381e6ebaf2d1b1fcdfebe10482696a9067
+    networks:
+      appnet:
+        aliases:
+        - pearcircle-seeder_app_1
+    restart: on-failure
+    security_opt:
+    - no-new-privileges:true
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

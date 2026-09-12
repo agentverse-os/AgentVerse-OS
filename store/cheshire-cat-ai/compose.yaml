@@ -1,0 +1,20 @@
+# cheshire-cat-ai: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cheshire-cat-ai:
+    environment:
+      PYTHONUNBUFFERED: '1'
+      WATCHFILES_FORCE_POLLING: 'true'
+    image: ghcr.io/cheshire-cat-ai/core:1.9.2
+    networks:
+      appnet:
+        aliases:
+        - cheshire-cat-ai_cheshire-cat-ai_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/static:/app/cat/static
+    - ${APP_DATA_DIR}/data/plugins:/app/cat/plugins
+    - ${APP_DATA_DIR}/data/data:/app/cat/data

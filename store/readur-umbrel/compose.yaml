@@ -1,0 +1,68 @@
+# readur-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ADMIN_PASSWORD: readur2024
+      ALLOWED_FILE_TYPES: pdf,png,jpg,jpeg,tiff,bmp,gif,txt,rtf,doc,docx
+      CONCURRENT_OCR_JOBS: 4
+      CPU_PRIORITY: normal
+      DATABASE_URL: postgresql://readur:readur_password@readur_postgres_1:5432/readur
+      FILE_STABILITY_CHECK_MS: 500
+      JWT_SECRET: ${APP_SEED}
+      MAX_FILE_AGE_HOURS: 168
+      MAX_FILE_SIZE_MB: 50
+      MEMORY_LIMIT_MB: 512
+      OCR_LANGUAGE: eng
+      OCR_TIMEOUT_SECONDS: 300
+      SERVER_ADDRESS: 0.0.0.0:8000
+      UPLOAD_PATH: /app/uploads
+      WATCH_FOLDER: /app/watch
+      WATCH_INTERVAL_SECONDS: 30
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/api/health
+      timeout: 10s
+    image: ghcr.io/readur/readur:2.9.2@sha256:bb6356cf930faac65aa461f323454b678a42c7c6688b59d69f3a24479d7d7a6a
+    networks:
+      appnet:
+        aliases:
+        - readur_app_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/uploads:/app/uploads
+    - ${APP_DATA_DIR}/data/watch:/app/watch
+  postgres:
+    environment:
+      POSTGRES_DB: readur
+      POSTGRES_PASSWORD: readur_password
+      POSTGRES_USER: readur
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U readur
+      timeout: 5s
+    image: postgres:17.5@sha256:3962158596daaef3682838cc8eb0e719ad1ce520f88e34596ce8d5de1b6330a1
+    networks:
+      appnet:
+        aliases:
+        - readur_postgres_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres_data:/var/lib/postgresql/data

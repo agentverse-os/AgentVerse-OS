@@ -1,0 +1,148 @@
+# pterodactyl-panel-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  pterodactyl-inline-1:
+    content: |
+      #!/bin/sh
+      set -e
+
+       echo "Setting logs permissions..."
+       chown -R nginx: /app/storage/logs/
+
+       USER_EXISTS=$(php artisan tinker --no-ansi --execute='echo \Pterodactyl\Models\User::where("email", "'"$ADMIN_EMAIL"'")->exists() ? "1" : "0";')
+
+       if [ "$USER_EXISTS" = "0" ]; then
+         echo "Admin User does not exist, creating user now."
+         php artisan p:user:make --no-interaction \
+           --admin=1 \
+           --email="$ADMIN_EMAIL" \
+           --username="$ADMIN_USERNAME" \
+           --name-first="$ADMIN_FIRSTNAME" \
+           --name-last="$ADMIN_LASTNAME" \
+           --password="$ADMIN_PASSWORD"
+         echo "Admin user created successfully!"
+       else
+         echo "Admin User already exists, skipping creation."
+       fi
+
+       exec supervisord --nodaemon
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mariadb:
+    environment:
+    - MYSQL_ROOT_PASSWORD=$SERVICE_PASSWORD_MYSQLROOT
+    - MYSQL_DATABASE=pterodactyl-db
+    - MYSQL_USER=$SERVICE_USER_MYSQL
+    - MYSQL_PASSWORD=$SERVICE_PASSWORD_MYSQL
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD-SHELL
+      - healthcheck.sh --connect --innodb_initialized || exit 1
+      timeout: 1s
+    image: mariadb:11.8
+    networks:
+      appnet:
+        aliases:
+        - pterodactyl-panel-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - pterodactyl-db:/var/lib/mysql
+  pterodactyl:
+    command:
+    - /entrypoint.sh
+    configs:
+    - source: pterodactyl-inline-1
+      target: /entrypoint.sh
+    environment:
+    - HASHIDS_SALT=$SERVICE_PASSWORD_HASHIDS
+    - HASHIDS_LENGTH=8
+    - SERVICE_URL_PTERODACTYL_80=${SERVICE_URL_PTERODACTYL_80}
+    - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
+    - ADMIN_USERNAME=${SERVICE_USER_ADMIN}
+    - ADMIN_FIRSTNAME=${ADMIN_FIRSTNAME:-Admin}
+    - ADMIN_LASTNAME=${ADMIN_LASTNAME:-User}
+    - ADMIN_PASSWORD=${SERVICE_PASSWORD_ADMIN}
+    - PTERODACTYL_HTTPS=${PTERODACTYL_HTTPS:-false}
+    - APP_ENV=production
+    - APP_ENVIRONMENT_ONLY=false
+    - APP_URL=$SERVICE_URL_PTERODACTYL
+    - APP_TIMEZONE=${TIMEZONE:-UTC}
+    - APP_SERVICE_AUTHOR=${APP_SERVICE_AUTHOR:-author@example.com}
+    - LOG_LEVEL=${LOG_LEVEL:-debug}
+    - CACHE_DRIVER=redis
+    - SESSION_DRIVER=redis
+    - QUEUE_DRIVER=redis
+    - REDIS_HOST=redis
+    - DB_DATABASE=pterodactyl-db
+    - DB_USERNAME=$SERVICE_USER_MYSQL
+    - DB_HOST=mariadb
+    - DB_PORT=3306
+    - DB_PASSWORD=$SERVICE_PASSWORD_MYSQL
+    - MAIL_FROM=$MAIL_FROM
+    - MAIL_DRIVER=$MAIL_DRIVER
+    - MAIL_HOST=$MAIL_HOST
+    - MAIL_PORT=$MAIL_PORT
+    - MAIL_USERNAME=$MAIL_USERNAME
+    - MAIL_PASSWORD=$MAIL_PASSWORD
+    - MAIL_ENCRYPTION=$MAIL_ENCRYPTION
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - curl -sf http://localhost:80 || exit 1
+      timeout: 1s
+    image: ghcr.io/pterodactyl/panel:v1.12.0
+    networks:
+      appnet:
+        aliases:
+        - pterodactyl-panel-coolify_pterodactyl_1
+    restart: unless-stopped
+    volumes:
+    - panel-var:/app/var/
+    - panel-nginx:/etc/nginx/http.d/
+    - panel-certs:/etc/letsencrypt/
+  redis:
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - redis-cli ping || exit 1
+      timeout: 1s
+    image: redis:alpine
+    networks:
+      appnet:
+        aliases:
+        - pterodactyl-panel-coolify_redis_1
+    restart: unless-stopped
+volumes:
+  panel-certs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/panel-certs
+      o: bind
+      type: none
+  panel-nginx:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/panel-nginx
+      o: bind
+      type: none
+  panel-var:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/panel-var
+      o: bind
+      type: none
+  pterodactyl-db:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pterodactyl-db
+      o: bind
+      type: none

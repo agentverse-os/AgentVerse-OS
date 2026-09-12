@@ -1,0 +1,1255 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/dify-coolify
+description: Dify is an open-source LLM app development platform. Dify's intuitive interface combines AI workflow, RAG pipeline, agent capabilities, model management, observability features and more, letting you quickly go from prototype to production.
+endpoint:
+  port: 3000
+  service: web
+env:
+  ACME_CHALLENGE_LOCATION: ''
+  ALIYUN_OSS_ACCESS_KEY: ''
+  ALIYUN_OSS_AUTH_VERSION: v4
+  ALIYUN_OSS_BUCKET_NAME: ''
+  ALIYUN_OSS_ENDPOINT: ''
+  ALIYUN_OSS_REGION: ''
+  ALIYUN_OSS_SECRET_KEY: ''
+  ANALYTICDB_ACCOUNT: ''
+  ANALYTICDB_INSTANCE_ID: ''
+  ANALYTICDB_KEY_ID: ''
+  ANALYTICDB_KEY_SECRET: ''
+  ANALYTICDB_NAMESPACE: dify
+  ANALYTICDB_NAMESPACE_PASSWORD: ''
+  ANALYTICDB_PASSWORD: ''
+  ANALYTICDB_REGION_ID: ''
+  API_SENTRY_DSN: ''
+  API_SENTRY_PROFILES_SAMPLE_RATE: '1.0'
+  API_SENTRY_TRACES_SAMPLE_RATE: '1.0'
+  API_TOOL_DEFAULT_CONNECT_TIMEOUT: '10'
+  API_TOOL_DEFAULT_READ_TIMEOUT: '60'
+  AZURE_BLOB_ACCOUNT_KEY: ''
+  AZURE_BLOB_ACCOUNT_NAME: ''
+  AZURE_BLOB_ACCOUNT_URL: ''
+  AZURE_BLOB_CONTAINER_NAME: ''
+  BROKER_USE_SSL: 'false'
+  CELERY_AUTO_SCALE: 'false'
+  CELERY_MAX_WORKERS: ''
+  CELERY_MIN_WORKERS: ''
+  CELERY_WORKER_AMOUNT: ''
+  CELERY_WORKER_CLASS: ''
+  CERTBOT_DOMAIN: ''
+  CHECK_UPDATE_URL: https://updates.dify.ai
+  CODE_EXECUTION_ENDPOINT: http://sandbox:8194
+  CODE_MAX_NUMBER: '9223372036854775807'
+  CODE_MAX_NUMBER_ARRAY_LENGTH: '1000'
+  CODE_MAX_OBJECT_ARRAY_LENGTH: '30'
+  CODE_MAX_STRING_ARRAY_LENGTH: '30'
+  CODE_MAX_STRING_LENGTH: '80000'
+  CODE_MIN_NUMBER: '-9223372036854775808'
+  CONSOLE_API_URL: ''
+  CONSOLE_CORS_ALLOW_ORIGINS: '*'
+  CONSOLE_WEB_URL: ''
+  COREDUMP_DIR: ''
+  DB_HOST: db
+  DB_PORT: '5432'
+  DEBUG: 'false'
+  DEPLOY_ENV: PRODUCTION
+  DIFY_BIND_ADDRESS: 0.0.0.0
+  DIFY_PORT: '5001'
+  ETL_TYPE: dify
+  FILES_ACCESS_TIMEOUT: '300'
+  FILES_URL: ''
+  FLASK_DEBUG: 'false'
+  GOOGLE_STORAGE_BUCKET_NAME: ''
+  GOOGLE_STORAGE_SERVICE_ACCOUNT_JSON_BASE64: ''
+  GUNICORN_TIMEOUT: '360'
+  HTTPS_CONFIG: ''
+  INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH: '1000'
+  INVITE_EXPIRY_HOURS: '72'
+  LOG_LEVEL: INFO
+  MAIL_DEFAULT_SEND_FROM: ''
+  MAIL_TYPE: resend
+  MIGRATION_ENABLED: 'true'
+  MULTIMODAL_SEND_IMAGE_FORMAT: base64
+  NEXT_TELEMETRY_DISABLED: '0'
+  NGINX_CLIENT_MAX_BODY_SIZE: ''
+  NGINX_ENABLE_CERTBOT_CHALLENGE: ''
+  NGINX_HTTPS_ENABLED: ''
+  NGINX_KEEPALIVE_TIMEOUT: ''
+  NGINX_PORT: ''
+  NGINX_PROXY_READ_TIMEOUT: ''
+  NGINX_PROXY_SEND_TIMEOUT: ''
+  NGINX_SERVER_NAME: ''
+  NGINX_SSL_CERT_FILENAME: ''
+  NGINX_SSL_CERT_KEY_FILENAME: ''
+  NGINX_SSL_PORT: ''
+  NGINX_SSL_PROTOCOLS: ''
+  NGINX_WORKER_PROCESSES: ''
+  NOTION_CLIENT_ID: ''
+  NOTION_CLIENT_SECRET: ''
+  NOTION_INTEGRATION_TYPE: public
+  NOTION_INTERNAL_SECRET: ''
+  OCI_ACCESS_KEY: ''
+  OCI_BUCKET_NAME: ''
+  OCI_ENDPOINT: ''
+  OCI_REGION: ''
+  OCI_SECRET_KEY: ''
+  OPENAI_API_BASE: https://api.openai.com/v1
+  POSTGRES_EFFECTIVE_CACHE_SIZE: 4096MB
+  POSTGRES_MAINTENANCE_WORK_MEM: 64MB
+  POSTGRES_MAX_CONNECTIONS: '100'
+  POSTGRES_SHARED_BUFFERS: 128MB
+  POSTGRES_WORK_MEM: 4MB
+  REDIS_HOST: redis
+  REDIS_PORT: '6379'
+  REDIS_USERNAME: ''
+  REDIS_USE_SSL: 'false'
+  RELYT_DATABASE: postgres
+  RELYT_HOST: db
+  RELYT_PORT: '5432'
+  RESEND_API_KEY: your-resend-api-key
+  RESET_PASSWORD_TOKEN_EXPIRY_HOURS: '24'
+  S3_ACCESS_KEY: ''
+  S3_BUCKET_NAME: ''
+  S3_ENDPOINT: ''
+  S3_REGION: us-east-1
+  S3_SECRET_KEY: ''
+  S3_USE_AWS_MANAGED_IAM: 'false'
+  SANDBOX_API_KEY: dify-sandbox
+  SANDBOX_ENABLE_NETWORK: 'true'
+  SANDBOX_GIN_MODE: release
+  SANDBOX_HOST: ''
+  SANDBOX_HTTPS_PROXY: http://ssrf_proxy:3128
+  SANDBOX_HTTP_PROXY: http://ssrf_proxy:3128
+  SANDBOX_PORT: '8194'
+  SANDBOX_WORKER_TIMEOUT: '15'
+  SERVER_WORKER_AMOUNT: ''
+  SERVER_WORKER_CLASS: ''
+  SERVICE_PASSWORD_64_SECRETKEY:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_PASSWORD_RELYT:
+    generate: password
+  SERVICE_PASSWORD_TIDB:
+    generate: password
+  SERVICE_PASSWORD_WEAVIATE:
+    generate: password
+  SERVICE_URL_API: https://${APP_DOMAIN}
+  SERVICE_URL_NGINX: https://${APP_DOMAIN}
+  SERVICE_URL_WEB: https://${APP_DOMAIN}
+  SERVICE_URL_WEB_3000: https://${APP_DOMAIN}
+  SERVICE_USER_INITPASSWORD:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SERVICE_USER_RELYT:
+    generate: password
+  SERVICE_USER_TIDB:
+    generate: password
+  SERVICE_USER_WEAVIATE:
+    generate: password
+  SMTP_OPPORTUNISTIC_TLS: 'false'
+  SMTP_PASSWORD: ''
+  SMTP_PORT: '465'
+  SMTP_SERVER: ''
+  SMTP_USERNAME: ''
+  SMTP_USE_TLS: 'true'
+  SQLALCHEMY_ECHO: 'false'
+  SQLALCHEMY_POOL_RECYCLE: '3600'
+  SQLALCHEMY_POOL_SIZE: '30'
+  SSL_CERTIFICATE_KEY_PATH: ''
+  SSL_CERTIFICATE_PATH: ''
+  SSRF_COREDUMP_DIR: /var/spool/squid
+  SSRF_HTTP_PORT: '3128'
+  SSRF_PROXY_HTTPS_URL: http://ssrf_proxy:3128
+  SSRF_PROXY_HTTP_URL: http://ssrf_proxy:3128
+  SSRF_REVERSE_PROXY_PORT: '8194'
+  SSRF_SANDBOX_HOST: sandbox
+  STORAGE_TYPE: local
+  TEMPLATE_TRANSFORM_MAX_LENGTH: '80000'
+  TENCENT_COS_BUCKET_NAME: ''
+  TENCENT_COS_REGION: ''
+  TENCENT_COS_SCHEME: ''
+  TENCENT_COS_SECRET_ID: ''
+  TENCENT_COS_SECRET_KEY: ''
+  TENCENT_VECTOR_DB_API_KEY: dify
+  TENCENT_VECTOR_DB_DATABASE: dify
+  TENCENT_VECTOR_DB_REPLICAS: '2'
+  TENCENT_VECTOR_DB_SHARD: '1'
+  TENCENT_VECTOR_DB_TIMEOUT: '30'
+  TENCENT_VECTOR_DB_URL: http://127.0.0.1
+  TENCENT_VECTOR_DB_USERNAME: dify
+  TIDB_VECTOR_DATABASE: dify
+  TIDB_VECTOR_HOST: tidb
+  TIDB_VECTOR_PORT: '4000'
+  UPLOAD_FILE_BATCH_LIMIT: '5'
+  UPLOAD_FILE_SIZE_LIMIT: '15'
+  UPLOAD_IMAGE_FILE_SIZE_LIMIT: '10'
+  VECTOR_STORE: weaviate
+  WEAVIATE_AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'false'
+  WEAVIATE_AUTHENTICATION_APIKEY_ENABLED: 'true'
+  WEAVIATE_AUTHORIZATION_ADMINLIST_ENABLED: 'true'
+  WEAVIATE_CLUSTER_HOSTNAME: node1
+  WEAVIATE_DEFAULT_VECTORIZER_MODULE: none
+  WEAVIATE_ENDPOINT: http://weaviate:8080
+  WEAVIATE_PERSISTENCE_DATA_PATH: /var/lib/weaviate
+  WEAVIATE_QUERY_DEFAULTS_LIMIT: '25'
+  WEB_API_CORS_ALLOW_ORIGINS: '*'
+  WEB_SENTRY_DSN: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_RELYT
+  path: null
+  user: SERVICE_USER_RELYT
+name: dify-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LOG_LEVEL
+  hint: 'по умолчанию: INFO'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: DEBUG
+  hint: 'по умолчанию: false'
+  label: debug
+  options: null
+  required: false
+  type: text
+- env: FLASK_DEBUG
+  hint: 'по умолчанию: false'
+  label: flask debug
+  options: null
+  required: false
+  type: text
+- env: CONSOLE_WEB_URL
+  hint: null
+  label: console web url
+  options: null
+  required: false
+  type: text
+- env: CONSOLE_API_URL
+  hint: null
+  label: console api url
+  options: null
+  required: false
+  type: text
+- env: CHECK_UPDATE_URL
+  hint: 'по умолчанию: https://updates.dify.ai'
+  label: check update url
+  options: null
+  required: false
+  type: text
+- env: OPENAI_API_BASE
+  hint: 'по умолчанию: https://api.openai.com/v1'
+  label: openai api base
+  options: null
+  required: false
+  type: text
+- env: FILES_URL
+  hint: null
+  label: files url
+  options: null
+  required: false
+  type: text
+- env: FILES_ACCESS_TIMEOUT
+  hint: 'по умолчанию: 300'
+  label: files access timeout
+  options: null
+  required: false
+  type: text
+- env: MIGRATION_ENABLED
+  hint: 'по умолчанию: true'
+  label: migration enabled
+  options: null
+  required: false
+  type: text
+- env: DEPLOY_ENV
+  hint: 'по умолчанию: PRODUCTION'
+  label: deploy env
+  options: null
+  required: false
+  type: text
+- env: DIFY_BIND_ADDRESS
+  hint: 'по умолчанию: 0.0.0.0'
+  label: dify bind address
+  options: null
+  required: false
+  type: text
+- env: DIFY_PORT
+  hint: 'по умолчанию: 5001'
+  label: dify port
+  options: null
+  required: false
+  type: text
+- env: SERVER_WORKER_AMOUNT
+  hint: null
+  label: server worker amount
+  options: null
+  required: false
+  type: text
+- env: SERVER_WORKER_CLASS
+  hint: null
+  label: server worker class
+  options: null
+  required: false
+  type: text
+- env: CELERY_WORKER_CLASS
+  hint: null
+  label: celery worker class
+  options: null
+  required: false
+  type: text
+- env: GUNICORN_TIMEOUT
+  hint: 'по умолчанию: 360'
+  label: gunicorn timeout
+  options: null
+  required: false
+  type: text
+- env: CELERY_WORKER_AMOUNT
+  hint: null
+  label: celery worker amount
+  options: null
+  required: false
+  type: text
+- env: CELERY_AUTO_SCALE
+  hint: 'по умолчанию: false'
+  label: celery auto scale
+  options: null
+  required: false
+  type: text
+- env: CELERY_MAX_WORKERS
+  hint: null
+  label: celery max workers
+  options: null
+  required: false
+  type: text
+- env: CELERY_MIN_WORKERS
+  hint: null
+  label: celery min workers
+  options: null
+  required: false
+  type: text
+- env: API_TOOL_DEFAULT_CONNECT_TIMEOUT
+  hint: 'по умолчанию: 10'
+  label: api tool default connect timeout
+  options: null
+  required: false
+  type: text
+- env: API_TOOL_DEFAULT_READ_TIMEOUT
+  hint: 'по умолчанию: 60'
+  label: api tool default read timeout
+  options: null
+  required: false
+  type: text
+- env: DB_HOST
+  hint: 'по умолчанию: db'
+  label: db host
+  options: null
+  required: false
+  type: text
+- env: DB_PORT
+  hint: 'по умолчанию: 5432'
+  label: db port
+  options: null
+  required: false
+  type: text
+- env: SQLALCHEMY_POOL_SIZE
+  hint: 'по умолчанию: 30'
+  label: sqlalchemy pool size
+  options: null
+  required: false
+  type: text
+- env: SQLALCHEMY_POOL_RECYCLE
+  hint: 'по умолчанию: 3600'
+  label: sqlalchemy pool recycle
+  options: null
+  required: false
+  type: text
+- env: SQLALCHEMY_ECHO
+  hint: 'по умолчанию: false'
+  label: sqlalchemy echo
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_MAX_CONNECTIONS
+  hint: 'по умолчанию: 100'
+  label: postgres max connections
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_SHARED_BUFFERS
+  hint: 'по умолчанию: 128MB'
+  label: postgres shared buffers
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_WORK_MEM
+  hint: 'по умолчанию: 4MB'
+  label: postgres work mem
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_MAINTENANCE_WORK_MEM
+  hint: 'по умолчанию: 64MB'
+  label: postgres maintenance work mem
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_EFFECTIVE_CACHE_SIZE
+  hint: 'по умолчанию: 4096MB'
+  label: postgres effective cache size
+  options: null
+  required: false
+  type: text
+- env: REDIS_HOST
+  hint: 'по умолчанию: redis'
+  label: redis host
+  options: null
+  required: false
+  type: text
+- env: REDIS_PORT
+  hint: 'по умолчанию: 6379'
+  label: redis port
+  options: null
+  required: false
+  type: text
+- env: REDIS_USERNAME
+  hint: null
+  label: redis username
+  options: null
+  required: false
+  type: text
+- env: REDIS_USE_SSL
+  hint: 'по умолчанию: false'
+  label: redis use ssl
+  options: null
+  required: false
+  type: text
+- env: BROKER_USE_SSL
+  hint: 'по умолчанию: false'
+  label: broker use ssl
+  options: null
+  required: false
+  type: text
+- env: WEB_API_CORS_ALLOW_ORIGINS
+  hint: 'по умолчанию: *'
+  label: web api cors allow origins
+  options: null
+  required: false
+  type: text
+- env: CONSOLE_CORS_ALLOW_ORIGINS
+  hint: 'по умолчанию: *'
+  label: console cors allow origins
+  options: null
+  required: false
+  type: text
+- env: STORAGE_TYPE
+  hint: 'по умолчанию: local'
+  label: storage type
+  options: null
+  required: false
+  type: text
+- env: S3_USE_AWS_MANAGED_IAM
+  hint: 'по умолчанию: false'
+  label: s3 use aws managed iam
+  options: null
+  required: false
+  type: text
+- env: S3_ENDPOINT
+  hint: null
+  label: s3 endpoint
+  options: null
+  required: false
+  type: text
+- env: S3_BUCKET_NAME
+  hint: null
+  label: s3 bucket name
+  options: null
+  required: false
+  type: text
+- env: S3_ACCESS_KEY
+  hint: null
+  label: s3 access key
+  options: null
+  required: false
+  type: password
+- env: S3_SECRET_KEY
+  hint: null
+  label: s3 secret key
+  options: null
+  required: false
+  type: password
+- env: S3_REGION
+  hint: 'по умолчанию: us-east-1'
+  label: s3 region
+  options: null
+  required: false
+  type: text
+- env: AZURE_BLOB_ACCOUNT_NAME
+  hint: null
+  label: azure blob account name
+  options: null
+  required: false
+  type: text
+- env: AZURE_BLOB_ACCOUNT_KEY
+  hint: null
+  label: azure blob account key
+  options: null
+  required: false
+  type: password
+- env: AZURE_BLOB_CONTAINER_NAME
+  hint: null
+  label: azure blob container name
+  options: null
+  required: false
+  type: text
+- env: AZURE_BLOB_ACCOUNT_URL
+  hint: null
+  label: azure blob account url
+  options: null
+  required: false
+  type: text
+- env: GOOGLE_STORAGE_BUCKET_NAME
+  hint: null
+  label: google storage bucket name
+  options: null
+  required: false
+  type: text
+- env: GOOGLE_STORAGE_SERVICE_ACCOUNT_JSON_BASE64
+  hint: null
+  label: google storage service account json base64
+  options: null
+  required: false
+  type: text
+- env: ALIYUN_OSS_BUCKET_NAME
+  hint: null
+  label: aliyun oss bucket name
+  options: null
+  required: false
+  type: text
+- env: ALIYUN_OSS_ACCESS_KEY
+  hint: null
+  label: aliyun oss access key
+  options: null
+  required: false
+  type: password
+- env: ALIYUN_OSS_SECRET_KEY
+  hint: null
+  label: aliyun oss secret key
+  options: null
+  required: false
+  type: password
+- env: ALIYUN_OSS_ENDPOINT
+  hint: null
+  label: aliyun oss endpoint
+  options: null
+  required: false
+  type: text
+- env: ALIYUN_OSS_REGION
+  hint: null
+  label: aliyun oss region
+  options: null
+  required: false
+  type: text
+- env: ALIYUN_OSS_AUTH_VERSION
+  hint: 'по умолчанию: v4'
+  label: aliyun oss auth version
+  options: null
+  required: false
+  type: text
+- env: TENCENT_COS_BUCKET_NAME
+  hint: null
+  label: tencent cos bucket name
+  options: null
+  required: false
+  type: text
+- env: TENCENT_COS_SECRET_KEY
+  hint: null
+  label: tencent cos secret key
+  options: null
+  required: false
+  type: password
+- env: TENCENT_COS_SECRET_ID
+  hint: null
+  label: tencent cos secret id
+  options: null
+  required: false
+  type: password
+- env: TENCENT_COS_REGION
+  hint: null
+  label: tencent cos region
+  options: null
+  required: false
+  type: text
+- env: TENCENT_COS_SCHEME
+  hint: null
+  label: tencent cos scheme
+  options: null
+  required: false
+  type: text
+- env: OCI_ENDPOINT
+  hint: null
+  label: oci endpoint
+  options: null
+  required: false
+  type: text
+- env: OCI_BUCKET_NAME
+  hint: null
+  label: oci bucket name
+  options: null
+  required: false
+  type: text
+- env: OCI_ACCESS_KEY
+  hint: null
+  label: oci access key
+  options: null
+  required: false
+  type: password
+- env: OCI_SECRET_KEY
+  hint: null
+  label: oci secret key
+  options: null
+  required: false
+  type: password
+- env: OCI_REGION
+  hint: null
+  label: oci region
+  options: null
+  required: false
+  type: text
+- env: VECTOR_STORE
+  hint: 'по умолчанию: weaviate'
+  label: vector store
+  options: null
+  required: false
+  type: text
+- env: WEAVIATE_ENDPOINT
+  hint: 'по умолчанию: http://weaviate:8080'
+  label: weaviate endpoint
+  options: null
+  required: false
+  type: text
+- env: RELYT_HOST
+  hint: 'по умолчанию: db'
+  label: relyt host
+  options: null
+  required: false
+  type: text
+- env: RELYT_PORT
+  hint: 'по умолчанию: 5432'
+  label: relyt port
+  options: null
+  required: false
+  type: text
+- env: RELYT_DATABASE
+  hint: 'по умолчанию: postgres'
+  label: relyt database
+  options: null
+  required: false
+  type: text
+- env: TIDB_VECTOR_HOST
+  hint: 'по умолчанию: tidb'
+  label: tidb vector host
+  options: null
+  required: false
+  type: text
+- env: TIDB_VECTOR_PORT
+  hint: 'по умолчанию: 4000'
+  label: tidb vector port
+  options: null
+  required: false
+  type: text
+- env: TIDB_VECTOR_DATABASE
+  hint: 'по умолчанию: dify'
+  label: tidb vector database
+  options: null
+  required: false
+  type: text
+- env: ANALYTICDB_KEY_ID
+  hint: null
+  label: analyticdb key id
+  options: null
+  required: false
+  type: password
+- env: ANALYTICDB_KEY_SECRET
+  hint: null
+  label: analyticdb key secret
+  options: null
+  required: false
+  type: password
+- env: ANALYTICDB_REGION_ID
+  hint: null
+  label: analyticdb region id
+  options: null
+  required: false
+  type: text
+- env: ANALYTICDB_INSTANCE_ID
+  hint: null
+  label: analyticdb instance id
+  options: null
+  required: false
+  type: text
+- env: ANALYTICDB_ACCOUNT
+  hint: null
+  label: analyticdb account
+  options: null
+  required: false
+  type: text
+- env: ANALYTICDB_PASSWORD
+  hint: null
+  label: analyticdb password
+  options: null
+  required: false
+  type: password
+- env: ANALYTICDB_NAMESPACE
+  hint: 'по умолчанию: dify'
+  label: analyticdb namespace
+  options: null
+  required: false
+  type: text
+- env: ANALYTICDB_NAMESPACE_PASSWORD
+  hint: null
+  label: analyticdb namespace password
+  options: null
+  required: false
+  type: password
+- env: TENCENT_VECTOR_DB_URL
+  hint: 'по умолчанию: http://127.0.0.1'
+  label: tencent vector db url
+  options: null
+  required: false
+  type: text
+- env: TENCENT_VECTOR_DB_API_KEY
+  hint: 'по умолчанию: dify'
+  label: tencent vector db api key
+  options: null
+  required: false
+  type: password
+- env: TENCENT_VECTOR_DB_TIMEOUT
+  hint: 'по умолчанию: 30'
+  label: tencent vector db timeout
+  options: null
+  required: false
+  type: text
+- env: TENCENT_VECTOR_DB_USERNAME
+  hint: 'по умолчанию: dify'
+  label: tencent vector db username
+  options: null
+  required: false
+  type: text
+- env: TENCENT_VECTOR_DB_DATABASE
+  hint: 'по умолчанию: dify'
+  label: tencent vector db database
+  options: null
+  required: false
+  type: text
+- env: TENCENT_VECTOR_DB_SHARD
+  hint: 'по умолчанию: 1'
+  label: tencent vector db shard
+  options: null
+  required: false
+  type: text
+- env: TENCENT_VECTOR_DB_REPLICAS
+  hint: 'по умолчанию: 2'
+  label: tencent vector db replicas
+  options: null
+  required: false
+  type: text
+- env: UPLOAD_FILE_SIZE_LIMIT
+  hint: 'по умолчанию: 15'
+  label: upload file size limit
+  options: null
+  required: false
+  type: text
+- env: UPLOAD_FILE_BATCH_LIMIT
+  hint: 'по умолчанию: 5'
+  label: upload file batch limit
+  options: null
+  required: false
+  type: text
+- env: ETL_TYPE
+  hint: 'по умолчанию: dify'
+  label: etl type
+  options: null
+  required: false
+  type: text
+- env: MULTIMODAL_SEND_IMAGE_FORMAT
+  hint: 'по умолчанию: base64'
+  label: multimodal send image format
+  options: null
+  required: false
+  type: text
+- env: UPLOAD_IMAGE_FILE_SIZE_LIMIT
+  hint: 'по умолчанию: 10'
+  label: upload image file size limit
+  options: null
+  required: false
+  type: text
+- env: API_SENTRY_DSN
+  hint: null
+  label: api sentry dsn
+  options: null
+  required: false
+  type: text
+- env: API_SENTRY_TRACES_SAMPLE_RATE
+  hint: 'по умолчанию: 1.0'
+  label: api sentry traces sample rate
+  options: null
+  required: false
+  type: text
+- env: API_SENTRY_PROFILES_SAMPLE_RATE
+  hint: 'по умолчанию: 1.0'
+  label: api sentry profiles sample rate
+  options: null
+  required: false
+  type: text
+- env: NOTION_INTEGRATION_TYPE
+  hint: 'по умолчанию: public'
+  label: notion integration type
+  options: null
+  required: false
+  type: text
+- env: NOTION_CLIENT_SECRET
+  hint: null
+  label: notion client secret
+  options: null
+  required: false
+  type: password
+- env: NOTION_CLIENT_ID
+  hint: null
+  label: notion client id
+  options: null
+  required: false
+  type: text
+- env: NOTION_INTERNAL_SECRET
+  hint: null
+  label: notion internal secret
+  options: null
+  required: false
+  type: password
+- env: MAIL_TYPE
+  hint: 'по умолчанию: resend'
+  label: mail type
+  options: null
+  required: false
+  type: text
+- env: MAIL_DEFAULT_SEND_FROM
+  hint: null
+  label: mail default send from
+  options: null
+  required: false
+  type: text
+- env: SMTP_SERVER
+  hint: null
+  label: smtp server
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: 'по умолчанию: 465'
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_USERNAME
+  hint: null
+  label: smtp username
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: null
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: SMTP_USE_TLS
+  hint: 'по умолчанию: true'
+  label: smtp use tls
+  options: null
+  required: false
+  type: text
+- env: SMTP_OPPORTUNISTIC_TLS
+  hint: 'по умолчанию: false'
+  label: smtp opportunistic tls
+  options: null
+  required: false
+  type: text
+- env: RESEND_API_KEY
+  hint: 'по умолчанию: your-resend-api-key'
+  label: resend api key
+  options: null
+  required: false
+  type: password
+- env: INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH
+  hint: 'по умолчанию: 1000'
+  label: indexing max segmentation tokens length
+  options: null
+  required: false
+  type: password
+- env: INVITE_EXPIRY_HOURS
+  hint: 'по умолчанию: 72'
+  label: invite expiry hours
+  options: null
+  required: false
+  type: text
+- env: RESET_PASSWORD_TOKEN_EXPIRY_HOURS
+  hint: 'по умолчанию: 24'
+  label: reset password token expiry hours
+  options: null
+  required: false
+  type: password
+- env: CODE_EXECUTION_ENDPOINT
+  hint: 'по умолчанию: http://sandbox:8194'
+  label: code execution endpoint
+  options: null
+  required: false
+  type: text
+- env: SANDBOX_API_KEY
+  hint: 'по умолчанию: dify-sandbox'
+  label: sandbox api key
+  options: null
+  required: false
+  type: password
+- env: CODE_MAX_NUMBER
+  hint: 'по умолчанию: 9223372036854775807'
+  label: code max number
+  options: null
+  required: false
+  type: text
+- env: CODE_MIN_NUMBER
+  hint: 'по умолчанию: -9223372036854775808'
+  label: code min number
+  options: null
+  required: false
+  type: text
+- env: CODE_MAX_STRING_LENGTH
+  hint: 'по умолчанию: 80000'
+  label: code max string length
+  options: null
+  required: false
+  type: text
+- env: TEMPLATE_TRANSFORM_MAX_LENGTH
+  hint: 'по умолчанию: 80000'
+  label: template transform max length
+  options: null
+  required: false
+  type: text
+- env: CODE_MAX_STRING_ARRAY_LENGTH
+  hint: 'по умолчанию: 30'
+  label: code max string array length
+  options: null
+  required: false
+  type: text
+- env: CODE_MAX_OBJECT_ARRAY_LENGTH
+  hint: 'по умолчанию: 30'
+  label: code max object array length
+  options: null
+  required: false
+  type: text
+- env: CODE_MAX_NUMBER_ARRAY_LENGTH
+  hint: 'по умолчанию: 1000'
+  label: code max number array length
+  options: null
+  required: false
+  type: text
+- env: SSRF_PROXY_HTTP_URL
+  hint: 'по умолчанию: http://ssrf_proxy:3128'
+  label: ssrf proxy http url
+  options: null
+  required: false
+  type: text
+- env: SSRF_PROXY_HTTPS_URL
+  hint: 'по умолчанию: http://ssrf_proxy:3128'
+  label: ssrf proxy https url
+  options: null
+  required: false
+  type: text
+- env: WEB_SENTRY_DSN
+  hint: null
+  label: web sentry dsn
+  options: null
+  required: false
+  type: text
+- env: NEXT_TELEMETRY_DISABLED
+  hint: 'по умолчанию: 0'
+  label: next telemetry disabled
+  options: null
+  required: false
+  type: text
+- env: SANDBOX_GIN_MODE
+  hint: 'по умолчанию: release'
+  label: sandbox gin mode
+  options: null
+  required: false
+  type: text
+- env: SANDBOX_WORKER_TIMEOUT
+  hint: 'по умолчанию: 15'
+  label: sandbox worker timeout
+  options: null
+  required: false
+  type: text
+- env: SANDBOX_ENABLE_NETWORK
+  hint: 'по умолчанию: true'
+  label: sandbox enable network
+  options: null
+  required: false
+  type: text
+- env: SANDBOX_HTTP_PROXY
+  hint: 'по умолчанию: http://ssrf_proxy:3128'
+  label: sandbox http proxy
+  options: null
+  required: false
+  type: text
+- env: SANDBOX_HTTPS_PROXY
+  hint: 'по умолчанию: http://ssrf_proxy:3128'
+  label: sandbox https proxy
+  options: null
+  required: false
+  type: text
+- env: SANDBOX_PORT
+  hint: 'по умолчанию: 8194'
+  label: sandbox port
+  options: null
+  required: false
+  type: text
+- env: COREDUMP_DIR
+  hint: null
+  label: coredump dir
+  options: null
+  required: false
+  type: text
+- env: SANDBOX_HOST
+  hint: null
+  label: sandbox host
+  options: null
+  required: false
+  type: text
+- env: SSRF_HTTP_PORT
+  hint: 'по умолчанию: 3128'
+  label: ssrf http port
+  options: null
+  required: false
+  type: text
+- env: SSRF_COREDUMP_DIR
+  hint: 'по умолчанию: /var/spool/squid'
+  label: ssrf coredump dir
+  options: null
+  required: false
+  type: text
+- env: SSRF_REVERSE_PROXY_PORT
+  hint: 'по умолчанию: 8194'
+  label: ssrf reverse proxy port
+  options: null
+  required: false
+  type: text
+- env: SSRF_SANDBOX_HOST
+  hint: 'по умолчанию: sandbox'
+  label: ssrf sandbox host
+  options: null
+  required: false
+  type: text
+- env: NGINX_WORKER_PROCESSES
+  hint: null
+  label: nginx worker processes
+  options: null
+  required: false
+  type: text
+- env: NGINX_KEEPALIVE_TIMEOUT
+  hint: null
+  label: nginx keepalive timeout
+  options: null
+  required: false
+  type: text
+- env: NGINX_CLIENT_MAX_BODY_SIZE
+  hint: null
+  label: nginx client max body size
+  options: null
+  required: false
+  type: text
+- env: NGINX_PROXY_READ_TIMEOUT
+  hint: null
+  label: nginx proxy read timeout
+  options: null
+  required: false
+  type: text
+- env: NGINX_PROXY_SEND_TIMEOUT
+  hint: null
+  label: nginx proxy send timeout
+  options: null
+  required: false
+  type: text
+- env: NGINX_SSL_PORT
+  hint: null
+  label: nginx ssl port
+  options: null
+  required: false
+  type: text
+- env: SSL_CERTIFICATE_PATH
+  hint: null
+  label: ssl certificate path
+  options: null
+  required: false
+  type: text
+- env: SSL_CERTIFICATE_KEY_PATH
+  hint: null
+  label: ssl certificate key path
+  options: null
+  required: false
+  type: password
+- env: NGINX_SSL_PROTOCOLS
+  hint: null
+  label: nginx ssl protocols
+  options: null
+  required: false
+  type: text
+- env: NGINX_HTTPS_ENABLED
+  hint: null
+  label: nginx https enabled
+  options: null
+  required: false
+  type: text
+- env: CERTBOT_DOMAIN
+  hint: null
+  label: certbot domain
+  options: null
+  required: false
+  type: text
+- env: NGINX_SSL_CERT_FILENAME
+  hint: null
+  label: nginx ssl cert filename
+  options: null
+  required: false
+  type: text
+- env: NGINX_SSL_CERT_KEY_FILENAME
+  hint: null
+  label: nginx ssl cert key filename
+  options: null
+  required: false
+  type: password
+- env: HTTPS_CONFIG
+  hint: null
+  label: https config
+  options: null
+  required: false
+  type: text
+- env: NGINX_ENABLE_CERTBOT_CHALLENGE
+  hint: null
+  label: nginx enable certbot challenge
+  options: null
+  required: false
+  type: text
+- env: NGINX_PORT
+  hint: null
+  label: nginx port
+  options: null
+  required: false
+  type: text
+- env: NGINX_SERVER_NAME
+  hint: null
+  label: nginx server name
+  options: null
+  required: false
+  type: text
+- env: ACME_CHALLENGE_LOCATION
+  hint: null
+  label: acme challenge location
+  options: null
+  required: false
+  type: text
+- env: WEAVIATE_PERSISTENCE_DATA_PATH
+  hint: 'по умолчанию: /var/lib/weaviate'
+  label: weaviate persistence data path
+  options: null
+  required: false
+  type: text
+- env: WEAVIATE_QUERY_DEFAULTS_LIMIT
+  hint: 'по умолчанию: 25'
+  label: weaviate query defaults limit
+  options: null
+  required: false
+  type: text
+- env: WEAVIATE_AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED
+  hint: 'по умолчанию: false'
+  label: weaviate authentication anonymous access enabled
+  options: null
+  required: false
+  type: text
+- env: WEAVIATE_DEFAULT_VECTORIZER_MODULE
+  hint: 'по умолчанию: none'
+  label: weaviate default vectorizer module
+  options: null
+  required: false
+  type: text
+- env: WEAVIATE_CLUSTER_HOSTNAME
+  hint: 'по умолчанию: node1'
+  label: weaviate cluster hostname
+  options: null
+  required: false
+  type: text
+- env: WEAVIATE_AUTHENTICATION_APIKEY_ENABLED
+  hint: 'по умолчанию: true'
+  label: weaviate authentication apikey enabled
+  options: null
+  required: false
+  type: password
+- env: WEAVIATE_AUTHORIZATION_ADMINLIST_ENABLED
+  hint: 'по умолчанию: true'
+  label: weaviate authorization adminlist enabled
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- weaviate
+- openai
+- gpt
+- llm
+- lmops
+- dify
+- redis
+- postgres
+- qdrant
+- RAG
+- agent
+title: Dify
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://docs.dify.ai
+  tags:
+  - ai
+  - weaviate
+  - openai
+  - gpt
+  - llm
+  - lmops
+  - dify
+  - redis
+  - postgres
+  - qdrant
+  - RAG
+  - agent
+  template: dify.yaml
+website: https://docs.dify.ai

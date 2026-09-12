@@ -1,0 +1,76 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tdex-umbrel
+description: Provide liquidity on the TDEX Network, an open protocol to trade Liquid Network assets
+endpoint:
+  port: 8080
+  service: caddy
+env:
+  APP_TDEX_DAEMON_HIDDEN_SERVICE: ''
+  APP_TDEX_PORT: '9092'
+  TOR_DATA_DIR: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/tdex/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/tdex/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/tdex/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/tdex/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: tdex-umbrel
+notes:
+- 'порт ${APP_TDEX_PORT}:${APP_TDEX_PORT} (tdexd) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_TDEX_DAEMON_HIDDEN_SERVICE
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app tdex daemon hidden service
+  options: null
+  required: false
+  type: text
+- env: TOR_DATA_DIR
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: tor data dir
+  options: null
+  required: false
+  type: text
+tags: []
+title: TDEX Provider
+type: app
+upstream:
+  author: TDEX Network
+  categories:
+  - bitcoin
+  release_notes: |-
+    This security update upgrades the bundled Tor sidecar to 0.4.9.11, restoring Tor connectivity and including the latest Tor security fixes. The primary app version is unchanged.
+
+    This is a hotfix release that fixes a bug preventing new installations of the TDEX Provider app from working.
+
+    Previous 1.0.1 release notes:
+
+    🚨 IMPORTANT: Please ensure you have your 24-word recovery phrase written down BEFORE updating. This update will require you to restore your wallet from the 24-word recovery phrase.
+
+    This is a major update of the TDEX daemon that contains several changes, including:
+    - Update to TDEXv2: the daemon's Trade interface implements the specs of the new TDEX v2 protocol. With this update the daemon makes use of PSETv2 as a way for describing and build transactions (instead of the old PSETv0), and, also, exposes some new endpoint according to the spec.
+    - Wallet detachment: the daemon now requires a connection to an Ocean wallet that is fully responsible of deriving new key pairs and scan the chain for them. The wallet produces events consumed by the daemon for confirmed/unconfirmed txs and utxos. This drastically improves the overall perfomances of the service. You don't need to manually claim the funds deposited to the dameon anymore.
+    - Embedded price feeder: the daemon allows you to set up price feeds for your pluggable-strategy markets to keep their price always up-to-date.
+  source: https://github.com/tdex-network/tdex-daemon
+  version: 1.0.1-patch.2
+  website: https://dev.tdex.network
+website: https://dev.tdex.network

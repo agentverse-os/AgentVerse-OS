@@ -1,0 +1,40 @@
+# once-campfire-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  campfire:
+    environment:
+    - SERVICE_URL_CAMPFIRE_80=${SERVICE_URL_CAMPFIRE_80}
+    - SECRET_KEY_BASE=${SERVICE_BASE64_64_CAMPFIRE}
+    - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+    - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+    - DISABLE_SSL=${DISABLE_SSL:-true}
+    - SSL_DOMAIN=${SSL_DOMAIN:-false}
+    - SKIP_TELEMETRY=${SKIP_TELEMETRY:-true}
+    - SENTRY_DSN=${SENTRY_DSN}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost/up
+      timeout: 5s
+    image: ghcr.io/basecamp/once-campfire:${TAG:-main}
+    networks:
+      appnet:
+        aliases:
+        - once-campfire-coolify_campfire_1
+    restart: unless-stopped
+    volumes:
+    - campfire-storage:/rails/storage
+volumes:
+  campfire-storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/campfire-storage
+      o: bind
+      type: none

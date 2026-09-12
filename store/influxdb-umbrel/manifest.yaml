@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/influxdb-umbrel
+description: High performance time series database
+endpoint:
+  port: 8888
+  service: chronograf
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/influxdb/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/influxdb/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/influxdb/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/influxdb/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: admin
+name: influxdb-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: InfluxDB
+type: app
+upstream:
+  author: InfluxData
+  categories:
+  - developer
+  release_notes: |-
+    This release brings InfluxDB to version 1.12.4 and Chronograf to version 1.11.2.
+
+    InfluxDB fixes a regression introduced in v1.12.3 that could crash the TSI index during concurrent read and write operations.
+
+    Chronograf includes updated Go and JavaScript dependencies.
+  source: https://github.com/influxdata/influxdb
+  version: 1.12.4
+  website: https://www.influxdata.com/
+website: https://www.influxdata.com/

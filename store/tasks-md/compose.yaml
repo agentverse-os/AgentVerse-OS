@@ -1,0 +1,19 @@
+# tasks-md: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  tasks-md:
+    environment:
+      TITLE: ${TASKS_MD_TITLE}
+    image: baldissaramatheus/tasks.md:3.3.0
+    networks:
+      appnet:
+        aliases:
+        - tasks-md_tasks-md_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/files:/tasks/
+    - ${APP_DATA_DIR}/data/config:/config/
+    - ${APP_DATA_DIR}/data/stylesheets:/usr/share/nginx/html/stylesheets/

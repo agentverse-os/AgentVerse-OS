@@ -1,0 +1,269 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/invoice-ninja-coolify
+description: The leading open-source invoicing platform
+endpoint:
+  port: 9000
+  service: invoice-ninja
+env:
+  AWS_ACCESS_KEY_ID: ''
+  AWS_BUCKET: ''
+  AWS_DEFAULT_REGION: ''
+  AWS_ENDPOINT: ''
+  AWS_SECRET_ACCESS_KEY: ''
+  AWS_URL: ''
+  DB_DATABASE: invoiceninja
+  DB_HOST: mariadb
+  DB_PORT: '3306'
+  IN_USER_EMAIL: admin@example.com
+  LICENSE_KEY: ''
+  MAIL_ENCRYPTION: ''
+  MAIL_FROM_ADDRESS: ''
+  MAIL_FROM_NAME: ''
+  MAIL_HOST: ''
+  MAIL_MAILER: log
+  MAIL_PASSWORD: ''
+  MAIL_PORT: ''
+  MAIL_USERNAME: ''
+  NORDIGEN_SECRET_ID: ''
+  NORDIGEN_SECRET_KEY: ''
+  PDF_GENERATOR: hosted_ninja
+  PHANTOMJS_PDF_GENERATION: 'false'
+  QUEUE_CONNECTION: redis
+  REDIS_HOST: redis
+  REDIS_PORT: '6379'
+  REQUIRE_HTTPS: 'false'
+  SCOUT_DRIVER: ''
+  SERVICE_PASSWORD_INVOICENINJAUSER:
+    generate: password
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_MARIADBROOT:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_REALBASE64_INVOICENINJA:
+    generate: hex64
+  SERVICE_URL_INVOICENINJA: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+  TRUSTED_PROXIES: '*'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_INVOICENINJAUSER
+  path: null
+  user: null
+name: invoice-ninja-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: REQUIRE_HTTPS
+  hint: 'по умолчанию: false'
+  label: require https
+  options: null
+  required: false
+  type: text
+- env: PHANTOMJS_PDF_GENERATION
+  hint: 'по умолчанию: false'
+  label: phantomjs pdf generation
+  options: null
+  required: false
+  type: text
+- env: PDF_GENERATOR
+  hint: 'по умолчанию: hosted_ninja'
+  label: pdf generator
+  options: null
+  required: false
+  type: text
+- env: TRUSTED_PROXIES
+  hint: 'по умолчанию: *'
+  label: trusted proxies
+  options: null
+  required: false
+  type: text
+- env: QUEUE_CONNECTION
+  hint: 'по умолчанию: redis'
+  label: queue connection
+  options: null
+  required: false
+  type: text
+- env: REDIS_HOST
+  hint: 'по умолчанию: redis'
+  label: redis host
+  options: null
+  required: false
+  type: text
+- env: REDIS_PORT
+  hint: 'по умолчанию: 6379'
+  label: redis port
+  options: null
+  required: false
+  type: text
+- env: DB_HOST
+  hint: 'по умолчанию: mariadb'
+  label: db host
+  options: null
+  required: false
+  type: text
+- env: DB_PORT
+  hint: 'по умолчанию: 3306'
+  label: db port
+  options: null
+  required: false
+  type: text
+- env: DB_DATABASE
+  hint: 'по умолчанию: invoiceninja'
+  label: db database
+  options: null
+  required: false
+  type: text
+- env: IN_USER_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: in user email
+  options: null
+  required: false
+  type: text
+- env: MAIL_MAILER
+  hint: 'по умолчанию: log'
+  label: mail mailer
+  options: null
+  required: false
+  type: text
+- env: MAIL_HOST
+  hint: null
+  label: mail host
+  options: null
+  required: false
+  type: text
+- env: MAIL_PORT
+  hint: null
+  label: mail port
+  options: null
+  required: false
+  type: text
+- env: MAIL_USERNAME
+  hint: null
+  label: mail username
+  options: null
+  required: false
+  type: text
+- env: MAIL_PASSWORD
+  hint: null
+  label: mail password
+  options: null
+  required: false
+  type: password
+- env: MAIL_ENCRYPTION
+  hint: null
+  label: mail encryption
+  options: null
+  required: false
+  type: text
+- env: MAIL_FROM_ADDRESS
+  hint: null
+  label: mail from address
+  options: null
+  required: false
+  type: text
+- env: MAIL_FROM_NAME
+  hint: null
+  label: mail from name
+  options: null
+  required: false
+  type: text
+- env: AWS_ACCESS_KEY_ID
+  hint: null
+  label: aws access key id
+  options: null
+  required: false
+  type: password
+- env: AWS_SECRET_ACCESS_KEY
+  hint: null
+  label: aws secret access key
+  options: null
+  required: false
+  type: password
+- env: AWS_DEFAULT_REGION
+  hint: null
+  label: aws default region
+  options: null
+  required: false
+  type: text
+- env: AWS_BUCKET
+  hint: null
+  label: aws bucket
+  options: null
+  required: false
+  type: text
+- env: AWS_URL
+  hint: null
+  label: aws url
+  options: null
+  required: false
+  type: text
+- env: AWS_ENDPOINT
+  hint: null
+  label: aws endpoint
+  options: null
+  required: false
+  type: text
+- env: NORDIGEN_SECRET_ID
+  hint: null
+  label: nordigen secret id
+  options: null
+  required: false
+  type: password
+- env: NORDIGEN_SECRET_KEY
+  hint: null
+  label: nordigen secret key
+  options: null
+  required: false
+  type: password
+- env: SCOUT_DRIVER
+  hint: null
+  label: scout driver
+  options: null
+  required: false
+  type: text
+- env: LICENSE_KEY
+  hint: null
+  label: license key
+  options: null
+  required: false
+  type: password
+tags:
+- invoicing
+- billing
+- accounting
+- finance
+- self-hosted
+title: Invoice Ninja
+type: app
+upstream:
+  categories:
+  - finance
+  source: https://invoiceninja.github.io/selfhost.html
+  tags:
+  - invoicing
+  - billing
+  - accounting
+  - finance
+  - self-hosted
+  template: invoice-ninja.yaml
+website: https://invoiceninja.github.io/selfhost.html

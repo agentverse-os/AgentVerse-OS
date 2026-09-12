@@ -1,0 +1,221 @@
+# budibase-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  app-service:
+    depends_on:
+    - worker-service
+    - redis-service
+    environment:
+    - SELF_HOSTED=1
+    - COUCH_DB_URL=http://$SERVICE_USER_COUCHDB:$SERVICE_PASSWORD_COUCHDB@couchdb-service:5984
+    - WORKER_URL=http://worker-service:4003
+    - MINIO_URL=http://minio-service:9000
+    - MINIO_ACCESS_KEY=$SERVICE_USER_MINIO
+    - MINIO_SECRET_KEY=$SERVICE_PASSWORD_MINIO
+    - INTERNAL_API_KEY=$SERVICE_BASE64_128_BUDIBASE
+    - BUDIBASE_ENVIRONMENT=${BUDIBASE_ENVIRONMENT:-PRODUCTION}
+    - PORT=4002
+    - API_ENCRYPTION_KEY=$SERVICE_BASE64_64_BUDIBASEAPI
+    - ENCRYPTION_KEY=$SERVICE_BASE64_64_BUDIBASE
+    - JWT_SECRET=$SERVICE_BASE64_64_BUDIBASEJWT
+    - LOG_LEVEL=info
+    - ENABLE_ANALYTICS=${ENABLE_ANALYTICS:-true}
+    - REDIS_URL=redis-service:6379
+    - REDIS_PASSWORD=$SERVICE_PASSWORD_REDIS
+    - BB_ADMIN_USER_EMAIL=
+    - BB_ADMIN_USER_PASSWORD=
+    healthcheck:
+      interval: 15s
+      retries: 5
+      start_period: 10s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -qO-
+      - http://localhost:4002/health
+      timeout: 15s
+    image: budibase.docker.scarf.sh/budibase/apps
+    networks:
+      appnet:
+        aliases:
+        - budibase-coolify_app-service_1
+    restart: unless-stopped
+  couchdb-service:
+    environment:
+    - COUCHDB_PASSWORD=$SERVICE_PASSWORD_COUCHDB
+    - COUCHDB_USER=$SERVICE_USER_COUCHDB
+    - TARGETBUILD=docker-compose
+    healthcheck:
+      interval: 15s
+      retries: 5
+      start_period: 10s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:5984/
+      timeout: 15s
+    image: budibase/couchdb
+    networks:
+      appnet:
+        aliases:
+        - budibase-coolify_couchdb-service_1
+    restart: unless-stopped
+    volumes:
+    - couchdb3_data:/opt/couchdb/data
+  minio-service:
+    command: server /data --console-address ":9001"
+    environment:
+    - MINIO_ROOT_USER=$SERVICE_USER_MINIO
+    - MINIO_ROOT_PASSWORD=$SERVICE_PASSWORD_MINIO
+    - MINIO_BROWSER=off
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - mc
+      - ready
+      - local
+      timeout: 20s
+    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    networks:
+      appnet:
+        aliases:
+        - budibase-coolify_minio-service_1
+    restart: unless-stopped
+    volumes:
+    - minio_data:/data
+  proxy-service:
+    depends_on:
+    - minio-service
+    - worker-service
+    - app-service
+    - couchdb-service
+    environment:
+    - SERVICE_URL_BUDIBASE_10000=${SERVICE_URL_BUDIBASE_10000}
+    - PROXY_RATE_LIMIT_WEBHOOKS_PER_SECOND=10
+    - PROXY_RATE_LIMIT_API_PER_SECOND=20
+    - APPS_UPSTREAM_URL=http://app-service:4002
+    - WORKER_UPSTREAM_URL=http://worker-service:4003
+    - MINIO_UPSTREAM_URL=http://minio-service:9000
+    - COUCHDB_UPSTREAM_URL=http://couchdb-service:5984
+    - WATCHTOWER_UPSTREAM_URL=http://watchtower-service:8080
+    - RESOLVER=127.0.0.11
+    healthcheck:
+      interval: 15s
+      retries: 5
+      start_period: 10s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:10000/
+      timeout: 15s
+    image: budibase/proxy
+    networks:
+      appnet:
+        aliases:
+        - budibase-coolify_proxy-service_1
+    restart: unless-stopped
+  redis-service:
+    command: redis-server --requirepass "$SERVICE_PASSWORD_REDIS"
+    healthcheck:
+      interval: 15s
+      retries: 5
+      start_period: 10s
+      test:
+      - CMD
+      - redis-cli
+      - -a
+      - $SERVICE_PASSWORD_REDIS
+      - ping
+      timeout: 15s
+    image: redis
+    networks:
+      appnet:
+        aliases:
+        - budibase-coolify_redis-service_1
+    restart: unless-stopped
+    volumes:
+    - redis_data:/data
+  watchtower-service:
+    command: --debug --http-api-update bbapps bbworker bbproxy
+    environment:
+    - WATCHTOWER_HTTP_API=true
+    - WATCHTOWER_HTTP_API_TOKEN=$SERVICE_PASSWORD_WATCHTOWER
+    - WATCHTOWER_CLEANUP=true
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    image: containrrr/watchtower
+    labels:
+    - com.centurylinklabs.watchtower.enable=false
+    networks:
+      appnet:
+        aliases:
+        - budibase-coolify_watchtower-service_1
+      dockerro: {}
+    restart: always
+    volumes: []
+  worker-service:
+    depends_on:
+    - redis-service
+    - minio-service
+    environment:
+    - SELF_HOSTED=1
+    - PORT=4003
+    - CLUSTER_PORT=10000
+    - API_ENCRYPTION_KEY=$SERVICE_BASE64_64_BUDIBASEAPI
+    - JWT_SECRET=$SERVICE_BASE64_64_BUDIBASEJWT
+    - MINIO_ACCESS_KEY=$SERVICE_USER_MINIO
+    - MINIO_SECRET_KEY=$SERVICE_PASSWORD_MINIO
+    - MINIO_URL=http://minio-service:9000
+    - APPS_URL=http://app-service:4002
+    - COUCH_DB_USERNAME=$SERVICE_USER_COUCHDB
+    - COUCH_DB_PASSWORD=$SERVICE_PASSWORD_COUCHDB
+    - COUCH_DB_URL=http://$SERVICE_USER_COUCHDB:$SERVICE_PASSWORD_COUCHDB@couchdb-service:5984
+    - INTERNAL_API_KEY=$SERVICE_BASE64_128_BUDIBASE
+    - REDIS_URL=redis-service:6379
+    - REDIS_PASSWORD=$SERVICE_PASSWORD_REDIS
+    healthcheck:
+      interval: 15s
+      retries: 5
+      start_period: 10s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -qO-
+      - http://localhost:4003/health
+      timeout: 15s
+    image: budibase.docker.scarf.sh/budibase/worker
+    networks:
+      appnet:
+        aliases:
+        - budibase-coolify_worker-service_1
+    restart: unless-stopped
+volumes:
+  couchdb3_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/couchdb3_data
+      o: bind
+      type: none
+  minio_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/minio_data
+      o: bind
+      type: none
+  redis_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis_data
+      o: bind
+      type: none

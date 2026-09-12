@@ -1,0 +1,56 @@
+# anythingllm-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  anything-llm:
+    cap_add:
+    - SYS_ADMIN
+    environment:
+    - SERVICE_URL_ANYTHINGLLM_3001=${SERVICE_URL_ANYTHINGLLM_3001}
+    - STORAGE_DIR=/app/server/storage
+    - DISABLE_TELEMETRY=${DISABLE_TELEMETRY:-true}
+    - PASSWORDLOWERCASE=${PASSWORDLOWERCASE:-1}
+    - PASSWORDMAXCHAR=${PASSWORDMAXCHAR:-250}
+    - PASSWORDMINCHAR=${PASSWORDMINCHAR:-6}
+    - PASSWORDNUMERIC=${PASSWORDNUMERIC:-1}
+    - PASSWORDREQUIREMENTS=${PASSWORDREQUIREMENTS:-1}
+    - PASSWORDSYMBOL=${PASSWORDSYMBOL:-1}
+    - PASSWORDUPPERCASE=${PASSWORDUPPERCASE:-1}
+    - SIG_KEY=${SERVICE_PASSWORD_SIGKEY}
+    - SIG_SALT=${SERVICE_PASSWORD_SIGSALT}
+    - JWT_SECRET=${SERVICE_PASSWORD_JWTSECRET}
+    - AUTH_TOKEN=${SERVICE_PASSWORD_AUTHTOKEN}
+    - SERVER_PORT=${SERVER_PORT:-3001}
+    - VECTOR_DB=lancedb
+    image: mintplexlabs/anythingllm
+    networks:
+      appnet:
+        aliases:
+        - anythingllm-coolify_anything-llm_1
+    restart: unless-stopped
+    user: ${UID:-1000}:${GID:-1000}
+    volumes:
+    - anythingllm-storage:/app/server/storage
+    - anythingllm-hot:/app/collector/hotdir
+    - anythingllm-outputs:/app/collector/outputs
+volumes:
+  anythingllm-hot:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/anythingllm-hot
+      o: bind
+      type: none
+  anythingllm-outputs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/anythingllm-outputs
+      o: bind
+      type: none
+  anythingllm-storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/anythingllm-storage
+      o: bind
+      type: none

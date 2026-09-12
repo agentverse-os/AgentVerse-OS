@@ -1,0 +1,22 @@
+# smallweb: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  smallweb:
+    image: ghcr.io/pomdtr/smallweb:0.28.4
+    labels:
+      traefik.http.routers.{{RUNTIPI_APP_ID}}-insecure.rule: Host(`${APP_DOMAIN}`) || HostRegexp(`.+\.${APP_DOMAIN}`)
+      traefik.http.routers.{{RUNTIPI_APP_ID}}-local-insecure.rule: Host(`{{RUNTIPI_APP_ID}}.${LOCAL_DOMAIN}`) || HostRegexp(`.+\.{{RUNTIPI_APP_ID}}\.${LOCAL_DOMAIN}`)
+      traefik.http.routers.{{RUNTIPI_APP_ID}}-local.rule: Host(`{{RUNTIPI_APP_ID}}.${LOCAL_DOMAIN}`) || HostRegexp(`.+\.{{RUNTIPI_APP_ID}}\.${LOCAL_DOMAIN}`)
+      traefik.http.routers.{{RUNTIPI_APP_ID}}.rule: Host(`${APP_DOMAIN}`) || HostRegexp(`.+\.${APP_DOMAIN}`)
+      traefik.http.routers.{{RUNTIPI_APP_ID}}.tls.domains[0].main: ${APP_DOMAIN}
+      traefik.http.routers.{{RUNTIPI_APP_ID}}.tls.domains[0].sans: '*.${APP_DOMAIN}'
+    networks:
+      appnet:
+        aliases:
+        - smallweb_smallweb_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/:/smallweb

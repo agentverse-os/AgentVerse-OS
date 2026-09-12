@@ -1,0 +1,66 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/onedev-umbrel
+description: A streamlined server for code, builds, and packages
+endpoint:
+  port: 6610
+  service: web
+env:
+  APP_PROXY_PORT: ''
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/onedev/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/onedev/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/onedev/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/onedev/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/onedev/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/onedev/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: onedev-umbrel
+notes:
+- 'порт 6611:6611 (web) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_PROXY_PORT
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app proxy port
+  options: null
+  required: false
+  type: text
+tags: []
+title: OneDev
+type: app
+upstream:
+  author: OneDev Pty
+  categories:
+  - developer
+  release_notes: |-
+    This update includes OneDev 16.5.10, a maintenance release. Upstream did not list fixed issues or target-specific incompatibilities in the 16.5.10 release.
+
+    Note: If you're updating from a pre-16.5.0 version, OneDev may regenerate the system GPG signing key when changing the default system signing email. Commits previously signed with the old system key may show as unverified.
+
+    Full release notes can be found at https://github.com/theonedev/onedev/releases/tag/v16.5.10
+  source: https://github.com/theonedev/onedev
+  version: 16.5.10
+  website: https://onedev.io/
+website: https://onedev.io/

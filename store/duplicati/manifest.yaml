@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/duplicati
+description: Store securely encrypted backups in the cloud!
+endpoint:
+  port: 8200
+  service: duplicati
+env:
+  DUPLICATI_ENCRYPTION_KEY:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: duplicati
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DUPLICATI_ENCRYPTION_KEY
+  hint: null
+  label: Encryption Key
+  options: null
+  required: false
+  type: random
+tags: []
+title: Duplicati
+type: app
+upstream:
+  author: https://github.com/duplicati
+  categories:
+  - data
+  source: https://github.com/linuxserver/docker-duplicati
+  tipi_version: 12
+  version: 2.3.0
+website: https://github.com/linuxserver/docker-duplicati

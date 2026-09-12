@@ -1,0 +1,77 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/seaweedfs-coolify
+description: SeaweedFS is a simple and highly scalable distributed file system. Compatible with S3, with an admin web interface.
+endpoint:
+  port: 8333
+  service: seaweedfs-admin
+env:
+  SEAWEED_PASSWORD_ADMIN: ''
+  SEAWEED_USER_ADMIN: ''
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_S3:
+    generate: password
+  SERVICE_URL_ADMIN_23646: https://${APP_DOMAIN}
+  SERVICE_URL_S3_8333: https://${APP_DOMAIN}
+  SERVICE_USER_ADMIN:
+    generate: password
+  SERVICE_USER_S3:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: SERVICE_USER_ADMIN
+name: seaweedfs-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SEAWEED_USER_ADMIN
+  hint: null
+  label: seaweed user admin
+  options: null
+  required: false
+  type: text
+- env: SEAWEED_PASSWORD_ADMIN
+  hint: null
+  label: seaweed password admin
+  options: null
+  required: false
+  type: password
+tags:
+- object
+- storage
+- server
+- s3
+- api
+title: Seaweedfs
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://github.com/seaweedfs/seaweedfs
+  tags:
+  - object
+  - storage
+  - server
+  - s3
+  - api
+  template: seaweedfs.yaml
+website: https://github.com/seaweedfs/seaweedfs

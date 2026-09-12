@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/umami-analytics
+description: Umami is a simple, fast, privacy-focused alternative to Google Analytics.
+endpoint:
+  port: 3000
+  service: umami-analytics
+env:
+  UMAMI_ANALYTICS_APP_SECRET:
+    generate: token
+  UMAMI_ANALYTICS_DB_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: umami-analytics
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: UMAMI_ANALYTICS_DB_PASSWORD
+  hint: null
+  label: Umami analytics database password
+  options: null
+  required: false
+  type: random
+- env: UMAMI_ANALYTICS_APP_SECRET
+  hint: null
+  label: Umami analytics app secret
+  options: null
+  required: false
+  type: random
+tags: []
+title: Umami Analytics
+type: app
+upstream:
+  author: umami-software
+  categories:
+  - utilities
+  source: https://github.com/umami-software/umami
+  tipi_version: 13
+  version: 3.3.1
+website: https://github.com/umami-software/umami

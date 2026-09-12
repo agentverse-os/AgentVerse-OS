@@ -1,0 +1,39 @@
+# openobserve-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  openobserve:
+    environment:
+    - SERVICE_URL_OPENOBSERVE_5080=${SERVICE_URL_OPENOBSERVE_5080}
+    - ZO_DATA_DIR=/data
+    - ZO_ROOT_USER_EMAIL=${ZO_ROOT_USER_EMAIL:-root@example.com}
+    - ZO_ROOT_USER_PASSWORD=${SERVICE_PASSWORD_OPENOBSERVE}
+    - ZO_TELEMETRY=${ZO_TELEMETRY:-false}
+    - ZO_COOKIE_SECURE_ONLY=${ZO_COOKIE_SECURE_ONLY:-true}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 60s
+      test:
+      - CMD
+      - /openobserve
+      - node
+      - status
+      timeout: 5s
+    image: public.ecr.aws/zinclabs/openobserve:v0.90.0
+    networks:
+      appnet:
+        aliases:
+        - openobserve-coolify_openobserve_1
+    restart: unless-stopped
+    volumes:
+    - openobserve-data:/data
+volumes:
+  openobserve-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/openobserve-data
+      o: bind
+      type: none

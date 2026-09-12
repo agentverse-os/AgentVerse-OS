@@ -1,0 +1,19 @@
+# zigbee2mqtt: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  zigbee2mqtt:
+    devices:
+    - ${Z2M_DEVICE}:/dev/ttyACM0
+    environment:
+      TZ: ${TZ}
+    image: koenkk/zigbee2mqtt:2.13.0
+    networks:
+      appnet:
+        aliases:
+        - zigbee2mqtt_zigbee2mqtt_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/:/app/data

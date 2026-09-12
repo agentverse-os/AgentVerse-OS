@@ -1,0 +1,86 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/obsidian-livesync-coolify
+description: Self-hosted sync backend for Obsidian LiveSync plugin using CouchDB
+endpoint:
+  port: 5984
+  service: couchdb
+env:
+  COUCHDB_PASSWORD: ''
+  COUCHDB_USER: ''
+  MAX_DOCUMENT_SIZE: '52428800'
+  MAX_HTTP_REQUEST_SIZE: '67108864'
+  SERVICE_FQDN_COUCHDB_5984: ${APP_DOMAIN}
+  SERVICE_PASSWORD_64_COUCHDB:
+    generate: hex64
+  SERVICE_USER_COUCHDB:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_64_COUCHDB
+  path: null
+  user: SERVICE_USER_COUCHDB
+name: obsidian-livesync-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MAX_DOCUMENT_SIZE
+  hint: 'по умолчанию: 52428800'
+  label: max document size
+  options: null
+  required: false
+  type: text
+- env: MAX_HTTP_REQUEST_SIZE
+  hint: 'по умолчанию: 67108864'
+  label: max http request size
+  options: null
+  required: false
+  type: text
+- env: COUCHDB_USER
+  hint: null
+  label: couchdb user
+  options: null
+  required: false
+  type: text
+- env: COUCHDB_PASSWORD
+  hint: null
+  label: couchdb password
+  options: null
+  required: false
+  type: password
+tags:
+- obsidian
+- couchdb
+- sync
+- notes
+- markdown
+title: Obsidian Livesync
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://github.com/vrtmrz/obsidian-livesync/blob/main/docs/setup_own_server.md
+  tags:
+  - obsidian
+  - couchdb
+  - sync
+  - notes
+  - markdown
+  template: obsidian-livesync.yaml
+website: https://github.com/vrtmrz/obsidian-livesync/blob/main/docs/setup_own_server.md

@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/homebridge-umbrel
+description: HomeKit support for the impatient
+endpoint:
+  port: 8581
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/homebridge/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homebridge/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homebridge/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/homebridge/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: homebridge-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Homebridge
+type: app
+upstream:
+  author: Homebridge
+  categories:
+  - automation
+  release_notes: |-
+    ⚠️ Major update: Check Homebridge's plugin readiness indicators and update any outdated plugins before upgrading to Homebridge 2. Most plugins should continue to work, but older plugins that use removed Homebridge or HAP-NodeJS APIs may fail until updated.
+
+    If an incompatible plugin is running outside a child bridge, Homebridge may restart until that plugin is disabled or updated. Plugins in child bridges are isolated, so the Homebridge UI should remain accessible while the affected child bridge restarts.
+
+    Homebridge 2 changes the default mDNS advertiser to Avahi when available. If your HomeKit devices show "No Response" after updating, open Homebridge Settings → mDNS Advertiser and switch back to Bonjour HAP.
+
+    This release logs the Matter.js version at bridge and child bridge startup, updates dependencies, and includes Homebridge UI 5.22.0 with Node.js 24.15.0.
+
+    Full release notes can be found at https://github.com/homebridge/homebridge/releases/tag/v2.0.2
+  source: https://github.com/homebridge/homebridge
+  version: 2.0.2-2026-05-10
+  website: https://homebridge.io/
+website: https://homebridge.io/

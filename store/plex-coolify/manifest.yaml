@@ -1,0 +1,62 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/plex-coolify
+description: Plex organizes video, music and photos from personal media libraries and streams them to smart TVs, streaming boxes and mobile devices.
+endpoint:
+  port: 32400
+  service: plex
+env:
+  PLEX_CLAIM: ''
+  SERVICE_URL_PLEX: https://${APP_DOMAIN}
+  SERVICE_URL_PLEX_32400: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: plex-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PLEX_CLAIM
+  hint: null
+  label: plex claim
+  options: null
+  required: false
+  type: text
+tags:
+- media
+- server
+- movies
+- tv
+- music
+title: Plex
+type: app
+upstream:
+  categories:
+  - media
+  source: https://docs.linuxserver.io/images/docker-plex/
+  tags:
+  - media
+  - server
+  - movies
+  - tv
+  - music
+  template: plex.yaml
+website: https://docs.linuxserver.io/images/docker-plex/

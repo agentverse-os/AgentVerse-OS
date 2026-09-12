@@ -1,0 +1,27 @@
+# browserless-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  browserless:
+    environment:
+    - SERVICE_URL_BROWSERLESS_3000=${SERVICE_URL_BROWSERLESS_3000}
+    - TOKEN=$SERVICE_PASSWORD_BROWSERLESS
+    expose:
+    - 3000
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000/docs
+      timeout: 10s
+    image: ghcr.io/browserless/chromium
+    networks:
+      appnet:
+        aliases:
+        - browserless-coolify_browserless_1
+    restart: unless-stopped

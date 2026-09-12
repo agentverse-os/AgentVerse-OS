@@ -1,0 +1,53 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/easyappointments-coolify
+description: Schedule Anything. Let's start with easy! Get the best free online appointment scheduler on your server, today.
+endpoint:
+  port: 80
+  service: easyappointments
+env:
+  SERVICE_PASSWORD_EASYAPPOINTMENTS:
+    generate: password
+  SERVICE_URL_EASYAPPOINTMENTS: https://${APP_DOMAIN}
+  SERVICE_URL_EASYAPPOINTMENTS_80: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: easyappointments-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- calendar
+- scheduling
+- database
+title: Easyappointments
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://easyappointments.org/
+  tags:
+  - calendar
+  - scheduling
+  - database
+  template: easyappointments.yaml
+website: https://easyappointments.org/

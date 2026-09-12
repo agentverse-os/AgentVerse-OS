@@ -1,0 +1,71 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/stalwart-umbrel
+description: All-in-one Mail & Collaboration server
+endpoint:
+  port: 8080
+  service: server
+env:
+  APP_PASSWORD:
+    generate: password
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/stalwart/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: stalwart-umbrel
+notes:
+- 'порт 10443:443 (server) не публикуется: доступ только через edge/gate'
+- 'порт 10025:25 (server) не публикуется: доступ только через edge/gate'
+- 'порт 10465:465 (server) не публикуется: доступ только через edge/gate'
+- 'порт 10587:587 (server) не публикуется: доступ только через edge/gate'
+- 'порт 10143:143 (server) не публикуется: доступ только через edge/gate'
+- 'порт 10993:993 (server) не публикуется: доступ только через edge/gate'
+- 'порт 14190:4190 (server) не публикуется: доступ только через edge/gate'
+- 'порт 10110:110 (server) не публикуется: доступ только через edge/gate'
+- 'порт 10995:995 (server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Stalwart
+type: app
+upstream:
+  author: Stalwart Labs
+  categories:
+  - files
+  release_notes: |-
+    If updating from Stalwart v0.15.x or earlier, Umbrel runs the v0.16 migration automatically as part of the update. Make sure you have a backup and leave Stalwart running until it comes back online. Upgrading guide: https://github.com/stalwartlabs/stalwart/blob/main/UPGRADING/v0_16.md
+
+    Changes since v0.16.19 include:
+      - Adds SCIM v2 support for Enterprise, JMAP calendar event update/delete support, conference links in calendar invites and email alarms, and additional calendar translations
+      - Updates the calendar HTTP RSVP page
+      - Fixes DANE/TLS delivery handling, S3 region configuration, setup-wizard SQL directory validation, CardDAV default address book cleanup, Redis Sentinel TLS, generated Message-ID hostnames, DMARC/inbound report handling, recovery-admin impersonation, WebUI failed-login behavior, and stale cluster node leases
+
+
+    Full release notes can be found at https://github.com/stalwartlabs/stalwart/releases/tag/v0.16.20
+  source: https://github.com/stalwartlabs/stalwart
+  version: v0.16.20
+  website: https://stalw.art/
+website: https://stalw.art/

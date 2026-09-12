@@ -1,0 +1,40 @@
+# windows-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  windows:
+    cap_add:
+    - NET_ADMIN
+    devices:
+    - /dev/kvm:/dev/kvm
+    environment:
+    - SERVICE_URL_WINDOWS_8006=${SERVICE_URL_WINDOWS_8006}
+    - VERSION=11
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - nc
+      - -z
+      - 127.0.0.1
+      - '8006'
+      timeout: 10s
+    image: dockurr/windows
+    networks:
+      appnet:
+        aliases:
+        - windows-coolify_windows_1
+    restart: unless-stopped
+    stop_grace_period: 2m
+    volumes:
+    - windows-storage:/storage
+volumes:
+  windows-storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/windows-storage
+      o: bind
+      type: none

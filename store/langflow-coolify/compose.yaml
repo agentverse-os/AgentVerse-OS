@@ -1,0 +1,67 @@
+# langflow-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  langflow:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_LANGFLOW_7860=${SERVICE_URL_LANGFLOW_7860}
+    - LANGFLOW_AUTO_LOGIN=${LANGFLOW_AUTO_LOGIN:-false}
+    - LANGFLOW_SUPERUSER=$SERVICE_USER_LANGFLOW
+    - LANGFLOW_SUPERUSER_PASSWORD=$SERVICE_PASSWORD_LANGFLOW
+    - LANGFLOW_DATABASE_URL=postgresql://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/${POSTGRES_DB:-langflow-db}
+    - LANGFLOW_CONFIG_DIR=app/langflow
+    - LANGFLOW_HOST=0.0.0.0
+    - PORT=7860
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - curl -f http://127.0.0.1:7860/health
+      timeout: 20s
+    image: langflowai/langflow:1.7.2
+    networks:
+      appnet:
+        aliases:
+        - langflow-coolify_langflow_1
+    restart: unless-stopped
+    volumes:
+    - langflow-data:/app/langflow
+  postgres:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_DB=${POSTGRES_DB:-langflow-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:18-alpine
+    networks:
+      appnet:
+        aliases:
+        - langflow-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - langflow-postgres:/var/lib/postgres/data
+volumes:
+  langflow-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/langflow-data
+      o: bind
+      type: none
+  langflow-postgres:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/langflow-postgres
+      o: bind
+      type: none

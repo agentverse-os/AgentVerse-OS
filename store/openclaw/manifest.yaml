@@ -1,0 +1,75 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/openclaw
+description: OpenClaw is a personal AI assistant you run on your own devices. It answers you on the channels you already use.
+endpoint:
+  port: 18789
+  service: openclaw
+env:
+  ANTHROPIC_API_KEY:
+    generate: password
+  GOOGLE_GENERATIVE_AI_API_KEY:
+    generate: password
+  OLLAMA_HOST: ''
+  OPENAI_API_KEY:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: openclaw
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ANTHROPIC_API_KEY
+  hint: null
+  label: Anthropic API Key
+  options: null
+  required: false
+  type: password
+- env: OPENAI_API_KEY
+  hint: null
+  label: OpenAI API Key
+  options: null
+  required: false
+  type: password
+- env: GOOGLE_GENERATIVE_AI_API_KEY
+  hint: null
+  label: Google Gemini API Key
+  options: null
+  required: false
+  type: password
+- env: OLLAMA_HOST
+  hint: null
+  label: Ollama Host
+  options: null
+  required: false
+  type: url
+tags: []
+title: OpenClaw
+type: app
+upstream:
+  author: OpenClaw
+  categories:
+  - ai
+  source: https://github.com/openclaw/openclaw
+  tipi_version: 1
+  version: latest
+website: https://github.com/openclaw/openclaw

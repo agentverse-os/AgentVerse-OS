@@ -1,0 +1,24 @@
+# minio-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    command:
+    - server
+    - /data
+    environment:
+      MINIO_CONSOLE_ADDRESS: :9011
+      MINIO_ROOT_PASSWORD: $APP_PASSWORD
+      MINIO_ROOT_USER: umbrel
+    image: quay.io/minio/minio:RELEASE.2025-06-13T11-33-47Z@sha256:064117214caceaa8d8a90ef7caa58f2b2aeb316b5156afe9ee8da5b4d83e12c8
+    networks:
+      appnet:
+        aliases:
+        - minio_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/minio:/data

@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wizarr
+description: Wizarr is an automatic user invitation system for Plex and Jellyfin.
+endpoint:
+  port: 5690
+  service: wizarr
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wizarr
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Wizarr
+type: app
+upstream:
+  author: https://github.com/Wizarrrr
+  categories:
+  - utilities
+  source: https://github.com/Wizarrrr/wizarr
+  tipi_version: 23
+  version: v2026.7.1
+website: https://github.com/Wizarrrr/wizarr

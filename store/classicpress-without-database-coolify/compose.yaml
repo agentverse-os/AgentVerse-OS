@@ -1,0 +1,33 @@
+# classicpress-without-database-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  classicpress:
+    environment:
+    - SERVICE_URL_CLASSICPRESS=${SERVICE_URL_CLASSICPRESS}
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: classicpress/classicpress:latest
+    networks:
+      appnet:
+        aliases:
+        - classicpress-without-database-coolify_classicpress_1
+    restart: unless-stopped
+    volumes:
+    - classicpress-files:/var/www/html
+volumes:
+  classicpress-files:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/classicpress-files
+      o: bind
+      type: none

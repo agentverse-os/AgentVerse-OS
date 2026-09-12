@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/shopstr-umbrel
+description: Shop freely
+endpoint:
+  port: 3000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/shopstr/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/shopstr/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/shopstr/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/shopstr/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: shopstr-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Shopstr
+type: app
+upstream:
+  author: calvadev
+  categories:
+  - bitcoin
+  release_notes: |-
+    This update of Shopstr brings the following improvements and fixes:
+      - Fixed race condition when minting new proofs at checkout
+      - Revised checkout page design
+      - Minor code styling fixes
+  source: https://github.com/shopstr-eng/shopstr
+  version: 0.7.5
+  website: https://calva.dev
+website: https://calva.dev

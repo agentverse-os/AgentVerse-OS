@@ -1,0 +1,60 @@
+# photoprism: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  photoprism:
+    depends_on:
+    - photoprism-db
+    environment:
+      PHOTOPRISM_ADMIN_PASSWORD: ${PHOTOPRISM_ADMIN_PASSWORD}
+      PHOTOPRISM_DATABASE_DRIVER: mysql
+      PHOTOPRISM_DATABASE_NAME: photoprism
+      PHOTOPRISM_DATABASE_PASSWORD: ${DB_PASSWORD}
+      PHOTOPRISM_DATABASE_SERVER: photoprism-db:3306
+      PHOTOPRISM_DATABASE_USER: photoprism
+      PHOTOPRISM_DETECT_NSFW: 'false'
+      PHOTOPRISM_DISABLE_CHOWN: 'false'
+      PHOTOPRISM_DISABLE_CLASSIFICATION: 'false'
+      PHOTOPRISM_DISABLE_FACES: 'false'
+      PHOTOPRISM_DISABLE_RAW: 'false'
+      PHOTOPRISM_DISABLE_SETTINGS: 'false'
+      PHOTOPRISM_DISABLE_TENSORFLOW: 'false'
+      PHOTOPRISM_DISABLE_WEBDAV: 'false'
+      PHOTOPRISM_EXPERIMENTAL: 'false'
+      PHOTOPRISM_HTTP_COMPRESSION: gzip
+      PHOTOPRISM_JPEG_QUALITY: '85'
+      PHOTOPRISM_LOG_LEVEL: info
+      PHOTOPRISM_ORIGINALS_LIMIT: '5000'
+      PHOTOPRISM_PUBLIC: 'false'
+      PHOTOPRISM_RAW_PRESETS: 'false'
+      PHOTOPRISM_READONLY: 'false'
+      PHOTOPRISM_SITE_CAPTION: AI-Powered Photos App
+      PHOTOPRISM_SITE_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}/
+      PHOTOPRISM_UPLOAD_NSFW: 'true'
+    image: photoprism/photoprism:latest
+    networks:
+      appnet:
+        aliases:
+        - photoprism_photoprism_1
+    restart: unless-stopped
+    volumes:
+    - ${ROOT_FOLDER_HOST}/media/data/images:/photoprism/originals
+    - ${APP_DATA_DIR}/data/photoprism/storage:/photoprism/storage
+    working_dir: /photoprism
+  photoprism-db:
+    command: mysqld --innodb-buffer-pool-size=128M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
+    environment:
+      MARIADB_DATABASE: photoprism
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_USER: photoprism
+    image: mariadb:10.8
+    networks:
+      appnet:
+        aliases:
+        - photoprism_photoprism-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mariadb:/var/lib/mysql

@@ -1,0 +1,16 @@
+# moneroblock: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  moneroblock:
+    command:
+    - --daemon
+    - ${DAEMON_ADDRESS:-node.sethforprivacy.com:18089}
+    image: sethsimmons/moneroblock:v0.1.2
+    networks:
+      appnet:
+        aliases:
+        - moneroblock_moneroblock_1
+    restart: unless-stopped

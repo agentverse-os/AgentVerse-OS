@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/vikunja
+description: The Todo-app to organize your life.
+endpoint:
+  port: 3456
+  service: vikunja
+env:
+  VIKUNJA_DB_PASSWORD:
+    generate: token
+  VIKUNJA_SERVICE_SECRET:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: vikunja
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: VIKUNJA_DB_PASSWORD
+  hint: null
+  label: Vikunja database password
+  options: null
+  required: false
+  type: random
+- env: VIKUNJA_SERVICE_SECRET
+  hint: null
+  label: Vikunja secret
+  options: null
+  required: false
+  type: random
+tags: []
+title: Vikunja
+type: app
+upstream:
+  author: kolaente
+  categories:
+  - utilities
+  source: https://kolaente.dev/vikunja
+  tipi_version: 31
+  version: 2.5.0
+website: https://kolaente.dev/vikunja

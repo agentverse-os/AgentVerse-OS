@@ -1,0 +1,17 @@
+# flightlog: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  flightlog:
+    environment:
+      FLIGHTLOG_SERVER_CONTEXT_PATH: /
+    image: perdian/flightlog:v2.1.14
+    networks:
+      appnet:
+        aliases:
+        - flightlog_flightlog_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/flightlog/database

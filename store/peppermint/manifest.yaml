@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/peppermint
+description: An open source ticket management & help desk solution.
+endpoint:
+  port: 3000
+  service: peppermint
+env:
+  PEPPERMINT_DB_PASSWORD:
+    generate: token
+  PEPPERMINT_DOMAIN_API: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: peppermint
+notes:
+- 'порт 8217→5003 (peppermint) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PEPPERMINT_DB_PASSWORD
+  hint: null
+  label: Peppermint DB Password
+  options: null
+  required: false
+  type: random
+- env: PEPPERMINT_DOMAIN_API
+  hint: Can be an exposable domiain like peppermintapi.example.com or peppermintapi.tipi.local
+  label: API URL
+  options: null
+  required: true
+  type: text
+tags: []
+title: Peppermint
+type: app
+upstream:
+  author: Peppermint-Lab
+  categories:
+  - utilities
+  source: https://github.com/Peppermint-Lab/peppermint
+  tipi_version: 9
+  version: latest
+website: https://github.com/Peppermint-Lab/peppermint

@@ -1,0 +1,75 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/redmine-coolify
+description: Redmine is a flexible project management web application.
+endpoint:
+  port: 3000
+  service: redmine
+env:
+  POSTGRES_DATABASE: redmine-db
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_FQDN_REDMINE_3000: ${APP_DOMAIN}
+  SERVICE_PASSWORD_64_POSTGRES:
+    generate: hex64
+  SERVICE_PASSWORD_64_REDMINE:
+    generate: hex64
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: redmine-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DATABASE
+  hint: 'по умолчанию: redmine-db'
+  label: postgres database
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- redmine
+- project management
+title: Redmine
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://www.redmine.org/
+  tags:
+  - redmine
+  - project management
+  template: redmine.yaml
+website: https://www.redmine.org/

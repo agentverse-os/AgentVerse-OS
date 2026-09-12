@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/enclosed-umbrel
+description: Send private and secure notes
+endpoint:
+  port: 8787
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/enclosed/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/enclosed/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/enclosed/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/enclosed/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: enclosed-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Enclosed
+type: app
+upstream:
+  author: Corentin Thomasset
+  categories:
+  - files
+  release_notes: |-
+    This update includes various improvements and bug fixes.
+
+    Notable changes:
+      - Added Indonesian translations
+      - Updated Vietnamese translation
+      - Improved handling of default settings when resetting state
+      - Added option to create notes without expiration
+
+
+    Full release notes are found at https://github.com/CorentinTh/enclosed/releases
+  source: https://github.com/CorentinTh/enclosed
+  version: 1.16.0
+  website: https://enclosed.cc/
+website: https://enclosed.cc/

@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/readur-umbrel
+description: An intuitive OCR platform for documents
+endpoint:
+  port: 8000
+  service: app
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/readur/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/readur/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/readur/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/readur/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/readur/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/readur/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: readur2024
+  path: null
+  user: admin
+name: readur-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Readur
+type: app
+upstream:
+  author: Jon Fuller
+  categories:
+  - files
+  release_notes: |-
+    This release improves Readur's S3-backed document handling:
+      - Added optional S3 storage backend support, including endpoint and path-style controls
+      - Improved OCR and thumbnail generation for documents stored in S3
+      - Added automatic S3 addressing-style detection and related configuration/logging fixes
+      - Includes dependency updates for better stability
+
+
+    Full release notes can be found at https://github.com/readur/readur/releases/tag/v2.9.2
+  source: https://github.com/readur/readur
+  version: 2.9.2
+  website: https://github.com/readur/readur
+website: https://github.com/readur/readur

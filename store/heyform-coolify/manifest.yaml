@@ -1,0 +1,67 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/heyform-coolify
+description: Allows anyone to create engaging conversational forms for surveys, questionnaires, quizzes, and polls. No coding skills required.
+endpoint:
+  port: 9157
+  service: heyform
+env:
+  SERVICE_BASE64_64_FORM:
+    generate: hex64
+  SERVICE_BASE64_64_SESSION:
+    generate: hex64
+  SERVICE_PASSWORD_KEYDB:
+    generate: password
+  SERVICE_URL_HEYFORM: https://${APP_DOMAIN}
+  SERVICE_URL_HEYFORM_9157: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: heyform-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- form
+- builder
+- forms
+- survey
+- quiz
+- open source
+- self-hosted
+- docker
+title: Heyform
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.heyform.net/open-source/self-hosting
+  tags:
+  - form
+  - builder
+  - forms
+  - survey
+  - quiz
+  - open source
+  - self-hosted
+  - docker
+  template: heyform.yaml
+website: https://docs.heyform.net/open-source/self-hosting

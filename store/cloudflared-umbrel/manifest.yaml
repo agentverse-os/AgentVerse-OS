@@ -1,0 +1,49 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cloudflared-umbrel
+description: Access your Umbrel apps from the Internet using Cloudflare network
+endpoint:
+  port: 3000
+  service: web
+env:
+  APP_CLOUDFLARED_METRICS_PORT: '40901'
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/cloudflared/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/cloudflared/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/cloudflared/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/cloudflared/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cloudflared-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Cloudflare Tunnel
+type: app
+upstream:
+  author: Radiokot
+  categories:
+  - networking
+  release_notes: The tunneling daemon (cloudflared) has been updated to 2026.7.3
+  source: https://github.com/Radiokot/umbrel-cloudflared
+  version: 2026.7.3
+  website: https://www.cloudflare.com/products/tunnel/
+website: https://www.cloudflare.com/products/tunnel/

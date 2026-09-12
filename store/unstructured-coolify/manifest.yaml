@@ -1,0 +1,68 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/unstructured-coolify
+description: Unstructured provides a platform and tools to ingest and process unstructured documents for Retrieval Augmented Generation (RAG) and model fine-tuning.
+endpoint:
+  port: 8000
+  service: unstructured
+env:
+  SERVICE_PASSWORD_APIKEY:
+    generate: password
+  SERVICE_URL_UNSTRUCTURED_8000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: unstructured-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- workflow
+- orchestration
+- data-pipeline
+- python
+- data
+- machine-learning
+- data-science
+- nlp
+- unstructured
+- ocr
+- data-extraction
+title: Unstructured
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://github.com/Unstructured-IO/unstructured-api?tab=readme-ov-file#--general-pre-processing-pipeline-for-documents
+  tags:
+  - workflow
+  - orchestration
+  - data-pipeline
+  - python
+  - data
+  - machine-learning
+  - data-science
+  - nlp
+  - unstructured
+  - ocr
+  - data-extraction
+  template: unstructured.yaml
+website: https://github.com/Unstructured-IO/unstructured-api?tab=readme-ov-file#--general-pre-processing-pipeline-for-documents

@@ -1,0 +1,72 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/meilisearch-coolify
+description: MeiliSearch is a powerful, fast, easy to use and deploy search engine.
+endpoint:
+  port: 7700
+  service: meilisearch
+env:
+  MEILI_ENV: production
+  MEILI_NO_ANALYTICS: 'true'
+  SERVICE_PASSWORD_MEILISEARCH:
+    generate: password
+  SERVICE_URL_MEILISEARCH_7700: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: meilisearch-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MEILI_NO_ANALYTICS
+  hint: 'по умолчанию: true'
+  label: meili no analytics
+  options: null
+  required: false
+  type: text
+- env: MEILI_ENV
+  hint: 'по умолчанию: production'
+  label: meili env
+  options: null
+  required: false
+  type: text
+tags:
+- search
+- engine
+- fulltext
+- full
+- text
+- meilisearch
+title: Meilisearch
+type: app
+upstream:
+  categories:
+  - search
+  source: https://www.meilisearch.com
+  tags:
+  - search
+  - engine
+  - fulltext
+  - full
+  - text
+  - meilisearch
+  template: meilisearch.yaml
+website: https://www.meilisearch.com

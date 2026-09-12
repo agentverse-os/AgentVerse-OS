@@ -1,0 +1,21 @@
+# cross-seed: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cross-seed:
+    command: daemon
+    environment:
+      TZ: ${TZ}
+    image: ghcr.io/cross-seed/cross-seed:6.13.7
+    networks:
+      appnet:
+        aliases:
+        - cross-seed_cross-seed_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${ROOT_FOLDER_HOST}/app-data/transmission-vpn/data/config/transmission-home/torrents:/torrents
+    - ${ROOT_FOLDER_HOST}/media/torrents/watch:/cross-seeds

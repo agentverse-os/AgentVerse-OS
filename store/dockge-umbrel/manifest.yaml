@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/dockge-umbrel
+description: Easy to use Docker Compose manager
+endpoint:
+  port: 5001
+  service: dockge
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/dockge/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/dockge/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/dockge/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/dockge/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: dockge-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Dockge
+type: app
+upstream:
+  author: Louis Lam
+  categories:
+  - developer
+  release_notes: |-
+    This release fixes an issue where Dockge could fail to start after an unclean shutdown because its nested Docker daemon found a stale pid file.
+
+    Release notes for Dockge 1.5.0 remain the same:
+
+      - Docker client and Docker Compose updates
+
+      - Console improvements
+
+      - Various bug fixes and improvements
+
+
+    Full release notes are available at https://github.com/louislam/dockge/releases
+  source: https://github.com/louislam/dockge
+  version: 1.5.0-2
+  website: https://dockge.kuma.pet
+website: https://dockge.kuma.pet

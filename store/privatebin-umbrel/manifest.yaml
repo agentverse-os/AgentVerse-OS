@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/privatebin-umbrel
+description: A minimalist, open source online pastebin
+endpoint:
+  port: 8080
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/privatebin/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: privatebin-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: PrivateBin
+type: app
+upstream:
+  author: PrivateBin Community
+  categories:
+  - files
+  release_notes: |-
+    Key improvements in this release:
+      - Fixed a security issue where unsafe attachments could be rendered as HTML in browser previews
+      - Added stricter MIME type validation for PDF and sanitized SVG attachment previews
+      - Improved handling of malformed v2 JSON payloads and YOURLS replies without short URLs
+      - Updated DOMPurify to 3.4.12
+
+
+    Full release notes can be found at https://github.com/PrivateBin/PrivateBin/releases/tag/2.0.6
+  source: https://github.com/PrivateBin/PrivateBin
+  version: 2.0.6
+  website: https://privatebin.info/
+website: https://privatebin.info/

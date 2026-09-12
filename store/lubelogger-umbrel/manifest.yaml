@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/lubelogger-umbrel
+description: A vehicle maintenance and fuel mileage tracker
+endpoint:
+  port: 8080
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/lubelogger/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lubelogger/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lubelogger/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lubelogger/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lubelogger/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/lubelogger/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: lubelogger-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LubeLogger
+type: app
+upstream:
+  author: Hargata Softworks
+  categories:
+  - files
+  release_notes: |-
+    This update improves security by fixing IDOR vulnerabilities and refreshes the settings page, including moving settings into the updated layout.
+
+    It also adds a persistent dialog option to prevent accidental modal closes, adds a "Remember Me" option to the login page, updates dependencies, and improves error handling and static file routing.
+
+    Full release notes can be found at https://github.com/hargata/lubelog/releases/tag/v1.7.1
+  source: https://github.com/hargata/lubelog
+  version: 1.7.1
+  website: https://lubelogger.com/
+website: https://lubelogger.com/

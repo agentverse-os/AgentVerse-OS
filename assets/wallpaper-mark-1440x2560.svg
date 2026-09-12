@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 2560" width="1440" height="2560">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B0D14"/><stop offset="1" stop-color="#141a2e"/></linearGradient>
+  <radialGradient id="g1" cx="0.500" cy="0.250" r="0.42"><stop offset="0" stop-color="rgba(91,140,255,0.22)"/><stop offset="1" stop-color="#0B0D14" stop-opacity="0"/></radialGradient>
+  <radialGradient id="g2" cx="0.18" cy="0.80" r="0.40"><stop offset="0" stop-color="rgba(122,92,255,0.14)"/><stop offset="1" stop-color="#0B0D14" stop-opacity="0"/></radialGradient>
+  
+  <linearGradient id="wp-gl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FF"/><stop offset="0.35" stop-color="#A2B4FF"/><stop offset="1" stop-color="#5B8CFF"/></linearGradient>
+  <linearGradient id="wp-gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A2B4FF"/><stop offset="0.4" stop-color="#7A5CFF"/><stop offset="1" stop-color="#3B2FA8"/></linearGradient>
+  <linearGradient id="wp-gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FF"/><stop offset="1" stop-color="#A2B4FF"/></linearGradient>
+  <linearGradient id="wp-gw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FF"/><stop offset="0.5" stop-color="#A2B4FF"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient>
+  <linearGradient id="wp-rb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3B2FA8"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient>
+  <linearGradient id="wp-rf" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5B8CFF"/><stop offset="0.55" stop-color="#A2B4FF"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient>
+  <mask id="wp-cut" maskUnits="userSpaceOnUse" x="-64" y="-64" width="384" height="384">
+    <rect x="-64" y="-64" width="384" height="384" fill="white"/>
+    <polygon points="128,118 108,228 148,228" fill="black"/>
+    <g transform="rotate(-10 128 172)"><path d="M 10 172 A 118 30 0 0 0 246 172" fill="none" stroke="black" stroke-width="15" stroke-linecap="round"/></g>
+  </mask>
+  <mask id="wp-cut2" maskUnits="userSpaceOnUse" x="-64" y="-64" width="384" height="384">
+    <rect x="-64" y="-64" width="384" height="384" fill="white"/>
+    <g transform="rotate(-10 128 172)"><path d="M 10 172 A 118 30 0 0 0 246 172" fill="none" stroke="black" stroke-width="15" stroke-linecap="round"/></g>
+  </mask>
+</defs>
+
+<defs>
+  <linearGradient id="ab-shard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A2B4FF" stop-opacity="0.9"/><stop offset="1" stop-color="#7A5CFF" stop-opacity="0.15"/></linearGradient>
+  <radialGradient id="ab-planet" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#A2B4FF"/><stop offset="0.6" stop-color="#5B8CFF"/><stop offset="1" stop-color="#2A2470"/></radialGradient>
+  <linearGradient id="ab-streak" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#A2B4FF" stop-opacity="0"/><stop offset="0.5" stop-color="#A2B4FF" stop-opacity="0.9"/><stop offset="1" stop-color="#A2B4FF" stop-opacity="0"/></linearGradient>
+  <linearGradient id="ab-orbit" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5B8CFF" stop-opacity="0"/><stop offset="0.5" stop-color="#5B8CFF" stop-opacity="0.9"/><stop offset="1" stop-color="#7A5CFF" stop-opacity="0"/></linearGradient>
+</defs>
+<ellipse cx="720" cy="768" rx="893" ry="282" fill="none" stroke="url(#ab-orbit)" stroke-width="1.4" opacity="0.16" transform="rotate(-10 720 768)"/>
+<ellipse cx="720" cy="768" rx="1152" ry="384" fill="none" stroke="url(#ab-orbit)" stroke-width="1.0" opacity="0.10" transform="rotate(-10 720 768)"/>
+<ellipse cx="202" cy="256" rx="73" ry="17" fill="none" stroke="#A2B4FF" stroke-width="1.1" opacity="0.35" transform="rotate(-18 202 256)"/>
+<circle cx="202" cy="256" r="31.7" fill="url(#ab-planet)" opacity="0.90"/>
+<circle cx="202" cy="256" r="82" fill="#5B8CFF" opacity="0.06"/>
+<circle cx="1238" cy="1587" r="15.8" fill="url(#ab-planet)" opacity="0.85"/>
+<circle cx="1238" cy="1587" r="48" fill="#7A5CFF" opacity="0.07"/>
+<polygon points="658,1299 636,1518 681,1518" fill="url(#ab-shard)" opacity="0.21" transform="rotate(1 658 1409)"/>
+<polygon points="311,1220 291,1391 332,1391" fill="url(#ab-shard)" opacity="0.15" transform="rotate(-28 311 1306)"/>
+<polygon points="190,1855 175,2037 204,2037" fill="url(#ab-shard)" opacity="0.27" transform="rotate(34 190 1946)"/>
+<polygon points="919,1480 912,1577 927,1577" fill="url(#ab-shard)" opacity="0.11" transform="rotate(2 919 1529)"/>
+<polygon points="111,1132 94,1273 128,1273" fill="url(#ab-shard)" opacity="0.22" transform="rotate(1 111 1202)"/>
+<polygon points="720,1557 706,1702 733,1702" fill="url(#ab-shard)" opacity="0.28" transform="rotate(35 720 1629)"/>
+<polygon points="1161,1666 1150,1788 1172,1788" fill="url(#ab-shard)" opacity="0.11" transform="rotate(-15 1161 1727)"/>
+<rect x="789" y="1076" width="527" height="1.2" fill="url(#ab-streak)" opacity="0.49" transform="rotate(-22 789 1076)"/>
+<rect x="865" y="257" width="326" height="1.2" fill="url(#ab-streak)" opacity="0.37" transform="rotate(-13 865 257)"/>
+<rect x="990" y="1070" width="282" height="1.2" fill="url(#ab-streak)" opacity="0.44" transform="rotate(-18 990 1070)"/>
+<rect x="325" y="434" width="365" height="1.2" fill="url(#ab-streak)" opacity="0.44" transform="rotate(-13 325 434)"/>
+<line x1="389" y1="1396" x2="437" y2="1397" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="389" y1="1396" x2="513" y2="1373" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="499" y1="1185" x2="513" y2="1373" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="499" y1="1185" x2="437" y2="1397" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="121" y1="1280" x2="199" y2="1307" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="121" y1="1280" x2="273" y2="1458" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="273" y1="1458" x2="209" y2="1497" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="273" y1="1458" x2="389" y2="1396" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="513" y1="1373" x2="437" y2="1397" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="513" y1="1373" x2="389" y2="1396" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="437" y1="1397" x2="389" y2="1396" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="437" y1="1397" x2="513" y2="1373" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="199" y1="1307" x2="121" y2="1280" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="199" y1="1307" x2="273" y2="1458" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="209" y1="1497" x2="273" y2="1458" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="209" y1="1497" x2="199" y2="1307" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<circle cx="389" cy="1396" r="15.4" fill="#5B8CFF" opacity="0.14"/><circle cx="389" cy="1396" r="5.5" fill="#5B8CFF" opacity="0.95"/>
+<circle cx="499" cy="1185" r="10.6" fill="#5B8CFF" opacity="0.14"/><circle cx="499" cy="1185" r="3.8" fill="#A2B4FF" opacity="0.95"/>
+<circle cx="121" cy="1280" r="10.6" fill="#5B8CFF" opacity="0.14"/><circle cx="121" cy="1280" r="3.8" fill="#A2B4FF" opacity="0.95"/>
+<circle cx="273" cy="1458" r="15.4" fill="#5B8CFF" opacity="0.14"/><circle cx="273" cy="1458" r="5.5" fill="#5B8CFF" opacity="0.95"/>
+<circle cx="513" cy="1373" r="10.6" fill="#5B8CFF" opacity="0.14"/><circle cx="513" cy="1373" r="3.8" fill="#A2B4FF" opacity="0.95"/>
+<circle cx="437" cy="1397" r="10.6" fill="#5B8CFF" opacity="0.14"/><circle cx="437" cy="1397" r="3.8" fill="#A2B4FF" opacity="0.95"/>
+<circle cx="199" cy="1307" r="15.4" fill="#5B8CFF" opacity="0.14"/><circle cx="199" cy="1307" r="5.5" fill="#5B8CFF" opacity="0.95"/>
+<circle cx="209" cy="1497" r="10.6" fill="#5B8CFF" opacity="0.14"/><circle cx="209" cy="1497" r="3.8" fill="#A2B4FF" opacity="0.95"/>
+<line x1="877" y1="2124" x2="832" y2="1938" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="877" y1="2124" x2="809" y2="1935" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="1134" y1="2191" x2="877" y2="2124" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="1134" y1="2191" x2="1041" y2="1931" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="832" y1="1938" x2="809" y2="1935" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="832" y1="1938" x2="877" y2="2124" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="809" y1="1935" x2="832" y2="1938" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="809" y1="1935" x2="877" y2="2124" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="1164" y1="1897" x2="1041" y2="1931" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="1164" y1="1897" x2="1134" y2="2191" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="1041" y1="1931" x2="1164" y2="1897" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<line x1="1041" y1="1931" x2="832" y2="1938" stroke="#A2B4FF" stroke-width="1.3" opacity="0.42"/>
+<circle cx="877" cy="2124" r="15.4" fill="#5B8CFF" opacity="0.14"/><circle cx="877" cy="2124" r="5.5" fill="#5B8CFF" opacity="0.95"/>
+<circle cx="1134" cy="2191" r="10.6" fill="#5B8CFF" opacity="0.14"/><circle cx="1134" cy="2191" r="3.8" fill="#A2B4FF" opacity="0.95"/>
+<circle cx="832" cy="1938" r="10.6" fill="#5B8CFF" opacity="0.14"/><circle cx="832" cy="1938" r="3.8" fill="#A2B4FF" opacity="0.95"/>
+<circle cx="809" cy="1935" r="15.4" fill="#5B8CFF" opacity="0.14"/><circle cx="809" cy="1935" r="5.5" fill="#5B8CFF" opacity="0.95"/>
+<circle cx="1164" cy="1897" r="10.6" fill="#5B8CFF" opacity="0.14"/><circle cx="1164" cy="1897" r="3.8" fill="#A2B4FF" opacity="0.95"/>
+<circle cx="1041" cy="1931" r="10.6" fill="#5B8CFF" opacity="0.14"/><circle cx="1041" cy="1931" r="3.8" fill="#A2B4FF" opacity="0.95"/><g transform="translate(418 307) scale(2.3594)" opacity="0.92"><g mask="url(#wp-cut)">
+  <g transform="rotate(-10 128 172)"><path d="M 10 172 A 118 30 0 0 1 246 172" fill="none" stroke="url(#wp-rb)" stroke-width="9" stroke-linecap="round" opacity="0.85"/></g>
+  <polygon points="128,18 62,228 128,228" fill="url(#wp-gl)"/><polygon points="128,18 128,228 194,228" fill="url(#wp-gr)"/><polygon points="128,18 121,228 135,228" fill="url(#wp-gc)" opacity="0.9"/>
+</g>
+<g mask="url(#wp-cut2)"><polygon points="128,146 117,228 139,228" fill="url(#wp-gw)"/></g>
+<g transform="rotate(-10 128 172)"><path d="M 10 172 A 118 30 0 0 0 246 172" fill="none" stroke="url(#wp-rf)" stroke-width="9" stroke-linecap="round"/></g></g>
+</svg>

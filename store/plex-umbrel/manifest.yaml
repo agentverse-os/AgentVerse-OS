@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/plex-umbrel
+description: Stream Movies & TV Shows
+endpoint:
+  port: 32400
+  service: server
+env:
+  DEVICE_HOSTNAME: ${EDGE_HOST}
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/plex/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plex/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plex/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/plex/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: plex-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Plex
+type: app
+upstream:
+  author: Plex
+  categories:
+  - media
+  release_notes: |-
+    This update includes several improvements and bug fixes:
+      - Improved MP4/MOV atom validation and library filter validation.
+      - Fixed security issues in CompanionProxy and protected transcoder H.264 preference overrides from remote changes.
+      - Includes the recent Plex Web 4.160.0 update, IPv6-only network support, DVB Teletext subtitle support, and the renamed HEVC/AV1 encoding option.
+      - Improves downloads, HDR/Dolby Vision/Atmos filters, NFO metadata parsing, local metadata handling, PlexMatch handling, and DASH manifest content types.
+
+    Full release notes are available at https://www.videohelp.com/software/Plex
+  source: null
+  version: 1.43.3.10896
+  website: https://www.plex.tv/
+website: https://www.plex.tv/

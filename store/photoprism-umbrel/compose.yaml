@@ -1,0 +1,51 @@
+# photoprism-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    command: mysqld --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=50
+    environment:
+      MYSQL_DATABASE: photoprism
+      MYSQL_PASSWORD: photoprism
+      MYSQL_ROOT_PASSWORD: photoprism
+      MYSQL_USER: photoprism
+    image: mariadb:10.5.12@sha256:dfcba5641bdbfd7cbf5b07eeed707e6a3672f46823695a0d3aba2e49bbd9b1dd
+    networks:
+      appnet:
+        aliases:
+        - photoprism_db_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/database:/var/lib/mysql
+  web:
+    environment:
+      PHOTOPRISM_ADMIN_PASSWORD: ${APP_PASSWORD}
+      PHOTOPRISM_DATABASE_DRIVER: mysql
+      PHOTOPRISM_DATABASE_NAME: photoprism
+      PHOTOPRISM_DATABASE_PASSWORD: photoprism
+      PHOTOPRISM_DATABASE_SERVER: photoprism_db_1:3306
+      PHOTOPRISM_DATABASE_USER: photoprism
+      PHOTOPRISM_FFMPEG_ENCODER: vaapi
+      PHOTOPRISM_HTTP_COMPRESSION: gzip
+      PHOTOPRISM_HTTP_PORT: 8087
+      PHOTOPRISM_ORIGINALS_LIMIT: 10000
+      PHOTOPRISM_SITE_AUTHOR: ''
+      PHOTOPRISM_SITE_CAPTION: Digital Asset Management
+      PHOTOPRISM_SITE_DESCRIPTION: ''
+      PHOTOPRISM_SITE_TITLE: PhotoPrism
+      PHOTOPRISM_SITE_URL: http://${APP_DOMAIN}:8087/
+    image: photoprism/photoprism:260305@sha256:5229f68bce0293320547f35c733de584d7c2d5725a0efbddb68d7a118a8fc21c
+    networks:
+      appnet:
+        aliases:
+        - photoprism_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/originals:/photoprism/originals
+    - ${APP_DATA_DIR}/storage:/photoprism/storage

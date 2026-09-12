@@ -1,0 +1,56 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/adguard
+description: World's most advanced adblocker!
+endpoint:
+  port: 80
+  service: adguard
+env:
+  NETWORK_INTERFACE: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: adguard
+notes:
+- 'порт ${NETWORK_INTERFACE:-0.0.0.0}:53:53/tcp (adguard) не публикуется: доступ только через edge/gate'
+- 'порт ${NETWORK_INTERFACE:-0.0.0.0}:53:53/udp (adguard) не публикуется: доступ только через edge/gate'
+- 'порт ${NETWORK_INTERFACE:-0.0.0.0}:853:853/tcp (adguard) не публикуется: доступ только через edge/gate'
+- 'порт ${NETWORK_INTERFACE:-0.0.0.0}:853:853/udp (adguard) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NETWORK_INTERFACE
+  hint: null
+  label: 'Network Interface (default: 0.0.0.0)'
+  options: null
+  required: false
+  type: ip
+tags: []
+title: Adguard
+type: app
+upstream:
+  author: AdguardTeam
+  categories:
+  - network
+  - security
+  source: https://github.com/AdguardTeam
+  tipi_version: 64
+  version: v0.107.79
+website: https://github.com/AdguardTeam

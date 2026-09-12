@@ -1,0 +1,20 @@
+# memos-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  main:
+    environment:
+    - MEMOS_MODE=prod
+    - MEMOS_PORT=5230
+    image: neosmemo/memos:0.30.0@sha256:71a5b4738d1bed96e92112004054f0888e92791b64eb78afd79077c96e6f9327
+    networks:
+      appnet:
+        aliases:
+        - memos_main_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/var/opt/memos

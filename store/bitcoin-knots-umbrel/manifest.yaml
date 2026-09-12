@@ -1,0 +1,110 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bitcoin-knots-umbrel
+description: Run your personal node powered by Bitcoin Knots
+endpoint:
+  port: 3000
+  service: app
+env:
+  '"$bitcoin_var"': ${!bitcoin_var:=${!knots_var}}
+  APP_BITCOIN_KNOTS_DATA_DIR: ${APP_DATA_DIR}/data/bitcoin
+  APP_BITCOIN_KNOTS_I2P_DAEMON_IP: 10.21.22.13
+  APP_BITCOIN_KNOTS_INTERNAL_P2P_PORT: '9333'
+  APP_BITCOIN_KNOTS_INTERNAL_RPC_PORT: '9332'
+  APP_BITCOIN_KNOTS_NETWORK: mainnet
+  APP_BITCOIN_KNOTS_NETWORK_ELECTRS: $APP_BITCOIN_KNOTS_NETWORK
+  APP_BITCOIN_KNOTS_NODE_IP: 10.21.21.7
+  APP_BITCOIN_KNOTS_P2P_HIDDEN_SERVICE: ''
+  APP_BITCOIN_KNOTS_P2P_PORT: '9333'
+  APP_BITCOIN_KNOTS_P2P_WHITEBIND_PORT: '9335'
+  APP_BITCOIN_KNOTS_RPC_HIDDEN_SERVICE: ''
+  APP_BITCOIN_KNOTS_RPC_PASS: ''
+  APP_BITCOIN_KNOTS_RPC_PORT: '9332'
+  APP_BITCOIN_KNOTS_RPC_USER: ''
+  APP_BITCOIN_KNOTS_TOR_PORT: '8334'
+  APP_BITCOIN_KNOTS_TOR_PROXY_IP: 10.21.22.12
+  APP_BITCOIN_KNOTS_ZMQ_HASHBLOCK_PORT: '48334'
+  APP_BITCOIN_KNOTS_ZMQ_HASHTX_PORT: '48336'
+  APP_BITCOIN_KNOTS_ZMQ_RAWBLOCK_PORT: '48332'
+  APP_BITCOIN_KNOTS_ZMQ_RAWTX_PORT: '48333'
+  APP_BITCOIN_KNOTS_ZMQ_SEQUENCE_PORT: '48335'
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  NETWORK_IP: ''
+  TOR_DATA_DIR: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-knots/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-knots/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-knots/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-knots/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bitcoin-knots-umbrel
+notes:
+- 'порт ${APP_BITCOIN_KNOTS_P2P_PORT}:${APP_BITCOIN_KNOTS_P2P_PORT} (app) не публикуется: доступ только через edge/gate'
+- 'порт ${APP_BITCOIN_KNOTS_RPC_PORT}:${APP_BITCOIN_KNOTS_RPC_PORT} (app) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_BITCOIN_KNOTS_P2P_HIDDEN_SERVICE
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bitcoin knots p2p hidden service
+  options: null
+  required: false
+  type: text
+- env: APP_BITCOIN_KNOTS_RPC_HIDDEN_SERVICE
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bitcoin knots rpc hidden service
+  options: null
+  required: false
+  type: text
+- env: APP_BITCOIN_KNOTS_RPC_PASS
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bitcoin knots rpc pass
+  options: null
+  required: false
+  type: text
+- env: APP_BITCOIN_KNOTS_RPC_USER
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bitcoin knots rpc user
+  options: null
+  required: false
+  type: text
+- env: TOR_DATA_DIR
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: tor data dir
+  options: null
+  required: false
+  type: text
+tags: []
+title: Bitcoin Knots
+type: app
+upstream:
+  author: Léo Haf
+  categories:
+  - bitcoin
+  release_notes: |-
+    Update to Bitcoin Knots v29.4.knots20260508
+
+    🚨 This version adds BIP 110 code directly into the Bitcoin Knots codebase 🚨
+
+    In order to avoid appyling this upgrade by accident, this version requires you to accept or switch to another version directly on the Umbrel UI.
+  source: https://github.com/bitcoinknots/bitcoin.git
+  version: 1.2.13
+  website: https://bitcoinknots.org
+website: https://bitcoinknots.org

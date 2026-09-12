@@ -1,0 +1,17 @@
+# lubelogger-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    image: ghcr.io/hargata/lubelogger:v1.7.1@sha256:678a5c4af387e525f06ef954b454efe536745f517f2078dc646ccce9332adb9d
+    networks:
+      appnet:
+        aliases:
+        - lubelogger_app_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/App/data
+    - ${APP_DATA_DIR}/data/keys:/root/.aspnet/DataProtection-Keys

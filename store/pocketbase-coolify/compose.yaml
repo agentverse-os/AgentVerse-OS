@@ -1,0 +1,31 @@
+# pocketbase-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  pocketbase:
+    environment:
+    - SERVICE_URL_POCKETBASE_8080=${SERVICE_URL_POCKETBASE_8080}
+    image: ghcr.io/coollabsio/pocketbase:latest
+    networks:
+      appnet:
+        aliases:
+        - pocketbase-coolify_pocketbase_1
+    restart: unless-stopped
+    volumes:
+    - pocketbase-data:/app/pb_data
+    - pocketbase-hooks:/app/pb_hooks
+volumes:
+  pocketbase-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pocketbase-data
+      o: bind
+      type: none
+  pocketbase-hooks:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pocketbase-hooks
+      o: bind
+      type: none

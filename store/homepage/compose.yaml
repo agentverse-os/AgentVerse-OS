@@ -1,0 +1,17 @@
+# homepage: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  homepage:
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: ${APP_DOMAIN},${APP_LOCAL_DOMAIN},${APP_HOST}:${APP_PORT}
+    image: ghcr.io/gethomepage/homepage:v2.1.2
+    networks:
+      appnet:
+        aliases:
+        - homepage_homepage_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/:/app/config:/app/config

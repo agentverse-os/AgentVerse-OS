@@ -1,0 +1,16 @@
+# netbootxyz: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  netbootxyz:
+    image: ghcr.io/netbootxyz/netbootxyz:0.7.6-nbxyz18
+    networks:
+      appnet:
+        aliases:
+        - netbootxyz_netbootxyz_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${APP_DATA_DIR}/data/assets:/assets

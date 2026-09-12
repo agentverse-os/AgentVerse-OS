@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/autobrr
+description: Automation for downloads.
+endpoint:
+  port: 7474
+  service: autobrr
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: autobrr
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: autobrr
+type: app
+upstream:
+  author: autobrr
+  categories:
+  - media
+  source: https://github.com/autobrr/autobrr
+  tipi_version: 82
+  version: v1.84.0
+website: https://github.com/autobrr/autobrr

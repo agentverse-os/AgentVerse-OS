@@ -1,0 +1,32 @@
+# anything-llm-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    cap_add:
+    - SYS_ADMIN
+    environment:
+      DISABLE_TELEMETRY: 'true'
+      GID: 1000
+      JWT_SECRET: ${APP_ANYTHING_LLM_JWT_SECRET}
+      SERVER_PORT: 3001
+      SIG_KEY: ${APP_ANYTHING_LLM_SIG_KEY}
+      SIG_SALT: ${APP_ANYTHING_LLM_SIG_SALT}
+      STORAGE_DIR: /app/server/storage
+      UID: 1000
+    extra_hosts:
+    - host.docker.internal:host-gateway
+    image: mintplexlabs/anythingllm:1.16.1@sha256:05617e7bece7fd6eddc4f5b4176cd87fff74d7da88d988a6109b95481cce122c
+    networks:
+      appnet:
+        aliases:
+        - anything-llm_app_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/.env:/app/server/.env
+    - ${APP_DATA_DIR}/data/server-storage:/app/server/storage
+    - ${APP_DATA_DIR}/data/collector-hotdir:/app/collector/hotdir
+    - ${APP_DATA_DIR}/data/collector-outputs:/app/collector/outputs

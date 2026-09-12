@@ -1,0 +1,59 @@
+# miniflux-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  miniflux:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_MINIFLUX=${SERVICE_URL_MINIFLUX}
+    - BASE_URL=${SERVICE_URL_MINIFLUX}
+    - PORT=${PORT:-8080}
+    - RUN_MIGRATIONS=${RUN_MIGRATIONS:-1}
+    - CREATE_ADMIN=${CREATE_ADMIN:-1}
+    - ADMIN_USERNAME=${SERVICE_USER_ADMIN}
+    - ADMIN_PASSWORD=${SERVICE_PASSWORD_64_ADMIN}
+    - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/${POSTGRES_DB:-miniflux-db}?sslmode=disable
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:8080/
+      timeout: 20s
+    image: ghcr.io/miniflux/miniflux:latest
+    networks:
+      appnet:
+        aliases:
+        - miniflux-coolify_miniflux_1
+    restart: unless-stopped
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-miniflux-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - miniflux-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - miniflux-postgres-data:/var/lib/postgresql/data
+volumes:
+  miniflux-postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/miniflux-postgres-data
+      o: bind
+      type: none

@@ -1,0 +1,111 @@
+# plausible-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  plausible-events-db-inline-1:
+    content: <clickhouse><logger><level>warning</level><console>true</console></logger><query_thread_log remove="remove"/><query_log remove="remove"/><text_log remove="remove"/><trace_log remove="remove"/><metric_log remove="remove"/><asynchronous_metric_log remove="remove"/><session_log remove="remove"/><part_log remove="remove"/></clickhouse>
+  plausible-events-db-inline-2:
+    content: <clickhouse><profiles><default><log_queries>0</log_queries><log_query_threads>0</log_query_threads></default></profiles></clickhouse>
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  plausible:
+    command: sh -c "sleep 10 && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
+    depends_on:
+      plausible-db:
+        condition: service_healthy
+      plausible-events-db:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_PLAUSIBLE=${SERVICE_URL_PLAUSIBLE}
+    - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@plausible-db:5432/${POSTGRES_DB:-plausible-db}
+    - CLICKHOUSE_DATABASE_URL=http://plausible-events-db:8123/plausible_events_db
+    - BASE_URL=${SERVICE_URL_PLAUSIBLE}
+    - SECRET_KEY_BASE=${SERVICE_BASE64_64_PLAUSIBLE}
+    - TOTP_VAULT_KEY=${SERVICE_REALBASE64_32_TOTP}
+    - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+    - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    - MAILER_ADAPTER=${MAILER_ADAPTER:-Bamboo.LocalAdapter}
+    - MAILER_EMAIL=${MAILER_EMAIL}
+    - MAILER_NAME=${MAILER_NAME}
+    - SMTP_HOST_ADDR=${SMTP_HOST_ADDR}
+    - SMTP_HOST_PORT=${SMTP_HOST_PORT}
+    - SMTP_USER_NAME=${SMTP_USER_NAME}
+    - SMTP_USER_PWD=${SMTP_USER_PWD}
+    - SMTP_HOST_SSL_ENABLED=${SMTP_HOST_SSL_ENABLED}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 45s
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=1
+      - --spider
+      - http://127.0.0.1:8000/api/health
+      timeout: 5s
+    image: ghcr.io/plausible/community-edition:v3.0.1
+    networks:
+      appnet:
+        aliases:
+        - plausible-coolify_plausible_1
+    restart: unless-stopped
+  plausible-db:
+    environment:
+    - POSTGRES_DB=${POSTGRES_DB:-plausible-db}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - plausible-coolify_plausible-db_1
+    restart: unless-stopped
+    volumes:
+    - plausible-postgres-data:/var/lib/postgresql/data
+  plausible-events-db:
+    configs:
+    - source: plausible-events-db-inline-1
+      target: /etc/clickhouse-server/config.d/logging.xml
+    - source: plausible-events-db-inline-2
+      target: /etc/clickhouse-server/users.d/logging.xml
+    environment:
+    - CLICKHOUSE_SKIP_USER_SETUP=1
+    healthcheck:
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - wget --no-verbose --tries=1 -O - http://127.0.0.1:8123/ping || exit 1
+    image: clickhouse/clickhouse-server:24.12-alpine
+    networks:
+      appnet:
+        aliases:
+        - plausible-coolify_plausible-events-db_1
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        hard: 262144
+        soft: 262144
+    volumes:
+    - plausible-events-data:/var/lib/clickhouse
+volumes:
+  plausible-events-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/plausible-events-data
+      o: bind
+      type: none
+  plausible-postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/plausible-postgres-data
+      o: bind
+      type: none

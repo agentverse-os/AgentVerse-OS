@@ -1,0 +1,65 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/karakeep-coolify
+description: A self-hostable bookmark-everything app (links, notes and images) with AI-based automatic tagging and full text search
+endpoint:
+  port: 3000
+  service: chrome
+env:
+  MEILI_NO_ANALYTICS: 'true'
+  SERVICE_PASSWORD_KARAKEEPNEXTAUTH:
+    generate: password
+  SERVICE_PASSWORD_MEILI:
+    generate: password
+  SERVICE_URL_KARAKEEP: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: karakeep-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MEILI_NO_ANALYTICS
+  hint: 'по умолчанию: true'
+  label: meili no analytics
+  options: null
+  required: false
+  type: text
+tags:
+- media
+- read-it-later
+- pocket-alternative
+- omnivore-alternative
+- instapaper-alternative
+title: Karakeep
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.karakeep.app/
+  tags:
+  - media
+  - read-it-later
+  - pocket-alternative
+  - omnivore-alternative
+  - instapaper-alternative
+  template: karakeep.yaml
+website: https://docs.karakeep.app/

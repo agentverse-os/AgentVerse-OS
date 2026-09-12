@@ -1,0 +1,17 @@
+# trilium-notes-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - TRILIUM_DATA_DIR=/data
+    image: triliumnext/trilium:v0.105.0@sha256:cc6a15edd7ac3df9bb98ad39dd40af8ffda6c1c0bfafe37c26137ddcbecdb7e5
+    networks:
+      appnet:
+        aliases:
+        - trilium-notes_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

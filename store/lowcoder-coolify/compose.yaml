@@ -1,0 +1,36 @@
+# lowcoder-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  lowcoder:
+    environment:
+    - SERVICE_URL_LOWCODER_3000=${SERVICE_URL_LOWCODER_3000}
+    - LOWCODER_EMAIL_SIGNUP_ENABLED=${LOWCODER_EMAIL_SIGNUP_ENABLED:-true}
+    - LOWCODER_DB_ENCRYPTION_PASSWORD=${SERVICE_PASSWORD_ENCRYPTION}
+    - LOWCODER_DB_ENCRYPTION_SALT=${SERVICE_PASSWORD_SALT}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000/health
+      timeout: 20s
+    image: lowcoderorg/lowcoder-ce
+    networks:
+      appnet:
+        aliases:
+        - lowcoder-coolify_lowcoder_1
+    restart: unless-stopped
+    volumes:
+    - lowcoder_data:/lowcoder-stacks
+volumes:
+  lowcoder_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/lowcoder_data
+      o: bind
+      type: none

@@ -1,0 +1,59 @@
+# openhands-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  docker:
+    command: |
+      dockerd
+        --bridge dind0
+        --data-root /data/data
+        --exec-root /data/exec
+        --host unix:///data/docker.sock
+        --iptables=false
+        --pidfile /data/docker.pid
+    entrypoint: /entrypoint.sh
+    environment:
+      DOCKER_ENSURE_BRIDGE: dind0:10.32.0.1/16
+    image: docker:28.0.4-dind@sha256:ddb0033088b4fab74881ade341a582e3c6c8021b82377703ba1a6106bd3ded44
+    network_mode: host
+    privileged: true
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/entrypoint.sh:/entrypoint.sh
+    - ${APP_DATA_DIR}/data/docker:/data
+  web:
+    depends_on:
+      docker:
+        condition: service_started
+    environment:
+    - AGENT_SERVER_IMAGE_REPOSITORY=ghcr.io/openhands/agent-server
+    - AGENT_SERVER_IMAGE_TAG=1.33.0-python
+    - SANDBOX_HOST_PORT=3994
+    - SANDBOX_CONTAINER_URL_PATTERN=http://localhost:{port}
+    - WORKSPACE_MOUNT_PATH=/opt/workspace_base
+    - LOG_ALL_EVENTS=true
+    extra_hosts:
+    - host.docker.internal:host-gateway
+    - ${APP_DOMAIN}:host-gateway
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 90s
+      test: timeout 10s bash -c ':> /dev/tcp/127.0.0.1/3000' || exit 1
+      timeout: 5s
+    image: ghcr.io/openhands/openhands:1.10.0@sha256:1e5c81b0ccfc4fd33a3524ba2a561f594879e238117c024a1b60edfee0412dc8
+    networks:
+      appnet:
+        aliases:
+        - openhands_web_1
+    pull_policy: always
+    restart: on-failure
+    stdin_open: true
+    tty: true
+    volumes:
+    - ${APP_DATA_DIR}/data/docker:/var/run:rw
+    - ${APP_DATA_DIR}/data/openhands:/.openhands:rw
+    - ${APP_DATA_DIR}/data/workspace:/opt/workspace_base:rw

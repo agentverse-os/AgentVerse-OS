@@ -1,0 +1,7 @@
+Donetick is an open-source task management application designed to streamline the organization of household chores and other recurring responsibilities. It provides a flexible system for assigning tasks to multiple users, using various selection strategies such as random allocation or assignment based on the fewest completed tasks. Tasks can be scheduled with customizable recurrence patterns, making it easy to manage both daily routines and less frequent responsibilities.
+
+The platform offers real-time progress tracking and integrates with external notification services like Telegram and Pushover, ensuring that users stay informed about upcoming or overdue tasks. Additionally, Donetick supports API integrations, allowing tasks to be triggered automatically from other systems.
+
+For authentication and user management, Donetick supports Single Sign-On (SSO) and OpenID Connect (OIDC), making it easy to integrate with existing identity providers. A unique feature of the platform is NFC tag support, enabling users to complete tasks simply by scanning a tag. Labels and task groups further enhance organization, allowing tasks to be categorized and shared efficiently among members.
+
+With its combination of automation, smart scheduling, and collaborative task sharing, Donetick provides a powerful and user-friendly solution for managing household and group responsibilities.

@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/freshrss-umbrel
+description: A free, self-hostable aggregator for rss feeds
+endpoint:
+  port: 80
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/freshrss/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/freshrss/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/freshrss/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/freshrss/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: freshrss-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: FreshRSS
+type: app
+upstream:
+  author: FreshRSS Org
+  categories:
+  - social
+  release_notes: |-
+    This FreshRSS bug-fix release improves feed imports, browser compatibility, and search behavior.
+
+    Key highlights:
+      - Added support for importing `.txt` lists of feed URLs
+      - Added a CLI tool for scheduled SQLite exports with retention
+      - Added more feed metadata, including last received and publication dates
+      - Fixed cookie handling in some browsers and search for shared user queries with empty results
+      - Improved OPML error handling and compatibility with older or simpler web browsers
+
+
+    Full release notes can be found at https://github.com/FreshRSS/FreshRSS/releases/tag/1.29.1
+  source: https://github.com/FreshRSS/FreshRSS
+  version: 1.29.1
+  website: https://freshrss.org/
+website: https://freshrss.org/

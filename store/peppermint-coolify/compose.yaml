@@ -1,0 +1,61 @@
+# peppermint-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  peppermint:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_PEPPERMINT_3000=${SERVICE_URL_PEPPERMINT_3000}
+    - SERVICE_URL_PEPPERMINT_5003=${SERVICE_URL_PEPPERMINT_5003}
+    - DB_USERNAME=${SERVICE_USER_POSTGRES}
+    - DB_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - DB_HOST=postgres
+    - DB_NAME=${POSTGRES_DB:-peppermint-db}
+    - SECRET=${SERVICE_PASSWORD_PEPPERMINT}
+    - API_URL=${SERVICE_URL_PEPPERMINT_5003}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000
+      timeout: 10s
+    image: pepperlabs/peppermint:latest
+    networks:
+      appnet:
+        aliases:
+        - peppermint-coolify_peppermint_1
+    restart: unless-stopped
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-peppermint-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - peppermint-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - peppermint-postgresql-data:/var/lib/postgresql/data
+volumes:
+  peppermint-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/peppermint-postgresql-data
+      o: bind
+      type: none

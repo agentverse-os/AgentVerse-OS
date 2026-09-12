@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/n8n-2
+description: Workflow Automation Tool. Alternative to Zapier
+endpoint:
+  port: 5678
+  service: n8n-2
+env:
+  N8N_DB_PASSWORD:
+    generate: token
+  N8N_NR_DB_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: n8n-2
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: N8N_DB_PASSWORD
+  hint: null
+  label: Database Password
+  options: null
+  required: false
+  type: random
+- env: N8N_NR_DB_PASSWORD
+  hint: null
+  label: Database Non Root Password
+  options: null
+  required: false
+  type: random
+tags: []
+title: n8n
+type: app
+upstream:
+  author: n8n.io
+  categories:
+  - automation
+  source: https://github.com/n8n-io/n8n
+  tipi_version: 102
+  version: 2.37.3
+website: https://github.com/n8n-io/n8n

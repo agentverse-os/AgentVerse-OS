@@ -1,0 +1,50 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/goatcounter-coolify
+description: Lightweight web analytics platform.
+endpoint:
+  port: 8080
+  service: goatcounter
+env:
+  SERVICE_URL_GOATCOUNTER_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: goatcounter-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- analytics
+- insights
+- privacy
+title: Goatcounter
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://www.goatcounter.com/help
+  tags:
+  - analytics
+  - insights
+  - privacy
+  template: goatcounter.yaml
+website: https://www.goatcounter.com/help

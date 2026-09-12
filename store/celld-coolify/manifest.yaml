@@ -1,0 +1,93 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/celld-coolify
+description: Self-hosted, distributed Durable Objects powered by Deno.
+endpoint:
+  port: 8080
+  service: celld
+env:
+  AWS_REGION: us-east-1
+  AWS_SESSION_TOKEN: ''
+  CELLD_VERSION: latest
+  RUST_LOG: info
+  S3_ENDPOINT: ''
+  SERVICE_URL_CELLD_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: celld-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CELLD_VERSION
+  hint: 'по умолчанию: latest'
+  label: celld version
+  options: null
+  required: false
+  type: text
+- env: S3_ENDPOINT
+  hint: null
+  label: s3 endpoint
+  options: null
+  required: false
+  type: text
+- env: AWS_REGION
+  hint: 'по умолчанию: us-east-1'
+  label: aws region
+  options: null
+  required: false
+  type: text
+- env: AWS_SESSION_TOKEN
+  hint: null
+  label: aws session token
+  options: null
+  required: false
+  type: password
+- env: RUST_LOG
+  hint: 'по умолчанию: info'
+  label: rust log
+  options: null
+  required: false
+  type: text
+tags:
+- deno
+- durable-objects
+- workers
+- sqlite
+- distributed
+- backend
+- serverless
+title: Celld
+type: app
+upstream:
+  categories:
+  - backend
+  source: https://celld.dev/docs
+  tags:
+  - deno
+  - durable-objects
+  - workers
+  - sqlite
+  - distributed
+  - backend
+  - serverless
+  template: celld.yaml
+website: https://celld.dev/docs

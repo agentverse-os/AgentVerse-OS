@@ -1,0 +1,371 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/langfuse-coolify
+description: Langfuse is an open-source LLM engineering platform that helps teams collaboratively debug, analyze, and iterate on their LLM applications.
+endpoint:
+  port: 3000
+  service: langfuse
+env:
+  AUTH_DISABLE_SIGNUP: 'true'
+  CLICKHOUSE_DB: default
+  EMAIL_FROM_ADDRESS: admin@example.com
+  HOSTNAME: 0.0.0.0
+  LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: 'false'
+  LANGFUSE_INGESTION_CLICKHOUSE_WRITE_INTERVAL_MS: '1000'
+  LANGFUSE_INGESTION_QUEUE_DELAY_MS: '1'
+  LANGFUSE_INIT_ORG_ID: my-org
+  LANGFUSE_INIT_ORG_NAME: My Org
+  LANGFUSE_INIT_PROJECT_ID: my-project
+  LANGFUSE_INIT_PROJECT_NAME: My Project
+  LANGFUSE_INIT_USER_EMAIL: admin@example.com
+  LANGFUSE_S3_BATCH_EXPORT_ACCESS_KEY_ID: ''
+  LANGFUSE_S3_BATCH_EXPORT_BUCKET: langfuse
+  LANGFUSE_S3_BATCH_EXPORT_ENABLED: 'false'
+  LANGFUSE_S3_BATCH_EXPORT_ENDPOINT: ''
+  LANGFUSE_S3_BATCH_EXPORT_EXTERNAL_ENDPOINT: ''
+  LANGFUSE_S3_BATCH_EXPORT_FORCE_PATH_STYLE: 'true'
+  LANGFUSE_S3_BATCH_EXPORT_PREFIX: exports/
+  LANGFUSE_S3_BATCH_EXPORT_REGION: auto
+  LANGFUSE_S3_BATCH_EXPORT_SECRET_ACCESS_KEY: ''
+  LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ''
+  LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: ''
+  LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: 'true'
+  LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+  LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+  LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ''
+  LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ''
+  LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ''
+  LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: 'true'
+  LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+  LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+  LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ''
+  LANGFUSE_USE_AZURE_BLOB: 'false'
+  POSTGRES_DB: langfuse-db
+  POSTGRES_USER: ''
+  SERVICE_BASE64_NEXTAUTHSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_64_LANGFUSE:
+    generate: hex64
+  SERVICE_PASSWORD_CLICKHOUSE:
+    generate: password
+  SERVICE_PASSWORD_LANGFUSE:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_PASSWORD_SALT:
+    generate: password
+  SERVICE_URL_LANGFUSE: https://${APP_DOMAIN}
+  SERVICE_URL_LANGFUSE_3000: https://${APP_DOMAIN}
+  SERVICE_USER_CLICKHOUSE:
+    generate: password
+  SERVICE_USER_LANGFUSE:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SMTP_CONNECTION_URL: ''
+  TELEMETRY_ENABLED: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_LANGFUSE
+  path: null
+  user: SERVICE_USER_LANGFUSE
+name: langfuse-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: langfuse-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: TELEMETRY_ENABLED
+  hint: 'по умолчанию: false'
+  label: telemetry enabled
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES
+  hint: 'по умолчанию: false'
+  label: langfuse enable experimental features
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_USE_AZURE_BLOB
+  hint: 'по умолчанию: false'
+  label: langfuse use azure blob
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_EVENT_UPLOAD_BUCKET
+  hint: 'по умолчанию: langfuse'
+  label: langfuse s3 event upload bucket
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_EVENT_UPLOAD_REGION
+  hint: 'по умолчанию: auto'
+  label: langfuse s3 event upload region
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID
+  hint: null
+  label: langfuse s3 event upload access key id
+  options: null
+  required: false
+  type: password
+- env: LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY
+  hint: null
+  label: langfuse s3 event upload secret access key
+  options: null
+  required: false
+  type: password
+- env: LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT
+  hint: null
+  label: langfuse s3 event upload endpoint
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE
+  hint: 'по умолчанию: true'
+  label: langfuse s3 event upload force path style
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_EVENT_UPLOAD_PREFIX
+  hint: 'по умолчанию: events/'
+  label: langfuse s3 event upload prefix
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_MEDIA_UPLOAD_BUCKET
+  hint: 'по умолчанию: langfuse'
+  label: langfuse s3 media upload bucket
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_MEDIA_UPLOAD_REGION
+  hint: 'по умолчанию: auto'
+  label: langfuse s3 media upload region
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID
+  hint: null
+  label: langfuse s3 media upload access key id
+  options: null
+  required: false
+  type: password
+- env: LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY
+  hint: null
+  label: langfuse s3 media upload secret access key
+  options: null
+  required: false
+  type: password
+- env: LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT
+  hint: null
+  label: langfuse s3 media upload endpoint
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE
+  hint: 'по умолчанию: true'
+  label: langfuse s3 media upload force path style
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_MEDIA_UPLOAD_PREFIX
+  hint: 'по умолчанию: media/'
+  label: langfuse s3 media upload prefix
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_BATCH_EXPORT_ENABLED
+  hint: 'по умолчанию: false'
+  label: langfuse s3 batch export enabled
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_BATCH_EXPORT_BUCKET
+  hint: 'по умолчанию: langfuse'
+  label: langfuse s3 batch export bucket
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_BATCH_EXPORT_PREFIX
+  hint: 'по умолчанию: exports/'
+  label: langfuse s3 batch export prefix
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_BATCH_EXPORT_REGION
+  hint: 'по умолчанию: auto'
+  label: langfuse s3 batch export region
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_BATCH_EXPORT_ENDPOINT
+  hint: null
+  label: langfuse s3 batch export endpoint
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_BATCH_EXPORT_EXTERNAL_ENDPOINT
+  hint: null
+  label: langfuse s3 batch export external endpoint
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_S3_BATCH_EXPORT_ACCESS_KEY_ID
+  hint: null
+  label: langfuse s3 batch export access key id
+  options: null
+  required: false
+  type: password
+- env: LANGFUSE_S3_BATCH_EXPORT_SECRET_ACCESS_KEY
+  hint: null
+  label: langfuse s3 batch export secret access key
+  options: null
+  required: false
+  type: password
+- env: LANGFUSE_S3_BATCH_EXPORT_FORCE_PATH_STYLE
+  hint: 'по умолчанию: true'
+  label: langfuse s3 batch export force path style
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_INGESTION_QUEUE_DELAY_MS
+  hint: 'по умолчанию: 1'
+  label: langfuse ingestion queue delay ms
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_INGESTION_CLICKHOUSE_WRITE_INTERVAL_MS
+  hint: 'по умолчанию: 1000'
+  label: langfuse ingestion clickhouse write interval ms
+  options: null
+  required: false
+  type: text
+- env: EMAIL_FROM_ADDRESS
+  hint: 'по умолчанию: admin@example.com'
+  label: email from address
+  options: null
+  required: false
+  type: text
+- env: SMTP_CONNECTION_URL
+  hint: null
+  label: smtp connection url
+  options: null
+  required: false
+  type: text
+- env: AUTH_DISABLE_SIGNUP
+  hint: 'по умолчанию: true'
+  label: auth disable signup
+  options: null
+  required: false
+  type: text
+- env: HOSTNAME
+  hint: 'по умолчанию: 0.0.0.0'
+  label: hostname
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_INIT_ORG_ID
+  hint: 'по умолчанию: my-org'
+  label: langfuse init org id
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_INIT_ORG_NAME
+  hint: 'по умолчанию: My Org'
+  label: langfuse init org name
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_INIT_PROJECT_ID
+  hint: 'по умолчанию: my-project'
+  label: langfuse init project id
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_INIT_PROJECT_NAME
+  hint: 'по умолчанию: My Project'
+  label: langfuse init project name
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_INIT_USER_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: langfuse init user email
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: CLICKHOUSE_DB
+  hint: 'по умолчанию: default'
+  label: clickhouse db
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- qdrant
+- weaviate
+- langchain
+- openai
+- gpt
+- llm
+- lmops
+- langfuse
+- llmops
+- tracing
+- observation
+- metrics
+title: Langfuse
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://langfuse.com/docs
+  tags:
+  - ai
+  - qdrant
+  - weaviate
+  - langchain
+  - openai
+  - gpt
+  - llm
+  - lmops
+  - langfuse
+  - llmops
+  - tracing
+  - observation
+  - metrics
+  template: langfuse.yaml
+website: https://langfuse.com/docs

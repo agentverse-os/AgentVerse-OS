@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/campfire-umbrel
+description: Self-hosted chat for teams
+endpoint:
+  port: 80
+  service: server
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/campfire/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/campfire/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/campfire/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/campfire/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: campfire-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Campfire
+type: app
+upstream:
+  author: basecamp
+  categories:
+  - social
+  release_notes: This update adds ONCE backup and restore hooks so Campfire can take consistent backups with less downtime.
+  source: https://github.com/basecamp/once-campfire
+  version: 1.4.9
+  website: https://once.com/campfire
+website: https://once.com/campfire

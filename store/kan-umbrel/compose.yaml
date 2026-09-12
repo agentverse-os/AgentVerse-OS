@@ -1,0 +1,53 @@
+# kan-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      POSTGRES_DB: kan
+      POSTGRES_PASSWORD: kanpassword
+      POSTGRES_USER: kanuser
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U kanuser -d kan
+      timeout: 5s
+    image: postgres:17.3@sha256:0321e2252ebfeecb8bc1a899755084d29bce872953e1a5a3e25ec0860b739098
+    networks:
+      appnet:
+        aliases:
+        - kan_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  migrate:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_URL: postgresql://kanuser:kanpassword@kan_db_1:5432/kan?sslmode=disable
+    image: ghcr.io/kanbn/kan-migrate:0.6.0@sha256:3296fd28e037a93dda478981494a72c6905ecd4f0d0739e79139172844acbc4b
+    networks:
+      appnet:
+        aliases:
+        - kan_migrate_1
+    restart: on-failure
+  server:
+    depends_on:
+    - db
+    environment:
+      BETTER_AUTH_SECRET: ${APP_SEED}
+      NEXT_PUBLIC_ALLOW_CREDENTIALS: 'true'
+      NEXT_PUBLIC_BASE_URL: http://${DEVICE_DOMAIN_NAME}:8373
+      POSTGRES_URL: postgresql://kanuser:kanpassword@kan_db_1:5432/kan?sslmode=disable
+    image: ghcr.io/kanbn/kan:0.6.0@sha256:0087a72a123d8462c66ddce3a303049d4ec92f03cfba297d41466605ef8cb5b5
+    networks:
+      appnet:
+        aliases:
+        - kan_server_1
+    restart: on-failure

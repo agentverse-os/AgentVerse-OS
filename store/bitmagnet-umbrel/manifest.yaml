@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bitmagnet-umbrel
+description: Self-hosted BitTorrent indexer and DHT crawler
+endpoint:
+  port: 3333
+  service: bitmagnet
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bitmagnet/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitmagnet/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitmagnet/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bitmagnet/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bitmagnet-umbrel
+notes:
+- 'порт 3336:3334/tcp (bitmagnet) не публикуется: доступ только через edge/gate'
+- 'порт 3336:3334/udp (bitmagnet) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Bitmagnet
+type: app
+upstream:
+  author: bitmagnet
+  categories:
+  - media
+  release_notes: null
+  source: https://github.com/bitmagnet-io/bitmagnet
+  version: v0.10.0
+  website: https://bitmagnet.io/
+website: https://bitmagnet.io/

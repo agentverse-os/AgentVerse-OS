@@ -1,0 +1,20 @@
+# convertx-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - HTTP_ALLOWED=true
+    - ACCOUNT_REGISTRATION=true
+    image: c4illin/convertx:v0.18.0@sha256:b515b04bfd25298a5cdc775b2fcd48b9399bab658ce13e2598b65df1b16098c8
+    networks:
+      appnet:
+        aliases:
+        - convertx_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/app/data

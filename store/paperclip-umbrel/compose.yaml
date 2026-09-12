@@ -1,0 +1,26 @@
+# paperclip-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+      BETTER_AUTH_SECRET: ${APP_SEED}
+      DO_NOT_TRACK: '1'
+      HOST: 0.0.0.0
+      PAPERCLIP_ALLOWED_HOSTNAMES: ${DEVICE_DOMAIN_NAME},${DEVICE_DOMAIN_NAME}:8860,${DEVICE_HOSTNAME},${DEVICE_HOSTNAME}:8860,${APP_DOMAIN},${APP_DOMAIN}:8860,${APP_HIDDEN_SERVICE},${APP_PAPERCLIP_LOCAL_IPS},paperclip_server_1
+      PAPERCLIP_DEPLOYMENT_EXPOSURE: private
+      PAPERCLIP_DEPLOYMENT_MODE: authenticated
+      PAPERCLIP_HOME: /paperclip
+      PAPERCLIP_PUBLIC_URL: http://${DEVICE_DOMAIN_NAME}:8860
+      PAPERCLIP_TELEMETRY_DISABLED: '1'
+    image: ghcr.io/paperclipai/paperclip:sha-65ec059@sha256:f58ff8e28757eaaf1f58b7ae608e56f2a473fd0688aaab2dbade8c392fad0758
+    networks:
+      appnet:
+        aliases:
+        - paperclip_server_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/paperclip

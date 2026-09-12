@@ -1,0 +1,61 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rustdesk-server-umbrel
+description: A fast and reliable solution for remote access
+endpoint:
+  port: 80
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/rustdesk-server/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/rustdesk-server/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/rustdesk-server/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/rustdesk-server/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: rustdesk-server-umbrel
+notes:
+- 'порт 21117:21117 (hbbr) не публикуется: доступ только через edge/gate'
+- 'порт 21119:21119 (hbbr) не публикуется: доступ только через edge/gate'
+- 'порт 21115:21115 (hbbs) не публикуется: доступ только через edge/gate'
+- 'порт 21116:21116 (hbbs) не публикуется: доступ только через edge/gate'
+- 'порт 21116:21116/udp (hbbs) не публикуется: доступ только через edge/gate'
+- 'порт 21118:21118 (hbbs) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: RustDesk Server
+type: app
+upstream:
+  author: RustDesk Team
+  categories:
+  - networking
+  release_notes: |-
+    This update includes several fixes and security improvements:
+      - Fixed a peer status issue where devices could be reported online after being offline for several weeks
+      - Updated a UI networking dependency to address a critical issue
+      - Hardened UDP punch-hole requests against reflection and amplification abuse
+
+
+    Full release notes can be found at https://github.com/rustdesk/rustdesk-server/releases/tag/1.1.16
+  source: https://github.com/rustdesk/rustdesk-server
+  version: 1.1.16
+  website: https://rustdesk.com
+website: https://rustdesk.com

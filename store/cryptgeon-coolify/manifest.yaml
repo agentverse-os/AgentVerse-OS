@@ -1,0 +1,93 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cryptgeon-coolify
+description: Secure note / file sharing service inspired by PrivNote.
+endpoint:
+  port: 8000
+  service: app
+env:
+  ALLOW_ADVANCED: 'true'
+  ALLOW_FILES: 'true'
+  MAX_EXPIRATION: '360'
+  MAX_VIEWS: '100'
+  SERVICE_URL_CRYPTGEON_8000: https://${APP_DOMAIN}
+  SIZE_LIMIT: 4 MiB
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cryptgeon-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SIZE_LIMIT
+  hint: 'по умолчанию: 4 MiB'
+  label: size limit
+  options: null
+  required: false
+  type: text
+- env: MAX_VIEWS
+  hint: 'по умолчанию: 100'
+  label: max views
+  options: null
+  required: false
+  type: text
+- env: MAX_EXPIRATION
+  hint: 'по умолчанию: 360'
+  label: max expiration
+  options: null
+  required: false
+  type: text
+- env: ALLOW_ADVANCED
+  hint: 'по умолчанию: true'
+  label: allow advanced
+  options: null
+  required: false
+  type: text
+- env: ALLOW_FILES
+  hint: 'по умолчанию: true'
+  label: allow files
+  options: null
+  required: false
+  type: text
+tags:
+- cryptgeon
+- secure
+- note
+- sharing
+- privnote
+- file
+- sharing
+title: Cryptgeon
+type: app
+upstream:
+  categories:
+  - security
+  source: https://github.com/cupcakearmy/cryptgeon
+  tags:
+  - cryptgeon
+  - secure
+  - note
+  - sharing
+  - privnote
+  - file
+  - sharing
+  template: cryptgeon.yaml
+website: https://github.com/cupcakearmy/cryptgeon

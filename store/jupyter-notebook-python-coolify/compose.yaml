@@ -1,0 +1,25 @@
+# jupyter-notebook-python-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  jupyter-notebook-python:
+    command: start-notebook.sh
+    environment:
+    - SERVICE_URL_JUPYTER_8888=${SERVICE_URL_JUPYTER_8888}
+    healthcheck:
+      interval: 30s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:8888/
+      timeout: 20s
+    image: quay.io/jupyter/base-notebook:latest
+    networks:
+      appnet:
+        aliases:
+        - jupyter-notebook-python-coolify_jupyter-notebook-python_1
+    restart: unless-stopped
+    volumes:
+    - /jupyter:/home/jovyan/work

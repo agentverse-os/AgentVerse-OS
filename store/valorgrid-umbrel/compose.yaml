@@ -1,0 +1,23 @@
+# valorgrid-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+      HOST: 0.0.0.0
+      PORT: 1325
+      PORTFOLIO_DB_PATH: /data/portfolio.sqlite
+      VALORGRID_ALPHA_VANTAGE_API_KEY: ''
+      VALORGRID_AUTH_PASSWORD: ''
+      VALORGRID_AUTH_USER: valorgrid
+      VALORGRID_BACKUP_DIR: /data/backups
+    image: ghcr.io/aivm23/valorgrid:v3.34.0@sha256:15363af68f698e7f79f5e3fc96cbb771155fd55115893aded5b63caeae7b76f3
+    networks:
+      appnet:
+        aliases:
+        - valorgrid_app_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

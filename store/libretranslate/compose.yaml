@@ -1,0 +1,13 @@
+# libretranslate: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  libretranslate:
+    image: libretranslate/libretranslate:v1.9.6
+    networks:
+      appnet:
+        aliases:
+        - libretranslate_libretranslate_1
+    restart: unless-stopped

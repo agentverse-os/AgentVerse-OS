@@ -1,0 +1,16 @@
+# mongo: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mongo:
+    environment:
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+    image: mongo:7.0.40
+    networks:
+      appnet:
+        aliases:
+        - mongo_mongo_1
+    restart: unless-stopped

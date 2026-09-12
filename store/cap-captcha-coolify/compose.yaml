@@ -1,0 +1,55 @@
+# cap-captcha-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cap:
+    depends_on:
+      valkey:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_CAP_3000=${SERVICE_URL_CAP_3000}
+    - ADMIN_KEY=$SERVICE_PASSWORD_ADMIN
+    - REDIS_URL=redis://valkey:6379
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 5s
+      test:
+      - CMD
+      - bun
+      - -e
+      - fetch('http://localhost:3000').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))
+      timeout: 5s
+    image: tiago2/cap:3.0.4
+    networks:
+      appnet:
+        aliases:
+        - cap-captcha-coolify_cap_1
+    restart: unless-stopped
+  valkey:
+    command: valkey-server --save 60 1 --loglevel warning --maxmemory-policy noeviction
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD
+      - valkey-cli
+      - ping
+      timeout: 3s
+    image: valkey/valkey:9-alpine
+    networks:
+      appnet:
+        aliases:
+        - cap-captcha-coolify_valkey_1
+    restart: unless-stopped
+    volumes:
+    - valkey-data:/data
+volumes:
+  valkey-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/valkey-data
+      o: bind
+      type: none

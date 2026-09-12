@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wikijs-umbrel
+description: Make documentation a joy to write
+endpoint:
+  port: 3000
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/wikijs/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wikijs/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wikijs/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/wikijs/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wikijs-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: WikiJS
+type: app
+upstream:
+  author: Requarks
+  categories:
+  - developer
+  release_notes: |-
+    This update includes minor bug fixes:
+      - Updated ARM Docker base to use Node 24
+      - Fixed a missing migration file during Windows build
+
+
+    Full release notes are found at https://github.com/requarks/wiki/releases
+  source: https://github.com/requarks/wiki
+  version: 2.5.314
+  website: https://js.wiki/
+website: https://js.wiki/

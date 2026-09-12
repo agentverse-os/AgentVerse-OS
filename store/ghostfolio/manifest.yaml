@@ -1,0 +1,76 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ghostfolio
+description: Open Source Wealth Management Software.
+endpoint:
+  port: 3333
+  service: ghostfolio
+env:
+  GHOSTFOLIO_ACCESS_TOKEN_SALT:
+    generate: token
+  GHOSTFOLIO_DB_PASSWORD:
+    generate: token
+  GHOSTFOLIO_JWT_SECRET_KEY:
+    generate: token
+  GHOSTFOLIO_REDIS_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ghostfolio
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GHOSTFOLIO_ACCESS_TOKEN_SALT
+  hint: null
+  label: Access token salt
+  options: null
+  required: false
+  type: random
+- env: GHOSTFOLIO_JWT_SECRET_KEY
+  hint: null
+  label: JSON Web Tokens secret key
+  options: null
+  required: false
+  type: random
+- env: GHOSTFOLIO_DB_PASSWORD
+  hint: null
+  label: Database password
+  options: null
+  required: false
+  type: random
+- env: GHOSTFOLIO_REDIS_PASSWORD
+  hint: null
+  label: Redis password
+  options: null
+  required: false
+  type: random
+tags: []
+title: Ghostfolio
+type: app
+upstream:
+  author: dtslvr
+  categories:
+  - finance
+  source: https://github.com/ghostfolio/ghostfolio
+  tipi_version: 300
+  version: 3.61.0
+website: https://github.com/ghostfolio/ghostfolio

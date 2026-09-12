@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/openresty-manager-umbrel
+description: Expose your services easily and securely
+endpoint:
+  port: 34567
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/openresty-manager/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/openresty-manager/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/openresty-manager/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/openresty-manager/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: '#Passw0rd'
+  path: null
+  user: admin
+name: openresty-manager-umbrel
+notes:
+- 'порт 3080:80 (web) не публикуется: доступ только через edge/gate'
+- 'порт 3443:443 (web) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: OpenResty Manager
+type: app
+upstream:
+  author: UUSEC
+  categories:
+  - networking
+  release_notes: |-
+    This release updates OpenResty to the latest version and fixes a certificates directory issue.
+
+    Full release notes: https://github.com/Safe3/openresty-manager/releases/tag/v2.4.6
+  source: https://github.com/Safe3/openresty-manager
+  version: 2.4.6
+  website: https://om.uusec.com/
+website: https://om.uusec.com/

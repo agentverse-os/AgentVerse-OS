@@ -1,0 +1,59 @@
+# kimai: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  kimai:
+    environment:
+      ADMINMAIL: ${KIMAI_ADMINMAIL}
+      ADMINPASS: ${KIMAI_ADMINPASS}
+      DATABASE_URL: mysql://kimai:${KIMAI_DATABASE_PASSWORD}@kimai-sqldb/kimai?charset=utf8&serverVersion=5.7
+      TRUSTED_HOSTS: kimai-proxy,localhost,127.0.0.1
+    image: kimai/kimai2:fpm-2.19.1-prod
+    networks:
+      appnet:
+        aliases:
+        - kimai_kimai_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/public:/opt/kimai/public
+    - ${APP_DATA_DIR}/data/var:/opt/kimai/var
+  kimai-proxy:
+    depends_on:
+    - kimai
+    healthcheck:
+      interval: 20s
+      retries: 3
+      start_period: 10s
+      test: wget --spider http://kimai-proxy/health || exit 1
+      timeout: 10s
+    image: tobybatch/nginx-fpm-reverse-proxy:latest
+    networks:
+      appnet:
+        aliases:
+        - kimai_kimai-proxy_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/public:/opt/kimai/public:ro
+  kimai-sqldb:
+    command: --default-storage-engine innodb
+    environment:
+      MYSQL_DATABASE: kimai
+      MYSQL_PASSWORD: ${KIMAI_DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${KIMAI_DATABASE_ROOT_PASSWORD}
+      MYSQL_USER: kimai
+    healthcheck:
+      interval: 20s
+      retries: 3
+      start_period: 10s
+      test: mysqladmin -p$$MYSQL_ROOT_PASSWORD ping -h localhost
+      timeout: 10s
+    image: mysql:5.7
+    networks:
+      appnet:
+        aliases:
+        - kimai_kimai-sqldb_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mysql:/var/lib/mysql

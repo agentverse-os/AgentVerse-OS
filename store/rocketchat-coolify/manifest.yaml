@@ -1,0 +1,94 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rocketchat-coolify
+description: Self-hosted, secure and highly customizable open-source communication platform for organizations with sophisticated security and privacy concerns.
+endpoint:
+  port: 3000
+  service: rocketchat
+env:
+  MAIL_URL: test@example.com
+  MONGODB_ADVERTISED_HOSTNAME: mongodb
+  MONGODB_DATABASE: rocketchat
+  MONGODB_INITIAL_PRIMARY_PORT_NUMBER: '27017'
+  MONGODB_REPLICA_SET_NAME: rs0
+  SERVICE_URL_ROCKETCHAT: https://${APP_DOMAIN}
+  SERVICE_URL_ROCKETCHAT_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: rocketchat-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MONGODB_ADVERTISED_HOSTNAME
+  hint: 'по умолчанию: mongodb'
+  label: mongodb advertised hostname
+  options: null
+  required: false
+  type: text
+- env: MONGODB_INITIAL_PRIMARY_PORT_NUMBER
+  hint: 'по умолчанию: 27017'
+  label: mongodb initial primary port number
+  options: null
+  required: false
+  type: text
+- env: MONGODB_DATABASE
+  hint: 'по умолчанию: rocketchat'
+  label: mongodb database
+  options: null
+  required: false
+  type: text
+- env: MONGODB_REPLICA_SET_NAME
+  hint: 'по умолчанию: rs0'
+  label: mongodb replica set name
+  options: null
+  required: false
+  type: text
+- env: MAIL_URL
+  hint: 'по умолчанию: test@example.com'
+  label: mail url
+  options: null
+  required: false
+  type: text
+tags:
+- rocketchat
+- chat
+- communication
+- privacy
+- mongodb
+- open
+- source
+title: Rocketchat
+type: app
+upstream:
+  categories:
+  - messaging
+  source: https://github.com/RocketChat/Rocket.Chat
+  tags:
+  - rocketchat
+  - chat
+  - communication
+  - privacy
+  - mongodb
+  - open
+  - source
+  template: rocketchat.yaml
+website: https://github.com/RocketChat/Rocket.Chat

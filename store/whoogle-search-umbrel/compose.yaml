@@ -1,0 +1,18 @@
+# whoogle-search-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      EXPOSE_PORT: 6420
+    image: benbusby/whoogle-search:1.2.4@sha256:6ae072238642b7e5860c8fa7f68cf06be797eb4e2278fc41d17d3b5e8a051eea
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - whoogle-search_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 927:927

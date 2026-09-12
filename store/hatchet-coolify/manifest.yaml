@@ -1,0 +1,124 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/hatchet-coolify
+description: Hatchet allows you to run background tasks at scale with a high-throughput, low-latency computing service built on an open-source, fault-tolerant queue.
+endpoint:
+  port: 80
+  service: rabbitmq
+env:
+  POSTGRES_DB: hatchet
+  POSTGRES_USER: ''
+  RABBITMQ_PORT: '5672'
+  SERVER_AUTH_COOKIE_DOMAIN: localhost:8080
+  SERVER_AUTH_COOKIE_INSECURE: t
+  SERVER_GRPC_BIND_ADDRESS: 0.0.0.0
+  SERVER_GRPC_BROADCAST_ADDRESS: localhost:7077
+  SERVER_GRPC_INSECURE: t
+  SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS: hatchet-engine:7077
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_RABBITMQ:
+    generate: password
+  SERVICE_URL_HATCHET_80: https://${APP_DOMAIN}
+  SERVICE_URL_RABBITMQ_15672: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SERVICE_USER_RABBITMQ:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_RABBITMQ
+  path: null
+  user: SERVICE_USER_RABBITMQ
+name: hatchet-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SERVER_GRPC_BIND_ADDRESS
+  hint: 'по умолчанию: 0.0.0.0'
+  label: server grpc bind address
+  options: null
+  required: false
+  type: text
+- env: SERVER_GRPC_INSECURE
+  hint: 'по умолчанию: t'
+  label: server grpc insecure
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: hatchet'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: RABBITMQ_PORT
+  hint: 'по умолчанию: 5672'
+  label: rabbitmq port
+  options: null
+  required: false
+  type: text
+- env: SERVER_AUTH_COOKIE_DOMAIN
+  hint: 'по умолчанию: localhost:8080'
+  label: server auth cookie domain
+  options: null
+  required: false
+  type: text
+- env: SERVER_AUTH_COOKIE_INSECURE
+  hint: 'по умолчанию: t'
+  label: server auth cookie insecure
+  options: null
+  required: false
+  type: text
+- env: SERVER_GRPC_BROADCAST_ADDRESS
+  hint: 'по умолчанию: localhost:7077'
+  label: server grpc broadcast address
+  options: null
+  required: false
+  type: text
+- env: SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS
+  hint: 'по умолчанию: hatchet-engine:7077'
+  label: server internal client internal grpc broadcast address
+  options: null
+  required: false
+  type: text
+tags:
+- ai-agents
+- background-tasks
+- data-pipelines
+- scheduling
+title: Hatchet
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://docs.hatchet.run/self-hosting/docker-compose
+  tags:
+  - ai-agents
+  - background-tasks
+  - data-pipelines
+  - scheduling
+  template: hatchet.yaml
+website: https://docs.hatchet.run/self-hosting/docker-compose

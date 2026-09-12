@@ -1,0 +1,41 @@
+# viewtube: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  viewtube:
+    depends_on:
+    - viewtube-mongodb
+    - viewtube-redis
+    environment:
+      VIEWTUBE_CORS_ORIGIN: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      VIEWTUBE_DATABASE_HOST: viewtube-mongodb
+      VIEWTUBE_REDIS_HOST: viewtube-redis
+      VIEWTUBE_SECURE: 'true'
+    image: mauriceo/viewtube:0.17.0
+    networks:
+      appnet:
+        aliases:
+        - viewtube_viewtube_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/viewtube:/data
+  viewtube-mongodb:
+    image: mongo:5
+    networks:
+      appnet:
+        aliases:
+        - viewtube_viewtube-mongodb_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/data/db
+  viewtube-redis:
+    image: redis:7
+    networks:
+      appnet:
+        aliases:
+        - viewtube_viewtube-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

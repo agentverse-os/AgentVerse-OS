@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/dokuwiki-coolify
+description: A lightweight and easy-to-use wiki platform for creating and managing documentation and knowledge bases.
+endpoint:
+  port: 80
+  service: dokuwiki
+env:
+  SERVICE_URL_DOKUWIKI: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: dokuwiki-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- wiki
+- documentation
+- knowledge
+- base
+title: Dokuwiki
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://www.dokuwiki.org/
+  tags:
+  - wiki
+  - documentation
+  - knowledge
+  - base
+  template: dokuwiki.yaml
+website: https://www.dokuwiki.org/

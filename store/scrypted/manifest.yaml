@@ -1,0 +1,53 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/scrypted
+description: High performance home video integration and automation platform
+endpoint:
+  port: 10443
+  service: scrypted
+env:
+  SCRYPTED_BEARER_TOKEN:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: scrypted
+notes:
+- 'scrypted: network_mode=host из каталога'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SCRYPTED_BEARER_TOKEN
+  hint: null
+  label: Scrypted Bearer Token
+  options: null
+  required: false
+  type: random
+tags: []
+title: Scrypted
+type: app
+upstream:
+  author: Koush
+  categories:
+  - security
+  source: https://github.com/koush/scrypted
+  tipi_version: 13
+  version: '20'
+website: https://github.com/koush/scrypted

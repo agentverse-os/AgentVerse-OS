@@ -1,0 +1,67 @@
+# calcom-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  calcom:
+    depends_on:
+    - postgresql
+    environment:
+    - SERVICE_URL_CALCOM_3000=${SERVICE_URL_CALCOM_3000}
+    - NEXT_PUBLIC_LICENSE_CONSENT=agree
+    - NODE_ENV=production
+    - NEXT_PUBLIC_WEBAPP_URL=${SERVICE_URL_CALCOM}
+    - NEXT_PUBLIC_API_V2_URL=${SERVICE_URL_CALCOM}/api/v2
+    - NEXTAUTH_URL=${SERVICE_URL_CALCOM}/api/auth
+    - NEXTAUTH_SECRET=${SERVICE_BASE64_CALCOMSECRET}
+    - CALENDSO_ENCRYPTION_KEY=${SERVICE_BASE64_CALCOMKEY}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-calendso}
+    - DATABASE_HOST=postgresql
+    - DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@${DATABASE_HOST:-postgresql}/${POSTGRES_DB:-calendso}
+    - DATABASE_DIRECT_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@${DATABASE_HOST:-postgresql}/${POSTGRES_DB:-calendso}
+    - CALCOM_TELEMETRY_DISABLED=1
+    - EMAIL_FROM=${EMAIL_FROM}
+    - EMAIL_FROM_NAME=${EMAIL_FROM_NAME}
+    - EMAIL_SERVER_HOST=${EMAIL_SERVER_HOST}
+    - EMAIL_SERVER_PORT=${EMAIL_SERVER_PORT}
+    - EMAIL_SERVER_USER=${EMAIL_SERVER_USER}
+    - EMAIL_SERVER_PASSWORD=${EMAIL_SERVER_PASSWORD}
+    - NEXT_PUBLIC_APP_NAME="Cal.com"
+    - ALLOWED_HOSTNAMES=["${SERVICE_URL_CALCOM}"]
+    image: calcom.docker.scarf.sh/calcom/cal.com
+    networks:
+      appnet:
+        aliases:
+        - calcom-coolify_calcom_1
+    platform: linux/amd64
+    restart: unless-stopped
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-calendso}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - calcom-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - calcom-postgresql-data:/var/lib/postgresql/data
+volumes:
+  calcom-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/calcom-postgresql-data
+      o: bind
+      type: none

@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pocketbase-umbrel
+description: Open Source backend for your next SaaS and Mobile app in 1 file
+endpoint:
+  port: 8090
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: umbrel-pocketbase
+  path: null
+  user: umbrel@umbrel.local
+name: pocketbase-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: PocketBase
+type: app
+upstream:
+  author: PocketBase
+  categories:
+  - developer
+  release_notes: |-
+    PocketBase 0.40.1 is a follow-up to the recent 0.40.0 update. If you're updating from a pre-0.40 version and run custom PocketBase applications or chained commands, test them before relying on this update in production.
+
+    This release fixes regressions from the new JSON runtime, including invalid UTF-8 serialization handling and OAuth2 provider configuration merging.
+
+    Full release notes can be found at https://github.com/pocketbase/pocketbase/releases/tag/v0.40.1
+  source: https://github.com/pocketbase/pocketbase
+  version: 0.40.1
+  website: https://pocketbase.io/
+website: https://pocketbase.io/

@@ -1,0 +1,65 @@
+# wings-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  wings-inline-1:
+    content: |
+      debug: false
+      uuid: ReplaceConfig
+      token_id: ReplaceConfig
+      token: ReplaceConfig
+      api:
+        host: 0.0.0.0
+        port: 8443 # Warning, panel must have 443 as daemon port, while here it should should be 8443, FQDN in Coolify for this service should be https://*:8443
+        ssl:
+          enabled: false
+          cert: ReplaceConfig
+          key: ReplaceConfig
+        upload_limit: 100
+      system:
+        data: /var/lib/pterodactyl/volumes
+        sftp:
+          bind_port: 2022
+      allowed_mounts: []
+      remote: ''
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  wings:
+    configs:
+    - source: wings-inline-1
+      target: /etc/pterodactyl/config.yml
+    environment:
+    - SERVICE_URL_WINGS_8443=${SERVICE_URL_WINGS_8443}
+    - TZ=${TIMEZONE:-UTC}
+    - WINGS_USERNAME=$SERVICE_USER_WINGS
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    image: ghcr.io/pterodactyl/wings:v1.12.1
+    networks:
+      appnet:
+        aliases:
+        - wings-coolify_wings_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - /var/lib/docker/containers/:/var/lib/docker/containers/
+    - /var/lib/pterodactyl/volumes:/var/lib/pterodactyl/volumes
+    - /tmp/pterodactyl:/tmp/pterodactyl
+    - wings_lib:/var/lib/pterodactyl/
+    - wings_logs:/var/log/pterodactyl/
+volumes:
+  wings_lib:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/wings_lib
+      o: bind
+      type: none
+  wings_logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/wings_logs
+      o: bind
+      type: none

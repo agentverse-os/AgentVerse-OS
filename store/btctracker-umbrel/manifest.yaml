@@ -1,0 +1,66 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/btctracker-umbrel
+description: A simple, privacy-focused Bitcoin investment tracker
+endpoint:
+  port: 3000
+  service: web
+env:
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/btctracker/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: btctracker-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: BTC Tracker
+type: app
+upstream:
+  author: wilqq-the
+  categories:
+  - bitcoin
+  release_notes: |-
+    ✨ New Features
+      - Exchange Auto-Sync (Beta) — connect exchange API keys to automatically import BTC spot trades; supports Binance, Kraken, Coinbase, Bybit, and Gemini
+      - Exchange Connections UI — new "Exchanges" tab in Settings to manage connections, test credentials, and trigger syncs
+
+
+    🐛 Bug Fixes
+      - Fixed "Net Holdings" on Transactions page showing USD values regardless of display currency setting
+
+
+    🔧 Improvements
+      - Calendar now has month/year dropdowns for faster navigation
+      - Sort and filter on Transactions page now works across all pages (server-side)
+      - New optional "Wallet" column in transactions showing source/destination wallet
+      - Named wallets now show individual BTC balances in the portfolio sidebar
+  source: https://github.com/wilqq-the/BTC-Tracker
+  version: 0.7.0
+  website: https://github.com/wilqq-the
+website: https://github.com/wilqq-the

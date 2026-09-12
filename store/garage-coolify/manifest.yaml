@@ -1,0 +1,68 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/garage-coolify
+description: Garage is an S3-compatible distributed object storage service designed for self-hosting.
+endpoint:
+  port: 3900
+  service: garage
+env:
+  RUST_LOG: garage=info
+  SERVICE_HEX_64_RPCSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_GARAGE:
+    generate: password
+  SERVICE_PASSWORD_GARAGEMETRICS:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: garage-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: RUST_LOG
+  hint: 'по умолчанию: garage=info'
+  label: rust log
+  options: null
+  required: false
+  type: text
+tags:
+- object
+- storage
+- server
+- s3
+- api
+- distributed
+title: Garage
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://garagehq.deuxfleurs.fr/documentation/
+  tags:
+  - object
+  - storage
+  - server
+  - s3
+  - api
+  - distributed
+  template: garage.yaml
+website: https://garagehq.deuxfleurs.fr/documentation/

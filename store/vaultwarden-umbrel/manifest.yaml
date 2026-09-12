@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/vaultwarden-umbrel
+description: Unofficial Bitwarden® compatible server
+endpoint:
+  port: 8089
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/vaultwarden/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/vaultwarden/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/vaultwarden/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/vaultwarden/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: vaultwarden-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Vaultwarden
+type: app
+upstream:
+  author: Daniel García
+  categories:
+  - files
+  release_notes: |-
+    Important: Bitwarden clients generally require an HTTPS server URL. If you use desktop, mobile, or browser extension clients, use Tailscale Serve or another HTTPS reverse proxy URL instead of http://umbrel.local, a plain Tailscale IP address, or an onion HTTP URL. See the app description for setup steps.
+
+    This release includes:
+      - Adds required compatibility support for Bitwarden clients version 2026.8.0 and newer
+      - Fixes sendmail executable permission checks
+      - Includes user email addresses in successful login logs for clearer audit trails
+      - Includes miscellaneous fixes and upstream build/test updates
+
+    Full release notes are available at https://github.com/dani-garcia/vaultwarden/releases/tag/1.37.2
+  source: https://github.com/dani-garcia/vaultwarden
+  version: 1.37.2
+  website: https://github.com/dani-garcia
+website: https://github.com/dani-garcia

@@ -1,0 +1,14 @@
+# passky-client-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: rabbitcompany/passky-client:8.1.1@sha256:9c144ceb22920c60dc659c8635f48a92be4bffdb7dc768aba0d26a9a42c3005d
+    networks:
+      appnet:
+        aliases:
+        - passky-client_web_1
+    restart: on-failure
+    stop_grace_period: 1m

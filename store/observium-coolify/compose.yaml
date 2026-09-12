@@ -1,0 +1,81 @@
+# observium-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mariadb:
+    environment:
+    - MARIADB_ROOT_PASSWORD=${SERVICE_PASSWORD_MARIADBROOT}
+    - MARIADB_USER=${SERVICE_USER_MARIADB}
+    - MARIADB_PASSWORD=${SERVICE_PASSWORD_MARIADB}
+    - MARIADB_DATABASE=${MARIADB_DATABASE:-observium-db}
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 5s
+    image: mariadb:lts
+    networks:
+      appnet:
+        aliases:
+        - observium-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - observium_mariadb_data:/var/lib/mysql
+  observium:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_OBSERVIUM=${SERVICE_URL_OBSERVIUM}
+    - OBSERVIUM_ADMIN_PASS=${SERVICE_PASSWORD_OBSERVIUMADMIN}
+    - OBSERVIUM_ADMIN_USER=${SERVICE_USER_OBSERVIUMADMIN}
+    - OBSERVIUM_DB_HOST=mariadb
+    - OBSERVIUM_DB_NAME=${OBSERVIUM_DB_NAME:-observium-db}
+    - OBSERVIUM_DB_PASS=${SERVICE_PASSWORD_MARIADB}
+    - OBSERVIUM_DB_USER=${SERVICE_USER_MARIADB}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 5s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost/
+      timeout: 10s
+    image: mbixtech/observium:latest
+    networks:
+      appnet:
+        aliases:
+        - observium-coolify_observium_1
+    platform: linux/amd64
+    restart: unless-stopped
+    volumes:
+    - observium_logs:/opt/observium/logs
+    - observium_rrd:/opt/observium/rrd
+volumes:
+  observium_logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/observium_logs
+      o: bind
+      type: none
+  observium_mariadb_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/observium_mariadb_data
+      o: bind
+      type: none
+  observium_rrd:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/observium_rrd
+      o: bind
+      type: none

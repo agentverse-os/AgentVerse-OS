@@ -1,0 +1,77 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/robosats-umbrel
+description: Simple and Private Bitcoin P2P Exchange
+endpoint:
+  port: 12596
+  service: web
+env:
+  TOR_PROXY_IP: ''
+  TOR_PROXY_PORT: '9050'
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/robosats/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/robosats/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/robosats/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/robosats/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/robosats/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/robosats/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: robosats-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: RoboSats
+type: app
+upstream:
+  author: RoboSats
+  categories:
+  - bitcoin
+  release_notes: |-
+    After updating, hard-refresh RoboSats once (Ctrl/Cmd + Shift + R) to load the new client.
+
+    Highlights:
+
+      - Visual warning for orders with bonds below the default 3%
+      - Libraries security updates
+      - Removed 3 coordinators
+
+    New payment methods:
+
+      - Doordash USA giftcard
+      - Wero
+
+
+    Bugs:
+
+      - Infinite loading when reloading/renewing orders now properly catch up
+      - When loading any specific path different from root the app failed.
+      - Crash on mobile devices when switching between Fiat/Swap modes with a payment method selected
+      - Coordinator ratings showed different counts in the list view vs. the detail dialog
+      - UI overlap issue where the bond percentage was displayed simultaneously in both the Bond column and the Premium column on certain screen sizes
+      - Return OK on successful order cancel
+
+
+    Full release notes are available at https://github.com/RoboSats/robosats/releases/tag/v0.8.6-alpha
+  source: https://github.com/RoboSats/robosats
+  version: v0.8.6-alpha
+  website: https://learn.robosats.org
+website: https://learn.robosats.org

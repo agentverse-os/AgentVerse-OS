@@ -1,0 +1,133 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/calcom
+description: Scheduling infrastructure for absolutely everyone.
+endpoint:
+  port: 3000
+  service: calcom
+env:
+  CALCOM_GOOGLE_API_CREDENTIALS: ''
+  CALCOM_NEXTAUTH_SECRET:
+    generate: password
+  CALENDSO_ENCRYPTION_KEY:
+    generate: token
+  EMAIL_FROM: ''
+  EMAIL_SERVER_HOST: ''
+  EMAIL_SERVER_PASSWORD:
+    generate: password
+  EMAIL_SERVER_PORT: ''
+  EMAIL_SERVER_USER: ''
+  MS_GRAPH_CLIENT_ID: ''
+  MS_GRAPH_CLIENT_SECRET:
+    generate: password
+  ZOOM_CLIENT_ID: ''
+  ZOOM_CLIENT_SECRET:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: calcom
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CALCOM_NEXTAUTH_SECRET
+  hint: null
+  label: Next.js Auth secret. Generate one with `openssl rand -base64 32`
+  options: null
+  required: true
+  type: password
+- env: CALENDSO_ENCRYPTION_KEY
+  hint: null
+  label: Random string
+  options: null
+  required: false
+  type: random
+- env: MS_GRAPH_CLIENT_ID
+  hint: null
+  label: MS Graph Client ID. Used for the Office 365 / Outlook.com Calendar integration
+  options: null
+  required: false
+  type: text
+- env: MS_GRAPH_CLIENT_SECRET
+  hint: null
+  label: MS Graph Client Secret. Used for the Office 365 / Outlook.com Calendar integration
+  options: null
+  required: false
+  type: password
+- env: ZOOM_CLIENT_ID
+  hint: null
+  label: Zoom Client ID. Used for the Zoom integration
+  options: null
+  required: false
+  type: text
+- env: ZOOM_CLIENT_SECRET
+  hint: null
+  label: Zoom Client Secret. Used for the Zoom integration
+  options: null
+  required: false
+  type: password
+- env: CALCOM_GOOGLE_API_CREDENTIALS
+  hint: null
+  label: Google API Credentials in JSON form. Used for the Google Calendar integration. See https://github.com/calcom/cal.com?tab=readme-ov-file#obtaining-the-google-api-credentials
+  options: null
+  required: false
+  type: text
+- env: EMAIL_FROM
+  hint: null
+  label: 'Configures the global From: header whilst sending emails.'
+  options: null
+  required: true
+  type: email
+- env: EMAIL_SERVER_USER
+  hint: null
+  label: Email server username (SMTP)
+  options: null
+  required: true
+  type: email
+- env: EMAIL_SERVER_HOST
+  hint: null
+  label: Email server host (SMTP)
+  options: null
+  required: true
+  type: fqdn
+- env: EMAIL_SERVER_PORT
+  hint: null
+  label: Email server port (SMTP)
+  options: null
+  required: true
+  type: number
+- env: EMAIL_SERVER_PASSWORD
+  hint: null
+  label: Email server password (SMTP)
+  options: null
+  required: true
+  type: password
+tags: []
+title: Cal.com
+type: app
+upstream:
+  author: cal.com
+  categories:
+  - social
+  source: https://github.com/calcom/cal.com
+  tipi_version: 150
+  version: v6.2.0
+website: https://github.com/calcom/cal.com

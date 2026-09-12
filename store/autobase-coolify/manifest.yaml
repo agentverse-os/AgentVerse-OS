@@ -1,0 +1,68 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/autobase-coolify
+description: Autobase for PostgreSQL® is an open-source alternative to cloud-managed databases (self-hosted DBaaS).
+endpoint:
+  port: 80
+  service: autobase
+env:
+  PG_CONSOLE_LOGGER_LEVEL: info
+  SERVICE_BASE64_ENCRYPTIONKEY:
+    generate: hex64
+  SERVICE_FQDN_AUTOBASE_80: ${APP_DOMAIN}
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_UI:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: autobase-coolify
+notes:
+- 'autobase-api: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PG_CONSOLE_LOGGER_LEVEL
+  hint: 'по умолчанию: info'
+  label: pg console logger level
+  options: null
+  required: false
+  type: text
+tags:
+- database
+- postgres
+- automation
+- self-hosted
+- dbaas
+title: Autobase
+type: app
+upstream:
+  categories:
+  - database
+  source: https://autobase.tech/docs/
+  tags:
+  - database
+  - postgres
+  - automation
+  - self-hosted
+  - dbaas
+  template: autobase.yaml
+website: https://autobase.tech/docs/

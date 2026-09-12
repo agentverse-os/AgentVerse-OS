@@ -1,0 +1,30 @@
+# pi-hole-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  pihole:
+    cap_add:
+    - NET_ADMIN
+    - SYS_TIME
+    environment:
+    - SERVICE_URL_PIHOLE_80=${SERVICE_URL_PIHOLE_80}
+    - TZ=${TZ:-Europe/London}
+    - FTLCONF_webserver_api_password=${SERVICE_PASSWORD_PIHOLE}
+    - FTLCONF_dns_listeningMode=${FTLCONF_dns_listeningMode:-all}
+    image: pihole/pihole:latest
+    networks:
+      appnet:
+        aliases:
+        - pi-hole-coolify_pihole_1
+    restart: unless-stopped
+    volumes:
+    - pihole-data:/etc/pihole
+volumes:
+  pihole-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pihole-data
+      o: bind
+      type: none

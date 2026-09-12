@@ -1,0 +1,58 @@
+# fileflows-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  fileflows:
+    environment:
+    - SERVICE_URL_FILEFLOWS_5000=${SERVICE_URL_FILEFLOWS_5000}
+    - _APP_URL=$SERVICE_URL_FILE_FLOWS
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-America/Toronto}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:5000/api/system/version
+      timeout: 10s
+    image: revenz/fileflows
+    networks:
+      appnet:
+        aliases:
+        - fileflows-coolify_fileflows_1
+    restart: unless-stopped
+    volumes:
+    - fileflows_temp:/temp
+    - fileflows_configs:/app/Data
+    - fileflows_logs:/app/Logs
+    - fileflows_common:/app/common
+volumes:
+  fileflows_common:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/fileflows_common
+      o: bind
+      type: none
+  fileflows_configs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/fileflows_configs
+      o: bind
+      type: none
+  fileflows_logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/fileflows_logs
+      o: bind
+      type: none
+  fileflows_temp:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/fileflows_temp
+      o: bind
+      type: none

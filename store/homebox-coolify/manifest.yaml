@@ -1,0 +1,113 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/homebox-coolify
+description: Homebox is the inventory and organization system built for the Home User.
+endpoint:
+  port: 7745
+  service: homebox
+env:
+  HBOX_LOG_FORMAT: text
+  HBOX_LOG_LEVEL: info
+  HBOX_MAILER_FROM: ''
+  HBOX_MAILER_HOST: ''
+  HBOX_MAILER_PASSWORD: ''
+  HBOX_MAILER_PORT: '587'
+  HBOX_MAILER_USERNAME: ''
+  HBOX_OPTIONS_ALLOW_REGISTRATION: 'false'
+  HBOX_WEB_MAX_UPLOAD_SIZE: '10'
+  SERVICE_URL_HOMEBOX_7745: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: homebox-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: HBOX_OPTIONS_ALLOW_REGISTRATION
+  hint: 'по умолчанию: false'
+  label: hbox options allow registration
+  options: null
+  required: false
+  type: text
+- env: HBOX_LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: hbox log level
+  options: null
+  required: false
+  type: text
+- env: HBOX_LOG_FORMAT
+  hint: 'по умолчанию: text'
+  label: hbox log format
+  options: null
+  required: false
+  type: text
+- env: HBOX_WEB_MAX_UPLOAD_SIZE
+  hint: 'по умолчанию: 10'
+  label: hbox web max upload size
+  options: null
+  required: false
+  type: text
+- env: HBOX_MAILER_HOST
+  hint: null
+  label: hbox mailer host
+  options: null
+  required: false
+  type: text
+- env: HBOX_MAILER_PORT
+  hint: 'по умолчанию: 587'
+  label: hbox mailer port
+  options: null
+  required: false
+  type: text
+- env: HBOX_MAILER_USERNAME
+  hint: null
+  label: hbox mailer username
+  options: null
+  required: false
+  type: text
+- env: HBOX_MAILER_PASSWORD
+  hint: null
+  label: hbox mailer password
+  options: null
+  required: false
+  type: password
+- env: HBOX_MAILER_FROM
+  hint: null
+  label: hbox mailer from
+  options: null
+  required: false
+  type: text
+tags:
+- inventory
+- home
+- organize
+title: Homebox
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/sysadminsmedia/homebox
+  tags:
+  - inventory
+  - home
+  - organize
+  template: homebox.yaml
+website: https://github.com/sysadminsmedia/homebox

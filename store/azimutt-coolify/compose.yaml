@@ -1,0 +1,143 @@
+# azimutt-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  backend:
+    depends_on:
+      minio:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_AZIMUTT_4000=${SERVICE_URL_AZIMUTT_4000}
+    - SENTRY=false
+    - PHX_SERVER=true
+    - PHX_HOST=$SERVICE_URL_AZIMUTT
+    - PORT=${PORT:-4000}
+    - DATABASE_URL=ecto://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres/${POSTGRES_DB:-azimutt}
+    - SECRET_KEY_BASE=${SERVICE_BASE64_64_AZIMUTT}
+    - FILE_STORAGE_ADAPTER=${FILE_STORAGE_ADAPTER:-s3}
+    - AUTH_PASSWORD=${AUTH_PASSWORD:-true}
+    - SKIP_ONBOARDING_FUNNEL=${SKIP_ONBOARDING_FUNNEL:-true}
+    - SKIP_EMAIL_CONFIRMATION=${SKIP_EMAIL_CONFIRMATION:-true}
+    - PUBLIC_SITE=${PUBLIC_SITE:-false}
+    - S3_BUCKET=${S3_BUCKET}
+    - S3_HOST=${S3_HOST}
+    - S3_KEY_ID=${S3_KEY_ID}
+    - S3_KEY_SECRET=${S3_KEY_SECRET}
+    - EMAIL_ADAPTER=${EMAIL_ADAPTER:-smtp}
+    - SMTP_RELAY=$SERVICE_URL_SMTP
+    - SMTP_USERNAME=$SERVICE_EMAIL_SMTP
+    - SMTP_PASSWORD=$SERVICE_PASSWORD_SMTP
+    - SMTP_PORT=${SMTP_PORT:-587}
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/4000' || exit 1
+      timeout: 10s
+    image: ghcr.io/azimuttapp/azimutt:main
+    networks:
+      appnet:
+        aliases:
+        - azimutt-coolify_backend_1
+    platform: linux/amd64
+    restart: unless-stopped
+  createbuckets:
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: |
+      /bin/sh -c "
+        /usr/bin/mc config host add myminio http://minio:9000 $SERVICE_USER_MINIO $SERVICE_PASSWORD_MINIO;
+        /usr/bin/mc mb -p myminio/azimutt;
+        /usr/bin/mc policy download myminio/azimutt;
+        exit 0;
+      "
+    image: minio/mc:latest
+    networks:
+      appnet:
+        aliases:
+        - azimutt-coolify_createbuckets_1
+    restart: no
+  minio:
+    command: server /data --console-address ":9001"
+    environment:
+    - MINIO_SERVER_URL=$MINIO_SERVER_URL
+    - MINIO_BROWSER_REDIRECT_URL=$MINIO_BROWSER_REDIRECT_URL
+    - MINIO_ROOT_USER=$SERVICE_USER_MINIO
+    - MINIO_ROOT_PASSWORD=$SERVICE_PASSWORD_MINIO
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - mc
+      - ready
+      - local
+      timeout: 20s
+    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    networks:
+      appnet:
+        aliases:
+        - azimutt-coolify_minio_1
+    restart: unless-stopped
+    volumes:
+    - azimutt-minio-data:/data
+  postgres:
+    environment:
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-azimutt}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:15
+    networks:
+      appnet:
+        aliases:
+        - azimutt-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - azimutt-postgres-data:/var/lib/postgresql/data
+  smtp:
+    environment:
+    - SERVICE_URL_SMTP=${SERVICE_URL_SMTP}
+    - RELAY_HOST=$SERVICE_URL_SMTP
+    - RELAY_PORT=${RELAY_PORT:-587}
+    - RELAY_USERNAME=$SERVICE_EMAIL_SMTP
+    - RELAY_PASSWORD=$SERVICE_PASSWORD_SMTP
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/25' || exit 1
+      timeout: 10s
+    image: bytemark/smtp:latest
+    networks:
+      appnet:
+        aliases:
+        - azimutt-coolify_smtp_1
+    platform: linux/amd64
+    restart: unless-stopped
+volumes:
+  azimutt-minio-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/azimutt-minio-data
+      o: bind
+      type: none
+  azimutt-postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/azimutt-postgres-data
+      o: bind
+      type: none

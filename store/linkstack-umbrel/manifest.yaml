@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/linkstack-umbrel
+description: A highly customizable link sharing platform
+endpoint:
+  port: 80
+  service: linkstack
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/linkstack/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/linkstack/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/linkstack/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/linkstack/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/linkstack/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/linkstack/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: linkstack-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LinkStack
+type: app
+upstream:
+  author: Julian Prieber
+  categories:
+  - files
+  release_notes: |-
+    ⚠️ This update includes critical security fixes and dependency updates.
+
+    Key Highlights:
+      - Addition of the modular blocks system
+      - Improvements to user/admin management and click tracking
+      - New buttons and languages
+      - Various bug fixes and performance improvements
+
+
+    Full release notes can be found at https://github.com/LinkStackOrg/LinkStack/releases
+  source: https://github.com/LinkStackOrg/LinkStack
+  version: 4.8.6
+  website: https://linkstack.org/
+website: https://linkstack.org/

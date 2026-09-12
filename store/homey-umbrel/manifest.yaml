@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/homey-umbrel
+description: Run Homey Self-Hosted Server on your Umbrel
+endpoint:
+  port: 4859
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/homey/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homey/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homey/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/homey/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: homey-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Homey
+type: app
+upstream:
+  author: Athom B.V.
+  categories:
+  - automation
+  release_notes: This update packages Homey Self-Hosted Server 13.4.1 from Athom.
+  source: null
+  version: 13.4.1
+  website: https://homey.app
+website: https://homey.app

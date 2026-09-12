@@ -1,0 +1,101 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/dolibarr-coolify
+description: Dolibarr is a modern software package to manage your organization's activity (contacts, quotes, invoices, orders, stocks, agenda, hr, expense reports, accountancy, ecm, manufacturing, ...).
+endpoint:
+  port: 80
+  service: dolibarr
+env:
+  DOLI_COMPANY_NAME: MyBigCompany
+  DOLI_CRON: '0'
+  DOLI_INIT_DEMO: '0'
+  MYSQL_DATABASE: dolibarr-db
+  SERVICE_PASSWORD_DOLIBARR:
+    generate: password
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_URL_DOLIBARR: https://${APP_DOMAIN}
+  SERVICE_URL_DOLIBARR_80: https://${APP_DOMAIN}
+  SERVICE_USER_DOLIBARR:
+    generate: password
+  SERVICE_USER_MYSQL:
+    generate: password
+  WWW_GROUP_ID: '1000'
+  WWW_USER_ID: '1000'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_DOLIBARR
+  path: null
+  user: SERVICE_USER_DOLIBARR
+name: dolibarr-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: WWW_USER_ID
+  hint: 'по умолчанию: 1000'
+  label: www user id
+  options: null
+  required: false
+  type: text
+- env: WWW_GROUP_ID
+  hint: 'по умолчанию: 1000'
+  label: www group id
+  options: null
+  required: false
+  type: text
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: dolibarr-db'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: DOLI_CRON
+  hint: 'по умолчанию: 0'
+  label: doli cron
+  options: null
+  required: false
+  type: text
+- env: DOLI_INIT_DEMO
+  hint: 'по умолчанию: 0'
+  label: doli init demo
+  options: null
+  required: false
+  type: text
+- env: DOLI_COMPANY_NAME
+  hint: 'по умолчанию: MyBigCompany'
+  label: doli company name
+  options: null
+  required: false
+  type: text
+tags:
+- crm
+- ERP
+title: Dolibarr
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://www.dolibarr.org/documentation-home.php
+  tags:
+  - crm
+  - ERP
+  template: dolibarr.yaml
+website: https://www.dolibarr.org/documentation-home.php

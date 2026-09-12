@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/qbittorrent-umbrel
+description: Free and reliable P2P Bittorrent client
+endpoint:
+  port: 8080
+  service: server
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: adminadmin
+  path: null
+  user: admin
+name: qbittorrent-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: qBittorrent
+type: app
+upstream:
+  author: qBittorrent
+  categories:
+  - networking
+  release_notes: |-
+    This update includes WebUI, RSS, search, and torrent handling fixes.
+    Highlights:
+      - Fixed a potential invalid migration procedure and a database transaction deadlock
+      - Fixed WebUI issues with UI themes, collapsed transfer filters, and CSS selector escaping
+      - Fixed RSS feed interval handling and search plugin update counts
+      - Fixed email MIME header encoding, web seed encoding, tracker conversion, and stricter peer address parsing
+
+    If you are upgrading from a version before 5.2.0, note that qBittorrent on umbrelOS now uses "/downloads" as the default download path for better compatibility with other apps. Existing torrents may need to be manually moved to the new location.
+    Full release notes are available at https://github.com/qbittorrent/qBittorrent/releases/tag/release-5.2.3
+  source: https://github.com/qBittorrent/qBittorrent
+  version: 5.2.3
+  website: https://qbittorrent.org/
+website: https://qbittorrent.org/

@@ -1,0 +1,18 @@
+# wikijs-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    image: linuxserver/wikijs:2.5.314@sha256:459b7ab15e3b726c91fdeebb3e6dada39c409419abaf98aea22866a51262ffaa
+    networks:
+      appnet:
+        aliases:
+        - wikijs_server_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/data
+    - ${APP_DATA_DIR}/repo:/app/wiki/data/repo
+    - ${APP_DATA_DIR}/config:/config

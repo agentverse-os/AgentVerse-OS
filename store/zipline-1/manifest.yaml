@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/zipline-1
+description: 'A ShareX/file upload server that is easy to use, packed with features, and with an easy setup!  '
+endpoint:
+  port: 3000
+  service: zipline
+env:
+  ZIPLINE_CORE_SECRET:
+    generate: token
+  ZIPLINE_DB_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: zipline-1
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ZIPLINE_DB_PASSWORD
+  hint: null
+  label: ZIPLINE_DB_PASSWORD
+  options: null
+  required: false
+  type: random
+- env: ZIPLINE_CORE_SECRET
+  hint: null
+  label: ZIPLINE_CORE_SECRET
+  options: null
+  required: false
+  type: random
+tags: []
+title: Zipline
+type: app
+upstream:
+  author: https://github.com/diced
+  categories:
+  - media
+  source: https://github.com/diced/zipline
+  tipi_version: 9
+  version: 4.7.0
+website: https://github.com/diced/zipline

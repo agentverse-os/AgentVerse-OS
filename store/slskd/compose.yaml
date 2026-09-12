@@ -1,0 +1,26 @@
+# slskd: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  slskd:
+    environment:
+      SLSKD_CONFIG: /app/data/slskd.yml
+      SLSKD_PASSWORD: ${SLSKD_PASSWORD}
+      SLSKD_REMOTE_CONFIGURATION: ${SLSKD_REMOTE_CONFIGURATION}
+      SLSKD_SHARED_DIR: /shared
+      SLSKD_USER: ${SLSKD_USER}
+      SLSKD_WEB_PASSWORD: ${SLSKD_WEB_PASSWORD}
+      SLSKD_WEB_USER: ${SLSKD_WEB_USER}
+    image: slskd/slskd:0.26.0
+    networks:
+      appnet:
+        aliases:
+        - slskd_slskd_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}:/app
+    - ${ROOT_FOLDER_HOST}/media/downloads/complete:/downloads
+    - ${ROOT_FOLDER_HOST}/media/downloads/incomplete:/incomplete
+    - ${ROOT_FOLDER_HOST}/media/:/shared

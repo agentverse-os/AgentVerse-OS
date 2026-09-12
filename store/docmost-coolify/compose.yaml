@@ -1,0 +1,100 @@
+# docmost-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  docmost:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_DOCMOST_3000=${SERVICE_URL_DOCMOST_3000}
+    - APP_SECRET=$SERVICE_BASE64_APPKEY
+    - APP_URL=$SERVICE_URL_DOCMOST_3000
+    - DATABASE_URL=postgresql://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgresql/docmost?schema=public
+    - REDIS_URL=redis://redis:6379
+    - MAIL_DRIVER=
+    - SMTP_HOST=${SMTP_HOST}
+    - SMTP_PORT=${SMTP_PORT}
+    - SMTP_USERNAME=${SMTP_USERNAME}
+    - SMTP_PASSWORD=${SMTP_PASSWORD}
+    - SMTP_SECURE=${SMTP_SECURE}
+    - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
+    - MAIL_FROM_NAME=${MAIL_FROM_NAME}
+    - POSTMARK_TOKEN=${POSTMARK_TOKEN}
+    healthcheck:
+      interval: 2s
+      retries: 20
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000
+      timeout: 10s
+    image: docmost/docmost:latest
+    networks:
+      appnet:
+        aliases:
+        - docmost-coolify_docmost_1
+    restart: unless-stopped
+    volumes:
+    - docmost:/app/data/storage
+  postgresql:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_DB=docmost
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 10s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - docmost-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test:
+      - CMD
+      - redis-cli
+      - PING
+      timeout: 10s
+    image: redis:7.2-alpine
+    networks:
+      appnet:
+        aliases:
+        - docmost-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - redis-data:/data
+volumes:
+  docmost:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/docmost
+      o: bind
+      type: none
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none
+  redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis-data
+      o: bind
+      type: none

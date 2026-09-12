@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ittools-umbrel
+description: An array of handy online tools for developers
+endpoint:
+  port: 80
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/6.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/ittools/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ittools-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: IT-Tools
+type: app
+upstream:
+  author: Corentin Thomasset
+  categories:
+  - developer
+  release_notes: null
+  source: https://github.com/CorentinTh/it-tools
+  version: 2024.10.22
+  website: https://it-tools.tech/
+website: https://it-tools.tech/

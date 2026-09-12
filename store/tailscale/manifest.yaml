@@ -1,0 +1,101 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tailscale
+description: The easiest, most secure way to use WireGuard and 2FA.
+endpoint:
+  port: 8093
+  service: tailscale
+env:
+  TAILSCALE_ACCEPT_DNS: ''
+  TAILSCALE_AUTHKEY: ''
+  TAILSCALE_AUTH_ONCE: ''
+  TAILSCALE_EXTRA_ARGS: ''
+  TAILSCALE_HOSTNAME: ''
+  TAILSCALE_ROUTES: ''
+  TAILSCALE_SERVE_CONFIG: ''
+  TAILSCALE_USERSPACE: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: tailscale
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TAILSCALE_ACCEPT_DNS
+  hint: null
+  label: TS_ACCEPT_DNS > Accept DNS configuration from the admin console. Not accepted by default.
+  options: null
+  required: false
+  type: boolean
+- env: TAILSCALE_AUTH_ONCE
+  hint: null
+  label: TS_AUTH_ONCE > Attempt to log in only if not already logged in. False by default, to forcibly log in every time the container starts.
+  options: null
+  required: false
+  type: boolean
+- env: TAILSCALE_AUTHKEY
+  hint: null
+  label: TS_AUTHKEY > An auth key used to authenticate the container. It is also possible to use an OAuth client secret. To mark a containerized node as ephemeral append ?ephemeral=true to the auth key or OAuth client secret.
+  options: null
+  required: false
+  type: text
+- env: TAILSCALE_HOSTNAME
+  hint: null
+  label: TS_HOSTNAME > Use the specified hostname for the node.
+  options: null
+  required: false
+  type: text
+- env: TAILSCALE_ROUTES
+  hint: null
+  label: TS_ROUTES > Advertise subnet routes. To accept advertised routes, use TS_EXTRA_ARGS to pass in --accept-routes.
+  options: null
+  required: false
+  type: text
+- env: TAILSCALE_SERVE_CONFIG
+  hint: null
+  label: TS_SERVE_CONFIG > Accepts a JSON file to programatically configure Serve and Funnel functionality. Located in app-data/tailscale/data/config/*
+  options: null
+  required: false
+  type: text
+- env: TAILSCALE_EXTRA_ARGS
+  hint: null
+  label: TS_EXTRA_ARGS > Any other flags to pass in to the Tailscale CLI.
+  options: null
+  required: false
+  type: text
+- env: TAILSCALE_USERSPACE
+  hint: null
+  label: TS_USERSPACE > Enable userspace networking, instead of kernel networking. Enabled by default.
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: Tailscale
+type: app
+upstream:
+  author: © Tailscale Inc.
+  categories:
+  - network
+  - security
+  source: https://github.com/tailscale/tailscale
+  tipi_version: 75
+  version: v1.102.3
+website: https://github.com/tailscale/tailscale

@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/homepage
+description: A highly customizable homepage
+endpoint:
+  port: 3000
+  service: homepage
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: homepage
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Homepage
+type: app
+upstream:
+  author: gethomepage
+  categories:
+  - utilities
+  source: https://github.com/gethomepage/homepage
+  tipi_version: 60
+  version: v2.1.2
+website: https://github.com/gethomepage/homepage

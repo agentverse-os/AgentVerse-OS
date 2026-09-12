@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nutstash-wallet-umbrel
+description: Nutstash is a Cashu wallet for your browser
+endpoint:
+  port: 3000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/nutstash-wallet/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nutstash-wallet/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nutstash-wallet/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/nutstash-wallet/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nutstash-wallet-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Nutstash Wallet
+type: app
+upstream:
+  author: gandlafbtc
+  categories:
+  - bitcoin
+  release_notes: '- Initial release on the umbrel app store'
+  source: https://github.com/gandlafbtc/nutstash-wallet
+  version: 0.1.10
+  website: https://nutstash.app/
+website: https://nutstash.app/

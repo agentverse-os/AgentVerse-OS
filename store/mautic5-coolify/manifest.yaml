@@ -1,0 +1,126 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mautic5-coolify
+description: Mautic v5 Open Source Marketing Automation
+endpoint:
+  port: 80
+  service: mautic_cron
+env:
+  MAUTIC_LOAD_TEST_DATA: 'false'
+  MAUTIC_MESSENGER_DSN_EMAIL: amqp://guest:guest@rabbitmq:5672/mautic/messages
+  MAUTIC_MESSENGER_DSN_HIT: amqp://guest:guest@rabbitmq:5672/mautic/messages
+  MAUTIC_RUN_MIGRATIONS: 'false'
+  MYSQL_DATABASE: mautic
+  MYSQL_HOST: mysql
+  MYSQL_PORT: '3306'
+  RABBITMQ_DEFAULT_VHOST: mautic
+  SERVICE_PASSWORD_64_MYSQL:
+    generate: hex64
+  SERVICE_PASSWORD_64_MYSQLROOT:
+    generate: hex64
+  SERVICE_URL_MAUTIC_80: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mautic5-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: mautic'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: RABBITMQ_DEFAULT_VHOST
+  hint: 'по умолчанию: mautic'
+  label: rabbitmq default vhost
+  options: null
+  required: false
+  type: text
+- env: MAUTIC_LOAD_TEST_DATA
+  hint: 'по умолчанию: false'
+  label: mautic load test data
+  options: null
+  required: false
+  type: text
+- env: MAUTIC_RUN_MIGRATIONS
+  hint: 'по умолчанию: false'
+  label: mautic run migrations
+  options: null
+  required: false
+  type: text
+- env: MYSQL_HOST
+  hint: 'по умолчанию: mysql'
+  label: mysql host
+  options: null
+  required: false
+  type: text
+- env: MYSQL_PORT
+  hint: 'по умолчанию: 3306'
+  label: mysql port
+  options: null
+  required: false
+  type: text
+- env: MAUTIC_MESSENGER_DSN_EMAIL
+  hint: 'по умолчанию: amqp://guest:guest@rabbitmq:5672/mautic/messages'
+  label: mautic messenger dsn email
+  options: null
+  required: false
+  type: text
+- env: MAUTIC_MESSENGER_DSN_HIT
+  hint: 'по умолчанию: amqp://guest:guest@rabbitmq:5672/mautic/messages'
+  label: mautic messenger dsn hit
+  options: null
+  required: false
+  type: text
+tags:
+- php
+- mautic
+- marketing
+- automation
+- email
+- service
+- '5'
+- open
+- source
+- crm
+title: Mautic5
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://www.mautic.org/
+  tags:
+  - php
+  - mautic
+  - marketing
+  - automation
+  - email
+  - service
+  - '5'
+  - open
+  - source
+  - crm
+  template: mautic5.yaml
+website: https://www.mautic.org/

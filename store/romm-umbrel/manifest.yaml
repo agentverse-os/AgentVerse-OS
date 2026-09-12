@@ -1,0 +1,62 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/romm-umbrel
+description: A beautiful, powerful, self-hosted rom manager
+endpoint:
+  port: 8080
+  service: server
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/romm/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/romm/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/romm/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/romm/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: romm-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: RomM
+type: app
+upstream:
+  author: rommapp
+  categories:
+  - media
+  release_notes: |-
+    RomM 5.2 is a follow-up to the recent RomM 5.0 major update. If you're updating from a pre-5.0 version and share your library with other users, review permissions after upgrading.
+
+    Highlights include:
+      - Added reorderable region and language priority lists in scan settings
+      - Added provider ratings, searchable platform metadata, improved soundtrack artwork, and previous/next controls on game details
+      - Improved ScreenScraper pacing, scan reporting, home-page performance, resource caching, hashing, gallery updates, and metadata matching
+      - Fixed permission gaps found during the 5.1 audit, including state uploads, smart collection caching, file deletion grants, streaming endpoint permissions, and kiosk read-only access
+
+
+    If you're updating from a pre-4.9 version and manually enabled gamelist exports in config.yml, follow RomM's official config docs to update that setting: https://docs.romm.app/4.9.0/reference/configuration-file/#scangamelistexport
+
+    Full release notes can be found at https://github.com/rommapp/romm/releases/tag/5.2.0
+  source: https://github.com/rommapp/romm
+  version: 5.2.0
+  website: https://github.com/rommapp/romm
+website: https://github.com/rommapp/romm

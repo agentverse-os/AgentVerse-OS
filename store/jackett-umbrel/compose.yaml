@@ -1,0 +1,20 @@
+# jackett-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    image: linuxserver/jackett:0.24.2520@sha256:d9536db7cc9f0e31bf7c1bb4bdfc477842a124bae4091046dd040b02fe5ce378
+    networks:
+      appnet:
+        aliases:
+        - jackett_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/config
+    - ${UMBREL_ROOT}/data/storage/downloads:/downloads

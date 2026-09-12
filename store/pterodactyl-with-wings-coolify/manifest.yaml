@@ -1,0 +1,112 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pterodactyl-with-wings-coolify
+description: Pterodactyl is a free, open-source game server management panel
+endpoint:
+  port: 8443
+  service: wings
+env:
+  ADMIN_EMAIL: admin@example.com
+  ADMIN_FIRSTNAME: Admin
+  ADMIN_LASTNAME: User
+  LOG_LEVEL: debug
+  PTERODACTYL_HTTPS: 'false'
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_HASHIDS:
+    generate: password
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_PTERODACTYL: https://${APP_DOMAIN}
+  SERVICE_URL_PTERODACTYL_80: https://${APP_DOMAIN}
+  SERVICE_URL_WINGS_8443: https://${APP_DOMAIN}
+  SERVICE_USER_ADMIN:
+    generate: password
+  SERVICE_USER_MYSQL:
+    generate: password
+  TIMEZONE: UTC
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: SERVICE_USER_ADMIN
+name: pterodactyl-with-wings-coolify
+notes:
+- 'порт 2022:2022 (wings) не публикуется: доступ только через edge/gate'
+- 'wings: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: admin email
+  options: null
+  required: false
+  type: text
+- env: ADMIN_FIRSTNAME
+  hint: 'по умолчанию: Admin'
+  label: admin firstname
+  options: null
+  required: false
+  type: text
+- env: ADMIN_LASTNAME
+  hint: 'по умолчанию: User'
+  label: admin lastname
+  options: null
+  required: false
+  type: text
+- env: PTERODACTYL_HTTPS
+  hint: 'по умолчанию: false'
+  label: pterodactyl https
+  options: null
+  required: false
+  type: text
+- env: TIMEZONE
+  hint: 'по умолчанию: UTC'
+  label: timezone
+  options: null
+  required: false
+  type: text
+- env: LOG_LEVEL
+  hint: 'по умолчанию: debug'
+  label: log level
+  options: null
+  required: false
+  type: text
+tags:
+- game
+- game server
+- management
+- panel
+- minecraft
+title: Pterodactyl With Wings
+type: app
+upstream:
+  categories:
+  - media
+  source: https://pterodactyl.io/
+  tags:
+  - game
+  - game server
+  - management
+  - panel
+  - minecraft
+  template: pterodactyl-with-wings.yaml
+website: https://pterodactyl.io/

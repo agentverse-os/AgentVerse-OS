@@ -1,0 +1,89 @@
+# librephotos-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  backend:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ADMIN_EMAIL: admin@admin.com
+      ADMIN_PASSWORD: ${APP_PASSWORD}
+      ADMIN_USERNAME: admin
+      ALLOW_UPLOAD: 'true'
+      BACKEND_HOST: backend
+      CSRF_TRUSTED_ORIGINS: ''
+      DB_BACKEND: postgresql
+      DB_HOST: librephotos_db_1
+      DB_NAME: librephotos
+      DB_PASS: librephotos
+      DB_PORT: 5432
+      DB_USER: librephotos
+      DEBUG: '0'
+      FIXPERMISSIONS: 'true'
+      HEAVYWEIGHT_PROCESS: 1
+      MAPBOX_API_KEY: ''
+      SECRET_KEY: ${APP_SEED}
+      SKIP_PATTERNS: ''
+      WEB_CONCURRENCY: 2
+    image: reallibrephotos/librephotos:2026w14@sha256:3f4d6fa163bf41f2cd496aca342307fec8b827fe4a7ced1e7773a050ef7a5dca
+    networks:
+      appnet:
+        aliases:
+        - librephotos_backend_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/photos:/data
+    - ${APP_DATA_DIR}/data/protected_media:/protected_media
+    - ${APP_DATA_DIR}/data/logs:/logs
+    - ${APP_DATA_DIR}/data/cache:/root/.cache
+  db:
+    environment:
+      POSTGRES_DB: librephotos
+      POSTGRES_PASSWORD: librephotos
+      POSTGRES_USER: librephotos
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD
+      - psql
+      - -U
+      - librephotos
+      - -d
+      - librephotos
+      - -c
+      - SELECT 1;
+      timeout: 5s
+    image: pgautoupgrade/pgautoupgrade:17-alpine3.22@sha256:2ec008ae5f0a2e5dd8f4d2475df41cf3ccc9562acf49bd668fcc0c061944b9bf
+    networks:
+      appnet:
+        aliases:
+        - librephotos_db_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  frontend:
+    image: reallibrephotos/librephotos-frontend:2026w14@sha256:e2fb909607b1d9552c033a9432446eadb6b693289af2b4b016da55d50724afcb
+    networks:
+      appnet:
+        aliases:
+        - librephotos_frontend_1
+    restart: on-failure
+  proxy:
+    depends_on:
+    - backend
+    - frontend
+    expose:
+    - '80'
+    image: reallibrephotos/librephotos-proxy:2026w14@sha256:c88c0a65b50ba7e4f65ccc9aa7d5002df9827cb79edb1f88a3a4c130d0b03be4
+    networks:
+      appnet:
+        aliases:
+        - librephotos_proxy_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/photos:/data
+    - ${APP_DATA_DIR}/data/protected_media:/protected_media

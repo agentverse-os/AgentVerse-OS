@@ -1,0 +1,76 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/firefly-coolify
+description: A personal finances manager that can help you save money.
+endpoint:
+  port: 8080
+  service: firefly
+env:
+  MYSQL_DATABASE: firefly
+  SERVICE_BASE64_APPKEY:
+    generate: hex64
+  SERVICE_BASE64_CRONTOKEN:
+    generate: hex64
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_FIREFLY_8080: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+  STATIC_CRON_TOKEN: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: firefly-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: firefly'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: STATIC_CRON_TOKEN
+  hint: null
+  label: static cron token
+  options: null
+  required: false
+  type: password
+tags:
+- finance
+- money
+- personal
+- manager
+title: Firefly
+type: app
+upstream:
+  categories:
+  - finance
+  source: https://firefly-iii.org
+  tags:
+  - finance
+  - money
+  - personal
+  - manager
+  template: firefly.yaml
+website: https://firefly-iii.org

@@ -1,0 +1,58 @@
+# ryot-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-ryot-db}
+    - TZ=${TZ:-Europe/Amsterdam}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - ryot-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - ryot_postgresql_data:/var/lib/postgresql/data
+  ryot:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_RYOT_8000=${SERVICE_URL_RYOT_8000}
+    - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB}
+    - SERVER_ADMIN_ACCESS_TOKEN=${SERVICE_PASSWORD_64_RYOT}
+    - TZ=${TZ:-Europe/Amsterdam}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8000/health
+      timeout: 20s
+    image: ignisda/ryot:v10.3.0
+    networks:
+      appnet:
+        aliases:
+        - ryot-coolify_ryot_1
+    restart: unless-stopped
+volumes:
+  ryot_postgresql_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/ryot_postgresql_data
+      o: bind
+      type: none

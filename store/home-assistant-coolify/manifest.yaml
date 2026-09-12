@@ -1,0 +1,67 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/home-assistant-coolify
+description: Open source home automation that puts local control and privacy first.
+endpoint:
+  port: 8123
+  service: homeassistant
+env:
+  DISABLE_JEMALLOC: 'false'
+  SERVICE_URL_HOMEASSISTANT_8123: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: home-assistant-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DISABLE_JEMALLOC
+  hint: 'по умолчанию: false'
+  label: disable jemalloc
+  options: null
+  required: false
+  type: text
+tags:
+- home-automation
+- iot
+- smart-home
+- automation
+- domotics
+- mqtt
+- zigbee
+- zwave
+title: Home Assistant
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://www.home-assistant.io/installation/linux#docker-compose
+  tags:
+  - home-automation
+  - iot
+  - smart-home
+  - automation
+  - domotics
+  - mqtt
+  - zigbee
+  - zwave
+  template: home-assistant.yaml
+website: https://www.home-assistant.io/installation/linux#docker-compose

@@ -1,0 +1,142 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/changedetection-coolify
+description: Website change detection monitor and notifications.
+endpoint:
+  port: 5000
+  service: changedetection
+env:
+  DISABLE_VERSION_CHECK: 'true'
+  FETCH_WORKERS: '10'
+  HIDE_REFERER: 'true'
+  LOGGER_LEVEL: DEBUG
+  MAX_CONCURRENT_CHROME_PROCESSES: '10'
+  MINIMUM_SECONDS_RECHECK_TIME: '3'
+  PGID: '1000'
+  PLAYWRIGHT_DRIVER_URL: ws://browser-sockpuppet-chrome:3000
+  PUID: '1000'
+  SCREENSHOT_MAX_HEIGHT: '16000'
+  SCREEN_DEPTH: '16'
+  SCREEN_HEIGHT: '1024'
+  SCREEN_WIDTH: '1920'
+  SERVICE_URL_CHANGEDETECTION: https://${APP_DOMAIN}
+  SERVICE_URL_CHANGEDETECTION_5000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: changedetection-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PUID
+  hint: 'по умолчанию: 1000'
+  label: puid
+  options: null
+  required: false
+  type: text
+- env: PGID
+  hint: 'по умолчанию: 1000'
+  label: pgid
+  options: null
+  required: false
+  type: text
+- env: PLAYWRIGHT_DRIVER_URL
+  hint: 'по умолчанию: ws://browser-sockpuppet-chrome:3000'
+  label: playwright driver url
+  options: null
+  required: false
+  type: text
+- env: HIDE_REFERER
+  hint: 'по умолчанию: true'
+  label: hide referer
+  options: null
+  required: false
+  type: text
+- env: FETCH_WORKERS
+  hint: 'по умолчанию: 10'
+  label: fetch workers
+  options: null
+  required: false
+  type: text
+- env: MINIMUM_SECONDS_RECHECK_TIME
+  hint: 'по умолчанию: 3'
+  label: minimum seconds recheck time
+  options: null
+  required: false
+  type: text
+- env: DISABLE_VERSION_CHECK
+  hint: 'по умолчанию: true'
+  label: disable version check
+  options: null
+  required: false
+  type: text
+- env: SCREENSHOT_MAX_HEIGHT
+  hint: 'по умолчанию: 16000'
+  label: screenshot max height
+  options: null
+  required: false
+  type: text
+- env: LOGGER_LEVEL
+  hint: 'по умолчанию: DEBUG'
+  label: logger level
+  options: null
+  required: false
+  type: text
+- env: SCREEN_WIDTH
+  hint: 'по умолчанию: 1920'
+  label: screen width
+  options: null
+  required: false
+  type: text
+- env: SCREEN_HEIGHT
+  hint: 'по умолчанию: 1024'
+  label: screen height
+  options: null
+  required: false
+  type: text
+- env: SCREEN_DEPTH
+  hint: 'по умолчанию: 16'
+  label: screen depth
+  options: null
+  required: false
+  type: text
+- env: MAX_CONCURRENT_CHROME_PROCESSES
+  hint: 'по умолчанию: 10'
+  label: max concurrent chrome processes
+  options: null
+  required: false
+  type: text
+tags:
+- web
+- alert
+- monitor
+title: Changedetection
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://github.com/dgtlmoon/changedetection.io/
+  tags:
+  - web
+  - alert
+  - monitor
+  template: changedetection.yaml
+website: https://github.com/dgtlmoon/changedetection.io/

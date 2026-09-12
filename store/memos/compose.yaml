@@ -1,0 +1,15 @@
+# memos: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  memos:
+    image: neosmemo/memos:0.30.0
+    networks:
+      appnet:
+        aliases:
+        - memos_memos_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/memos:/var/opt/memos

@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ghost-dev
+description: Ghost - Turn your audience into a business.
+endpoint:
+  port: 2368
+  service: ghost-dev
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ghost-dev
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Ghost Development
+type: app
+upstream:
+  author: TryGhost
+  categories:
+  - social
+  - media
+  source: https://github.com/TryGhost/Ghost
+  tipi_version: 80
+  version: 5.130.6
+website: https://github.com/TryGhost/Ghost

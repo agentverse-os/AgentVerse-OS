@@ -1,0 +1,22 @@
+# duplicati: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  duplicati:
+    environment:
+      PGID: '0'
+      PUID: '0'
+      SETTINGS_ENCRYPTION_KEY: ${DUPLICATI_ENCRYPTION_KEY}
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/duplicati:2.3.0
+    networks:
+      appnet:
+        aliases:
+        - duplicati_duplicati_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/duplicati-config:/config
+    - ${ROOT_FOLDER_HOST}:/backups/runtipi-folder
+    - /home:/source

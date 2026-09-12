@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/picoclaw-umbrel
+description: Ultra-lightweight personal AI assistant
+endpoint:
+  port: 18800
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: picoclaw-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: PicoClaw
+type: app
+upstream:
+  author: Sipeed
+  categories:
+  - ai
+  release_notes: |-
+    This release adds the NEAR AI Cloud provider, configurable channel settings, and support for configured remote cron commands.
+    It improves provider/model error handling, native search handling, gateway startup reporting, and Brave/web search diagnostics. It also fixes Evolution heartbeat and file-lock handling, Telegram forum topics, Gemini thought signatures, media and WebSocket cleanup paths, and hardens inbound media/web fetch handling.
+    Full release notes can be found at https://github.com/sipeed/picoclaw/releases/tag/v0.3.1
+  source: https://github.com/sipeed/picoclaw
+  version: 0.3.1
+  website: https://picoclaw.io
+website: https://picoclaw.io

@@ -1,0 +1,113 @@
+# elasticsearch-with-kibana-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  elasticsearch:
+    environment:
+    - ELASTIC_USER=elastic
+    - ELASTIC_PASSWORD=${SERVICE_PASSWORD_ELASTICSEARCH}
+    - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    - discovery.type=single-node
+    - bootstrap.memory_lock=true
+    - xpack.security.http.ssl.enabled=false
+    healthcheck:
+      interval: 10s
+      retries: 24
+      test:
+      - CMD-SHELL
+      - curl --user elastic:${SERVICE_PASSWORD_ELASTICSEARCH} --silent --fail http://localhost:9200/_cluster/health
+      timeout: 10s
+    image: elastic/elasticsearch:9.1.2
+    networks:
+      appnet:
+        aliases:
+        - elasticsearch-with-kibana-coolify_elasticsearch_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - elasticsearch-data:/usr/share/elasticsearch/data
+  kibana:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_KIBANA_5601=${SERVICE_URL_KIBANA_5601}
+    - KIBANA_PASSWORD=${SERVICE_PASSWORD_KIBANA}
+    - ELASTICSEARCH_SERVICEACCOUNTTOKEN=${ELASTICSEARCH_SERVICEACCOUNTTOKEN}
+    - SERVER_NAME=${SERVICE_FQDN_KIBANA}
+    - SERVER_PUBLICBASEURL=${SERVICE_URL_KIBANA}
+    - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    - XPACK.SECURITY.ENABLED=true
+    - XPACK_SECURITY_ENCRYPTIONKEY=${SERVICE_PASSWORD_XPACKSECURITY}
+    - XPACK_REPORTING_ENCRYPTIONKEY=${SERVICE_PASSWORD_XPACKREPORTING}
+    - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${SERVICE_PASSWORD_XPACKENCRYPTEDSAVEDOBJECTS}
+    - TELEMETRY_OPTIN=${TELEMETRY_OPTIN:-false}
+    healthcheck:
+      interval: 10s
+      retries: 120
+      test:
+      - CMD-SHELL
+      - curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'
+      timeout: 10s
+    image: kibana:9.1.2
+    networks:
+      appnet:
+        aliases:
+        - elasticsearch-with-kibana-coolify_kibana_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - kibana-data:/usr/share/kibana/data
+  kibana-token-generator:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    entrypoint:
+    - sh
+    - -c
+    - |
+      apk add --no-cache curl jq >/dev/null 2>&1
+      echo "Generating Kibana service token..."
+      RESPONSE=$(curl -s -w "\n%{http_code}" -u elastic:"$${ELASTIC_PASSWORD}" -X POST "http://elasticsearch:9200/_security/service/elastic/kibana/credential/token/kibana-service-token")
+      HTTP_CODE=$$(echo "$${RESPONSE}" | tail -n1)
+      BODY=$$(echo "$${RESPONSE}" | head -n -1)
+      if [ "$${HTTP_CODE}" = "200" ]; then
+        CREATED=$$(echo "$${BODY}" | jq -r '.created')
+        if [ "$${CREATED}" = "true" ]; then
+          TOKEN_VALUE=$$(echo "$${BODY}" | jq -r '.token.value')
+          echo "Token created successfully:"
+          echo "$${TOKEN_VALUE}"
+        else
+          echo "Unexpected response, token not created:"
+          echo "$${BODY}"
+        fi
+      elif [ "$${HTTP_CODE}" = "409" ]; then
+        echo "Token already exists. Skipping token creation."
+      else
+        echo "Failed to create token. HTTP code: $${HTTP_CODE}"
+        echo "$${BODY}"
+        exit 1
+      fi
+    environment:
+    - ELASTIC_PASSWORD=${SERVICE_PASSWORD_ELASTICSEARCH}
+    image: alpine:latest
+    networks:
+      appnet:
+        aliases:
+        - elasticsearch-with-kibana-coolify_kibana-token-generator_1
+    restart: no
+volumes:
+  elasticsearch-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/elasticsearch-data
+      o: bind
+      type: none
+  kibana-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/kibana-data
+      o: bind
+      type: none

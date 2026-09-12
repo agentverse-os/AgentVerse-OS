@@ -1,0 +1,32 @@
+# filestash: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  filestash:
+    depends_on:
+    - filestash-onlyoffice
+    environment:
+      APPLICATION_URL: ${APP_DOMAIN}
+      DROPBOX_CLIENT_ID: ${FILESTASH_DROPBOX_CLIENT_ID}
+      GDRIVE_CLIENT_ID: ${FILESTASH_GDRIVE_CLIENT_ID}
+      GDRIVE_CLIENT_SECRET: ${FILESTASH_GDRIVE_CLIENT_SECRET}
+      ONLYOFFICE_URL: http://filestash-onlyoffice
+    image: machines/filestash:latest
+    networks:
+      appnet:
+        aliases:
+        - filestash_filestash_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data/state/
+  filestash-onlyoffice:
+    image: onlyoffice/documentserver:9.4.0.1
+    networks:
+      appnet:
+        aliases:
+        - filestash_filestash-onlyoffice_1
+    restart: unless-stopped
+    security_opt:
+    - seccomp:unconfined

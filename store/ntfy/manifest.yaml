@@ -1,0 +1,29 @@
+# ntfy — provider capability notify (2.5, 3.10). Рукописный манифест поверх импортированного: доступ deny-all по умолчанию,
+# хук on_grant создаёт пользователя проекта, права rw на топик proj-<project> и токен; workspace получает NOTIFY_URL/TOPIC/TOKEN.
+schema: 1
+origin: manual
+name: ntfy
+title: ntfy
+description: "Push notifications; the notify capability: a topic and a token per project"
+i18n:
+  ru: { description: "Push-уведомления; capability notify — топик и токен на проект" }
+  uk: { description: "Push-сповіщення; capability notify — топік і токен на проєкт" }
+  es: { description: "Notificaciones push; la capability notify: un tema y un token por proyecto" }
+icon: ./logo.jpg
+type: system
+compose: ./compose.yaml
+provides: [notify]
+requires: []
+route: { mode: port, open: newtab }
+auth: own
+env: {}
+data: [tank/apps/ntfy]
+health: http://ntfy:80/v1/health
+endpoint: { service: ntfy, port: 80 }
+hooks:
+  on_grant: ./hooks/grant.sh
+  on_revoke: ./hooks/revoke.sh
+
+# входа нет: доступ ограничен сетью Cloud OS
+login:
+  mode: none

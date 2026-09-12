@@ -1,0 +1,52 @@
+# nostr-vpn-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  daemon:
+    cap_add:
+    - NET_ADMIN
+    command:
+    - daemon
+    - --config
+    - /data/config/nvpn/config.toml
+    devices:
+    - /dev/net/tun:/dev/net/tun
+    entrypoint:
+    - /usr/local/bin/nvpn
+    environment:
+      HOME: /data/home
+      RUST_LOG: info
+      XDG_CONFIG_HOME: /data/config
+    image: ghcr.io/mmalmi/nostr-vpn-umbrel:v4.1.9@sha256:252323ba2bfb853e749dba7da703abd138f0a51511a3114807a9c579f64d8995
+    network_mode: host
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/data
+  web:
+    command:
+    - --listen
+    - 0.0.0.0:38080
+    - --behind-trusted-proxy
+    - --config
+    - /data/config/nvpn/config.toml
+    depends_on:
+    - daemon
+    environment:
+      HOME: /data/home
+      NVPN_CLI_PATH: /usr/local/bin/nvpn
+      NVPN_DAEMON_STATUS_MODE: state-file
+      NVPN_EXTERNAL_DAEMON: 'true'
+      RUST_LOG: info
+      XDG_CONFIG_HOME: /data/config
+    image: ghcr.io/mmalmi/nostr-vpn-umbrel:v4.1.9@sha256:252323ba2bfb853e749dba7da703abd138f0a51511a3114807a9c579f64d8995
+    networks:
+      appnet:
+        aliases:
+        - nostr-vpn_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

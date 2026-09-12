@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>AgentVerse OS</title>
+  <meta name="theme-color" content="#121416">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Экран загрузки: показывается сразу, снимается оболочкой после первого ответа ядра (src/lib/boot.ts) */
+    #boot { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: #0E1018; color: #F4F7FF; font-family: 'Space Grotesk', system-ui, sans-serif; transition: opacity .6s ease; overflow: hidden; }
+    #boot.out { opacity: 0; pointer-events: none; }
+    #boot .glow { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .5; animation: bdrift 14s ease-in-out infinite alternate; }
+    #boot .g1 { width: 60vw; height: 60vw; left: 55%; top: -20%; background: rgba(91,140,255,.32); }
+    #boot .g2 { width: 50vw; height: 50vw; left: -15%; top: 55%; background: rgba(122,92,255,.28); animation-delay: -7s; }
+    @keyframes bdrift { from { transform: translate(0,0); } to { transform: translate(-6vw,5vh); } }
+    #boot .box { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    #boot svg { animation: bpulse 2.2s ease-in-out infinite; }
+    @keyframes bpulse { 0%,100% { opacity: .6; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-6px); } }
+    #boot .name { font-size: 28px; font-weight: 600; letter-spacing: -.02em; }
+    #boot .name b { color: #A2B4FF; font-weight: 600; }
+    #boot .msg { font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: #8E97B8; min-height: 1.2em; }
+    #boot .msg.err { color: #F2A3A3; letter-spacing: 0; text-transform: none; font-size: 14px; max-width: 420px; text-align: center; line-height: 1.5; }
+    @media (prefers-reduced-motion: reduce) { #boot .glow, #boot svg { animation: none; } }
+  </style>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+<body style="background:#121416">
+  <div id="boot" aria-busy="true"><div class="glow g1"></div><div class="glow g2"></div>
+    <div class="box">
+      <!-- mark --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="112" height="112" role="img" aria-label="AgentVerse OS"><defs>
+  <linearGradient id="b-gl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FF"/><stop offset="0.35" stop-color="#A2B4FF"/><stop offset="1" stop-color="#5B8CFF"/></linearGradient>
+  <linearGradient id="b-gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A2B4FF"/><stop offset="0.4" stop-color="#7A5CFF"/><stop offset="1" stop-color="#3B2FA8"/></linearGradient>
+  <linearGradient id="b-gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FF"/><stop offset="1" stop-color="#A2B4FF"/></linearGradient>
+  <linearGradient id="b-gw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FF"/><stop offset="0.5" stop-color="#A2B4FF"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient>
+  <linearGradient id="b-rb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3B2FA8"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient>
+  <linearGradient id="b-rf" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5B8CFF"/><stop offset="0.55" stop-color="#A2B4FF"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient>
+  <mask id="b-cut" maskUnits="userSpaceOnUse" x="-64" y="-64" width="384" height="384">
+    <rect x="-64" y="-64" width="384" height="384" fill="white"/>
+    <polygon points="128,118 108,228 148,228" fill="black"/>
+    <g transform="rotate(-10 128 172)"><path d="M 10 172 A 118 30 0 0 0 246 172" fill="none" stroke="black" stroke-width="15" stroke-linecap="round"/></g>
+  </mask>
+  <mask id="b-cut2" maskUnits="userSpaceOnUse" x="-64" y="-64" width="384" height="384">
+    <rect x="-64" y="-64" width="384" height="384" fill="white"/>
+    <g transform="rotate(-10 128 172)"><path d="M 10 172 A 118 30 0 0 0 246 172" fill="none" stroke="black" stroke-width="15" stroke-linecap="round"/></g>
+  </mask></defs><g mask="url(#b-cut)">
+  <g transform="rotate(-10 128 172)"><path d="M 10 172 A 118 30 0 0 1 246 172" fill="none" stroke="url(#b-rb)" stroke-width="9" stroke-linecap="round" opacity="0.85"/></g>
+  <polygon points="128,18 62,228 128,228" fill="url(#b-gl)"/><polygon points="128,18 128,228 194,228" fill="url(#b-gr)"/><polygon points="128,18 121,228 135,228" fill="url(#b-gc)" opacity="0.9"/>
+</g>
+<g mask="url(#b-cut2)"><polygon points="128,146 117,228 139,228" fill="url(#b-gw)"/></g>
+<g transform="rotate(-10 128 172)"><path d="M 10 172 A 118 30 0 0 0 246 172" fill="none" stroke="url(#b-rf)" stroke-width="9" stroke-linecap="round"/></g></svg><!-- /mark -->
+      <div class="name">AgentVerse <b>OS</b></div>
+      <div class="msg" id="boot-msg">loading</div>
+    </div>
+  </div>
+  <script>
+    // Язык экрана загрузки до старта оболочки: из сохранённого оформления (cloudos.appearance.v1 → language) или языка браузера.
+    (function () { try {
+      var m = { en: 'loading', ru: 'загружаю', uk: 'завантажую', es: 'cargando' };
+      var a = JSON.parse(localStorage.getItem('cloudos.appearance.v1') || '{}'); var l = a.language && a.language !== 'auto' ? a.language : '';
+      if (!m[l]) { l = ''; var ls = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]; for (var i = 0; i < ls.length; i++) { var p = (ls[i] || '').slice(0, 2).toLowerCase(); if (m[p]) { l = p; break; } } }
+      if (!m[l]) l = 'en';
+      document.documentElement.lang = l; document.getElementById('boot-msg').textContent = m[l];
+    } catch (e) {} })();
+  </script>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

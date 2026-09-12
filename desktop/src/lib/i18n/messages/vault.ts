@@ -1,0 +1,53 @@
+// «Пароли и доступы»: шапка, поиск, экспорт текстом, блок Coder, короткие подписи режимов входа. Заголовок окна — sys.vault (common.ts).
+// Подписи полей «логин»/«пароль» внутри строк приложений задаёт access.ts/AccessPanel, здесь — только свои.
+import { defineMessages } from '../define';
+export default defineMessages({
+  en: {
+    'vault.subtitle': 'login details for every installed app; each password reveal is written to the event feed',
+    'vault.searchPlaceholder': 'search by name', 'vault.exportText': 'Export as text',
+    'vault.exportConfirm': 'Collect all passwords and login keys into text and copy it to the clipboard?',
+    'vault.exportHeader': 'AgentVerse OS · login details · {date}', 'vault.url': 'address', 'vault.note': 'note', 'vault.copiedAll': 'copied to the clipboard',
+    'vault.coderBadge': 'project control panel', 'vault.openExt': 'open ↗', 'vault.login': 'login', 'vault.password': 'password',
+    'vault.copyTitle': 'copy', 'vault.show': 'show', 'vault.hide': 'hide', 'vault.coderPwCopied': 'Coder password copied',
+    'vault.coderPwUnknown': 'unknown to the core: set CLOUDOS_ADMIN_PASSWORD in /etc/cloudos/cloudd.env',
+    'vault.coderHint': 'The Komodo administrator has the same password. VS Code and project terminals open from the Desktop without signing in.',
+    'vault.card': 'details', 'vault.notFound': 'nothing found',
+    'vault.modeGenerated': 'password from AgentVerse OS', 'vault.modeDefault': 'default password', 'vault.modeApp': 'account inside the app', 'vault.modeNone': 'no sign-in', 'vault.modeExternal': 'external sign-in',
+  },
+  ru: {
+    'vault.subtitle': 'данные для входа всех установленных приложений; каждый показ пароля пишется в ленту событий',
+    'vault.searchPlaceholder': 'поиск по названию', 'vault.exportText': 'Экспорт текстом',
+    'vault.exportConfirm': 'Собрать все пароли и ключи входа в текст и скопировать в буфер обмена?',
+    'vault.exportHeader': 'AgentVerse OS · данные для входа · {date}', 'vault.url': 'адрес', 'vault.note': 'заметка', 'vault.copiedAll': 'скопировано в буфер обмена',
+    'vault.coderBadge': 'панель управления проектами', 'vault.openExt': 'открыть ↗', 'vault.login': 'логин', 'vault.password': 'пароль',
+    'vault.copyTitle': 'скопировать', 'vault.show': 'показать', 'vault.hide': 'скрыть', 'vault.coderPwCopied': 'пароль Coder скопирован',
+    'vault.coderPwUnknown': 'ядру не известен: задайте CLOUDOS_ADMIN_PASSWORD в /etc/cloudos/cloudd.env',
+    'vault.coderHint': 'Тот же пароль у администратора Komodo. VS Code и терминал проектов открываются из Desktop без входа.',
+    'vault.card': 'карточка', 'vault.notFound': 'ничего не найдено',
+    'vault.modeGenerated': 'пароль от AgentVerse OS', 'vault.modeDefault': 'пароль по умолчанию', 'vault.modeApp': 'учётная запись в приложении', 'vault.modeNone': 'без входа', 'vault.modeExternal': 'внешний вход',
+  },
+  uk: {
+    'vault.subtitle': 'дані для входу всіх встановлених застосунків; кожен показ пароля записується в стрічку подій',
+    'vault.searchPlaceholder': 'пошук за назвою', 'vault.exportText': 'Експорт текстом',
+    'vault.exportConfirm': 'Зібрати всі паролі та ключі входу в текст і скопіювати в буфер обміну?',
+    'vault.exportHeader': 'AgentVerse OS · дані для входу · {date}', 'vault.url': 'адреса', 'vault.note': 'нотатка', 'vault.copiedAll': 'скопійовано в буфер обміну',
+    'vault.coderBadge': 'панель керування проєктами', 'vault.openExt': 'відкрити ↗', 'vault.login': 'логін', 'vault.password': 'пароль',
+    'vault.copyTitle': 'скопіювати', 'vault.show': 'показати', 'vault.hide': 'сховати', 'vault.coderPwCopied': 'пароль Coder скопійовано',
+    'vault.coderPwUnknown': 'ядру невідомий: задайте CLOUDOS_ADMIN_PASSWORD у /etc/cloudos/cloudd.env',
+    'vault.coderHint': 'Той самий пароль у адміністратора Komodo. VS Code і термінал проєктів відкриваються з Desktop без входу.',
+    'vault.card': 'картка', 'vault.notFound': 'нічого не знайдено',
+    'vault.modeGenerated': 'пароль від AgentVerse OS', 'vault.modeDefault': 'пароль за замовчуванням', 'vault.modeApp': 'обліковий запис у застосунку', 'vault.modeNone': 'без входу', 'vault.modeExternal': 'зовнішній вхід',
+  },
+  es: {
+    'vault.subtitle': 'datos de acceso de todas las aplicaciones instaladas; cada vez que se muestra una contraseña queda anotado en el registro de eventos',
+    'vault.searchPlaceholder': 'buscar por nombre', 'vault.exportText': 'Exportar como texto',
+    'vault.exportConfirm': '¿Reunir todas las contraseñas y claves de acceso en un texto y copiarlo al portapapeles?',
+    'vault.exportHeader': 'AgentVerse OS · datos de acceso · {date}', 'vault.url': 'dirección', 'vault.note': 'nota', 'vault.copiedAll': 'copiado al portapapeles',
+    'vault.coderBadge': 'panel de control de proyectos', 'vault.openExt': 'abrir ↗', 'vault.login': 'usuario', 'vault.password': 'contraseña',
+    'vault.copyTitle': 'copiar', 'vault.show': 'mostrar', 'vault.hide': 'ocultar', 'vault.coderPwCopied': 'contraseña de Coder copiada',
+    'vault.coderPwUnknown': 'el núcleo no la conoce: defina CLOUDOS_ADMIN_PASSWORD en /etc/cloudos/cloudd.env',
+    'vault.coderHint': 'El administrador de Komodo tiene la misma contraseña. VS Code y el terminal de los proyectos se abren desde el Desktop sin iniciar sesión.',
+    'vault.card': 'ficha', 'vault.notFound': 'no se encontró nada',
+    'vault.modeGenerated': 'contraseña de AgentVerse OS', 'vault.modeDefault': 'contraseña predeterminada', 'vault.modeApp': 'cuenta en la aplicación', 'vault.modeNone': 'sin inicio de sesión', 'vault.modeExternal': 'inicio de sesión externo',
+  },
+});

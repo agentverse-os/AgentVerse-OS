@@ -1,0 +1,86 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/owncloud-coolify
+description: OwnCloud with Open Web UI integrates file management with a powerful, user-friendly interface.
+endpoint:
+  port: 8080
+  service: owncloud
+env:
+  DB_NAME: owncloud
+  MYSQL_UTF8MB4: 'true'
+  REDIS_ENABLED: 'true'
+  SERVICE_FQDN_OWNCLOUD: ${APP_DOMAIN}
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_MARIADBROOT:
+    generate: password
+  SERVICE_PASSWORD_OWNCLOUD:
+    generate: password
+  SERVICE_URL_OWNCLOUD_8080: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+  SERVICE_USER_OWNCLOUD:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_OWNCLOUD
+  path: null
+  user: SERVICE_USER_OWNCLOUD
+name: owncloud-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DB_NAME
+  hint: 'по умолчанию: owncloud'
+  label: db name
+  options: null
+  required: false
+  type: text
+- env: MYSQL_UTF8MB4
+  hint: 'по умолчанию: true'
+  label: mysql utf8mb4
+  options: null
+  required: false
+  type: text
+- env: REDIS_ENABLED
+  hint: 'по умолчанию: true'
+  label: redis enabled
+  options: null
+  required: false
+  type: text
+tags:
+- owncloud
+- file-management
+- open-web-ui
+- integration
+- cloud
+title: Owncloud
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://owncloud.com/docs-guides/
+  tags:
+  - owncloud
+  - file-management
+  - open-web-ui
+  - integration
+  - cloud
+  template: owncloud.yaml
+website: https://owncloud.com/docs-guides/

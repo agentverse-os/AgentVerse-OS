@@ -1,0 +1,31 @@
+# Garage v2 single-node — provider capability storage.s3 (3.6). Бакет и ключ на проект создаёт хук on_grant через Admin API.
+schema: 1
+origin: manual
+name: garage
+title: Garage S3
+description: "S3-compatible storage; the storage.s3 capability: a bucket and a key per project"
+i18n:
+  ru: { description: "S3-совместимое хранилище; capability storage.s3 — бакет и ключ на проект" }
+  uk: { description: "S3-сумісне сховище; capability storage.s3 — бакет і ключ на проєкт" }
+  es: { description: "Almacenamiento compatible con S3; la capability storage.s3: un bucket y una clave por proyecto" }
+icon: 🪣
+type: system
+compose: ./compose.yaml
+provides: [storage.s3]
+requires: []
+route: { mode: port, open: newtab }       # S3 API наружу (presigned URLs из браузера); UI — garage-webui отдельным приложением
+auth: own
+env:
+  GARAGE_RPC_SECRET: { generate: hex64 }     # Garage: ровно 32 байта hex
+  GARAGE_ADMIN_TOKEN: { generate: token }
+  GARAGE_METRICS_TOKEN: { generate: token }
+data: [tank/apps/garage]
+health: http://garage:3903/health
+endpoint: { service: garage, port: 3900 }  # gate: http://storage.s3.gate → S3 API
+hooks:
+  on_grant: ./hooks/grant.sh
+  on_revoke: ./hooks/revoke.sh
+
+# входа нет: доступ ограничен сетью Cloud OS
+login:
+  mode: none

@@ -1,0 +1,51 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/portainer-coolify
+description: Portainer is a lightweight management UI for Docker
+endpoint:
+  port: 9000
+  service: portainer
+env:
+  SERVICE_URL_PORTAINER_9000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: true
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: portainer-coolify
+notes:
+- монтирует /var/run/docker.sock хоста — приложение платформенного уровня доверия (в срезе 1 без socket-proxy)
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- docker
+- management
+- ui
+title: Portainer
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://docs.portainer.io
+  tags:
+  - docker
+  - management
+  - ui
+  template: portainer.yaml
+website: https://docs.portainer.io

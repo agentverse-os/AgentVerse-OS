@@ -1,0 +1,26 @@
+# rusty-kaspad-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  frontend:
+    depends_on:
+    - kaspad
+    image: elldee/kaspa-frontend:v0.4.1@sha256:a77573dfbc706b632ba24b9087685dc0b44d588c60b5399e2c2df2a19bd38a93
+    networks:
+      appnet:
+        aliases:
+        - rusty-kaspad_frontend_1
+    restart: on-failure
+    stop_grace_period: 1m
+  kaspad:
+    image: kaspanet/rusty-kaspad:v2.0.1@sha256:db36449e2f41cf33ab7c26683ce390cb71bdea9c403eefd2e740a7d5605bcd8b
+    networks:
+      appnet:
+        aliases:
+        - rusty-kaspad_kaspad_1
+    restart: on-failure
+    stop_grace_period: 3m
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/app/data

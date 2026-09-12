@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/databag-umbrel
+description: A tiny self-hosted federated messenger for the decentralized web
+endpoint:
+  port: 7000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/databag/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/databag/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/databag/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/databag/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: databag-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Databag
+type: app
+upstream:
+  author: Pierre Balzack
+  categories:
+  - social
+  release_notes: |-
+    This update of Databag brings the following changes:
+    - Rebuilt with the latest Go toolchain and security updates
+    - Includes server stability fixes for contact handling and hostname validation
+  source: https://github.com/balzack/databag
+  version: 0.1.18
+  website: https://github.com/balzack/databag
+website: https://github.com/balzack/databag

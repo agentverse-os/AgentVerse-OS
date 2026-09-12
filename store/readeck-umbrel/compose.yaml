@@ -1,0 +1,33 @@
+# readeck-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      READECK_LOG_FORMAT: text
+      READECK_LOG_LEVEL: info
+      READECK_SECRET_KEY: ${APP_SEED}
+      READECK_SERVER_HOST: 0.0.0.0
+      READECK_SERVER_PORT: 8000
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - /bin/readeck
+      - healthcheck
+      - -config
+      - config.toml
+      timeout: 2s
+    image: codeberg.org/readeck/readeck:0.23.2@sha256:32bd82e457a3a9a3fffb161f55cfebf0fd7ffbc87ddf2fe7a321361905348f0a
+    networks:
+      appnet:
+        aliases:
+        - readeck_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/readeck

@@ -1,0 +1,13 @@
+# chatpad: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  chatpad:
+    image: ghcr.io/deiucanta/chatpad:latest
+    networks:
+      appnet:
+        aliases:
+        - chatpad_chatpad_1
+    restart: unless-stopped

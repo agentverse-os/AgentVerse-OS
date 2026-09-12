@@ -1,0 +1,61 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rotki-umbrel
+description: Portfolio tracking, analytics, accounting and tax reporting
+endpoint:
+  port: 80
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/rotki/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/rotki/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/rotki/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/rotki/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/rotki/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: rotki-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: rotki
+type: app
+upstream:
+  author: Rotki
+  categories:
+  - finance
+  release_notes: |-
+    This major release adds new portfolio analysis workflows, expanded exchange/protocol support, and a Docker runtime overhaul.
+
+    Key highlights include:
+      - Added a local MCP server for premium users to analyze rotki data with compatible AI assistants
+      - Redesigned filters, saved views, and history-event actions across the app
+      - Added cross-chain bridge matching, a rebuilt balance snapshot editor, and support for Gate, CoinEx, and Bit2Me
+      - Added new decoders and support for Project X, Frankencoin Savings, Kinetiq, Yearn vesting escrows, Solana staking, Jupiter Lend Earn, Across, LI.FI, and more
+      - History events may need to be redecoded after upgrade; edited events are left untouched
+      - The Docker image now uses a distroless runtime, stops more cleanly, and keeps existing ports, volumes, and environment variables working
+
+
+    Full release notes are found at https://github.com/rotki/rotki/releases/tag/v1.44.0
+  source: https://github.com/rotki/rotki
+  version: 1.44.0
+  website: https://rotki.com
+website: https://rotki.com

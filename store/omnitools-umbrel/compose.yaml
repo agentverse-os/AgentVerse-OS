@@ -1,0 +1,15 @@
+# omnitools-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    image: iib0011/omni-tools:0.6.0@sha256:3f35a17d8d81caa33c7caec0198eb561dee212a5f48d8303d8f7b182c930fb71
+    networks:
+      appnet:
+        aliases:
+        - omnitools_app_1
+    restart: on-failure
+    security_opt:
+    - no-new-privileges:true

@@ -1,0 +1,17 @@
+# pingvin-share-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: stonith404/pingvin-share:v1.13.0@sha256:6bf2bcd3043ee68cb61264f0857511ccf7f212fdb984382b7f2d491635184ad6
+    networks:
+      appnet:
+        aliases:
+        - pingvin-share_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/backend:/opt/app/backend/data
+    - ${APP_DATA_DIR}/data/images:/opt/app/frontend/public/img

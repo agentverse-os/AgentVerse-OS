@@ -1,0 +1,75 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kimai
+description: Open source time-tracker
+endpoint:
+  port: 80
+  service: kimai-proxy
+env:
+  KIMAI_ADMINMAIL: ''
+  KIMAI_ADMINPASS:
+    generate: password
+  KIMAI_DATABASE_PASSWORD:
+    generate: token
+  KIMAI_DATABASE_ROOT_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: kimai
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: KIMAI_DATABASE_ROOT_PASSWORD
+  hint: null
+  label: KIMAI_DATABASE_ROOT_PASSWORD
+  options: null
+  required: false
+  type: random
+- env: KIMAI_DATABASE_PASSWORD
+  hint: null
+  label: KIMAI_DATABASE_PASSWORD
+  options: null
+  required: false
+  type: random
+- env: KIMAI_ADMINMAIL
+  hint: null
+  label: Admin email
+  options: null
+  required: true
+  type: text
+- env: KIMAI_ADMINPASS
+  hint: null
+  label: Admin password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Kimai
+type: app
+upstream:
+  author: Kevin Papst
+  categories:
+  - utilities
+  source: https://github.com/kimai/kimai
+  tipi_version: 6
+  version: fpm-2.19.1-prod
+website: https://github.com/kimai/kimai

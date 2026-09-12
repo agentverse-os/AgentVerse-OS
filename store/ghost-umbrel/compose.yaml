@@ -1,0 +1,36 @@
+# ghost-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      MYSQL_ROOT_PASSWORD: umbrel
+    image: mysql:8.4.4@sha256:339598fe066c73daa4120f2d9dfefd3146c3519cd324748e1d3f9d2b6c71d10b
+    networks:
+      appnet:
+        aliases:
+        - ghost_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql:rw
+  web:
+    environment:
+      database__client: mysql
+      database__connection__database: ghost
+      database__connection__host: ghost_db_1
+      database__connection__password: umbrel
+      database__connection__user: root
+      security__staffDeviceVerification: 'false'
+      url: http://${DEVICE_DOMAIN_NAME}:3368
+    image: ghost:6.62.0@sha256:a7a268bbfb7fa5596aac95ed05a2b782a0792643211ed3fb9d441f2ccb06cec3
+    networks:
+      appnet:
+        aliases:
+        - ghost_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/content:/var/lib/ghost/content:rw

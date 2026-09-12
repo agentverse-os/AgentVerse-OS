@@ -1,0 +1,19 @@
+# recyclarr: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  recyclarr:
+    environment:
+      RECYCLARR_CREATE_CONFIG: ${RECYCLARR_CREATE_CONFIG-true}
+      TZ: ${TZ}
+    image: ghcr.io/recyclarr/recyclarr:8.7.1
+    networks:
+      appnet:
+        aliases:
+        - recyclarr_recyclarr_1
+    restart: unless-stopped
+    user: ${TIPI_UID}:${TIPI_GID}
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config

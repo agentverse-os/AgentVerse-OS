@@ -1,0 +1,75 @@
+# traccar-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  traccar-inline-1:
+    content: |
+      <?xml version='1.0' encoding='UTF-8'?>
+      <!DOCTYPE properties SYSTEM 'http://java.sun.com/dtd/properties.dtd'>
+      <properties>
+          <entry key='config.default'>./conf/default.xml</entry>
+          <entry key='database.driver'>org.postgresql.Driver</entry>
+          <entry key='database.url'>jdbc:postgresql://postgres:5432/traccar</entry>
+      </properties>
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgres:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-traccar}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - traccar-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - traccar-postgresql-data:/var/lib/postgresql/data/
+  traccar:
+    configs:
+    - source: traccar-inline-1
+      target: /opt/traccar/conf/traccar.xml
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_TRACCAR_8082=${SERVICE_URL_TRACCAR_8082}
+    - SERVICE_URL_TRACCARAPI_5159=${SERVICE_URL_TRACCARAPI_5159}
+    - CONFIG_USE_ENVIRONMENT_VARIABLES=${CONFIG_USE_ENVIRONMENT_VARIABLES:-true}
+    - DATABASE_USER=${SERVICE_USER_POSTGRES}
+    - DATABASE_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 15s
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=1
+      - --spider
+      - http://127.0.0.1:8082
+      timeout: 10s
+    image: traccar/traccar:latest
+    networks:
+      appnet:
+        aliases:
+        - traccar-coolify_traccar_1
+    restart: unless-stopped
+    volumes: []
+volumes:
+  traccar-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/traccar-postgresql-data
+      o: bind
+      type: none

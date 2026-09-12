@@ -1,0 +1,53 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/dozzle-with-auth-coolify
+description: Dozzle is a simple and lightweight web UI for Docker logs.
+endpoint:
+  port: 8080
+  service: dozzle
+env:
+  SERVICE_URL_DOZZLE_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: dozzle-with-auth-coolify
+notes:
+- 'dozzle: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- dozzle
+- docker
+- logs
+- web-ui
+title: Dozzle With Auth
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://dozzle.dev/
+  tags:
+  - dozzle
+  - docker
+  - logs
+  - web-ui
+  template: dozzle-with-auth.yaml
+website: https://dozzle.dev/

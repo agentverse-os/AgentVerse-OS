@@ -1,0 +1,79 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/soketi-coolify
+description: Soketi is your simple, fast, and resilient open-source WebSockets server.
+endpoint:
+  port: 6001
+  service: soketi
+env:
+  DEBUG: '0'
+  DEFAULT_APP_ENABLE_CLIENT_MESSAGES: ''
+  SERVICE_REALBASE64_64_SOKETIKEY:
+    generate: hex64
+  SERVICE_REALBASE64_64_SOKETISECRET:
+    generate: hex64
+  SERVICE_URL_SOKETI_6001: https://${APP_DOMAIN}
+  SERVICE_USER_SOKETI:
+    generate: password
+  SOKETI_PUSHER_SCHEME: https
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: SERVICE_USER_SOKETI
+name: soketi-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DEBUG
+  hint: 'по умолчанию: 0'
+  label: debug
+  options: null
+  required: false
+  type: text
+- env: SOKETI_PUSHER_SCHEME
+  hint: 'по умолчанию: https'
+  label: soketi pusher scheme
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_APP_ENABLE_CLIENT_MESSAGES
+  hint: null
+  label: default app enable client messages
+  options: null
+  required: false
+  type: text
+tags:
+- websockets
+- open
+- source
+- messaging
+title: Soketi
+type: app
+upstream:
+  categories:
+  - messaging
+  source: https://docs.soketi.app
+  tags:
+  - websockets
+  - open
+  - source
+  - messaging
+  template: soketi.yaml
+website: https://docs.soketi.app

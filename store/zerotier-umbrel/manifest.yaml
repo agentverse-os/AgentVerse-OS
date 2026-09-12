@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/zerotier-umbrel
+description: Access your Umbrel from anywhere with a peer-to-peer mesh VPN
+endpoint:
+  port: 8080
+  service: web
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_ZEROTIER_WEB_IP: 10.21.22.51
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/zerotier/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/zerotier/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/zerotier/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/zerotier/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: zerotier-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: ZeroTier
+type: app
+upstream:
+  author: ZeroTier, Inc.
+  categories:
+  - networking
+  release_notes: null
+  source: https://github.com/zerotier/ZeroTierOne
+  version: 1.14.2
+  website: https://www.zerotier.com
+website: https://www.zerotier.com

@@ -1,0 +1,71 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mosquitto-umbrel
+description: An open source MQTT broker
+endpoint:
+  port: 80
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/mosquitto/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mosquitto/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mosquitto/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/mosquitto/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mosquitto-umbrel
+notes:
+- 'порт 1883:1883 (broker) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Mosquitto
+type: app
+upstream:
+  author: Eclipse Foundation
+  categories:
+  - automation
+  release_notes: |-
+    This is a major new release with many new features and improvements:
+      - Added built-in WebSockets support that no longer requires libwebsockets
+      - Added support for PROXY protocol v1 and v2
+      - Added broker-created topic aliases for MQTT v5
+      - Added new `global_plugin`, `global_max_clients`, and `global_max_connections` options
+      - Added `accept_protocol_versions` option to limit which MQTT versions are allowed per listener
+      - Added `--test-config` option to validate configuration before going live
+      - Added support for PUID/PGID environment variables for setting user/group privileges
+      - Added `bridge_receive_maximum` and `bridge_session_expiry_interval` options for MQTT v5 bridges
+      - Improved idle performance by reducing unnecessary process wakeups
+      - Added new acl-file, password-file, persist-sqlite, and sparkplug-aware plugins
+      - Dynamic security plugin now generates an initial configuration if none is present
+      - ⚠️ `max_packet_size` now defaults to 2,000,000 bytes instead of 256MB - update your config if you use large payloads
+      - ⚠️ The `acl_file` and `password_file` options are deprecated in favour of the new plugins
+      - ⚠️ Support for TLS v1.1 has been removed
+      - ⚠️ Support for OpenSSL versions older than 3.0 has been removed
+      - Fixed PUID/PGID checking for Docker
+      - Fixed persistence plugin conflict when used alongside `persistence true`
+      - Various build fixes including missing libedit in Docker builds
+
+
+    Full release notes can be found at https://mosquitto.org/blog/
+  source: https://github.com/eclipse-mosquitto/mosquitto
+  version: 2.1.2
+  website: https://mosquitto.org/
+website: https://mosquitto.org/

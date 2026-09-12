@@ -1,0 +1,48 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/whoogle-coolify
+description: Whoogle is a self-hosted, privacy-focused search engine front-end for accessing Google search results without tracking and data collection.
+endpoint:
+  port: 5000
+  service: whoogle
+env:
+  SERVICE_URL_WHOOGLE_5000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: whoogle-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- privacy
+- search engine
+title: Whoogle
+type: app
+upstream:
+  categories:
+  - search
+  source: https://github.com/benbusby/whoogle-search?tab=readme-ov-file
+  tags:
+  - privacy
+  - search engine
+  template: whoogle.yaml
+website: https://github.com/benbusby/whoogle-search?tab=readme-ov-file

@@ -1,0 +1,59 @@
+# ollama-with-open-webui-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  ollama-api:
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - ollama
+      - list
+      timeout: 30s
+    image: ollama/ollama:latest
+    networks:
+      appnet:
+        aliases:
+        - ollama-with-open-webui-coolify_ollama-api_1
+    restart: unless-stopped
+    volumes:
+    - ollama:/root/.ollama
+  open-webui:
+    depends_on:
+    - ollama-api
+    environment:
+    - SERVICE_URL_OLLAMA_8080=${SERVICE_URL_OLLAMA_8080}
+    - OLLAMA_BASE_URL=http://ollama-api:11434
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8080
+      timeout: 30s
+    image: ghcr.io/open-webui/open-webui:main
+    networks:
+      appnet:
+        aliases:
+        - ollama-with-open-webui-coolify_open-webui_1
+    restart: unless-stopped
+    volumes:
+    - open-webui:/app/backend/data
+volumes:
+  ollama:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/ollama
+      o: bind
+      type: none
+  open-webui:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/open-webui
+      o: bind
+      type: none

@@ -1,0 +1,27 @@
+# windows: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  windows:
+    cap_add:
+    - NET_ADMIN
+    devices:
+    - /dev/kvm
+    environment:
+      CPU_CORE: ${WINDOWS_CPU_CORES}
+      DISK_SIZE: ${WINDOWS_DISK_SIZE_GB}G
+      RAM_SIZE: ${WINDOWS_RAM_GB}G
+      VERSION: ${WINDOWS_VERSION}
+    image: dockurr/windows:6.05
+    networks:
+      appnet:
+        aliases:
+        - windows_windows_1
+    restart: unless-stopped
+    stop_grace_period: 2m
+    sysctls:
+      net.ipv4.ip_forward: 1
+    volumes:
+    - ${APP_DATA_DIR}/data/storage:/storage

@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kasm-workspaces
+description: Container streaming platform.
+endpoint:
+  port: 8744
+  service: kasm-workspaces
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: kasm-workspaces
+notes:
+- 'порт 8743→3000 (kasm-workspaces) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Kasm Workspaces
+type: app
+upstream:
+  author: Kasm
+  categories:
+  - utilities
+  source: https://github.com/kasmtech
+  tipi_version: 6
+  version: 1.120.20221218
+website: https://github.com/kasmtech

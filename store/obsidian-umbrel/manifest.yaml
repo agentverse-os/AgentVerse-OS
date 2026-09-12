@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/obsidian-umbrel
+description: The private and flexible writing app that adapts to the way you think
+endpoint:
+  port: 3000
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/obsidian/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/obsidian/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/obsidian/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/obsidian/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: obsidian-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Obsidian
+type: app
+upstream:
+  author: Obsidian
+  categories:
+  - files
+  release_notes: |-
+    This release of Obsidian brings a bug fix:
+      - Fixed numbering issues in lists with leading spaces or within block quotes
+
+    Full release notes are available at https://obsidian.md/changelog/
+  source: https://github.com/linuxserver/docker-obsidian
+  version: 1.8.10
+  website: https://obsidian.md/
+website: https://obsidian.md/

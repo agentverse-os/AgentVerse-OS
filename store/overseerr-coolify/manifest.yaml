@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/overseerr-coolify
+description: Overseerr is a request management and media discovery tool built to work with your existing Plex ecosystem.
+endpoint:
+  port: 5055
+  service: overseerr
+env:
+  SERVICE_URL_OVERSEERR_5055: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: overseerr-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- media
+- request
+- plex
+- sonarr
+- radarr
+title: Overseerr
+type: app
+upstream:
+  categories:
+  - media
+  source: https://docs.overseerr.dev/getting-started/installation#docker
+  tags:
+  - media
+  - request
+  - plex
+  - sonarr
+  - radarr
+  template: overseerr.yaml
+website: https://docs.overseerr.dev/getting-started/installation#docker

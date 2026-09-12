@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/passky-client-umbrel
+description: Simple, modern, lightweight, open source and secure password manager
+endpoint:
+  port: 80
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/passky-client/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/passky-client/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/passky-client/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/passky-client/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/passky-client/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/passky-client/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: passky-client-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Passky Client
+type: app
+upstream:
+  author: Rabbit Company LLC
+  categories:
+  - files
+  release_notes: null
+  source: https://github.com/Rabbit-Company/Passky-Website
+  version: 8.1.1
+  website: https://passky.org
+website: https://passky.org

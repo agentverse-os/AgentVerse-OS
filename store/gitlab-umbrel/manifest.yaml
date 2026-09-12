@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gitlab-umbrel
+description: Software. Faster.
+endpoint:
+  port: 8929
+  service: gitlab
+env:
+  APP_PASSWORD:
+    generate: password
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/gitlab/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/gitlab/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/gitlab/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/gitlab/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: root
+name: gitlab-umbrel
+notes:
+- 'порт 2424:22 (gitlab) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: GitLab
+type: app
+upstream:
+  author: GitLab
+  categories:
+  - developer
+  release_notes: |-
+    Updates GitLab CE from 19.3.0 to 19.3.1.
+
+    ⚠️ Upgrade note: GitLab 19 required upgrade stops are 19.2, 19.5, 19.8, and 19.11. Users updating from older releases may see the UI unavailable while database and background migrations finish.
+    This patch release includes security fixes for SCIM and OAuth username validation, import job limits, merge request approval rules, policy job trust checks, and terminal websocket authorization.
+    It also includes a deployments database-cleanup fix.
+
+    Full changelog: https://github.com/gitlabhq/gitlabhq/blob/v19.3.1/CHANGELOG.md
+    Full upgrade notes are available at: https://docs.gitlab.com/update/versions/gitlab_19_changes/
+  source: https://gitlab.com/gitlab-org/omnibus-gitlab/tree/master/docker
+  version: 19.3.1
+  website: https://about.gitlab.com
+website: https://about.gitlab.com

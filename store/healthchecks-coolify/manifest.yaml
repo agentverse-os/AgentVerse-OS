@@ -1,0 +1,129 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/healthchecks-coolify
+description: Healthchecks is a cron job monitoring service. It listens for HTTP requests and email messages from your cron jobs and scheduled tasks.
+endpoint:
+  port: 8000
+  service: healthchecks
+env:
+  ALLOWED_HOSTS: '*'
+  DEBUG: 'False'
+  DEFAULT_FROM_EMAIL: fixme-email-address-here
+  EMAIL_HOST: my-smtp-server-here.com
+  EMAIL_HOST_PASSWORD: mypassword
+  EMAIL_HOST_USER: my_username
+  EMAIL_PORT: '465'
+  EMAIL_USE_SSL: 'True'
+  EMAIL_USE_TLS: 'False'
+  REGISTRATION_OPEN: 'True'
+  SERVICE_URL_HEALTHCHECKS: https://${APP_DOMAIN}
+  SERVICE_URL_HEALTHCHECKS_8000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: healthchecks-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ALLOWED_HOSTS
+  hint: 'по умолчанию: *'
+  label: allowed hosts
+  options: null
+  required: false
+  type: text
+- env: REGISTRATION_OPEN
+  hint: 'по умолчанию: True'
+  label: registration open
+  options: null
+  required: false
+  type: text
+- env: DEBUG
+  hint: 'по умолчанию: False'
+  label: debug
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_FROM_EMAIL
+  hint: 'по умолчанию: fixme-email-address-here'
+  label: default from email
+  options: null
+  required: false
+  type: text
+- env: EMAIL_HOST
+  hint: 'по умолчанию: my-smtp-server-here.com'
+  label: email host
+  options: null
+  required: false
+  type: text
+- env: EMAIL_PORT
+  hint: 'по умолчанию: 465'
+  label: email port
+  options: null
+  required: false
+  type: text
+- env: EMAIL_HOST_USER
+  hint: 'по умолчанию: my_username'
+  label: email host user
+  options: null
+  required: false
+  type: text
+- env: EMAIL_HOST_PASSWORD
+  hint: 'по умолчанию: mypassword'
+  label: email host password
+  options: null
+  required: false
+  type: password
+- env: EMAIL_USE_SSL
+  hint: 'по умолчанию: True'
+  label: email use ssl
+  options: null
+  required: false
+  type: text
+- env: EMAIL_USE_TLS
+  hint: 'по умолчанию: False'
+  label: email use tls
+  options: null
+  required: false
+  type: text
+tags:
+- monitoring
+- status
+- performance
+- web
+- services
+- applications
+- real-time
+title: Healthchecks
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://healthchecks.io/docs
+  tags:
+  - monitoring
+  - status
+  - performance
+  - web
+  - services
+  - applications
+  - real-time
+  template: healthchecks.yaml
+website: https://healthchecks.io/docs

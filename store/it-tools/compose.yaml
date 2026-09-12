@@ -1,0 +1,13 @@
+# it-tools: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  it-tools:
+    image: corentinth/it-tools:latest
+    networks:
+      appnet:
+        aliases:
+        - it-tools_it-tools_1
+    restart: unless-stopped

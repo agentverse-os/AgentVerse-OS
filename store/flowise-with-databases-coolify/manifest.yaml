@@ -1,0 +1,118 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/flowise-with-databases-coolify
+description: Flowise is an open source low-code tool for developers to build customized LLM orchestration flows & AI agents. Also deploys Redis, Postgres and other services.
+endpoint:
+  port: 3001
+  service: qdrant
+env:
+  DEBUG: 'false'
+  DISABLE_FLOWISE_TELEMETRY: 'true'
+  PORT: '3001'
+  POSTGRES_DB: pg-record-manager
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_FLOWISE:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_QDRANTAPIKEY:
+    generate: password
+  SERVICE_URL_FLOWISE_3001: https://${APP_DOMAIN}
+  SERVICE_URL_QDRANT_6333: https://${APP_DOMAIN}
+  SERVICE_USER_FLOWISE:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_FLOWISE
+  path: null
+  user: SERVICE_USER_FLOWISE
+name: flowise-with-databases-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DEBUG
+  hint: 'по умолчанию: false'
+  label: debug
+  options: null
+  required: false
+  type: text
+- env: DISABLE_FLOWISE_TELEMETRY
+  hint: 'по умолчанию: true'
+  label: disable flowise telemetry
+  options: null
+  required: false
+  type: text
+- env: PORT
+  hint: 'по умолчанию: 3001'
+  label: port
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: pg-record-manager'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- lowcode
+- nocode
+- ai
+- llm
+- openai
+- anthropic
+- machine-learning
+- rag
+- agents
+- chatbot
+- api
+- team
+- bot
+- flows
+title: Flowise With Databases
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://docs.flowiseai.com/
+  tags:
+  - lowcode
+  - nocode
+  - ai
+  - llm
+  - openai
+  - anthropic
+  - machine-learning
+  - rag
+  - agents
+  - chatbot
+  - api
+  - team
+  - bot
+  - flows
+  template: flowise-with-databases.yaml
+website: https://docs.flowiseai.com/

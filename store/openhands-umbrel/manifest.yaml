@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/openhands-umbrel
+description: A local AI agent for writing and improving code
+endpoint:
+  port: 3000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/openhands/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/openhands/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/openhands/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/openhands/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/openhands/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/openhands/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: openhands-umbrel
+notes:
+- 'порт 10.32.0.1:3994:3000 (web) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: OpenHands
+type: app
+upstream:
+  author: All Hands AI, Inc
+  categories:
+  - ai
+  release_notes: |-
+    This update adds improved LLM and ACP agent settings, MCP server configuration support, semantic file chunking, plugin marketplace support, and usage/monitoring dashboard updates.
+
+    It also fixes settings page scrolling, MCP configuration handling, marketplace URL authentication, and a database migration issue that affected the 1.9.x line.
+
+    Full release notes can be found at https://github.com/OpenHands/OpenHands/releases/tag/1.10.0
+  source: https://github.com/All-Hands-AI/OpenHands
+  version: 1.10.0
+  website: https://www.all-hands.dev/
+website: https://www.all-hands.dev/

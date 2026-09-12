@@ -1,0 +1,75 @@
+# movary: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  movary:
+    depends_on:
+      movary-db:
+        condition: service_healthy
+    environment:
+      APPLICATION_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      DATABASE_MODE: mysql
+      DATABASE_MYSQL_HOST: movary-db
+      DATABASE_MYSQL_NAME: movary
+      DATABASE_MYSQL_PASSWORD: ${MOVARY_MYSQL_PASSWORD}
+      DATABASE_MYSQL_USER: tipi
+      JELLYFIN_DEVICE_ID: ${MOVARY_JELLYFIN_IDENTIFIER}
+      PLEX_IDENTIFIER: ${MOVARY_PLEX_IDENTIFIER}
+      TIMEZONE: ${TZ}
+      TMDB_API_KEY: ${MOVARY_TMDB_API_KEY}
+      TMDB_ENABLE_IMAGE_CACHING: '1'
+    image: leepeuker/movary:0.72.0
+    networks:
+      appnet:
+        aliases:
+        - movary_movary_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/movary:/app/storage
+  movary-db:
+    environment:
+      MYSQL_DATABASE: movary
+      MYSQL_PASSWORD: ${MOVARY_MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MOVARY_MYSQL_PASSWORD}
+      MYSQL_USER: tipi
+    healthcheck:
+      retries: 10
+      test: mysqladmin ping -h localhost
+      timeout: 20s
+    image: mysql:8.0
+    networks:
+      appnet:
+        aliases:
+        - movary_movary-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mysql:/var/lib/mysql
+  movary-migration:
+    command: php bin/console.php database:migration:migrate
+    depends_on:
+      movary-db:
+        condition: service_healthy
+    environment:
+      APPLICATION_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      DATABASE_MODE: mysql
+      DATABASE_MYSQL_HOST: movary-db
+      DATABASE_MYSQL_NAME: movary
+      DATABASE_MYSQL_PASSWORD: ${MOVARY_MYSQL_PASSWORD}
+      DATABASE_MYSQL_USER: tipi
+      JELLYFIN_DEVICE_ID: ${MOVARY_JELLYFIN_IDENTIFIER}
+      PLEX_IDENTIFIER: ${MOVARY_PLEX_IDENTIFIER}
+      TIMEZONE: ${TZ}
+      TMDB_API_KEY: ${MOVARY_TMDB_API_KEY}
+      TMDB_ENABLE_IMAGE_CACHING: '1'
+    image: leepeuker/movary:0.72.0
+    networks:
+      appnet:
+        aliases:
+        - movary_movary-migration_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/movary:/app/storage

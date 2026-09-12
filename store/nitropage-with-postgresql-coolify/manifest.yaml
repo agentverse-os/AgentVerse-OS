@@ -1,0 +1,87 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nitropage-with-postgresql-coolify
+description: Nitropage is an extensible, visual website builder, offering a growing library of versatile building blocks, focal-point image cropping and sovereign font management.
+endpoint:
+  port: 3000
+  service: nitropage
+env:
+  POSTGRESQL_DATABASE: nitropage
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_BASE64_SALT:
+    generate: hex64
+  SERVICE_PASSWORD_64_SESSION:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_NITROPAGE_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nitropage-with-postgresql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: nitropage'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- nitropage
+- builder
+- editor
+- wysiwyg
+- cms
+- content
+- management
+title: Nitropage With Postgresql
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://nitropage.org
+  tags:
+  - nitropage
+  - builder
+  - editor
+  - wysiwyg
+  - cms
+  - content
+  - management
+  template: nitropage-with-postgresql.yaml
+website: https://nitropage.org

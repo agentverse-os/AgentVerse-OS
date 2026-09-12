@@ -1,0 +1,49 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/dtan-server-umbrel
+description: Nostr-based torrent distribution network
+endpoint:
+  port: 8000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/dtan-server/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dtan-server/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dtan-server/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dtan-server/4.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/dtan-server/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: dtan-server-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: DTAN Server
+type: app
+upstream:
+  author: v0l
+  categories:
+  - networking
+  release_notes: null
+  source: https://github.com/v0l/dtan-server
+  version: v0.2.0
+  website: https://github.com/v0l/dtan-server
+website: https://github.com/v0l/dtan-server

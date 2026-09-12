@@ -1,0 +1,51 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/jenkins-coolify
+description: Jenkins is an open source automation server, Jenkins provides hundreds of plugins to support building, deploying and automating any project.
+endpoint:
+  port: 8080
+  service: jenkins
+env:
+  SERVICE_URL_JENKINS_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: jenkins-coolify
+notes:
+- 'jenkins: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- jenkins
+- automation
+- open-source
+title: Jenkins
+type: app
+upstream:
+  categories:
+  - ci
+  source: https://www.jenkins.io/doc/
+  tags:
+  - jenkins
+  - automation
+  - open-source
+  template: jenkins.yaml
+website: https://www.jenkins.io/doc/

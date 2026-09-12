@@ -1,0 +1,20 @@
+# donetick-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+    - DT_ENV=selfhosted
+    - DT_SQLITE_PATH=/donetick-data/donetick.db
+    image: donetick/donetick:v0.1.79@sha256:a1cc21dd5a37acb5009009f13e5d2529153049361afb0a1cd94bde312382d36a
+    networks:
+      appnet:
+        aliases:
+        - donetick_app_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/donetick-data
+    - ${APP_DATA_DIR}/data/config:/config

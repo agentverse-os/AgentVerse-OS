@@ -1,0 +1,90 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bewcloud
+description: The Simple Web Cloud Solution.
+endpoint:
+  port: 8053
+  service: bewcloud
+env:
+  ALLOW_SIGNUPS: 'false'
+  BREVO_API_KEY:
+    generate: password
+  DB_PASSWORD:
+    generate: token
+  ENABLE_EMAIL: 'false'
+  JWT_SECRET:
+    generate: hex64
+  PASSWORD_SALT:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bewcloud
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ALLOW_SIGNUPS
+  hint: Even if disabled, the first signup will work and become an admin.
+  label: Allow new registrations
+  options: null
+  required: false
+  type: boolean
+- env: ENABLE_EMAIL
+  hint: You'll need a Brevo API key for this. See below.
+  label: Enable email verification for new signups
+  options: null
+  required: false
+  type: boolean
+- env: BREVO_API_KEY
+  hint: Used to send verification emails upon signup. More info at https://developers.brevo.com/docs/getting-started#using-your-api-key-to-authenticate.
+  label: Brevo API key
+  options: null
+  required: false
+  type: password
+- env: DB_PASSWORD
+  hint: null
+  label: Database password
+  options: null
+  required: false
+  type: random
+- env: JWT_SECRET
+  hint: null
+  label: JWT secret
+  options: null
+  required: false
+  type: random
+- env: PASSWORD_SALT
+  hint: null
+  label: Password salt
+  options: null
+  required: false
+  type: random
+tags: []
+title: bewCloud
+type: app
+upstream:
+  author: bewcloud
+  categories:
+  - data
+  source: https://github.com/bewcloud/bewcloud
+  tipi_version: 14
+  version: v1.9.2
+website: https://github.com/bewcloud/bewcloud

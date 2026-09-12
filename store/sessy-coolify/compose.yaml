@@ -1,0 +1,34 @@
+# sessy-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  sessy:
+    environment:
+    - SERVICE_URL_SESSY_80=${SERVICE_URL_SESSY_80}
+    - SECRET_KEY_BASE=$SERVICE_HEX_64_SESSYSECRET
+    - HTTP_AUTH_USERNAME=$SERVICE_USER_SESSY
+    - HTTP_AUTH_PASSWORD=$SERVICE_PASSWORD_SESSY
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - curl -sf http://127.0.0.1:80 || [ $? -eq 22 ]
+      timeout: 10s
+    image: ghcr.io/marckohlbrugge/sessy:main
+    networks:
+      appnet:
+        aliases:
+        - sessy-coolify_sessy_1
+    restart: unless-stopped
+    volumes:
+    - sessy-data:/rails/storage
+volumes:
+  sessy-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sessy-data
+      o: bind
+      type: none

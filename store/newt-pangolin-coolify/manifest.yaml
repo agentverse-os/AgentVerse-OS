@@ -1,0 +1,58 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/newt-pangolin-coolify
+description: Pangolin tunnels your services to the internet so you can access anything from anywhere.
+endpoint:
+  port: 80
+  service: newt
+env:
+  PANGOLIN_ENDPOINT: https://pangolin.domain.tld
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: newt-pangolin-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PANGOLIN_ENDPOINT
+  hint: 'по умолчанию: https://pangolin.domain.tld'
+  label: pangolin endpoint
+  options: null
+  required: false
+  type: text
+tags:
+- wireguard
+- reverse-proxy
+- zero-trust-network-access
+- open source
+title: Newt Pangolin
+type: app
+upstream:
+  categories:
+  - proxy
+  source: https://docs.digpangolin.com/manage/sites/install-site
+  tags:
+  - wireguard
+  - reverse-proxy
+  - zero-trust-network-access
+  - open source
+  template: newt-pangolin.yaml
+website: https://docs.digpangolin.com/manage/sites/install-site

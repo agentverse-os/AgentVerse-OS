@@ -1,0 +1,55 @@
+# bitmagnet-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  bitmagnet:
+    command:
+    - worker
+    - run
+    - --keys=http_server
+    - --keys=queue_server
+    - --keys=dht_crawler
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      HOME: /tmp
+      POSTGRES_HOST: bitmagnet_postgres_1
+      POSTGRES_NAME: bitmagnet
+      POSTGRES_PASSWORD: ${APP_PASSWORD}
+      POSTGRES_USER: postgres
+      XDG_CONFIG_HOME: /config
+    image: ghcr.io/bitmagnet-io/bitmagnet:v0.10.0@sha256:cf2c16fac5b51f1c18e630b4710175d35d7e44b83012cfd05a2b43712feec05e
+    networks:
+      appnet:
+        aliases:
+        - bitmagnet_bitmagnet_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config/bitmagnet
+  postgres:
+    environment:
+      PGUSER: postgres
+      POSTGRES_DB: bitmagnet
+      POSTGRES_PASSWORD: ${APP_PASSWORD}
+      POSTGRES_USER: postgres
+    healthcheck:
+      interval: 10s
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - pg_isready
+    image: postgres:16-alpine@sha256:23e88eb049fd5d54894d70100df61d38a49ed97909263f79d4ff4c30a5d5fca2
+    networks:
+      appnet:
+        aliases:
+        - bitmagnet_postgres_1
+    restart: on-failure
+    shm_size: 1g
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data

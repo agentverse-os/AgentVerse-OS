@@ -1,0 +1,132 @@
+# maybe-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  maybe:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_MAYBE=${SERVICE_URL_MAYBE}
+    - SELF_HOSTED=true
+    - RAILS_FORCE_SSL=${RAILS_FORCE_SSL:-false}
+    - RAILS_ASSUME_SSL=${RAILS_ASSUME_SSL:-false}
+    - GOOD_JOB_EXECUTION_MODE=${GOOD_JOB_EXECUTION_MODE:-async}
+    - SECRET_KEY_BASE=${SERVICE_BASE64_64_SECRETKEYBASE}
+    - DB_HOST=postgres
+    - POSTGRES_DB=${POSTGRES_DB:-maybe-db}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - DB_PORT=5432
+    - REDIS_URL=redis://default:${SERVICE_PASSWORD_REDIS}@redis:6379/1
+    - OPENAI_ACCESS_TOKEN=${OPENAI_ACCESS_TOKEN}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:3000
+      timeout: 10s
+    image: ghcr.io/maybe-finance/maybe:latest
+    networks:
+      appnet:
+        aliases:
+        - maybe-coolify_maybe_1
+    restart: unless-stopped
+    volumes:
+    - app_storage:/rails/storage
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-maybe-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - maybe-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - maybe_postgres_data:/var/lib/postgresql/data
+  redis:
+    command: redis-server --appendonly yes --requirepass ${SERVICE_PASSWORD_REDIS}
+    environment:
+    - REDIS_PASSWORD=${SERVICE_PASSWORD_REDIS}
+    - REDIS_PORT=6379
+    - REDIS_DB=1
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+      - CMD
+      - redis-cli
+      - --pass
+      - ${SERVICE_PASSWORD_REDIS}
+      - ping
+      timeout: 3s
+    image: redis:8-alpine
+    networks:
+      appnet:
+        aliases:
+        - maybe-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - redis_data:/data
+  worker:
+    command: bundle exec sidekiq
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-maybe-db}
+    - SECRET_KEY_BASE=${SERVICE_BASE64_64_SECRETKEYBASE}
+    - SELF_HOSTED=true
+    - RAILS_FORCE_SSL=${RAILS_FORCE_SSL:-false}
+    - RAILS_ASSUME_SSL=${RAILS_ASSUME_SSL:-false}
+    - GOOD_JOB_EXECUTION_MODE=${GOOD_JOB_EXECUTION_MODE:-async}
+    - DB_HOST=postgres
+    - DB_PORT=5432
+    - REDIS_URL=redis://default:${SERVICE_PASSWORD_REDIS}@redis:6379/1
+    - OPENAI_ACCESS_TOKEN=${OPENAI_ACCESS_TOKEN}
+    image: ghcr.io/maybe-finance/maybe:latest
+    networks:
+      appnet:
+        aliases:
+        - maybe-coolify_worker_1
+    restart: unless-stopped
+volumes:
+  app_storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/app_storage
+      o: bind
+      type: none
+  maybe_postgres_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/maybe_postgres_data
+      o: bind
+      type: none
+  redis_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis_data
+      o: bind
+      type: none

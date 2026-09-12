@@ -1,0 +1,46 @@
+[package]
+name = "cloudd"
+version = "0.2.0"
+edition = "2021"
+description = "Cloud OS core: projects, workspaces (Coder → Incus), apps (App Runtime), grants (gate), routes (Caddy)"
+license = "Apache-2.0"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.8", features = ["macros"] }
+tower-http = { version = "0.6", features = ["trace", "cors"] }
+hyper = { version = "1", features = ["client", "http1"] }
+hyper-util = { version = "0.1", features = ["client", "client-legacy", "http1", "tokio"] }
+hyperlocal = "0.9"
+http-body-util = "0.1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+bollard = "0.19"
+futures-util = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml_ng = "0.10"
+clap = { version = "4", features = ["derive", "env"] }
+rusqlite = { version = "0.37", features = ["bundled"] }
+age = { version = "0.11", features = ["armor"] }
+secrecy = "0.10"
+rand = "0.9"
+uuid = { version = "1", features = ["v4", "serde"] }
+time = { version = "0.3", features = ["serde", "formatting", "parsing"] }
+anyhow = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+utoipa = { version = "5", features = ["axum_extras", "uuid", "time"] }
+rust-embed = { version = "8", features = ["axum", "mime-guess"] }
+mime_guess = "2"
+comfy-table = "7"
+regex-lite = "0.1"
+tar = "0.4"
+flate2 = "1"
+sha2 = "0.10"
+feed-rs = "2"
+urlencoding = "2"
+sysinfo = "0.33"
+
+[dev-dependencies]
+tempfile = "3"

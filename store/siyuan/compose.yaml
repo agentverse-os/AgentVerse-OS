@@ -1,0 +1,23 @@
+# siyuan: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  siyuan:
+    command:
+    - serve
+    - --workspace=/siyuan/workspace/
+    - --accessAuthCode=${SIYUAN_ACCESS_AUTH_CODE}
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+    image: b3log/siyuan:v3.8.2
+    networks:
+      appnet:
+        aliases:
+        - siyuan_siyuan_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/workspace:/siyuan/workspace/

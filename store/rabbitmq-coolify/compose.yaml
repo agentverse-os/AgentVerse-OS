@@ -1,0 +1,33 @@
+# rabbitmq-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  rabbitmq:
+    environment:
+    - SERVICE_URL_RABBITMQ_15672=${SERVICE_URL_RABBITMQ_15672}
+    - RABBITMQ_DEFAULT_USER=$SERVICE_USER_RABBITMQ
+    - RABBITMQ_DEFAULT_PASS=$SERVICE_PASSWORD_RABBITMQ
+    - PORT=${PORT:-5672}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: rabbitmq-diagnostics -q ping
+      timeout: 30s
+    hostname: rabbitmq
+    image: rabbitmq:3-management
+    networks:
+      appnet:
+        aliases:
+        - rabbitmq-coolify_rabbitmq_1
+    restart: unless-stopped
+    volumes:
+    - rabbitmq-data:/var/lib/rabbitmq/
+volumes:
+  rabbitmq-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/rabbitmq-data
+      o: bind
+      type: none

@@ -1,0 +1,30 @@
+# whisparr: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  whisparr:
+    environment:
+      PGID: ${WHISPARR_PGID-1000}
+      PUID: ${WHISPARR_PUID-1000}
+      TZ: ${TZ}
+      UMASK: ${WHISPARR_UMASK-002}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      test: timeout 5s bash -c ':> /dev/tcp/127.0.0.1/6969' || exit 1
+      timeout: 5s
+    hostname: ${APP_ID}
+    image: ghcr.io/hotio/whisparr:nightly-2.0.0.548
+    networks:
+      appnet:
+        aliases:
+        - whisparr_whisparr_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
+    - ${APP_DATA_DIR}/data:/config
+    - ${ROOT_FOLDER_HOST}/media:/media

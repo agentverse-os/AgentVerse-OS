@@ -1,0 +1,31 @@
+# nitter: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nitter:
+    depends_on:
+    - nitter-redis
+    healthcheck:
+      interval: 1m
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080
+      timeout: 3s
+    image: zedeus/nitter:latest
+    networks:
+      appnet:
+        aliases:
+        - nitter_nitter_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/nitter.conf:/src/nitter.conf:ro
+  nitter-redis:
+    command: redis-server --save 60 1 --loglevel warning
+    image: redis:alpine
+    networks:
+      appnet:
+        aliases:
+        - nitter_nitter-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

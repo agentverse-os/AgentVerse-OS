@@ -1,0 +1,81 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tolgee-coolify
+description: Tolgee is a localization management platform for developers and translators.
+endpoint:
+  port: 8080
+  service: tolgee
+env:
+  POSTGRESQL_DATABASE: tolgee
+  POSTGRES_DB: tolgee
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_JWT:
+    generate: password
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_PASSWORD_TOLGEE:
+    generate: password
+  SERVICE_URL_TOLGEE_8080: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_TOLGEE
+  path: null
+  user: admin
+name: tolgee-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: tolgee'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: tolgee'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- localization
+- translation
+- management
+- platform
+title: Tolgee
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://tolgee.io/
+  tags:
+  - localization
+  - translation
+  - management
+  - platform
+  template: tolgee.yaml
+website: https://tolgee.io/

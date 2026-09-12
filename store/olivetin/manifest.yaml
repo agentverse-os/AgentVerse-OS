@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/olivetin
+description: Give safe and simple access to predefined shell commands from a web interface.
+endpoint:
+  port: 1337
+  service: olivetin
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: olivetin
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Olivetin
+type: app
+upstream:
+  author: OliveTin
+  categories:
+  - utilities
+  source: https://github.com/OliveTin/OliveTin
+  tipi_version: 7
+  version: latest
+website: https://github.com/OliveTin/OliveTin

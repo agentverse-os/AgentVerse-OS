@@ -1,0 +1,10 @@
+# projects/alpha/project.yaml — источник истины проекта (2.7); Desktop правит этот файл, cloudd применяет идемпотентно.
+schema: 1
+project: alpha
+workspace:
+  runtime: incus-nesting        # incus | incus-nesting (Docker внутри) | incus-vm
+  cpu: 2
+  memory: 4GiB
+  home: 50GiB
+agents: [claude-code, codex]
+capabilities: [demo.http]       # → http://demo.http.gate из workspace, когда установлен whoami

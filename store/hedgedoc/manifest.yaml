@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/hedgedoc
+description: A Collaborative Markdown and Note Taking App
+endpoint:
+  port: 3000
+  service: hedgedoc
+env:
+  HEDGEDOC_ADDPORT: ''
+  HEDGEDOC_DB_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: hedgedoc
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: HEDGEDOC_DB_PASSWORD
+  hint: null
+  label: HEDGEDOC_DB_PASSWORD
+  options: null
+  required: false
+  type: random
+- env: HEDGEDOC_ADDPORT
+  hint: Set as false if you are exposing app, otherwise set as true
+  label: Add port to URL
+  options: null
+  required: true
+  type: text
+tags: []
+title: HedgeDoc
+type: app
+upstream:
+  author: https://github.com/hedgedoc
+  categories:
+  - media
+  source: https://github.com/hedgedoc/hedgedoc
+  tipi_version: 22
+  version: 1.12.0
+website: https://github.com/hedgedoc/hedgedoc

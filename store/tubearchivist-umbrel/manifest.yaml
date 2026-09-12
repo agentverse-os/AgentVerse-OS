@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tubearchivist-umbrel
+description: Self hosted YouTube media server
+endpoint:
+  port: 8000
+  service: server
+env:
+  APP_PASSWORD:
+    generate: password
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/tubearchivist/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/tubearchivist/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/tubearchivist/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/tubearchivist/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: tubearchivist-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Tube Archivist
+type: app
+upstream:
+  author: tubearchivist
+  categories:
+  - media
+  release_notes: |-
+    This release brings fixes and improvements to Tube Archivist:
+      - Updated yt-dlp support
+      - Added unit labels to speed limit, throttled rate limit, and sleep interval settings
+      - Updated the top navigation with a more compact layout
+      - Improved refresh API status details for queue and processing state
+      - Fixed startup crashes on older CPUs, missing channel metadata for channels without videos, and stale theme styles after upgrades
+
+
+    Full release notes can be found at https://github.com/tubearchivist/tubearchivist/releases/tag/v0.5.12
+  source: https://github.com/tubearchivist/tubearchivist
+  version: 0.5.12
+  website: https://www.tubearchivist.com/
+website: https://www.tubearchivist.com/

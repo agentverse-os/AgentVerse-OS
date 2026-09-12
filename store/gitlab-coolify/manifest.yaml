@@ -1,0 +1,167 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gitlab-coolify
+description: The all-in-one DevOps platform for seamless collaboration and continuous delivery.
+endpoint:
+  port: 80
+  service: gitlab
+env:
+  GITLAB_EMAIL_FROM: ''
+  GITLAB_EMAIL_REPLY_TO: ''
+  GITLAB_SMTP_ADDRESS: ''
+  GITLAB_SMTP_DOMAIN: ''
+  GITLAB_SMTP_ENABLE: 'false'
+  GITLAB_SMTP_PASSWORD: ''
+  GITLAB_SMTP_PORT: '587'
+  GITLAB_SMTP_TLS: 'false'
+  GITLAB_SMTP_USER_NAME: ''
+  GITLAB_STARTTLS_AUTO: 'true'
+  GITLAB_TIMEZONE: UTC
+  SERVICE_PASSWORD_GITLAB:
+    generate: password
+  SERVICE_URL_GITLAB: https://${APP_DOMAIN}
+  SERVICE_URL_GITLAB_80: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_GITLAB
+  path: null
+  user: null
+name: gitlab-coolify
+notes:
+- 'порт 2222:22 (gitlab) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GITLAB_TIMEZONE
+  hint: 'по умолчанию: UTC'
+  label: gitlab timezone
+  options: null
+  required: false
+  type: text
+- env: GITLAB_SMTP_ENABLE
+  hint: 'по умолчанию: false'
+  label: gitlab smtp enable
+  options: null
+  required: false
+  type: text
+- env: GITLAB_SMTP_PORT
+  hint: 'по умолчанию: 587'
+  label: gitlab smtp port
+  options: null
+  required: false
+  type: text
+- env: GITLAB_SMTP_USER_NAME
+  hint: null
+  label: gitlab smtp user name
+  options: null
+  required: false
+  type: text
+- env: GITLAB_SMTP_PASSWORD
+  hint: null
+  label: gitlab smtp password
+  options: null
+  required: false
+  type: password
+- env: GITLAB_SMTP_DOMAIN
+  hint: null
+  label: gitlab smtp domain
+  options: null
+  required: false
+  type: text
+- env: GITLAB_STARTTLS_AUTO
+  hint: 'по умолчанию: true'
+  label: gitlab starttls auto
+  options: null
+  required: false
+  type: text
+- env: GITLAB_SMTP_TLS
+  hint: 'по умолчанию: false'
+  label: gitlab smtp tls
+  options: null
+  required: false
+  type: text
+- env: GITLAB_EMAIL_FROM
+  hint: null
+  label: gitlab email from
+  options: null
+  required: false
+  type: text
+- env: GITLAB_SMTP_ADDRESS
+  hint: null
+  label: gitlab smtp address
+  options: null
+  required: false
+  type: text
+- env: GITLAB_EMAIL_REPLY_TO
+  hint: null
+  label: gitlab email reply to
+  options: null
+  required: false
+  type: text
+tags:
+- gitlab
+- devops
+- continuousintegration
+- continuousdelivery
+- versioncontrol
+- collaboration
+- ci/cd
+- sourcecodemanagement
+- automation
+- codereview
+- agiledevelopment
+- projectmanagement
+- opensource
+- repositoryhosting
+- pipelineautomation
+- git
+- softwaredevelopment
+- issuetracking
+- teamcollaboration
+- deploymentautomation
+- securityintegration
+title: Gitlab
+type: app
+upstream:
+  categories:
+  - git
+  source: https://docs.gitlab.com/ee/install/docker.html
+  tags:
+  - gitlab
+  - devops
+  - continuousintegration
+  - continuousdelivery
+  - versioncontrol
+  - collaboration
+  - ci/cd
+  - sourcecodemanagement
+  - automation
+  - codereview
+  - agiledevelopment
+  - projectmanagement
+  - opensource
+  - repositoryhosting
+  - pipelineautomation
+  - git
+  - softwaredevelopment
+  - issuetracking
+  - teamcollaboration
+  - deploymentautomation
+  - securityintegration
+  template: gitlab.yaml
+website: https://docs.gitlab.com/ee/install/docker.html

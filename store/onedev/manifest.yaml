@@ -1,0 +1,76 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/onedev
+description: Self-hosted Git Server with Kanban and CI/CD
+endpoint:
+  port: 6610
+  service: onedev
+env:
+  ONEDEV_DB_PASSWORD:
+    generate: token
+  ONEDEV_EMAIL: ''
+  ONEDEV_PASSWORD:
+    generate: password
+  ONEDEV_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: ONEDEV_PASSWORD
+  path: null
+  user: ONEDEV_EMAIL
+name: onedev
+notes:
+- 'порт 6611→6611 (onedev) не публикуется: доступ только через edge/gate'
+- 'onedev: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ONEDEV_DB_PASSWORD
+  hint: null
+  label: DB_PASSWORD
+  options: null
+  required: false
+  type: random
+- env: ONEDEV_USERNAME
+  hint: null
+  label: Onedev username
+  options: null
+  required: true
+  type: text
+- env: ONEDEV_EMAIL
+  hint: null
+  label: Onedev email
+  options: null
+  required: true
+  type: email
+- env: ONEDEV_PASSWORD
+  hint: null
+  label: Onedev password
+  options: null
+  required: true
+  type: password
+tags: []
+title: OneDev
+type: app
+upstream:
+  author: https://code.onedev.io/
+  categories:
+  - development
+  source: https://code.onedev.io/onedev/server
+  tipi_version: 257
+  version: 16.5.11
+website: https://code.onedev.io/onedev/server

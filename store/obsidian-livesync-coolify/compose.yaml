@@ -1,0 +1,64 @@
+# obsidian-livesync-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  couchdb-inline-1:
+    content: |
+      [couchdb]
+      single_node=true
+      max_document_size = ${MAX_DOCUMENT_SIZE}
+
+      [chttpd]
+      require_valid_user = true
+      max_http_request_size = ${MAX_HTTP_REQUEST_SIZE}
+
+      [chttpd_auth]
+      require_valid_user = true
+      authentication_redirect = /_utils/session.html
+
+      [httpd]
+      WWW-Authenticate = Basic realm="couchdb"
+      enable_cors = true
+
+      [cors]
+      origins = app://obsidian.md,capacitor://localhost,http://localhost
+      credentials = true
+      headers = accept, authorization, content-type, origin, referer
+      methods = GET, PUT, POST, HEAD, DELETE
+      max_age = 3600
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  couchdb:
+    configs:
+    - source: couchdb-inline-1
+      target: /opt/couchdb/etc/local.ini
+    environment:
+    - SERVICE_FQDN_COUCHDB_5984=${SERVICE_FQDN_COUCHDB_5984}
+    - COUCHDB_USER=${SERVICE_USER_COUCHDB}
+    - COUCHDB_PASSWORD=${SERVICE_PASSWORD_64_COUCHDB}
+    - MAX_DOCUMENT_SIZE=${MAX_DOCUMENT_SIZE:-52428800}
+    - MAX_HTTP_REQUEST_SIZE=${MAX_HTTP_REQUEST_SIZE:-67108864}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD-SHELL
+      - curl -f -u "$${COUCHDB_USER}:$${COUCHDB_PASSWORD}" http://localhost:5984/_up
+      timeout: 10s
+    image: couchdb:3.4.2
+    networks:
+      appnet:
+        aliases:
+        - obsidian-livesync-coolify_couchdb_1
+    restart: unless-stopped
+    volumes:
+    - couchdb-data:/opt/couchdb/data
+volumes:
+  couchdb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/couchdb-data
+      o: bind
+      type: none

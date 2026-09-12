@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/guacamole
+description: Clientless remote desktop gateway
+endpoint:
+  port: 8080
+  service: guacamole
+env:
+  GUACAMOLE_DB_PASSWORD:
+    generate: token
+  GUACAMOLE_TOTP_ENABLED: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: guacamole
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GUACAMOLE_DB_PASSWORD
+  hint: null
+  label: Guacamole postgres password
+  options: null
+  required: false
+  type: random
+- env: GUACAMOLE_TOTP_ENABLED
+  hint: null
+  label: Enable TOTP
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: Guacamole
+type: app
+upstream:
+  author: apache
+  categories:
+  - utilities
+  source: https://github.com/apache/guacamole-server
+  tipi_version: 7
+  version: 1.6.0
+website: https://github.com/apache/guacamole-server

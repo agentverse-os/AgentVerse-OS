@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/jellyfin
+description: A media server for your home collection
+endpoint:
+  port: 8096
+  service: jellyfin
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: jellyfin
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Jellyfin
+type: app
+upstream:
+  author: jellyfin.org
+  categories:
+  - media
+  source: https://github.com/jellyfin/jellyfin
+  tipi_version: 47
+  version: 10.11.11
+website: https://github.com/jellyfin/jellyfin

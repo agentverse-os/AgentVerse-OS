@@ -1,0 +1,69 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gitea-mirror-umbrel
+description: Mirror your GitHub repositories to a Gitea instance automatically
+endpoint:
+  port: 4321
+  service: web
+env:
+  APP_GITEA_MIRROR_LOCAL_IPS: ${local_ips}
+  APP_GITEA_MIRROR_LOCAL_URLS: ${ips_with_port}
+  APP_GITEA_MIRROR_PORT: '4322'
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/gitea-mirror/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/gitea-mirror/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/gitea-mirror/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/gitea-mirror/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: gitea-mirror-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Gitea Mirror
+type: app
+upstream:
+  author: RayLabs HQ
+  categories:
+  - developer
+  release_notes: |-
+    Gitea Mirror 3.30.0 adds beta support for mirroring from GitLab, Gitea, Forgejo, and Codeberg sources, with repositories remembering their source host so tokens are not sent to the wrong server.
+
+    Forgejo can now be selected as a named destination, and source/destination hosts are locked after repositories are imported or mirrored so accidental provider changes require explicit confirmation.
+
+    This update adds hashed API keys for using existing list, add, and mirror endpoints from scripts or CI, plus a new release asset limit setting that can keep older releases as notes-only while uploading assets for the newest releases.
+
+    Mirror job recovery is safer: long-running jobs keep fresh checkpoints, newly started jobs are not mistaken for crashed jobs, and overlapping recovery attempts are avoided.
+
+    This release runs database migrations on startup for source provider fields, Better Auth 1.7 account issuer backfill, and API keys. As with any update, back up `data/gitea-mirror.db` before upgrading.
+
+    Reminder for users updating from 3.27.1 or older: repository cleanup no longer archives or deletes copies in Gitea or Forgejo automatically when the original GitHub repository is no longer found.
+
+    If you're updating from a version older than 3.17 and use OAuth provider clients registered in Gitea Mirror, rotate the client secret for each client after upgrading because OAuth application secrets are stored hashed after migration.
+
+    Full release notes can be found at https://github.com/RayLabsHQ/gitea-mirror/releases/tag/v3.30.0
+  source: https://github.com/raylabshq/gitea-mirror
+  version: 3.30.0
+  website: https://github.com/raylabshq/gitea-mirror
+website: https://github.com/raylabshq/gitea-mirror

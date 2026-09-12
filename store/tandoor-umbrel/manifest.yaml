@@ -1,0 +1,83 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tandoor-umbrel
+description: Organize recipes, meal plans, and shopping lists
+endpoint:
+  port: 80
+  service: web
+env:
+  APP_TANDOOR_DB_PASSWORD: ''
+  APP_TANDOOR_LOCAL_IPS: ${local_ips}
+  APP_TANDOOR_LOCAL_URLS: ${ips_with_port}
+  APP_TANDOOR_PORT: '9456'
+  APP_TANDOOR_SECRET_KEY: ''
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  DEVICE_HOSTNAME: ${EDGE_HOST}
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/tandoor/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/tandoor/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/tandoor/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/tandoor/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/tandoor/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/tandoor/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: tandoor-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_TANDOOR_DB_PASSWORD
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app tandoor db password
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_DB
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: APP_TANDOOR_SECRET_KEY
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app tandoor secret key
+  options: null
+  required: false
+  type: password
+tags: []
+title: Tandoor Recipes
+type: app
+upstream:
+  author: Tandoor Recipes
+  categories:
+  - files
+  release_notes: This update refreshes Tandoor's translations.
+  source: https://github.com/TandoorRecipes/recipes
+  version: 2.6.13
+  website: https://tandoor.dev/
+website: https://tandoor.dev/

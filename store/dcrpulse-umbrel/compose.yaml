@@ -1,0 +1,98 @@
+# dcrpulse-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  dashboard:
+    depends_on:
+      dcrd:
+        condition: service_healthy
+      dcrwallet:
+        condition: service_healthy
+    environment:
+      DCRD_RPC_CERT: /app-data/dcrd/rpc.cert
+      DCRD_RPC_HOST: dcrd
+      DCRD_RPC_PASS: ${APP_SEED}
+      DCRD_RPC_PORT: 9109
+      DCRD_RPC_USER: ${APP_SEED}
+      DCRWALLET_GRPC_PORT: 9111
+      DCRWALLET_RPC_CERT: /app-data/dcrd/rpc.cert
+      DCRWALLET_RPC_HOST: dcrwallet
+      DCRWALLET_RPC_PASS: ${APP_SEED}
+      DCRWALLET_RPC_PORT: 9110
+      DCRWALLET_RPC_USER: ${APP_SEED}
+      PORT: 8735
+    image: ghcr.io/karamble/dcrpulse-dashboard:1.0.3@sha256:d6d991150e570b3c473873f350a122f2cfc3ffd43e50b87e15821777c28d70dc
+    networks:
+      appnet:
+        aliases:
+        - dcrpulse_dashboard_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/app-data:ro
+  dcrd:
+    command: |
+      --rpcuser=${APP_SEED} --rpcpass=${APP_SEED} --rpclisten=0.0.0.0:9109 --rpccert=/app-data/dcrd/rpc.cert --rpckey=/app-data/dcrd/rpc.key
+    environment:
+      DCRD_EXTRA_ARGS: --txindex
+      DCRD_RPC_PASS: ${APP_SEED}
+      DCRD_RPC_USER: ${APP_SEED}
+      TOR_PROXY_IP: ${TOR_PROXY_IP}
+      TOR_PROXY_PORT: ${TOR_PROXY_PORT}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 120s
+      test:
+      - CMD
+      - sh
+      - -c
+      - 'curl -k -u ${APP_SEED}:${APP_SEED} -H ''Content-Type: application/json'' -d ''{"jsonrpc":"1.0","method":"getinfo","params":[],"id":1}'' https://127.0.0.1:9109 || exit 1'
+      timeout: 10s
+    image: ghcr.io/karamble/dcrpulse-dcrd:2.1.3@sha256:d5c6c04af574d949db5b32181e3d8f223707e019c7745b45424634f3af6714a3
+    networks:
+      appnet:
+        aliases:
+        - dcrpulse_dcrd_1
+    restart: on-failure
+    stop_grace_period: 5m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/app-data
+  dcrwallet:
+    command: |
+      --gaplimit=400
+    depends_on:
+      dcrd:
+        condition: service_healthy
+    environment:
+      DCRD_RPC_HOST: dcrd
+      DCRD_RPC_PASS: ${APP_SEED}
+      DCRD_RPC_USER: ${APP_SEED}
+      DCRWALLET_GAP_LIMIT: 400
+      DCRWALLET_RPC_PASS: ${APP_SEED}
+      DCRWALLET_RPC_USER: ${APP_SEED}
+      TOR_PROXY_IP: ${TOR_PROXY_IP}
+      TOR_PROXY_PORT: ${TOR_PROXY_PORT}
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - sh
+      - -c
+      - nc -z 127.0.0.1 9110 && nc -z 127.0.0.1 9111 || exit 1
+      timeout: 5s
+    image: ghcr.io/karamble/dcrpulse-dcrwallet:2.1.3@sha256:94caf7a6c57d49083dd73003f94e4dec804a85ed18c5413f489e4550ffb2f395
+    networks:
+      appnet:
+        aliases:
+        - dcrpulse_dcrwallet_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/app-data

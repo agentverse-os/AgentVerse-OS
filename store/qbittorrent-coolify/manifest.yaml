@@ -1,0 +1,72 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/qbittorrent-coolify
+description: The qBittorrent project aims to provide an open-source software alternative to μTorrent.
+endpoint:
+  port: 8080
+  service: qbit
+env:
+  RELEASE_TYPE: stable
+  SERVICE_URL_QBITORRENT: https://${APP_DOMAIN}
+  SERVICE_URL_QBITORRENT_8080: https://${APP_DOMAIN}
+  UPDATE_VT_CRON: '"0 * * * *"'
+  WEBUI_PORT: '8080'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: qbittorrent-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: WEBUI_PORT
+  hint: 'по умолчанию: 8080'
+  label: webui port
+  options: null
+  required: false
+  type: text
+- env: RELEASE_TYPE
+  hint: 'по умолчанию: stable'
+  label: release type
+  options: null
+  required: false
+  type: text
+- env: UPDATE_VT_CRON
+  hint: 'по умолчанию: "0 * * * *"'
+  label: update vt cron
+  options: null
+  required: false
+  type: text
+tags:
+- torrent
+- streaming
+- webui
+title: Qbittorrent
+type: app
+upstream:
+  categories:
+  - media
+  source: https://docs.linuxserver.io/images/docker-qbittorrent/
+  tags:
+  - torrent
+  - streaming
+  - webui
+  template: qbittorrent.yaml
+website: https://docs.linuxserver.io/images/docker-qbittorrent/

@@ -1,0 +1,65 @@
+# bitmagnet: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  bitmagnet:
+    command:
+    - worker
+    - run
+    - --keys=http_server
+    - --keys=queue_server
+    - --keys=dht_crawler
+    depends_on:
+      bitmagnet-db:
+        condition: service_healthy
+      bitmagnet-redis:
+        condition: service_started
+    environment:
+      POSTGRES_HOST: bitmagnet-db
+      POSTGRES_NAME: bitmagnet
+      POSTGRES_PASSWORD: ${BITMAGNENT_DB_PASSWORD}
+      POSTGRES_USER: tipi
+      REDIS_ADDR: bitmagnet-redis:6379
+    image: ghcr.io/bitmagnet-io/bitmagnet:v0.10.1
+    networks:
+      appnet:
+        aliases:
+        - bitmagnet_bitmagnet_1
+    restart: unless-stopped
+  bitmagnet-db:
+    environment:
+      POSTGRES_DB: bitmagnet
+      POSTGRES_PASSWORD: ${BITMAGNENT_DB_PASSWORD}
+      POSTGRES_USER: tipi
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test: pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      timeout: 5s
+    image: postgres:17-alpine
+    networks:
+      appnet:
+        aliases:
+        - bitmagnet_bitmagnet-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  bitmagnet-redis:
+    command: --save 60 1 --loglevel warning
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test: redis-cli ping | grep PONG
+      timeout: 3s
+    image: redis:alpine
+    networks:
+      appnet:
+        aliases:
+        - bitmagnet_bitmagnet-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

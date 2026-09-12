@@ -1,0 +1,76 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/logto-coolify
+description: A comprehensive identity solution covering both the front and backend, complete with pre-built infrastructure and enterprise-grade solutions.
+endpoint:
+  port: 3001
+  service: logto
+env:
+  POSTGRES_DB: logto
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_LOGTO: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  TAG: latest
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: logto-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TAG
+  hint: 'по умолчанию: latest'
+  label: tag
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: logto'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- logto
+- identity
+- login
+- authentication
+- oauth
+- oidc
+- openid
+title: Logto
+type: app
+upstream:
+  categories:
+  - auth
+  source: https://docs.logto.io/docs/tutorials/get-started/#logto-oss-self-hosted
+  tags:
+  - logto
+  - identity
+  - login
+  - authentication
+  - oauth
+  - oidc
+  - openid
+  template: logto.yaml
+website: https://docs.logto.io/docs/tutorials/get-started/#logto-oss-self-hosted

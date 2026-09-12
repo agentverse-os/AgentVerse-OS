@@ -1,0 +1,41 @@
+# gitea-runner-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  runner:
+    environment:
+    - GITEA_INSTANCE_URL=${GITEA_INSTANCE_URL}
+    - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN}
+    - GITEA_RUNNER_NAME=${GITEA_RUNNER_NAME:-gitea-runner}
+    - GITEA_RUNNER_LABELS=${GITEA_RUNNER_LABELS:-ubuntu-latest:docker://node:22}
+    - GITEA_TOKEN=${GITEA_TOKEN}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test:
+      - CMD-SHELL
+      - ps aux | grep '[R]unner' > /dev/null || exit 1
+      timeout: 10s
+    image: docker.io/gitea/runner:1.0.8
+    networks:
+      appnet:
+        aliases:
+        - gitea-runner-coolify_runner_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - runner-data:/data
+    working_dir: /data
+volumes:
+  runner-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/runner-data
+      o: bind
+      type: none

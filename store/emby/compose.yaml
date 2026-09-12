@@ -1,0 +1,20 @@
+# emby: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  emby:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/emby:4.9.5
+    networks:
+      appnet:
+        aliases:
+        - emby_emby_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${ROOT_FOLDER_HOST}/media/data:/media/data

@@ -1,0 +1,19 @@
+# rss: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  rss:
+    environment:
+      APP_FEED_UPDATE_FREQUENCY: '35'
+      APP_LOAD_POST_THUMBNAILS: 'true'
+      APP_NAME: Tipi-RSS
+    image: codeberg.org/danb/rss:v2.2.2
+    networks:
+      appnet:
+        aliases:
+        - rss_rss_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/storage:/app/storage

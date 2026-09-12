@@ -1,0 +1,89 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/appsmith-coolify
+description: A low-code application platform for building internal tools.
+endpoint:
+  port: 80
+  service: appsmith
+env:
+  APPSMITH_DISABLE_INTERCOM: 'true'
+  APPSMITH_DISABLE_TELEMETRY: 'false'
+  APPSMITH_MAIL_ENABLED: 'false'
+  APPSMITH_SENTRY_DSN: ''
+  APPSMITH_SMART_LOOK_ID: ''
+  SERVICE_URL_APPSMITH: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: appsmith-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APPSMITH_MAIL_ENABLED
+  hint: 'по умолчанию: false'
+  label: appsmith mail enabled
+  options: null
+  required: false
+  type: text
+- env: APPSMITH_DISABLE_TELEMETRY
+  hint: 'по умолчанию: false'
+  label: appsmith disable telemetry
+  options: null
+  required: false
+  type: text
+- env: APPSMITH_DISABLE_INTERCOM
+  hint: 'по умолчанию: true'
+  label: appsmith disable intercom
+  options: null
+  required: false
+  type: text
+- env: APPSMITH_SENTRY_DSN
+  hint: null
+  label: appsmith sentry dsn
+  options: null
+  required: false
+  type: text
+- env: APPSMITH_SMART_LOOK_ID
+  hint: null
+  label: appsmith smart look id
+  options: null
+  required: false
+  type: text
+tags:
+- lowcode
+- nocode
+- no
+- low
+- platform
+title: Appsmith
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://appsmith.com
+  tags:
+  - lowcode
+  - nocode
+  - no
+  - low
+  - platform
+  template: appsmith.yaml
+website: https://appsmith.com

@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mind
+description: A simple self hosted reminder platform that uses push to send notifications to your device.
+endpoint:
+  port: 8080
+  service: mind
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mind
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Mind
+type: app
+upstream:
+  author: https://github.com/Casvt
+  categories:
+  - utilities
+  source: https://github.com/Casvt/MIND
+  tipi_version: 12
+  version: 1.4.1
+website: https://github.com/Casvt/MIND

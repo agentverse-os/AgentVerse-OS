@@ -1,0 +1,71 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/unleash-without-database-coolify
+description: Open source feature flag management for enterprises.
+endpoint:
+  port: 4242
+  service: unleash
+env:
+  DATABASE_SSL: 'false'
+  DATABASE_URL: ''
+  SERVICE_PASSWORD_UNLEASH:
+    generate: password
+  SERVICE_URL_UNLEASH: https://${APP_DOMAIN}
+  SERVICE_URL_UNLEASH_4242: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_UNLEASH
+  path: null
+  user: null
+name: unleash-without-database-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DATABASE_URL
+  hint: null
+  label: database url
+  options: null
+  required: false
+  type: text
+- env: DATABASE_SSL
+  hint: 'по умолчанию: false'
+  label: database ssl
+  options: null
+  required: false
+  type: text
+tags:
+- unleash
+- feature flags
+- feature toggles
+- ab testing
+- open source
+title: Unleash Without Database
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://docs.getunleash.io
+  tags:
+  - unleash
+  - feature flags
+  - feature toggles
+  - ab testing
+  - open source
+  template: unleash-without-database.yaml
+website: https://docs.getunleash.io

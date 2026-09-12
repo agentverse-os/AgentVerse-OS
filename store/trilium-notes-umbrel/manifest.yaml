@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/trilium-notes-umbrel
+description: Build your personal knowledge base with Trilium Notes
+endpoint:
+  port: 8080
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/trilium-notes/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/trilium-notes/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/trilium-notes/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/trilium-notes/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/trilium-notes/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: trilium-notes-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Trilium Notes
+type: app
+upstream:
+  author: TriliumNext
+  categories:
+  - files
+  release_notes: |-
+    Trilium v0.105.0 includes breaking changes: MCP now requires authentication, unsupported HTML tags in text notes are no longer preserved by default, divs in text notes are unwrapped, and single-tilde strikethrough in Markdown is no longer supported. If you're updating from a pre-v0.104.0 version, backend scripting and SQL console access are also now disabled by default for safer server operation.
+
+    Highlights:
+      - Adds Space Usage, database cleanup, image compression, and backup restore tools, with optional compressed/encrypted backups
+      - Adds an Attributes sidebar tab, a content manager for scripts/themes/widgets, searchable settings, Office/EPUB previews, and MapLibre-powered geo maps
+      - Moves LLM tools into the text editor and adds GitHub Copilot support as an LLM provider
+      - Improves attachments, imports, collections, mobile settings, editor behavior, performance, and consistency checks, with SSRF and MCP security hardening
+      - Updates the ARM64 Docker image base to Debian 13; older ARM64 hosts may need a runtime/libseccomp update if the container cannot start
+
+
+    Full release notes are available at https://github.com/TriliumNext/Trilium/releases/tag/v0.105.0
+  source: https://github.com/TriliumNext/Trilium
+  version: v0.105.0
+  website: https://github.com/TriliumNext
+website: https://github.com/TriliumNext

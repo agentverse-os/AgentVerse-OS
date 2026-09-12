@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mongo
+description: MongoDB is an open-source NoSQL database
+endpoint:
+  port: 27017
+  service: mongo
+env:
+  MONGO_INITDB_ROOT_PASSWORD:
+    generate: password
+  MONGO_INITDB_ROOT_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: MONGO_INITDB_ROOT_PASSWORD
+  path: null
+  user: MONGO_INITDB_ROOT_USERNAME
+name: mongo
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MONGO_INITDB_ROOT_USERNAME
+  hint: null
+  label: Admin Username
+  options: null
+  required: true
+  type: text
+- env: MONGO_INITDB_ROOT_PASSWORD
+  hint: null
+  label: Admin Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: MongoDB
+type: app
+upstream:
+  author: MongoDB
+  categories:
+  - development
+  - data
+  source: https://github.com/mongodb/mongo
+  tipi_version: 27
+  version: 7.0.40
+website: https://github.com/mongodb/mongo

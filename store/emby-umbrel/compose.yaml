@@ -1,0 +1,20 @@
+# emby-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+      GID: 1000
+      TZ: Europe/Berlin
+      UID: 1000
+    image: linuxserver/emby:version-4.9.5.0@sha256:3a06a04c7e2e3ad1cef5fb11bea83b1d6ec64e3bb9ac7c0763b38a6b934ad24b
+    networks:
+      appnet:
+        aliases:
+        - emby_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config:rw
+    - ${UMBREL_ROOT}/data/storage/downloads:/downloads

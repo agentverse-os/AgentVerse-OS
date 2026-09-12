@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/excalidraw-coolify
+description: Virtual whiteboard for sketching hand-drawn like diagrams
+endpoint:
+  port: 80
+  service: excalidraw
+env:
+  SERVICE_URL_EXCALIDRAW_80: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: excalidraw-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- canvas
+- diagrams
+- drawing
+- productivity
+- whiteboard
+title: Excalidraw
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.excalidraw.com/docs
+  tags:
+  - canvas
+  - diagrams
+  - drawing
+  - productivity
+  - whiteboard
+  template: excalidraw.yaml
+website: https://docs.excalidraw.com/docs

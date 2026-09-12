@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wg-easy-1
+description: VPN server for your homeserver.
+endpoint:
+  port: 51821
+  service: wg-easy
+env:
+  WIREGUARD_DISABLE_IPV6: ''
+  WIREGUARD_INSECURE: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wg-easy-1
+notes:
+- 'порт 51820→51820 (wg-easy) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: WIREGUARD_INSECURE
+  hint: Only activate if you need to access the dashboard through IP:PORT
+  label: Allow non-secured HTTP access
+  options: null
+  required: false
+  type: boolean
+- env: WIREGUARD_DISABLE_IPV6
+  hint: null
+  label: Disable IPv6
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: Wireguard
+type: app
+upstream:
+  author: WeeJeWel
+  categories:
+  - network
+  source: https://github.com/wg-easy/wg-easy
+  tipi_version: 4
+  version: 15.4.0
+website: https://github.com/wg-easy/wg-easy

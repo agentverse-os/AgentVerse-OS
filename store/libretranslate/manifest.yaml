@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/libretranslate
+description: Free and Open Source Machine Translation API. 100% self-hosted, offline capable and easy to setup.
+endpoint:
+  port: 5000
+  service: libretranslate
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: libretranslate
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LibreTranslate
+type: app
+upstream:
+  author: LibreTranslate
+  categories:
+  - utilities
+  source: https://github.com/LibreTranslate/LibreTranslate
+  tipi_version: 37
+  version: v1.9.6
+website: https://github.com/LibreTranslate/LibreTranslate

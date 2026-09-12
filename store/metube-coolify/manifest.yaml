@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/metube-coolify
+description: A web GUI for youtube-dl with playlist support. It enables you to effortlessly download videos from YouTube and dozens of other sites.
+endpoint:
+  port: 8081
+  service: metube
+env:
+  SERVICE_URL_METUBE_8081: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: metube-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- youtube
+- download
+- videos
+- playlist
+title: Metube
+type: app
+upstream:
+  categories:
+  - media
+  source: https://github.com/alexta69/metube
+  tags:
+  - youtube
+  - download
+  - videos
+  - playlist
+  template: metube.yaml
+website: https://github.com/alexta69/metube

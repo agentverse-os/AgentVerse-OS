@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/snowflake-umbrel
+description: Help defeat internet censorship
+endpoint:
+  port: 3800
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/snowflake/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/snowflake/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/snowflake/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/snowflake/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: snowflake-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Tor Snowflake Proxy
+type: app
+upstream:
+  author: The Tor Project, Inc.
+  categories:
+  - networking
+  release_notes: |-
+    This update improves validation of WebRTC offers and answers to avoid crashes from malformed session descriptions.
+
+    It also adds SOCKS5-based interactive connectivity testing for Snowflake.
+
+    Release information: https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/-/releases/v2.14.1
+
+    Compare to v2.14.0: https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/-/compare/v2.14.0...v2.14.1
+  source: https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/-/tree/main
+  version: v2.14.1
+  website: https://snowflake.torproject.org/
+website: https://snowflake.torproject.org/

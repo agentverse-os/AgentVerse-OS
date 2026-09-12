@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/serge
+description: LLaMA made easy
+endpoint:
+  port: 8008
+  service: serge
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: serge
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Serge
+type: app
+upstream:
+  author: nsarrazin
+  categories:
+  - ai
+  source: https://github.com/serge-chat/serge
+  tipi_version: 13
+  version: 0.9.0
+website: https://github.com/serge-chat/serge

@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sshwifty
+description: Web SSH & Telnet (WebSSH & WebTelnet client)
+endpoint:
+  port: 8182
+  service: sshwifty
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: sshwifty
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Sshwifty
+type: app
+upstream:
+  author: Nirui
+  categories:
+  - development
+  source: https://github.com/nirui/sshwifty
+  tipi_version: 41
+  version: 0.4.10
+website: https://github.com/nirui/sshwifty

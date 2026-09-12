@@ -1,0 +1,41 @@
+# flowise-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  flowise:
+    environment:
+    - SERVICE_URL_FLOWISE_3001=${SERVICE_URL_FLOWISE_3001}
+    - DEBUG=${DEBUG:-false}
+    - DISABLE_FLOWISE_TELEMETRY=${DISABLE_FLOWISE_TELEMETRY:-true}
+    - PORT=${PORT:-3001}
+    - DATABASE_PATH=/root/.flowise
+    - APIKEY_PATH=/root/.flowise
+    - SECRETKEY_PATH=/root/.flowise
+    - LOG_PATH=/root/.flowise/logs
+    - BLOB_STORAGE_PATH=/root/.flowise/storage
+    - FLOWISE_USERNAME=${SERVICE_USER_FLOWISE}
+    - FLOWISE_PASSWORD=${SERVICE_PASSWORD_FLOWISE}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:3001 || exit 1
+      timeout: 5s
+    image: flowiseai/flowise:latest
+    networks:
+      appnet:
+        aliases:
+        - flowise-coolify_flowise_1
+    restart: unless-stopped
+    volumes:
+    - flowise-data:/root/.flowise
+volumes:
+  flowise-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/flowise-data
+      o: bind
+      type: none

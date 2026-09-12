@@ -1,0 +1,34 @@
+# glances-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  glances:
+    environment:
+    - GLANCES_OPT=-w
+    - SERVICE_URL_GLANCES_61208=${SERVICE_URL_GLANCES_61208}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 2s
+      retries: 30
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:61208
+      timeout: 10s
+    image: nicolargo/glances:latest
+    networks:
+      appnet:
+        aliases:
+        - glances-coolify_glances_1
+      dockerro: {}
+    pid: host
+    privileged: true
+    restart: unless-stopped
+    volumes:
+    - /run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock:ro

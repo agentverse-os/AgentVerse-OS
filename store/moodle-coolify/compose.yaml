@@ -1,0 +1,82 @@
+# moodle-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mariadb:
+    environment:
+    - ALLOW_EMPTY_PASSWORD=no
+    - MYSQL_ROOT_PASSWORD=$SERVICE_PASSWORD_ROOT
+    - MYSQL_DATABASE=bitnami_moodle
+    - MYSQL_USER=$SERVICE_USER_MARIADB
+    - MYSQL_PASSWORD=$SERVICE_PASSWORD_MARIADB
+    - MARIADB_CHARACTER_SET=utf8mb4
+    - MARIADB_COLLATE=utf8mb4_unicode_ci
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - bash -c '</dev/tcp/localhost/3306'
+      timeout: 5s
+    image: mariadb:11.1
+    networks:
+      appnet:
+        aliases:
+        - moodle-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - mariadb-data:/var/lib/mysql
+  moodle:
+    depends_on:
+    - mariadb
+    environment:
+    - SERVICE_URL_MOODLE_8080=${SERVICE_URL_MOODLE_8080}
+    - MOODLE_DATABASE_HOST=mariadb
+    - MOODLE_DATABASE_PORT_NUMBER=3306
+    - MOODLE_DATABASE_USER=$SERVICE_USER_MARIADB
+    - MOODLE_DATABASE_NAME=bitnami_moodle
+    - MOODLE_DATABASE_PASSWORD=$SERVICE_PASSWORD_MARIADB
+    - ALLOW_EMPTY_PASSWORD=no
+    - MOODLE_USERNAME=${MOODLE_USERNAME:-user}
+    - MOODLE_PASSWORD=$SERVICE_PASSWORD_MOODLE
+    - MOODLE_EMAIL=user@example.com
+    - MOODLE_SITE_NAME=${MOODLE_SITE_NAME:-New Site}
+    healthcheck:
+      interval: 20s
+      retries: 5
+      test:
+      - CMD
+      - php
+      - -r
+      - 'exit(file_exists(''/opt/bitnami/moodle/config.php'') ? 0 : 1);'
+      timeout: 10s
+    image: docker.io/bitnamilegacy/moodle:4.3
+    networks:
+      appnet:
+        aliases:
+        - moodle-coolify_moodle_1
+    restart: unless-stopped
+    volumes:
+    - moodle-data:/bitnami/moodle
+    - moodledata-data:/bitnami/moodledata
+volumes:
+  mariadb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mariadb-data
+      o: bind
+      type: none
+  moodle-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/moodle-data
+      o: bind
+      type: none
+  moodledata-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/moodledata-data
+      o: bind
+      type: none

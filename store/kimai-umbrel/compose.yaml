@@ -1,0 +1,43 @@
+# kimai-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+    - db
+    environment:
+      ADMINMAIL: umbrel@umbrel.local
+      ADMINPASS: changeme
+      DATABASE_URL: mysql://kimaiuser:${APP_PASSWORD}@kimai_db_1/kimai?charset=utf8mb4&serverVersion=8.3.0
+    image: kimai/kimai2:2.65.0@sha256:6dfc631996544bb2b7a0a876f5565047c6dc0c2632fa06fe6f3c6c8d0f7350a6
+    networks:
+      appnet:
+        aliases:
+        - kimai_app_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/opt/kimai/var/data
+    - ${APP_DATA_DIR}/data/app/plugins:/opt/kimai/var/plugins
+  db:
+    environment:
+      MYSQL_DATABASE: kimai
+      MYSQL_PASSWORD: $APP_PASSWORD
+      MYSQL_ROOT_PASSWORD: $APP_PASSWORD
+      MYSQL_USER: kimaiuser
+    healthcheck:
+      interval: 20s
+      retries: 3
+      start_period: 10s
+      test: mariadb-admin -p$$MYSQL_ROOT_PASSWORD ping -h localhost
+      timeout: 10s
+    image: mariadb:11.4.5@sha256:5dfb3093333fa0ea53194ddef0a2bfa21d3b1e1353bd228b22610cd6fc0c04da
+    networks:
+      appnet:
+        aliases:
+        - kimai_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql

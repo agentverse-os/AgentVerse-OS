@@ -1,0 +1,167 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/activepieces-coolify
+description: Open source no-code business automation.
+endpoint:
+  port: 80
+  service: activepieces
+env:
+  AP_ENGINE_EXECUTABLE_PATH: dist/packages/engine/main.js
+  AP_ENVIRONMENT: prod
+  AP_EXECUTION_MODE: UNSANDBOXED
+  AP_SANDBOX_RUN_TIME_SECONDS: '600'
+  AP_SIGN_UP_ENABLED: 'true'
+  AP_TELEMETRY_ENABLED: 'false'
+  AP_TEMPLATES_SOURCE_URL: https://cloud.activepieces.com/api/v1/flow-templates
+  AP_TRIGGER_DEFAULT_POLL_INTERVAL: '5'
+  AP_WEBHOOK_TIMEOUT_SECONDS: '30'
+  POSTGRES_DB: activepieces
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: '5432'
+  POSTGRES_USER: ''
+  REDIS_HOST: redis
+  REDIS_PORT: '6379'
+  SERVICE_PASSWORD_64_APIKEY:
+    generate: hex64
+  SERVICE_PASSWORD_64_JWT:
+    generate: hex64
+  SERVICE_PASSWORD_ENCRYPTIONKEY:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_ACTIVEPIECES: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: activepieces-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: AP_ENGINE_EXECUTABLE_PATH
+  hint: 'по умолчанию: dist/packages/engine/main.js'
+  label: ap engine executable path
+  options: null
+  required: false
+  type: text
+- env: AP_ENVIRONMENT
+  hint: 'по умолчанию: prod'
+  label: ap environment
+  options: null
+  required: false
+  type: text
+- env: AP_EXECUTION_MODE
+  hint: 'по умолчанию: UNSANDBOXED'
+  label: ap execution mode
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: activepieces'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_HOST
+  hint: 'по умолчанию: postgres'
+  label: postgres host
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_PORT
+  hint: 'по умолчанию: 5432'
+  label: postgres port
+  options: null
+  required: false
+  type: text
+- env: REDIS_HOST
+  hint: 'по умолчанию: redis'
+  label: redis host
+  options: null
+  required: false
+  type: text
+- env: REDIS_PORT
+  hint: 'по умолчанию: 6379'
+  label: redis port
+  options: null
+  required: false
+  type: text
+- env: AP_SANDBOX_RUN_TIME_SECONDS
+  hint: 'по умолчанию: 600'
+  label: ap sandbox run time seconds
+  options: null
+  required: false
+  type: text
+- env: AP_TELEMETRY_ENABLED
+  hint: 'по умолчанию: false'
+  label: ap telemetry enabled
+  options: null
+  required: false
+  type: text
+- env: AP_TEMPLATES_SOURCE_URL
+  hint: 'по умолчанию: https://cloud.activepieces.com/api/v1/flow-templates'
+  label: ap templates source url
+  options: null
+  required: false
+  type: text
+- env: AP_TRIGGER_DEFAULT_POLL_INTERVAL
+  hint: 'по умолчанию: 5'
+  label: ap trigger default poll interval
+  options: null
+  required: false
+  type: text
+- env: AP_SIGN_UP_ENABLED
+  hint: 'по умолчанию: true'
+  label: ap sign up enabled
+  options: null
+  required: false
+  type: text
+- env: AP_WEBHOOK_TIMEOUT_SECONDS
+  hint: 'по умолчанию: 30'
+  label: ap webhook timeout seconds
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- workflow
+- automation
+- no code
+- open source
+title: Activepieces
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://www.activepieces.com/docs/getting-started/introduction
+  tags:
+  - workflow
+  - automation
+  - no code
+  - open source
+  template: activepieces.yaml
+website: https://www.activepieces.com/docs/getting-started/introduction

@@ -1,0 +1,23 @@
+# linkstack-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  linkstack:
+    hostname: linkstack
+    image: linkstackorg/linkstack:latest@sha256:1c8b05399ee459ac601bac3eede7fbe765d1b6b7be725663b57f3220610958bf
+    networks:
+      appnet:
+        aliases:
+        - linkstack_linkstack_1
+    restart: on-failure
+    volumes:
+    - linkstack_data:/htdocs
+volumes:
+  linkstack_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/linkstack_data
+      o: bind
+      type: none

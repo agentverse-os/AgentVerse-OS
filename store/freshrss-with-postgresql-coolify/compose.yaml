@@ -1,0 +1,72 @@
+# freshrss-with-postgresql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  freshrss:
+    depends_on:
+      freshrss-db:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_FRESHRSS_80=${SERVICE_URL_FRESHRSS_80}
+    - CRON_MIN=${CRON_MIN:-1,31}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-freshrss}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_HOST=freshrss-db
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/80' || exit 1
+      timeout: 20s
+    image: freshrss/freshrss:latest
+    networks:
+      appnet:
+        aliases:
+        - freshrss-with-postgresql-coolify_freshrss_1
+    restart: unless-stopped
+    volumes:
+    - freshrss-data:/var/www/FreshRSS/data
+    - freshrss-extensions:/var/www/FreshRSS/extensions
+  freshrss-db:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-freshrss}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16
+    networks:
+      appnet:
+        aliases:
+        - freshrss-with-postgresql-coolify_freshrss-db_1
+    restart: unless-stopped
+    volumes:
+    - freshrss-postgresql-data:/var/lib/postgresql/data
+volumes:
+  freshrss-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/freshrss-data
+      o: bind
+      type: none
+  freshrss-extensions:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/freshrss-extensions
+      o: bind
+      type: none
+  freshrss-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/freshrss-postgresql-data
+      o: bind
+      type: none

@@ -1,0 +1,34 @@
+# atuin: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  atuin:
+    command: start
+    environment:
+    - ATUIN_PORT=8888
+    - ATUIN_HOST=0.0.0.0
+    - ATUIN_OPEN_REGISTRATION=${ATUIN_ALLOW_REGISTRATION}
+    - ATUIN_DB_URI=postgres://atuin:${ATUIN_DB_PASSWORD}@atuin-db/atuin
+    image: ghcr.io/atuinsh/atuin:18.20.1
+    networks:
+      appnet:
+        aliases:
+        - atuin_atuin_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+  atuin-db:
+    environment:
+    - POSTGRES_USER=atuin
+    - POSTGRES_PASSWORD=${ATUIN_DB_PASSWORD}
+    - POSTGRES_DB=atuin
+    image: postgres:14
+    networks:
+      appnet:
+        aliases:
+        - atuin_atuin-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data/

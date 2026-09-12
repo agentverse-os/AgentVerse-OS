@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/element-umbrel
+description: A glossy Matrix client compatible with Synapse
+endpoint:
+  port: 80
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/element/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/element/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/element/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/element/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: element-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Element
+type: app
+upstream:
+  author: New Vector Ltd
+  categories:
+  - social
+  release_notes: |-
+    This release adds room timeline improvements, reworked URL previews, notification support for knock membership events, and more room-list controls for sections, unread activity, and selection.
+
+    It also fixes custom status persistence, chat exports, room permission editing, screen-share picker hangs, unread state updates, notification churn, shortcuts, audio playback, and several layout and accessibility issues.
+
+    Full release notes can be found at https://github.com/element-hq/element-web/releases/tag/v1.12.27
+  source: https://github.com/vector-im/element-web
+  version: 1.12.27
+  website: https://element.io
+website: https://element.io

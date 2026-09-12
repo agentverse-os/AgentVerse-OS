@@ -1,0 +1,73 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/odoo-coolify
+description: Odoo is a suite of open-source business apps that cover all your company needs.
+endpoint:
+  port: 8069
+  service: odoo
+env:
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_ODOO_8069: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: odoo-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- business
+- apps
+- CRM
+- eCommerce
+- accounting
+- inventory
+- point of sale
+- project management
+- open-source
+title: Odoo
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://www.odoo.com/
+  tags:
+  - business
+  - apps
+  - CRM
+  - eCommerce
+  - accounting
+  - inventory
+  - point of sale
+  - project management
+  - open-source
+  template: odoo.yaml
+website: https://www.odoo.com/

@@ -1,0 +1,48 @@
+// Названия пресетов фона и готовых тем (theme.ts хранит ключи, Настройки показывают t(ключ)).
+import { defineMessages } from '../define';
+export default defineMessages({
+  en: {
+    'theme.bg.none': 'No wallpaper', 'theme.bg.black': 'Black', 'theme.bg.monolith': 'Monolith', 'theme.bg.monolithLockup': 'Monolith · logo', 'theme.bg.monolithQuiet': 'Monolith · quiet',
+    'theme.bg.nebula': 'Nebula', 'theme.bg.dusk': 'Dusk', 'theme.bg.forest': 'Forest', 'theme.bg.graphite': 'Graphite', 'theme.bg.custom': 'Custom image (URL)',
+    'theme.t.monolith': 'Monolith', 'theme.t.monolith.hint': 'signature: glass, blue-violet accent, space',
+    'theme.t.glassDark': 'Glass · dark', 'theme.t.glassDark.hint': 'translucent panels with strong blur and highlights',
+    'theme.t.glassLight': 'Glass · light', 'theme.t.glassLight.hint': 'the same glass on a light background',
+    'theme.t.classic': 'Classic', 'theme.t.classic.hint': 'flat panels, teal accent, nebula',
+    'theme.t.oled': 'OLED · black', 'theme.t.oled.hint': 'pure black without transparency, saves battery',
+    'theme.t.contrastDark': 'Contrast · dark', 'theme.t.contrastDark.hint': 'opaque panels, yellow accent, larger text',
+    'theme.t.contrastLight': 'Contrast · light', 'theme.t.contrastLight.hint': 'black text on white, navy accent',
+  },
+  ru: {
+    'theme.bg.none': 'Без фона', 'theme.bg.black': 'Чёрный', 'theme.bg.monolith': 'Monolith', 'theme.bg.monolithLockup': 'Monolith · логотип', 'theme.bg.monolithQuiet': 'Monolith · тихий',
+    'theme.bg.nebula': 'Туманность', 'theme.bg.dusk': 'Сумерки', 'theme.bg.forest': 'Лес', 'theme.bg.graphite': 'Графит', 'theme.bg.custom': 'Своё изображение (URL)',
+    'theme.t.monolith': 'Monolith', 'theme.t.monolith.hint': 'фирменная: стекло, сине-фиолетовый акцент, космос',
+    'theme.t.glassDark': 'Стекло · тёмная', 'theme.t.glassDark.hint': 'прозрачные панели с сильным размытием и бликами',
+    'theme.t.glassLight': 'Стекло · светлая', 'theme.t.glassLight.hint': 'то же стекло на светлом фоне',
+    'theme.t.classic': 'Классика', 'theme.t.classic.hint': 'плоские панели, бирюзовый акцент, туманность',
+    'theme.t.oled': 'OLED · чёрный', 'theme.t.oled.hint': 'чистый чёрный без прозрачности, экономит батарею',
+    'theme.t.contrastDark': 'Контраст · тёмная', 'theme.t.contrastDark.hint': 'непрозрачные панели, жёлтый акцент, крупнее текст',
+    'theme.t.contrastLight': 'Контраст · светлая', 'theme.t.contrastLight.hint': 'чёрный текст на белом, тёмно-синий акцент',
+  },
+  uk: {
+    'theme.bg.none': 'Без тла', 'theme.bg.black': 'Чорний', 'theme.bg.monolith': 'Monolith', 'theme.bg.monolithLockup': 'Monolith · логотип', 'theme.bg.monolithQuiet': 'Monolith · тихий',
+    'theme.bg.nebula': 'Туманність', 'theme.bg.dusk': 'Сутінки', 'theme.bg.forest': 'Ліс', 'theme.bg.graphite': 'Графіт', 'theme.bg.custom': 'Власне зображення (URL)',
+    'theme.t.monolith': 'Monolith', 'theme.t.monolith.hint': 'фірмова: скло, синьо-фіолетовий акцент, космос',
+    'theme.t.glassDark': 'Скло · темна', 'theme.t.glassDark.hint': 'прозорі панелі з сильним розмиттям і відблисками',
+    'theme.t.glassLight': 'Скло · світла', 'theme.t.glassLight.hint': 'те саме скло на світлому тлі',
+    'theme.t.classic': 'Класика', 'theme.t.classic.hint': 'пласкі панелі, бірюзовий акцент, туманність',
+    'theme.t.oled': 'OLED · чорний', 'theme.t.oled.hint': 'чистий чорний без прозорості, економить батарею',
+    'theme.t.contrastDark': 'Контраст · темна', 'theme.t.contrastDark.hint': 'непрозорі панелі, жовтий акцент, більший текст',
+    'theme.t.contrastLight': 'Контраст · світла', 'theme.t.contrastLight.hint': 'чорний текст на білому, темно-синій акцент',
+  },
+  es: {
+    'theme.bg.none': 'Sin fondo', 'theme.bg.black': 'Negro', 'theme.bg.monolith': 'Monolith', 'theme.bg.monolithLockup': 'Monolith · logotipo', 'theme.bg.monolithQuiet': 'Monolith · tranquilo',
+    'theme.bg.nebula': 'Nebulosa', 'theme.bg.dusk': 'Crepúsculo', 'theme.bg.forest': 'Bosque', 'theme.bg.graphite': 'Grafito', 'theme.bg.custom': 'Imagen propia (URL)',
+    'theme.t.monolith': 'Monolith', 'theme.t.monolith.hint': 'de la marca: cristal, acento azul violeta, cosmos',
+    'theme.t.glassDark': 'Cristal · oscuro', 'theme.t.glassDark.hint': 'paneles translúcidos con desenfoque intenso y reflejos',
+    'theme.t.glassLight': 'Cristal · claro', 'theme.t.glassLight.hint': 'el mismo cristal sobre fondo claro',
+    'theme.t.classic': 'Clásico', 'theme.t.classic.hint': 'paneles planos, acento turquesa, nebulosa',
+    'theme.t.oled': 'OLED · negro', 'theme.t.oled.hint': 'negro puro sin transparencia, ahorra batería',
+    'theme.t.contrastDark': 'Contraste · oscuro', 'theme.t.contrastDark.hint': 'paneles opacos, acento amarillo, texto más grande',
+    'theme.t.contrastLight': 'Contraste · claro', 'theme.t.contrastLight.hint': 'texto negro sobre blanco, acento azul marino',
+  },
+});

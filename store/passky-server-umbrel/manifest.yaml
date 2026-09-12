@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/passky-server-umbrel
+description: Simple, modern, lightweight, open source and secure password manager
+endpoint:
+  port: 80
+  service: server
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/passky-server/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/passky-server/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/passky-server/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/passky-server/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: passky-server-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Passky Server
+type: app
+upstream:
+  author: Rabbit Company LLC
+  categories:
+  - files
+  release_notes: |-
+    This release includes improvements to email validation.
+
+    Full release notes are found at https://github.com/Rabbit-Company/Passky-Server/releases
+  source: https://github.com/Rabbit-Company/Passky-Server
+  version: 8.1.8
+  website: https://passky.org
+website: https://passky.org

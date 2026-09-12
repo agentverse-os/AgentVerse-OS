@@ -1,0 +1,23 @@
+# gandi-livedns: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  gandi-livedns:
+    environment:
+      DOMAIN: ${GANDI_LIVEDNS_DOMAIN}
+      FORCE_IPV4: ${GANDI_LIVEDNS_FORCE_IPV4}
+      FORCE_IPV6: ${GANDI_LIVEDNS_FORCE_IPV6}
+      GANDI_PAT: ${GANDI_LIVEDNS_PAT}
+      RECORD_LIST: ${GANDI_LIVEDNS_RECORD_LIST}
+      REFRESH_INTERVAL: ${GANDI_LIVEDNS_REFRESH_INTERVAL}
+      SET_IPV4: ${GANDI_LIVEDNS_SET_IPV4}
+      SET_IPV6: ${GANDI_LIVEDNS_SET_IPV6}
+      TTL: ${GANDI_LIVEDNS_TTL}
+    image: jbbodart/gandi-livedns:latest
+    networks:
+      appnet:
+        aliases:
+        - gandi-livedns_gandi-livedns_1
+    restart: unless-stopped

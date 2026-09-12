@@ -1,0 +1,77 @@
+# monetr-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      POSTGRES_DB: monetr
+      POSTGRES_PASSWORD: m0netrPass123
+      POSTGRES_USER: postgres
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres || exit 1
+      timeout: 5s
+    image: postgres:17.9@sha256:7ad98329d513dd497293b951c195ca354274a77f12ddbbbbf85e68a811823d72
+    networks:
+      appnet:
+        aliases:
+        - monetr_db_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  monetr:
+    command:
+    - serve
+    - --migrate
+    - --generate-certificates
+    depends_on:
+      db:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    environment:
+      MONETR_ALLOW_SIGN_UP: ${MONETR_ALLOW_SIGN_UP:-true}
+      MONETR_PG_ADDRESS: monetr_db_1
+      MONETR_PG_DATABASE: monetr
+      MONETR_PG_PASSWORD: m0netrPass123
+      MONETR_PG_PORT: 5432
+      MONETR_PG_USERNAME: postgres
+      MONETR_PROOF_OF_WORK_ENABLED: ${MONETR_PROOF_OF_WORK_ENABLED:-false}
+      MONETR_REDIS_ADDRESS: monetr_valkey_1
+      MONETR_REDIS_ENABLED: 'true'
+      MONETR_REDIS_PORT: 6379
+      MONETR_STORAGE_ENABLED: ${MONETR_STORAGE_ENABLED:-true}
+      MONETR_STORAGE_PROVIDER: ${MONETR_STORAGE_PROVIDER:-filesystem}
+    image: ghcr.io/monetr/monetr:1.15.3@sha256:3769ef9f6de429a7c46ac915cf3288c3f5f5f1ccf2ad47095d89bf422fa63275
+    networks:
+      appnet:
+        aliases:
+        - monetr_monetr_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/etc/monetr
+  valkey:
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD
+      - valkey-cli
+      - ping
+      timeout: 5s
+    image: valkey/valkey:9@sha256:3b55fbaa0cd93cf0d9d961f405e4dfcc70efe325e2d84da207a0a8e6d8fde4f9
+    networks:
+      appnet:
+        aliases:
+        - monetr_valkey_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/valkey:/data

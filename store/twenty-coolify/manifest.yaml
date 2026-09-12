@@ -1,0 +1,155 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/twenty-coolify
+description: Twenty is a CRM designed to fit your unique business needs.
+endpoint:
+  port: 3000
+  service: twenty
+env:
+  API_RATE_LIMITING_LIMIT: '100'
+  API_RATE_LIMITING_TTL: '100'
+  CACHE_STORAGE_TYPE: redis
+  DEBUG_MODE: 'false'
+  EMAIL_DRIVER: logger
+  IS_SIGN_UP_DISABLED: 'false'
+  MESSAGE_QUEUE_TYPE: pg-boss
+  PASSWORD_RESET_TOKEN_EXPIRES_IN: 5m
+  POSTGRES_DB: twenty-db
+  POSTGRES_USER: ''
+  SERVICE_BASE64_32:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_TWENTY: https://${APP_DOMAIN}
+  SERVICE_URL_TWENTY_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  STORAGE_TYPE: local
+  TELEMETRY_ENABLED: 'false'
+  WORKSPACE_INACTIVE_DAYS_BEFORE_DELETION: '21'
+  WORKSPACE_INACTIVE_DAYS_BEFORE_NOTIFICATION: '7'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: twenty-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CACHE_STORAGE_TYPE
+  hint: 'по умолчанию: redis'
+  label: cache storage type
+  options: null
+  required: false
+  type: text
+- env: API_RATE_LIMITING_TTL
+  hint: 'по умолчанию: 100'
+  label: api rate limiting ttl
+  options: null
+  required: false
+  type: text
+- env: API_RATE_LIMITING_LIMIT
+  hint: 'по умолчанию: 100'
+  label: api rate limiting limit
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: twenty-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: IS_SIGN_UP_DISABLED
+  hint: 'по умолчанию: false'
+  label: is sign up disabled
+  options: null
+  required: false
+  type: text
+- env: PASSWORD_RESET_TOKEN_EXPIRES_IN
+  hint: 'по умолчанию: 5m'
+  label: password reset token expires in
+  options: null
+  required: false
+  type: password
+- env: WORKSPACE_INACTIVE_DAYS_BEFORE_NOTIFICATION
+  hint: 'по умолчанию: 7'
+  label: workspace inactive days before notification
+  options: null
+  required: false
+  type: text
+- env: WORKSPACE_INACTIVE_DAYS_BEFORE_DELETION
+  hint: 'по умолчанию: 21'
+  label: workspace inactive days before deletion
+  options: null
+  required: false
+  type: text
+- env: STORAGE_TYPE
+  hint: 'по умолчанию: local'
+  label: storage type
+  options: null
+  required: false
+  type: text
+- env: MESSAGE_QUEUE_TYPE
+  hint: 'по умолчанию: pg-boss'
+  label: message queue type
+  options: null
+  required: false
+  type: text
+- env: EMAIL_DRIVER
+  hint: 'по умолчанию: logger'
+  label: email driver
+  options: null
+  required: false
+  type: text
+- env: DEBUG_MODE
+  hint: 'по умолчанию: false'
+  label: debug mode
+  options: null
+  required: false
+  type: text
+- env: TELEMETRY_ENABLED
+  hint: 'по умолчанию: false'
+  label: telemetry enabled
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- crm
+- self-hosted
+- dashboard
+title: Twenty
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.twenty.com
+  tags:
+  - crm
+  - self-hosted
+  - dashboard
+  template: twenty.yaml
+website: https://docs.twenty.com

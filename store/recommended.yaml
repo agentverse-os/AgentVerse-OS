@@ -1,0 +1,77 @@
+# Кураторский список «Рекомендуем» для Store: порядок = место на полке. Ядро подмешивает его в манифесты при чтении
+# (поле recommended), переимпорт каталогов файл не трогает. `app` — имя каталога приложения в store/.
+# `reason` — причина на языке по умолчанию (английский), переводы — в `i18n.<lang>.reason`; Desktop выбирает по языку интерфейса.
+title: Recommended
+items:
+  - app: pipecat-voice
+    reason: "A voice assistant in the browser: Pipecat, local Whisper and Piper, LLM through an OpenAI-compatible API"
+    i18n:
+      ru: { reason: "Голосовой ассистент в браузере: Pipecat, локальные Whisper и Piper, LLM через OpenAI-совместимый API" }
+      uk: { reason: "Голосовий асистент у браузері: Pipecat, локальні Whisper і Piper, LLM через OpenAI-сумісний API" }
+      es: { reason: "Asistente de voz en el navegador: Pipecat, Whisper y Piper locales, LLM a través de una API compatible con OpenAI" }
+  - app: hermes-agent
+    reason: "The official Hermes Agent, latest version, with its native dashboard: chat terminal, skills, cron, messengers"
+    i18n:
+      ru: { reason: "Официальный Hermes Agent последней версии с родным дашбордом: чат-терминал, скилы, cron, мессенджеры" }
+      uk: { reason: "Офіційний Hermes Agent останньої версії з рідним дашбордом: чат-термінал, скіли, cron, месенджери" }
+      es: { reason: "Hermes Agent oficial en su última versión con su panel nativo: terminal de chat, habilidades, cron, mensajeros" }
+  - app: gitea
+    reason: "A lightweight Git server for project code"
+    i18n:
+      ru: { reason: "Лёгкий Git-сервер для кода проектов" }
+      uk: { reason: "Легкий Git-сервер для коду проєктів" }
+      es: { reason: "Un servidor Git ligero para el código de los proyectos" }
+  - app: uptime-kuma
+    reason: "Uptime monitoring for services, with notifications"
+    i18n:
+      ru: { reason: "Мониторинг доступности сервисов с уведомлениями" }
+      uk: { reason: "Моніторинг доступності сервісів зі сповіщеннями" }
+      es: { reason: "Monitorización de disponibilidad de servicios con notificaciones" }
+  - app: dozzle
+    reason: "Live container logs in the browser"
+    i18n:
+      ru: { reason: "Живые логи контейнеров в браузере" }
+      uk: { reason: "Живі логи контейнерів у браузері" }
+      es: { reason: "Registros de contenedores en vivo en el navegador" }
+  - app: vaultwarden
+    reason: "A password manager compatible with Bitwarden"
+    i18n:
+      ru: { reason: "Менеджер паролей, совместимый с Bitwarden" }
+      uk: { reason: "Менеджер паролів, сумісний із Bitwarden" }
+      es: { reason: "Un gestor de contraseñas compatible con Bitwarden" }
+  - app: nextcloud
+    reason: "Files, calendar and contacts"
+    i18n:
+      ru: { reason: "Файлы, календарь и контакты" }
+      uk: { reason: "Файли, календар і контакти" }
+      es: { reason: "Archivos, calendario y contactos" }
+  - app: immich-coolify
+    reason: "Photos and videos from your phone, with face recognition"
+    i18n:
+      ru: { reason: "Фото и видео с телефона с распознаванием лиц" }
+      uk: { reason: "Фото й відео з телефона з розпізнаванням облич" }
+      es: { reason: "Fotos y vídeos del teléfono con reconocimiento facial" }
+  - app: n8n-coolify
+    reason: "Automation and integrations without code"
+    i18n:
+      ru: { reason: "Автоматизация и интеграции без кода" }
+      uk: { reason: "Автоматизація та інтеграції без коду" }
+      es: { reason: "Automatización e integraciones sin código" }
+  - app: linkding-coolify
+    reason: "Bookmarks with tags and page archiving"
+    i18n:
+      ru: { reason: "Закладки с тегами и архивом страниц" }
+      uk: { reason: "Закладки з тегами й архівом сторінок" }
+      es: { reason: "Marcadores con etiquetas y archivo de páginas" }
+  - app: garage
+    reason: "S3 storage; the storage.s3 capability: a bucket and a key per project"
+    i18n:
+      ru: { reason: "S3-хранилище; capability storage.s3 — бакет и ключ на проект" }
+      uk: { reason: "S3-сховище; capability storage.s3 — бакет і ключ на проєкт" }
+      es: { reason: "Almacenamiento S3; la capability storage.s3: un bucket y una clave por proyecto" }
+  - app: ntfy
+    reason: "Push notifications; the notify capability: a topic and a token per project"
+    i18n:
+      ru: { reason: "Push-уведомления; capability notify — топик и токен на проект" }
+      uk: { reason: "Push-сповіщення; capability notify — топік і токен на проєкт" }
+      es: { reason: "Notificaciones push; la capability notify: un tema y un token por proyecto" }

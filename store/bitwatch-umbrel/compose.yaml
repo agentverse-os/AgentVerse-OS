@@ -1,0 +1,17 @@
+# bitwatch-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: ghcr.io/zapomatic/bitwatch:v1.7.2@sha256:bfc7522e0953c212010e189fdf6bd060168fb9ed283f59512600b0da0c98bd3b
+    networks:
+      appnet:
+        aliases:
+        - bitwatch_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/server/data

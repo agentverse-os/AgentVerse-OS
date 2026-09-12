@@ -1,0 +1,84 @@
+# drupal-with-postgresql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  drupal:
+    depends_on:
+    - postgres
+    environment:
+    - SERVICE_URL_DRUPAL=${SERVICE_URL_DRUPAL}
+    - DB_HOST=postgres
+    - DB_NAME=postgres
+    - DB_USER=postgres
+    - DB_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - curl -f http://localhost:80 || exit 1
+      timeout: 10s
+    image: drupal:10-apache
+    networks:
+      appnet:
+        aliases:
+        - drupal-with-postgresql-coolify_drupal_1
+    restart: unless-stopped
+    volumes:
+    - source: drupal_modules
+      target: /var/www/html/modules
+      type: volume
+    - source: drupal_profiles
+      target: /var/www/html/profiles
+      type: volume
+    - source: drupal_themes
+      target: /var/www/html/themes
+      type: volume
+    - source: drupal_sites
+      target: /var/www/html/sites
+      type: volume
+  postgres:
+    environment:
+    - POSTGRES_DB=postgres
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 10s
+    image: postgres:16
+    networks:
+      appnet:
+        aliases:
+        - drupal-with-postgresql-coolify_postgres_1
+    restart: unless-stopped
+volumes:
+  drupal_modules:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/drupal_modules
+      o: bind
+      type: none
+  drupal_profiles:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/drupal_profiles
+      o: bind
+      type: none
+  drupal_sites:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/drupal_sites
+      o: bind
+      type: none
+  drupal_themes:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/drupal_themes
+      o: bind
+      type: none

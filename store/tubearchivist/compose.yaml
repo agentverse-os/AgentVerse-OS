@@ -1,0 +1,54 @@
+# tubearchivist: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  tubearchivist:
+    depends_on:
+    - tubearchivist-es
+    - tubearchivist-redis
+    environment:
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      ES_URL: http://tubearchivist-es:9200
+      HOST_GID: '1000'
+      HOST_UID: '1000'
+      REDIS_CON: redis://tubearchivist-redis:6379
+      TA_HOST: ${APP_DOMAIN}
+      TA_PASSWORD: ${TA_PASSWORD}
+      TA_USERNAME: ${TA_USER}
+    image: bbilly1/tubearchivist:v0.5.12
+    networks:
+      appnet:
+        aliases:
+        - tubearchivist_tubearchivist_1
+    restart: unless-stopped
+    volumes:
+    - ${ROOT_FOLDER_HOST}/media/data/youtube:/youtube
+    - ${APP_DATA_DIR}/data/cache:/cache
+  tubearchivist-es:
+    environment:
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      discovery.type: single-node
+      path.repo: /usr/share/elasticsearch/data/snapshot
+      xpack.security.enabled: 'true'
+    image: elasticsearch:8.17.2
+    networks:
+      appnet:
+        aliases:
+        - tubearchivist_tubearchivist-es_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/es:/usr/share/elasticsearch/data
+  tubearchivist-redis:
+    depends_on:
+    - tubearchivist-es
+    image: redislabs/rejson:latest
+    networks:
+      appnet:
+        aliases:
+        - tubearchivist_tubearchivist-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis-data:/data

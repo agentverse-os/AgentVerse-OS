@@ -1,0 +1,98 @@
+/* Токены оформления. Тёмная тема — по умолчанию; светлая — data-theme=light. Акцент/масштаб/шрифт/фон приходят из theme.ts. */
+:root {
+  --accent: #5BBFCB; --on-accent: #0b1416; --accent-rgb: 91 191 203;
+  --scale: 1; --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --wallpaper: #121416; --wallpaper-blur: 0px; --wallpaper-top: none;
+  --sp: 1; --r: 10px; --r-sm: 8px; --dur: .15s;
+  --bg: #121416; --panel: #171c1f; --panel-2: #1d2327; --ink: #F2F4F4; --muted: #9AA3A8; --line: #2A3438;
+  --ok: #6fcf97; --warn: #f2c94c; --bad: #eb5757;
+  --shadow: 0 8px 30px rgb(0 0 0 / .35);
+  --glass: rgb(23 28 31 / .92);
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #f4f6f7; --panel: #ffffff; --panel-2: #f1f3f5; --ink: #14181b; --muted: #5b6770; --line: #d7dde2;
+  --ok: #1f9d55; --warn: #b7791f; --bad: #c53030;
+  --shadow: 0 8px 30px rgb(20 30 40 / .12);
+  --glass: rgb(255 255 255 / .9);
+  color-scheme: light;
+}
+:root[data-contrast="high"] { --muted: color-mix(in srgb, var(--ink) 80%, var(--muted)); --line: color-mix(in srgb, var(--ink) 45%, var(--line)); }
+:root[data-theme="light"][data-contrast="high"] { --ink: #000; }
+:root[data-density="compact"] { --sp: .75; }
+:root[data-density="comfortable"] { --sp: 1.3; }
+:root[data-radius="sharp"] { --r: 2px; --r-sm: 2px; }
+:root[data-radius="round"] { --r: 18px; --r-sm: 12px; }
+:root[data-motion="reduce"] { --dur: 0s; }
+:root[data-glass="off"] { --glass: var(--panel); }
+:root[data-icons="small"] { --icon: 32px; } :root[data-icons="medium"] { --icon: 44px; } :root[data-icons="large"] { --icon: 60px; }
+
+/* Поверхности. glass — стекло: сильное размытие с насыщением, светлая кромка сверху (блик), полупрозрачные панели */
+:root[data-surface="glass"] { --glass: rgb(20 24 34 / .58); --line: rgb(255 255 255 / .14); --shadow: 0 16px 48px rgb(0 0 0 / .45), inset 0 1px 0 rgb(255 255 255 / .16); }
+:root[data-surface="glass"][data-theme="light"] { --glass: rgb(255 255 255 / .55); --panel-2: rgb(255 255 255 / .45); --line: rgb(255 255 255 / .75); --shadow: 0 16px 48px rgb(20 30 40 / .16), inset 0 1px 0 rgb(255 255 255 / .9); }
+:root[data-surface="glass"][data-glass="off"] { --glass: var(--panel); }
+:root[data-surface="glass"] .card, :root[data-surface="glass"] .win, :root[data-surface="glass"] .widget, :root[data-surface="glass"] .taskbar, :root[data-surface="glass"] .menu, :root[data-surface="glass"] .ctx, :root[data-surface="glass"] .dd-list {
+  backdrop-filter: blur(28px) saturate(1.7); -webkit-backdrop-filter: blur(28px) saturate(1.7);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / .07), rgb(255 255 255 / 0) 42%);
+  box-shadow: var(--shadow);
+}
+:root[data-surface="glass"][data-theme="light"] .card, :root[data-surface="glass"][data-theme="light"] .win, :root[data-surface="glass"][data-theme="light"] .widget, :root[data-surface="glass"][data-theme="light"] .taskbar, :root[data-surface="glass"][data-theme="light"] .menu { background-image: linear-gradient(180deg, rgb(255 255 255 / .55), rgb(255 255 255 / .1) 50%); }
+:root[data-surface="glass"] .win .bar { background: rgb(255 255 255 / .05); border-bottom-color: var(--line); }
+:root[data-surface="glass"][data-theme="light"] .win .bar { background: rgb(255 255 255 / .35); }
+:root[data-surface="glass"] .taskbar { border-top-color: var(--line); }
+/* нет backdrop-filter (старые браузеры, отключено в настройках) — стекло почти непрозрачное, иначе текст поверх обоев не читается */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-surface="glass"] { --glass: rgb(20 24 34 / .94); }
+  :root[data-surface="glass"][data-theme="light"] { --glass: rgb(255 255 255 / .94); --panel-2: rgb(255 255 255 / .9); }
+}
+/* системная настройка «уменьшить прозрачность» (macOS, iOS, Windows) — панели непрозрачные, как при выключенной прозрачности */
+@media (prefers-reduced-transparency: reduce) { :root, :root[data-surface="glass"] { --glass: var(--panel); } }
+/* oled — чистый чёрный, панели почти чёрные, без прозрачности */
+:root[data-surface="oled"] { --bg: #000; --panel: #0a0a0d; --panel-2: #131317; --line: #24242b; --glass: rgb(10 10 13 / .97); --shadow: 0 8px 30px rgb(0 0 0 / .7); }
+/* высокий контраст: без теней и полупрозрачности, заметный фокус */
+:root[data-contrast="high"] { --shadow: none; --glass: var(--panel); }
+:root[data-contrast="high"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+:root[data-contrast="high"] .badge, :root[data-contrast="high"] .muted { color: var(--ink); }
+
+* { box-sizing: border-box; }
+html { font-size: calc(15px * var(--scale)); }
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 1rem/1.5 var(--font); position: relative; }
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper); filter: blur(var(--wallpaper-blur)); transform: scale(1.02); }
+/* верхний слой обоев (знак Monolith) — без размытия, чтобы ползунок размывал только космос */
+body::after { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper-top); pointer-events: none; filter: blur(calc(var(--wallpaper-blur) * 0.2)); transform: scale(1.01); }  /* знак мягче на пятую часть от размытия космоса: при 13 px — около 2.5 px */
+a { color: var(--accent); }
+button { font: inherit; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(12px * var(--sp)); cursor: pointer; transition: border-color var(--dur), background var(--dur), transform var(--dur); }
+button:hover { border-color: var(--accent); }
+button:active { transform: translateY(1px); }
+button.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+button.danger { border-color: var(--bad); color: var(--bad); }
+button:disabled { opacity: .5; cursor: progress; }
+input, select { font: inherit; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(10px * var(--sp)); }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+input[type=range] { padding: 0; accent-color: var(--accent); }
+input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
+.card { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: var(--r); padding: calc(14px * var(--sp)) calc(16px * var(--sp)); box-shadow: var(--shadow); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: calc(12px * var(--sp)); }
+.row { display: flex; gap: calc(8px * var(--sp)); align-items: center; flex-wrap: wrap; }
+.muted { color: var(--muted); font-size: .87rem; }
+.badge { display: inline-flex; align-items: center; align-self: center; line-height: 1.5; font-size: .8rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.badge.ok { border-color: var(--ok); color: var(--ok); }
+.badge.warn { border-color: var(--warn); color: var(--warn); }
+.badge.bad { border-color: var(--bad); color: var(--bad); }
+code { font-family: ui-monospace, Menlo, monospace; font-size: .87rem; color: var(--ink); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+pre { background: var(--panel-2); padding: 10px; border-radius: var(--r-sm); overflow: auto; font-size: .8rem; max-height: 40vh; }
+h1 { font-size: 1.2rem; margin: 0; } h2 { font-size: 1.07rem; margin: 0 0 8px; } h3 { font-size: 1rem; margin: 0; }
+details > summary { cursor: pointer; }
+
+/* индикаторы долгих операций (установка, удаление, связи) */
+.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.progress { position: absolute; left: 0; right: 0; top: 0; height: 3px; overflow: hidden; border-radius: var(--r) var(--r) 0 0; background: color-mix(in srgb, var(--accent) 20%, transparent); }
+.progress::after { content: ""; position: absolute; left: -40%; width: 40%; top: 0; bottom: 0; background: var(--accent); animation: indeterminate 1.2s ease-in-out infinite; }
+@keyframes indeterminate { to { left: 100%; } }
+.badge.st::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; margin-right: 5px; flex: none; }
+.badge.st.pulse::before { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+.skeleton { position: relative; overflow: hidden; background: var(--panel-2); border-radius: var(--r-sm); color: transparent; }
+.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .08), transparent); animation: shimmer 1.2s infinite; }
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }

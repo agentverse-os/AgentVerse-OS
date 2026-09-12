@@ -1,0 +1,44 @@
+# eclipse-mosquitto: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  eclipse-mosquitto:
+    command:
+    - /dynsec-setup.sh
+    - /usr/sbin/mosquitto
+    - -c
+    - /mosquitto/config/mosquitto.conf
+    environment:
+      MQTT_DYNSEC_ADMIN_PASSWORD: ${MQTT_ADMIN_PASSWORD}
+      MQTT_DYNSEC_ADMIN_USER: admin
+      TZ: ${TZ}
+    image: eclipse-mosquitto:2.0.22
+    networks:
+      appnet:
+        aliases:
+        - eclipse-mosquitto_eclipse-mosquitto_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/data:/mosquitto/data
+    - ${APP_DATA_DIR}/data/config:/mosquitto/config
+    - ${APP_DATA_DIR}/data/scripts/dynsec-setup.sh:/dynsec-setup.sh
+  mosquitto-management-center:
+    depends_on:
+    - eclipse-mosquitto
+    environment:
+      CEDALO_MC_BROKER_ID: mosquitto-broker
+      CEDALO_MC_BROKER_NAME: mosquitto-broker-2
+      CEDALO_MC_BROKER_PASSWORD: ${MQTT_ADMIN_PASSWORD}
+      CEDALO_MC_BROKER_URL: mqtt://eclipse-mosquitto:1883
+      CEDALO_MC_BROKER_USERNAME: admin
+      CEDALO_MC_PASSWORD: ${CEDALO_MC_PASSWORD}
+      CEDALO_MC_USERNAME: admin
+      TZ: ${TZ}
+    image: cedalo/management-center:2
+    networks:
+      appnet:
+        aliases:
+        - eclipse-mosquitto_mosquitto-management-center_1
+    restart: unless-stopped

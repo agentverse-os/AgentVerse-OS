@@ -1,0 +1,13 @@
+# chatbot-ui-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: ghcr.io/mckaywrigley/chatbot-ui:main@sha256:569dffe6043136f03de86bde38453a58d05150f29476239dc1da4ce2573b4101
+    networks:
+      appnet:
+        aliases:
+        - chatbot-ui_web_1
+    restart: unless-stopped

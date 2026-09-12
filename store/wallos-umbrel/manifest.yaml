@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wallos-umbrel
+description: Track your recurring subscriptions and expenses
+endpoint:
+  port: 80
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/wallos/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wallos/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wallos/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wallos/4.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/wallos/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wallos-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Wallos
+type: app
+upstream:
+  author: Wallos
+  categories:
+  - finance
+  release_notes: |-
+    This update improves authentication and session security by fixing login-token revocation, TOTP replay protection, and a theme-cookie XSS issue.
+    It also fixes OIDC token exchange behind proxies, payment-method in-use checks, subscription warnings for unseeded stats, and adds an admin option for standard users to use the Webhook Allowlist.
+    Full release notes are available at https://github.com/ellite/Wallos/releases/tag/v5.5.0
+  source: https://github.com/ellite/Wallos
+  version: 5.5.0
+  website: https://wallosapp.com
+website: https://wallosapp.com

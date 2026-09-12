@@ -1,0 +1,99 @@
+# invoice-ninja-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_DEBUG: 'false'
+      APP_ENV: production
+      APP_KEY: ${APP_KEY:-unset}
+      APP_URL: http://${APP_DOMAIN}:8676
+      CACHE_DRIVER: redis
+      DB_DATABASE: invoiceninja
+      DB_HOST: invoice-ninja_db_1
+      DB_PASSWORD: moneyprintergobrrr
+      DB_USERNAME: invoiceninja
+      FILESYSTEM_DISK: debian_docker
+      IN_PASSWORD: $APP_PASSWORD
+      IN_USER_EMAIL: admin@example.com
+      IS_DOCKER: 'true'
+      QUEUE_CONNECTION: redis
+      REDIS_HOST: invoice-ninja_redis_1
+      REDIS_PASSWORD: null
+      REDIS_PORT: 6379
+      REQUIRE_HTTPS: 'false'
+      SESSION_DRIVER: redis
+    image: invoiceninja/invoiceninja-debian:5.13.37@sha256:e000e57231e1f5d0fbbb84319c671ff2726893ea21756018833e6ffd736b8989
+    networks:
+      appnet:
+        aliases:
+        - invoice-ninja_app_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/public:/var/www/html/public
+    - ${APP_DATA_DIR}/data/fake/../storage:/var/www/html/storage
+  db:
+    environment:
+      MARIADB_AUTO_UPGRADE: 'true'
+      MYSQL_DATABASE: invoiceninja
+      MYSQL_PASSWORD: moneyprintergobrrr
+      MYSQL_ROOT_PASSWORD: invoiceninja
+      MYSQL_USER: invoiceninja
+    healthcheck:
+      interval: 20s
+      retries: 5
+      start_period: 10s
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 10s
+    image: mariadb:11.4.5@sha256:5dfb3093333fa0ea53194ddef0a2bfa21d3b1e1353bd228b22610cd6fc0c04da
+    networks:
+      appnet:
+        aliases:
+        - invoice-ninja_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql
+  nginx:
+    depends_on:
+    - app
+    image: nginx:1.21-alpine@sha256:686aac2769fd6e7bab67663fd38750c135b72d993d0bb0a942ab02ef647fc9c3
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - invoice-ninja_nginx_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/config/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro
+    - ${APP_DATA_DIR}/data/public:/var/www/html/public:ro
+    - ${APP_DATA_DIR}/data/fake/../storage:/var/www/html/storage:ro
+  redis:
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 5s
+    image: redis:7.4.3@sha256:ee8ec723c831b815c3e2f2c6fbd1c145c68d1c04ba284f044ec1434fbca0fee8
+    networks:
+      appnet:
+        aliases:
+        - invoice-ninja_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

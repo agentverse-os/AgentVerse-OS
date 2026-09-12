@@ -1,0 +1,54 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/crowdsec
+description: Participative security solution offering crowdsourced protection against malicious IPs and access to the most advanced real-world CTI.
+endpoint:
+  port: 3000
+  service: crowdsec-dashboard
+env:
+  CROWDSEC_BOUNCER_API_KEY:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: crowdsec
+notes:
+- 'crowdsec: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CROWDSEC_BOUNCER_API_KEY
+  hint: For initial start, use a random string and change it later as specified in the description!
+  label: Bouncer API Key
+  options: null
+  required: true
+  type: password
+tags: []
+title: Crowdsec
+type: app
+upstream:
+  author: crowdsecurity
+  categories:
+  - security
+  - utilities
+  source: https://github.com/crowdsecurity/crowdsec
+  tipi_version: 25
+  version: v1.7.8
+website: https://github.com/crowdsecurity/crowdsec

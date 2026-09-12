@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/stirling-pdf
+description: Powerful locally hosted web based PDF manipulation tool.
+endpoint:
+  port: 8080
+  service: stirling-pdf
+env:
+  STIRLING_PDF_DOCKER_ENABLE_SECURITY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: stirling-pdf
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: STIRLING_PDF_DOCKER_ENABLE_SECURITY
+  hint: null
+  label: Docker > Enable Security
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: Stirling-PDF
+type: app
+upstream:
+  author: Frooodle
+  categories:
+  - data
+  - utilities
+  source: https://github.com/Frooodle/Stirling-PDF/
+  tipi_version: 144
+  version: 2.14.3
+website: https://github.com/Frooodle/Stirling-PDF/

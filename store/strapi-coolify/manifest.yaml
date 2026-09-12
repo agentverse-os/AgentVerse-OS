@@ -1,0 +1,131 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/strapi-coolify
+description: Open-source headless CMS to build powerful APIs with built-in content management.
+endpoint:
+  port: 1337
+  service: strapi
+env:
+  BROWSER: 'true'
+  FAST_REFRESH: 'true'
+  NODE_ENV: development
+  POSTGRESQL_DATABASE: strapi
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_BASE64_64_KEY:
+    generate: hex64
+  SERVICE_BASE64_64_SECRET:
+    generate: hex64
+  SERVICE_FQDN_STRAPI: ${APP_DOMAIN}
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_STRAPI_1337: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+  STRAPI_ENFORCE_SOURCEMAPS: 'false'
+  STRAPI_LICENSE: ''
+  STRAPI_PLUGIN_I18N_INIT_LOCALE_CODE: en
+  STRAPI_TELEMETRY_DISABLED: 'true'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: strapi-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: strapi'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: STRAPI_TELEMETRY_DISABLED
+  hint: 'по умолчанию: true'
+  label: strapi telemetry disabled
+  options: null
+  required: false
+  type: text
+- env: STRAPI_LICENSE
+  hint: null
+  label: strapi license
+  options: null
+  required: false
+  type: text
+- env: NODE_ENV
+  hint: 'по умолчанию: development'
+  label: node env
+  options: null
+  required: false
+  type: text
+- env: BROWSER
+  hint: 'по умолчанию: true'
+  label: browser
+  options: null
+  required: false
+  type: text
+- env: STRAPI_PLUGIN_I18N_INIT_LOCALE_CODE
+  hint: 'по умолчанию: en'
+  label: strapi plugin i18n init locale code
+  options: null
+  required: false
+  type: text
+- env: STRAPI_ENFORCE_SOURCEMAPS
+  hint: 'по умолчанию: false'
+  label: strapi enforce sourcemaps
+  options: null
+  required: false
+  type: text
+- env: FAST_REFRESH
+  hint: 'по умолчанию: true'
+  label: fast refresh
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- cms
+- headless
+- mysql
+- api
+title: Strapi
+type: app
+upstream:
+  categories:
+  - backend
+  source: https://docs.strapi.io/
+  tags:
+  - cms
+  - headless
+  - mysql
+  - api
+  template: strapi.yaml
+website: https://docs.strapi.io/

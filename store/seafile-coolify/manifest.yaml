@@ -1,0 +1,125 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/seafile-coolify
+description: Open source cloud storage system for file sync, share and document collaboration
+endpoint:
+  port: 80
+  service: seafile
+env:
+  INIT_SEAFILE_ADMIN_EMAIL: test@example.com
+  MYSQL_DATABASE: seafile-db
+  NON_ROOT: 'false'
+  SEAFILE_LOG_TO_STDOUT: 'true'
+  SEAFILE_MYSQL_DB_CCNET_DB_NAME: ccnet_db
+  SEAFILE_MYSQL_DB_SEAFILE_DB_NAME: seafile_db
+  SEAFILE_MYSQL_DB_SEAHUB_DB_NAME: seahub_db
+  SERVICE_FQDN_SEAFILE: ${APP_DOMAIN}
+  SERVICE_PASSWORD_64_JWT:
+    generate: hex64
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_SEAFILE: https://${APP_DOMAIN}
+  SERVICE_URL_SEAFILE_80: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+  SITE_ROOT: /
+  TIME_ZONE: UTC
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: INIT_SEAFILE_ADMIN_EMAIL
+name: seafile-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SEAFILE_MYSQL_DB_CCNET_DB_NAME
+  hint: 'по умолчанию: ccnet_db'
+  label: seafile mysql db ccnet db name
+  options: null
+  required: false
+  type: text
+- env: SEAFILE_MYSQL_DB_SEAFILE_DB_NAME
+  hint: 'по умолчанию: seafile_db'
+  label: seafile mysql db seafile db name
+  options: null
+  required: false
+  type: text
+- env: SEAFILE_MYSQL_DB_SEAHUB_DB_NAME
+  hint: 'по умолчанию: seahub_db'
+  label: seafile mysql db seahub db name
+  options: null
+  required: false
+  type: text
+- env: TIME_ZONE
+  hint: 'по умолчанию: UTC'
+  label: time zone
+  options: null
+  required: false
+  type: text
+- env: INIT_SEAFILE_ADMIN_EMAIL
+  hint: 'по умолчанию: test@example.com'
+  label: init seafile admin email
+  options: null
+  required: false
+  type: text
+- env: SITE_ROOT
+  hint: 'по умолчанию: /'
+  label: site root
+  options: null
+  required: false
+  type: text
+- env: NON_ROOT
+  hint: 'по умолчанию: false'
+  label: non root
+  options: null
+  required: false
+  type: text
+- env: SEAFILE_LOG_TO_STDOUT
+  hint: 'по умолчанию: true'
+  label: seafile log to stdout
+  options: null
+  required: false
+  type: text
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: seafile-db'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+tags:
+- file-manager
+- file-sharing
+- storage
+title: Seafile
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://manual.seafile.com
+  tags:
+  - file-manager
+  - file-sharing
+  - storage
+  template: seafile.yaml
+website: https://manual.seafile.com

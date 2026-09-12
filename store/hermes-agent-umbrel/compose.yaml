@@ -1,0 +1,28 @@
+# hermes-agent-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    command:
+    - gateway
+    - run
+    environment:
+      HERMES_DASHBOARD: '1'
+      HERMES_DASHBOARD_PORT: '18789'
+      HERMES_GATEWAY_BOOTSTRAP_STATE: running
+      HERMES_GID: '1000'
+      HERMES_TUI_DIR: /app/umbrel-tui
+      HERMES_UID: '1000'
+      HERMES_UMBREL_APP_PROXY_AUTH: '1'
+      HERMES_UPSTREAM_TUI_ENTRY: /opt/hermes/ui-tui/dist/entry.js
+    image: ghcr.io/getumbrel/hermes-agent-umbrel:v2026.8.27@sha256:5b4a5aed75ecbc5f914ebfefdfe768c5fcb5dab0db348d95fae415832ac2af5d
+    networks:
+      appnet:
+        aliases:
+        - hermes-agent_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/hermes:/opt/data

@@ -1,0 +1,41 @@
+# vaultwarden-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  vaultwarden:
+    environment:
+    - SERVICE_URL_VAULTWARDEN=${SERVICE_URL_VAULTWARDEN}
+    - DOMAIN=${SERVICE_URL_VAULTWARDEN}
+    - DATABASE_URL=${VAULTWARDEN_DB_URL:-data/db.sqlite3}
+    - SIGNUPS_ALLOWED=${SIGNUP_ALLOWED:-true}
+    - ADMIN_TOKEN=${SERVICE_PASSWORD_64_ADMIN}
+    - IP_HEADER=X-Forwarded-For
+    - PUSH_ENABLED=${PUSH_ENABLED:-false}
+    - PUSH_INSTALLATION_ID=${PUSH_SERVICE_ID}
+    - PUSH_INSTALLATION_KEY=${PUSH_SERVICE_KEY}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: vaultwarden/server:latest
+    networks:
+      appnet:
+        aliases:
+        - vaultwarden-coolify_vaultwarden_1
+    restart: unless-stopped
+    volumes:
+    - vaultwarden-data:/data
+volumes:
+  vaultwarden-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/vaultwarden-data
+      o: bind
+      type: none

@@ -1,0 +1,45 @@
+# duplicati-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  duplicati:
+    environment:
+    - SERVICE_URL_DUPLICATI_8200=${SERVICE_URL_DUPLICATI_8200}
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-Europe/London}
+    - SETTINGS_ENCRYPTION_KEY=${SERVICE_PASSWORD_ENCRYPT}
+    - DUPLICATI__WEBSERVICE_PASSWORD=${SERVICE_PASSWORD_WEB}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8200
+      timeout: 10s
+    image: lscr.io/linuxserver/duplicati:latest
+    networks:
+      appnet:
+        aliases:
+        - duplicati-coolify_duplicati_1
+    restart: unless-stopped
+    volumes:
+    - duplicati-config:/config
+    - duplicati-backups:/backups
+volumes:
+  duplicati-backups:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/duplicati-backups
+      o: bind
+      type: none
+  duplicati-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/duplicati-config
+      o: bind
+      type: none

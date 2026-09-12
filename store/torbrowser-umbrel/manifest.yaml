@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/torbrowser-umbrel
+description: An invisible shield for your browsing experience
+endpoint:
+  port: 5800
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/torbrowser/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/torbrowser/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/torbrowser/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/torbrowser/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: torbrowser-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Tor Browser
+type: app
+upstream:
+  author: The Tor Project
+  categories:
+  - networking
+  release_notes: |-
+    Tor Browser 15.0.17 includes important security updates to Tor.
+
+      - Updated Tor to 0.4.9.11
+      - Updated NoScript to 13.6.25.1984
+      - Includes Tor Browser build-system signing-key updates
+
+    ℹ️ Raspberry Pi / ARM devices continue to use the existing unofficial community port, as no official ARM release is currently provided by the Tor Project.
+    Full release notes can be found at https://blog.torproject.org/new-release-tor-browser-15017/
+  source: https://github.com/torproject/tor
+  version: 15.0.17
+  website: https://www.torproject.org/
+website: https://www.torproject.org/

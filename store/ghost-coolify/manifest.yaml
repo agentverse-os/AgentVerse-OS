@@ -1,0 +1,110 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ghost-coolify
+description: Ghost is a content management system (CMS) and blogging platform.
+endpoint:
+  port: 2368
+  service: ghost
+env:
+  MAIL_OPTIONS_AUTH_PASS: ''
+  MAIL_OPTIONS_AUTH_USER: ''
+  MAIL_OPTIONS_HOST: ''
+  MAIL_OPTIONS_PORT: '465'
+  MAIL_OPTIONS_SECURE: 'true'
+  MAIL_OPTIONS_SERVICE: Mailgun
+  MYSQL_DATABASE: ghost
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_GHOST: https://${APP_DOMAIN}
+  SERVICE_URL_GHOST_2368: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ghost-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: ghost'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: MAIL_OPTIONS_AUTH_PASS
+  hint: null
+  label: mail options auth pass
+  options: null
+  required: false
+  type: text
+- env: MAIL_OPTIONS_AUTH_USER
+  hint: null
+  label: mail options auth user
+  options: null
+  required: false
+  type: text
+- env: MAIL_OPTIONS_SECURE
+  hint: 'по умолчанию: true'
+  label: mail options secure
+  options: null
+  required: false
+  type: text
+- env: MAIL_OPTIONS_PORT
+  hint: 'по умолчанию: 465'
+  label: mail options port
+  options: null
+  required: false
+  type: text
+- env: MAIL_OPTIONS_SERVICE
+  hint: 'по умолчанию: Mailgun'
+  label: mail options service
+  options: null
+  required: false
+  type: text
+- env: MAIL_OPTIONS_HOST
+  hint: null
+  label: mail options host
+  options: null
+  required: false
+  type: text
+tags:
+- cms
+- blog
+- content
+- management
+- system
+title: Ghost
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://ghost.org
+  tags:
+  - cms
+  - blog
+  - content
+  - management
+  - system
+  template: ghost.yaml
+website: https://ghost.org

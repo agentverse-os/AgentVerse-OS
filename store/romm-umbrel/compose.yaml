@@ -1,0 +1,54 @@
+# romm-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+    - MARIADB_ROOT_PASSWORD=umbrel
+    - MARIADB_DATABASE=romm
+    - MARIADB_USER=romm-user
+    - MARIADB_PASSWORD=moneyprintergobrr
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 5s
+    image: mariadb:11.4.5@sha256:5dfb3093333fa0ea53194ddef0a2bfa21d3b1e1353bd228b22610cd6fc0c04da
+    networks:
+      appnet:
+        aliases:
+        - romm_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql
+  server:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+    - DB_HOST=romm_db_1
+    - DB_NAME=romm
+    - DB_USER=romm-user
+    - DB_PASSWD=moneyprintergobrr
+    - ROMM_AUTH_SECRET_KEY=${APP_SEED}
+    image: rommapp/romm:5.2.0@sha256:3512f2ca455782f90247271bed23116e6bc675bc74e379be2c41696e607ab11e
+    networks:
+      appnet:
+        aliases:
+        - romm_server_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/resources:/romm/resources
+    - ${APP_DATA_DIR}/data/redis:/redis-data
+    - ${APP_DATA_DIR}/data/library:/romm/library
+    - ${APP_DATA_DIR}/data/assets:/romm/assets
+    - ${APP_DATA_DIR}/data/config:/romm/config

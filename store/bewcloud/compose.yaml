@@ -1,0 +1,46 @@
+# bewcloud: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  bewcloud:
+    command: -c "deno run --allow-net --allow-read --allow-env migrate-db.ts && deno run --allow-all main.ts"
+    entrypoint: bash
+    environment:
+      BASE_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      CONFIG_ALLOWED_COOKIE_DOMAINS: ${INTERNAL_IP},bewcloud.${LOCAL_DOMAIN},${APP_HOST}
+      CONFIG_ALLOW_SIGNUPS: ${ALLOW_SIGNUPS}
+      CONFIG_ENABLED_APPS: news,notes,photos
+      CONFIG_ENABLE_EMAILS: ${ENABLE_EMAIL}
+      CONFIG_FILES_ROOT_PATH: data-files
+      JWT_SECRET: ${JWT_SECRET}
+      PASSWORD_SALT: ${PASSWORD_SALT}
+      PORT: '8053'
+      POSTGRESQL_DBNAME: bewcloud
+      POSTGRESQL_HOST: bewcloud-db
+      POSTGRESQL_PASSWORD: ${DB_PASSWORD}
+      POSTGRESQL_PORT: '5432'
+      POSTGRESQL_USER: bewcloud
+    image: ghcr.io/bewcloud/bewcloud:v1.9.2
+    networks:
+      appnet:
+        aliases:
+        - bewcloud_bewcloud_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/bewcloud:/app/data-files
+  bewcloud-db:
+    environment:
+      POSTGRES_DB: bewcloud
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: bewcloud
+    image: postgres:15
+    networks:
+      appnet:
+        aliases:
+        - bewcloud_bewcloud-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/bewcloud/db:/var/lib/postgresql/data

@@ -1,0 +1,211 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/chatwoot-coolify
+description: Delightful customer relationships at scale.
+endpoint:
+  port: 3000
+  service: chatwoot
+env:
+  ACTIVE_STORAGE_SERVICE: local
+  CHATWOOT_DEFAULT_LOCALE: ''
+  CHATWOOT_MAILER_SENDER_EMAIL: ''
+  CHATWOOT_SMTP_ADDRESS: ''
+  CHATWOOT_SMTP_AUTHENTICATION: ''
+  CHATWOOT_SMTP_DOMAIN: ''
+  CHATWOOT_SMTP_ENABLE_STARTTLS_AUTO: ''
+  CHATWOOT_SMTP_PASSWORD: ''
+  CHATWOOT_SMTP_PORT: ''
+  CHATWOOT_SMTP_USERNAME: ''
+  ENABLE_ACCOUNT_SIGNUP: 'false'
+  FORCE_SSL: 'false'
+  INSTALLATION_ENV: docker
+  NODE_ENV: production
+  POSTGRES_DB: chatwoot
+  POSTGRES_HOST: postgres
+  RAILS_ENV: production
+  RAILS_MAX_THREADS: '5'
+  REDIS_OPENSSL_VERIFY_MODE: none
+  SAFE_FETCH_ALLOW_PRIVATE_NETWORK: 'false'
+  SERVICE_PASSWORD_CHATWOOT:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_URL_CHATWOOT: https://${APP_DOMAIN}
+  SERVICE_URL_CHATWOOT_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: chatwoot-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CHATWOOT_DEFAULT_LOCALE
+  hint: null
+  label: chatwoot default locale
+  options: null
+  required: false
+  type: text
+- env: FORCE_SSL
+  hint: 'по умолчанию: false'
+  label: force ssl
+  options: null
+  required: false
+  type: text
+- env: ENABLE_ACCOUNT_SIGNUP
+  hint: 'по умолчанию: false'
+  label: enable account signup
+  options: null
+  required: false
+  type: text
+- env: REDIS_OPENSSL_VERIFY_MODE
+  hint: 'по умолчанию: none'
+  label: redis openssl verify mode
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: chatwoot'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_HOST
+  hint: 'по умолчанию: postgres'
+  label: postgres host
+  options: null
+  required: false
+  type: text
+- env: RAILS_MAX_THREADS
+  hint: 'по умолчанию: 5'
+  label: rails max threads
+  options: null
+  required: false
+  type: text
+- env: NODE_ENV
+  hint: 'по умолчанию: production'
+  label: node env
+  options: null
+  required: false
+  type: text
+- env: RAILS_ENV
+  hint: 'по умолчанию: production'
+  label: rails env
+  options: null
+  required: false
+  type: text
+- env: INSTALLATION_ENV
+  hint: 'по умолчанию: docker'
+  label: installation env
+  options: null
+  required: false
+  type: text
+- env: CHATWOOT_MAILER_SENDER_EMAIL
+  hint: null
+  label: chatwoot mailer sender email
+  options: null
+  required: false
+  type: text
+- env: CHATWOOT_SMTP_ADDRESS
+  hint: null
+  label: chatwoot smtp address
+  options: null
+  required: false
+  type: text
+- env: CHATWOOT_SMTP_AUTHENTICATION
+  hint: null
+  label: chatwoot smtp authentication
+  options: null
+  required: false
+  type: text
+- env: CHATWOOT_SMTP_DOMAIN
+  hint: null
+  label: chatwoot smtp domain
+  options: null
+  required: false
+  type: text
+- env: CHATWOOT_SMTP_ENABLE_STARTTLS_AUTO
+  hint: null
+  label: chatwoot smtp enable starttls auto
+  options: null
+  required: false
+  type: text
+- env: CHATWOOT_SMTP_PORT
+  hint: null
+  label: chatwoot smtp port
+  options: null
+  required: false
+  type: text
+- env: CHATWOOT_SMTP_USERNAME
+  hint: null
+  label: chatwoot smtp username
+  options: null
+  required: false
+  type: text
+- env: CHATWOOT_SMTP_PASSWORD
+  hint: null
+  label: chatwoot smtp password
+  options: null
+  required: false
+  type: password
+- env: ACTIVE_STORAGE_SERVICE
+  hint: 'по умолчанию: local'
+  label: active storage service
+  options: null
+  required: false
+  type: text
+- env: SAFE_FETCH_ALLOW_PRIVATE_NETWORK
+  hint: 'по умолчанию: false'
+  label: safe fetch allow private network
+  options: null
+  required: false
+  type: text
+tags:
+- chatwoot
+- chat
+- api
+- open
+- source
+- rails
+- redis
+- postgresql
+- sidekiq
+title: Chatwoot
+type: app
+upstream:
+  categories:
+  - helpdesk
+  source: https://www.chatwoot.com/docs/self-hosted/
+  tags:
+  - chatwoot
+  - chat
+  - api
+  - open
+  - source
+  - rails
+  - redis
+  - postgresql
+  - sidekiq
+  template: chatwoot.yaml
+website: https://www.chatwoot.com/docs/self-hosted/

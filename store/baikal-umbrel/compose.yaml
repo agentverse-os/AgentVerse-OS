@@ -1,0 +1,16 @@
+# baikal-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: ghcr.io/aalmenar/baikal:0.11.1-nginx@sha256:f83c70831ebe2ca9ba84ba7b60927f25941f0fba88bdea6bbebe1d0464bb2aa7
+    networks:
+      appnet:
+        aliases:
+        - baikal_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/var/www/baikal/config
+    - ${APP_DATA_DIR}/data/Specific:/var/www/baikal/Specific

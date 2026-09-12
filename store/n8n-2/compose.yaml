@@ -1,0 +1,50 @@
+# n8n-2: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  n8n-2:
+    depends_on:
+      n8n-2-db:
+        condition: service_healthy
+    environment:
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_HOST: n8n-2-db
+      DB_POSTGRESDB_PASSWORD: ${N8N_NR_DB_PASSWORD}
+      DB_POSTGRESDB_PORT: '5432'
+      DB_POSTGRESDB_USER: n8n
+      DB_TYPE: postgresdb
+      N8N_DEFAULT_BINARY_DATA_MODE: filesystem
+      N8N_EDITOR_BASE_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      N8N_SECURE_COOKIE: 'false'
+      N8N_WEBHOOK_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+    image: n8nio/n8n:2.37.3
+    networks:
+      appnet:
+        aliases:
+        - n8n-2_n8n-2_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/n8n:/home/node/.n8n
+  n8n-2-db:
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_NON_ROOT_PASSWORD: ${N8N_NR_DB_PASSWORD}
+      POSTGRES_NON_ROOT_USER: n8n
+      POSTGRES_PASSWORD: ${N8N_DB_PASSWORD}
+      POSTGRES_USER: tipi
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: pg_isready -h localhost -U $$POSTGRES_USER -d $$POSTGRES_DB
+      timeout: 5s
+    image: postgres:18
+    networks:
+      appnet:
+        aliases:
+        - n8n-2_n8n-2-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql
+    - ${APP_DATA_DIR}/data/init-data.sh:/docker-entrypoint-initdb.d/init-data.sh

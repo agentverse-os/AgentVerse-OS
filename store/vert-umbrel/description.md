@@ -1,0 +1,5 @@
+🔄 VERT is a modern and intelligent file conversion utility built to make transforming files effortless, secure, and efficient. It is designed to support a broad spectrum of file types including images, videos, audio, and documents, allowing users to convert between formats with precision and speed. Every conversion is handled smoothly, ensuring that the original quality and structure of the files are preserved as much as possible.
+
+What makes VERT stand out is its focus on privacy and performance. Conversions are processed locally, meaning the files stay entirely under the user's control without being sent to external servers. This not only protects sensitive data but also removes upload size limits and minimizes waiting times.
+
+VERT combines a clean, intuitive interface with advanced conversion logic, giving users both simplicity and flexibility. Whether it's converting a single file or processing multiple files in sequence, it provides a seamless experience that adapts to different needs. The result is a reliable and privacy-respecting tool that turns file conversion into a fast, straightforward, and enjoyable process.

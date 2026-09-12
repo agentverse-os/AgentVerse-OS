@@ -1,0 +1,81 @@
+# qbittorrent-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  qbit:
+    environment:
+    - WEBUI_PORT=${WEBUI_PORT:-8080}
+    - PUID=1000
+    - PGID=1000
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:8080/
+      timeout: 20s
+    image: lscr.io/linuxserver/qbittorrent:latest
+    networks:
+      appnet:
+        aliases:
+        - qbittorrent-coolify_qbit_1
+    restart: unless-stopped
+    volumes:
+    - qbittorrent-config:/config
+    - qbittorrent-downloads:/downloads
+    - qbittorrent-torrents:/torrents
+  vuetorrent-backend:
+    environment:
+    - SERVICE_URL_QBITORRENT_8080=${SERVICE_URL_QBITORRENT_8080}
+    - PORT=${WEBUI_PORT:-8080}
+    - QBIT_BASE=${SERVICE_URL_QBITORRENT}
+    - RELEASE_TYPE=${RELEASE_TYPE:-stable}
+    - UPDATE_VT_CRON=${UPDATE_VT_CRON:-"0 * * * *"}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:8080/
+      timeout: 20s
+    image: ghcr.io/vuetorrent/vuetorrent-backend:latest
+    networks:
+      appnet:
+        aliases:
+        - qbittorrent-coolify_vuetorrent-backend_1
+    restart: unless-stopped
+    volumes:
+    - vuetorrent-config:/config
+volumes:
+  qbittorrent-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/qbittorrent-config
+      o: bind
+      type: none
+  qbittorrent-downloads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/qbittorrent-downloads
+      o: bind
+      type: none
+  qbittorrent-torrents:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/qbittorrent-torrents
+      o: bind
+      type: none
+  vuetorrent-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/vuetorrent-config
+      o: bind
+      type: none

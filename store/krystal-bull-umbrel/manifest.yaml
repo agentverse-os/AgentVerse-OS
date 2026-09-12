@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/krystal-bull-umbrel
+description: Become an oracle and create Bitcoin bets
+endpoint:
+  port: 3001
+  service: web
+env:
+  TOR_PROXY_IP: ''
+  TOR_PROXY_PORT: '9050'
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/krystal-bull/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/krystal-bull/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/krystal-bull/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/krystal-bull/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: krystal-bull-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Krystal Bull
+type: app
+upstream:
+  author: SuredBits
+  categories:
+  - bitcoin
+  release_notes: |-
+    Update to the 1.9.7 release of bitcoin-s
+    This release provides a well defined ordering for nonces in announcements.
+  source: https://github.com/bitcoin-s/krystal-bull
+  version: 1.9.7
+  website: https://suredbits.com/
+website: https://suredbits.com/

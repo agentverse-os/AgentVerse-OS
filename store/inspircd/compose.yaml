@@ -1,0 +1,15 @@
+# inspircd: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  inspircd:
+    image: inspircd/inspircd-docker:4.11.0
+    networks:
+      appnet:
+        aliases:
+        - inspircd_inspircd_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/inspircd/conf

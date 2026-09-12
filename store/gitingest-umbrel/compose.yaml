@@ -1,0 +1,16 @@
+# gitingest-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+    - ALLOWED_HOSTS=${DEVICE_DOMAIN_NAME},${DEVICE_HOSTNAME},${APP_GITINGEST_LOCAL_IPS}
+    image: ghcr.io/coderamp-labs/gitingest:v0.3.1@sha256:0107c1e389d9e5e86dc3052defe024bd2439b776a1904ae4ee14f1cfb16e3b77
+    networks:
+      appnet:
+        aliases:
+        - gitingest_app_1
+    restart: on-failure
+    user: 1000:1000

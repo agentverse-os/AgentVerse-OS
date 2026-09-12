@@ -1,0 +1,109 @@
+# seaweedfs-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  seaweedfs-master-inline-1:
+    content: |
+      {
+        "identities": [
+          {
+            "name": "anonymous",
+            "actions": [
+              "Read"
+            ]
+          },
+          {
+            "name": "admin",
+            "credentials": [
+              {
+                "accessKey": "env:AWS_ACCESS_KEY_ID",
+                "secretKey": "env:AWS_SECRET_ACCESS_KEY"
+              }
+            ],
+            "actions": [
+              "Admin",
+              "Read",
+              "ReadAcp",
+              "List",
+              "Tagging",
+              "Write",
+              "WriteAcp"
+            ]
+          }
+        ]
+      }
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  seaweedfs-admin:
+    command:
+    - admin
+    - -master=seaweedfs-master:9333
+    - -adminUser=${SEAWEED_USER_ADMIN}
+    - -adminPassword=${SEAWEED_PASSWORD_ADMIN}
+    - -port=23646
+    - -dataDir=/data
+    depends_on:
+      seaweedfs-master:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_ADMIN_23646=${SERVICE_URL_ADMIN_23646}
+    - SEAWEED_USER_ADMIN=${SERVICE_USER_ADMIN}
+    - SEAWEED_PASSWORD_ADMIN=${SERVICE_PASSWORD_ADMIN}
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget --spider -q http://0.0.0.0:23646; [ $$? -le 8 ]
+      timeout: 5s
+    image: chrislusf/seaweedfs:4.41
+    networks:
+      appnet:
+        aliases:
+        - seaweedfs-coolify_seaweedfs-admin_1
+    restart: unless-stopped
+    volumes:
+    - seaweedfs-admin-data:/data
+  seaweedfs-master:
+    configs:
+    - source: seaweedfs-master-inline-1
+      target: /base-config.json
+    entrypoint: |
+      sh -c '\
+      sed "s/env:AWS_ACCESS_KEY_ID/$AWS_ACCESS_KEY_ID/g" /base-config.json > /base1-config.json; \
+      sed "s/env:AWS_SECRET_ACCESS_KEY/$AWS_SECRET_ACCESS_KEY/g" /base1-config.json > /config.json; \
+      weed server -dir=/data -master.port=9333 -s3 -s3.port=8333 -s3.config=/config.json\
+      '
+    environment:
+    - SERVICE_URL_S3_8333=${SERVICE_URL_S3_8333}
+    - AWS_ACCESS_KEY_ID=${SERVICE_USER_S3}
+    - AWS_SECRET_ACCESS_KEY=${SERVICE_PASSWORD_S3}
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget --spider -q http://0.0.0.0:8333; [ $$? -le 8 ]
+      timeout: 5s
+    image: chrislusf/seaweedfs:4.41
+    networks:
+      appnet:
+        aliases:
+        - seaweedfs-coolify_seaweedfs-master_1
+    restart: unless-stopped
+    volumes:
+    - seaweedfs-s3-data:/data
+volumes:
+  seaweedfs-admin-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/seaweedfs-admin-data
+      o: bind
+      type: none
+  seaweedfs-s3-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/seaweedfs-s3-data
+      o: bind
+      type: none

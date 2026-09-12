@@ -1,0 +1,55 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gitea-coolify
+description: Gitea is a self-hosted, lightweight Git service, offering version control, collaboration, and code hosting.
+endpoint:
+  port: 3000
+  service: gitea
+env:
+  SERVICE_URL_GITEA_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: gitea-coolify
+notes:
+- 'порт 22222:22 (gitea) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- version control
+- collaboration
+- code
+- hosting
+- lightweight
+title: Gitea
+type: app
+upstream:
+  categories:
+  - git
+  source: https://docs.gitea.com
+  tags:
+  - version control
+  - collaboration
+  - code
+  - hosting
+  - lightweight
+  template: gitea.yaml
+website: https://docs.gitea.com

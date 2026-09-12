@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nitter-umbrel
+description: Browse Twitter without tracking or ads
+endpoint:
+  port: 8080
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/nitter/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nitter/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nitter/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/nitter/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nitter-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Nitter
+type: app
+upstream:
+  author: Zedeus
+  categories:
+  - social
+  release_notes: |-
+    - fixed bug that caused everybody to be displayed as verified
+    - fixed bug that caused threads on user profiles to be hidden
+    - Add proper tombstone for subscriber tweets
+    - Remove outdated tweet from card test
+    - Fix pinned "TweetPreviewDisplay" crash
+    - Update badges
+    - Prevent search endpoint from discarding tokens
+    - Add actions workflow to run Selenium tests
+    - Uppercase HLS in preference description
+  source: https://github.com/zedeus/nitter
+  version: 38985af
+  website: https://github.com/zedeus
+website: https://github.com/zedeus

@@ -1,0 +1,52 @@
+# calcom: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  calcom:
+    depends_on:
+    - db-calcom
+    environment:
+      CALENDSO_ENCRYPTION_KEY: ${CALENDSO_ENCRYPTION_KEY}
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USERNAME}:${POSTGRES_PASSWORD}@db-calcom/calcom
+      DATABASE_HOST: db-calcom
+      DATABASE_URL: postgresql://${POSTGRES_USERNAME}:${POSTGRES_PASSWORD}@db-calcom/calcom
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_SERVER_HOST: ${EMAIL_SERVER_HOST}
+      EMAIL_SERVER_PASSWORD: ${EMAIL_SERVER_PASSWORD}
+      EMAIL_SERVER_PORT: ${EMAIL_SERVER_PORT}
+      EMAIL_SERVER_USER: ${EMAIL_SERVER_USER}
+      GOOGLE_API_CREDENTIALS: ${CALCOM_GOOGLE_API_CREDENTIALS}
+      LICENSE: agree
+      MS_GRAPH_CLIENT_ID: ${MS_GRAPH_CLIENT_ID}
+      MS_GRAPH_CLIENT_SECRET: ${MS_GRAPH_CLIENT_SECRET}
+      NEXTAUTH_SECRET: ${CALCOM_NEXTAUTH_SECRET}
+      NEXT_PUBLIC_LICENSE_CONSENT: agree
+      NEXT_PUBLIC_WEBAPP_URL: https://${APP_DOMAIN}
+      NODE_ENV: production
+      POSTGRES_DB: calcom
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      STRIPE_PRIVATE_KEY: ' '
+      ZOOM_CLIENT_ID: ${ZOOM_CLIENT_ID}
+      ZOOM_CLIENT_SECRET: ${ZOOM_CLIENT_SECRET}
+    image: calcom/cal.com:v6.2.0
+    networks:
+      appnet:
+        aliases:
+        - calcom_calcom_1
+    restart: unless-stopped
+  db-calcom:
+    environment:
+      POSTGRES_DB: calcom
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+    image: postgres:16.1
+    networks:
+      appnet:
+        aliases:
+        - calcom_db-calcom_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data

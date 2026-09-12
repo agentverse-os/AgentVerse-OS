@@ -1,0 +1,70 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mqttx-web-umbrel
+description: Your All-in-One MQTT Client Toolbox
+endpoint:
+  port: 80
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/mqttx-web/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mqttx-web/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mqttx-web/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/mqttx-web/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mqttx-web-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: MQTTX Web
+type: app
+upstream:
+  author: EMQ
+  categories:
+  - automation
+  release_notes: |-
+    Payload inspector and UI refresh update with enhanced functionality:
+
+    New features:
+      - Quick copy options for topic, broker, and host information
+      - Topic whitespace detection to warn about leading or trailing spaces
+      - Syntax highlighting for JSON payload display
+      - Support for Protobuf Editions 2023
+
+
+    Improvements:
+      - Refreshed UI with modernized styling and smoother animations
+      - Simplified connection list styling
+      - Redesigned help and about pages
+
+
+    Bug fixes:
+      - Fixed topic input issues causing subscription errors
+      - Fixed topic input and select styling issues
+      - Prevented newlines in topic and alias inputs
+
+
+    Full release notes can be found at https://github.com/emqx/MQTTX/releases/tag/v1.13.0
+  source: https://github.com/emqx/MQTTX
+  version: 1.13.0
+  website: https://mqttx.app/
+website: https://mqttx.app/

@@ -1,0 +1,44 @@
+# habitica-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mongo:
+    command:
+    - --replSet
+    - rs
+    - --bind_ip_all
+    - --port
+    - '27017'
+    healthcheck:
+      interval: 10s
+      retries: 30
+      start_interval: 1s
+      start_period: 0s
+      test: |
+        echo "try { rs.status() } catch (err) { rs.initiate({ _id: 'rs', members: [{ _id: 0, host: 'habitica_mongo_1:27017' }] }) }" | mongosh --port 27017 --quiet
+      timeout: 30s
+    image: mongo:8.0.11@sha256:5941949d3887e40be5175787aade07dc052f2cddb8ce21b740c3948eba6a3ed0
+    networks:
+      appnet:
+        aliases:
+        - habitica_mongo_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/data/db:rw
+    - ${APP_DATA_DIR}/data/dbconf:/data/configdb
+  server:
+    command: 'sh -c "perl -0pi -e ''s/upgradeInsecureRequests: IS_PROD \\? \\[\\] : null,?/upgradeInsecureRequests: null/g'' /var/lib/habitica/website/server/middlewares/index.js /var/lib/habitica/website/transpiled-babel/middlewares/index.js && printenv | grep -v ''no_proxy'' >> /etc/environment && /etc/init.d/cron start && node /var/lib/habitica/website/transpiled-babel/index.js"'
+    depends_on:
+    - mongo
+    environment:
+    - NODE_DB_URI=mongodb://habitica_mongo_1/habitica
+    - BASE_URL=http://${DEVICE_DOMAIN_NAME}:3944
+    - INVITE_ONLY=false
+    image: awinterstein/habitica-server:5.50.1@sha256:7654b0e3c04e2ba5f737bafbbf83246ec989ee4f2c21c66ae590004dcf4d4d74
+    networks:
+      appnet:
+        aliases:
+        - habitica_server_1
+    restart: on-failure

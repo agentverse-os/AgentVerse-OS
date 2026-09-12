@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wireguard-umbrel
+description: Run your own free and unlimited WireGuard VPN
+endpoint:
+  port: 51821
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/wireguard/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wireguard/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wireguard/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/wireguard/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: umbrel
+name: wireguard-umbrel
+notes:
+- 'порт 51820:51820/udp (app) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: WireGuard
+type: app
+upstream:
+  author: Emile Nijssen
+  categories:
+  - networking
+  release_notes: |-
+    Fixes WireGuard failing to start on newer Raspberry Pi kernels by automatically using the nftables-compatible firewall backend when legacy iptables is unavailable. Existing clients and configuration are preserved.
+
+    Existing WireGuard Easy 14 users: version 15 is a complete rewrite. Back up your current configuration before updating. Umbrel will attempt to migrate your server keys and clients automatically. If migration does not complete, do not uninstall WireGuard; use your version 14 backup in WireGuard Easy's setup wizard.
+  source: https://github.com/wg-easy/wg-easy
+  version: 15.3.0-1
+  website: https://github.com/wg-easy/wg-easy
+website: https://github.com/wg-easy/wg-easy

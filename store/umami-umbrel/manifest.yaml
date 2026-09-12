@@ -1,0 +1,63 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/umami-umbrel
+description: Simple, fast, privacy-focused alternative to Google Analytics
+endpoint:
+  port: 25727
+  service: app
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/umami/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/umami/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/umami/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/umami/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: umami
+  path: null
+  user: admin
+name: umami-umbrel
+notes:
+- 'порт 25727:3000 (app) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Umami
+type: app
+upstream:
+  author: Umami
+  categories:
+  - developer
+  release_notes: |-
+    This maintenance release improves upgrade safety, tracking accuracy, analytics reporting, and two-factor authentication configuration.
+
+    Some of the key highlights in this release include:
+      - Safer two-factor authentication enforcement and clearer feedback when the encryption key is missing or invalid
+      - Fixes for event property filtering, event/session preservation, relational event pagination, funnel steps with null event values, and zero/false website values
+      - Improved tracker visit-state handling, root-path handling with REMOVE_TRAILING_SLASH, expanded metrics performance, username conflict handling, and admin/menu UI polish
+      - A database migration that lowercases usernames from pre-3.2 installs while safely handling soft-deleted-account conflicts
+
+
+    This Umbrel package now provides Umami's persistent two-factor encryption key from the app seed so two-factor authentication can be used after upgrade.
+
+    Full release notes are found at https://github.com/umami-software/umami/releases/tag/v3.3.1
+  source: https://github.com/umami-software/umami
+  version: 3.3.1
+  website: https://umami.is
+website: https://umami.is

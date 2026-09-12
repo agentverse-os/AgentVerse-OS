@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/openthread-border-router-umbrel
+description: Thread border router for Home Assistant and Matter
+endpoint:
+  port: 7586
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/openthread-border-router/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/openthread-border-router/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/openthread-border-router/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/openthread-border-router/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/openthread-border-router/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/openthread-border-router/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: openthread-border-router-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: OpenThread Border Router
+type: app
+upstream:
+  author: ownbee
+  categories:
+  - automation
+  release_notes: null
+  source: https://github.com/ownbee/hass-otbr-docker
+  version: 0.3.0
+  website: https://github.com/ownbee/hass-otbr-docker
+website: https://github.com/ownbee/hass-otbr-docker

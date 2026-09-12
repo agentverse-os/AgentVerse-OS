@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/yamtrack-umbrel
+description: A self hosted media tracker
+endpoint:
+  port: 8000
+  service: web
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/yamtrack/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/yamtrack/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/yamtrack/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/yamtrack/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/yamtrack/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/yamtrack/6.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/yamtrack/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: yamtrack-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Yamtrack
+type: app
+upstream:
+  author: Xila Cai
+  categories:
+  - media
+  release_notes: |-
+    This release adds the ability to import Trakt data from an exported ZIP file.
+
+    It also fixes a startup failure for PostgreSQL installs with legacy events that contain out-of-range release dates, and fixes the repeats modal close button.
+
+    Full release notes can be found at https://github.com/FuzzyGrim/Yamtrack/releases/tag/v0.26.3
+  source: https://github.com/FuzzyGrim/Yamtrack
+  version: 0.26.3
+  website: https://github.com/FuzzyGrim/Yamtrack
+website: https://github.com/FuzzyGrim/Yamtrack

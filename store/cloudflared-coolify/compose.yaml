@@ -1,0 +1,21 @@
+# cloudflared-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cloudflared:
+    command: tunnel --no-autoupdate run
+    environment:
+    - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - cloudflared
+      - --version
+      timeout: 20s
+    image: cloudflare/cloudflared:latest
+    network_mode: host
+    restart: unless-stopped

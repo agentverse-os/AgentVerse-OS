@@ -1,0 +1,203 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/swetrix-coolify
+description: Privacy-friendly and cookieless European web analytics alternative to Google Analytics.
+endpoint:
+  port: 3000
+  service: swetrix
+env:
+  CLICKHOUSE_DATABASE: analytics
+  CLICKHOUSE_PORT: '8123'
+  CLICKHOUSE_USER: default
+  CLOUDFLARE_PROXY_ENABLED: 'false'
+  DEBUG_MODE: 'false'
+  DISABLE_REGISTRATION: 'false'
+  FROM_EMAIL: ''
+  IP_GEOLOCATION_DB_PATH: ''
+  OIDC_CLIENT_ID: ''
+  OIDC_CLIENT_SECRET: ''
+  OIDC_DISCOVERY_URL: ''
+  OIDC_ENABLED: 'false'
+  OIDC_ONLY_AUTH: 'false'
+  REDIS_PORT: '6379'
+  REDIS_USER: default
+  SERVICE_BASE64_64_SECRETKEYBASE:
+    generate: hex64
+  SERVICE_PASSWORD_CLICKHOUSE:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_URL_SWETRIXAPI: https://${APP_DOMAIN}
+  SERVICE_URL_SWETRIX_3000: https://${APP_DOMAIN}
+  SMTP_HOST: ''
+  SMTP_MOCK: 'false'
+  SMTP_PASSWORD: ''
+  SMTP_PORT: ''
+  SMTP_USER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: swetrix-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DISABLE_REGISTRATION
+  hint: 'по умолчанию: false'
+  label: disable registration
+  options: null
+  required: false
+  type: text
+- env: IP_GEOLOCATION_DB_PATH
+  hint: null
+  label: ip geolocation db path
+  options: null
+  required: false
+  type: text
+- env: DEBUG_MODE
+  hint: 'по умолчанию: false'
+  label: debug mode
+  options: null
+  required: false
+  type: text
+- env: CLOUDFLARE_PROXY_ENABLED
+  hint: 'по умолчанию: false'
+  label: cloudflare proxy enabled
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST
+  hint: null
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: null
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_USER
+  hint: null
+  label: smtp user
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: null
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: FROM_EMAIL
+  hint: null
+  label: from email
+  options: null
+  required: false
+  type: text
+- env: SMTP_MOCK
+  hint: 'по умолчанию: false'
+  label: smtp mock
+  options: null
+  required: false
+  type: text
+- env: OIDC_ENABLED
+  hint: 'по умолчанию: false'
+  label: oidc enabled
+  options: null
+  required: false
+  type: text
+- env: OIDC_ONLY_AUTH
+  hint: 'по умолчанию: false'
+  label: oidc only auth
+  options: null
+  required: false
+  type: text
+- env: OIDC_DISCOVERY_URL
+  hint: null
+  label: oidc discovery url
+  options: null
+  required: false
+  type: text
+- env: OIDC_CLIENT_ID
+  hint: null
+  label: oidc client id
+  options: null
+  required: false
+  type: text
+- env: OIDC_CLIENT_SECRET
+  hint: null
+  label: oidc client secret
+  options: null
+  required: false
+  type: password
+- env: REDIS_PORT
+  hint: 'по умолчанию: 6379'
+  label: redis port
+  options: null
+  required: false
+  type: text
+- env: REDIS_USER
+  hint: 'по умолчанию: default'
+  label: redis user
+  options: null
+  required: false
+  type: text
+- env: CLICKHOUSE_DATABASE
+  hint: 'по умолчанию: analytics'
+  label: clickhouse database
+  options: null
+  required: false
+  type: text
+- env: CLICKHOUSE_USER
+  hint: 'по умолчанию: default'
+  label: clickhouse user
+  options: null
+  required: false
+  type: text
+- env: CLICKHOUSE_PORT
+  hint: 'по умолчанию: 8123'
+  label: clickhouse port
+  options: null
+  required: false
+  type: text
+tags:
+- analytics
+- privacy
+- monitoring
+- open-source
+- clickhouse
+- redis
+title: Swetrix
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://docs.swetrix.com/selfhosting/how-to
+  tags:
+  - analytics
+  - privacy
+  - monitoring
+  - open-source
+  - clickhouse
+  - redis
+  template: swetrix.yaml
+website: https://docs.swetrix.com/selfhosting/how-to

@@ -1,0 +1,18 @@
+# torbrowser-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+    - DARK_MODE=1
+    - WEB_AUDIO=1
+    image: dennysubke/torbrowser:15.0.17@sha256:b0c12dbc6b93338ef02f57186f47a57952f864e31f015a9fb47fa6c5afc0d0b1
+    networks:
+      appnet:
+        aliases:
+        - torbrowser_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/config:/config

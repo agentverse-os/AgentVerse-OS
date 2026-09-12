@@ -1,0 +1,16 @@
+# Dozzle читает Docker через read-only прокси cloudos-docker-ro (bootstrap/docker-proxy), а не через сокет хоста.
+services:
+  dozzle:
+    image: amir20/dozzle:v8
+    restart: unless-stopped
+    environment:
+      DOZZLE_NO_ANALYTICS: "true"
+      DOCKER_HOST: tcp://cloudos-docker-ro:2375
+    networks: [appnet, dockerro]
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net

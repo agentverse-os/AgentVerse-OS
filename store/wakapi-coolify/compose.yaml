@@ -1,0 +1,84 @@
+# wakapi-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_DATABASE}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_DATABASE}
+    - POSTGRES_DB=${WAKAPI_DB_NAME:-wakapi}
+    - POSTGRES_PORT=${WAKAPI_DB_PORT:-5432}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - wakapi-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - wakapi-postgres-data:/var/lib/postgresql/data
+  wakapi:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_WAKAPI_3000=${SERVICE_URL_WAKAPI_3000}
+    - TZ=${TIMEZONE:-Europe/Berlin}
+    - WAKAPI_SERVER_LISTEN_IPV6="-"
+    - WAKAPI_ENV=${WAKAPI_ENVIRONMENT:-production}
+    - WAKAPI_SECURITY_PASSWORD_SALT=${SERVICE_BASE64_64_PASSWORDSALT}
+    - WAKAPI_SECURITY_EXPOSE_METRICS=${WAKAPI_SECURITY_EXPOSE_METRICS:-false}
+    - WAKAPI_DB_TYPE=postgres
+    - WAKAPI_DB_NAME=${WAKAPI_DB_NAME:-wakapi}
+    - WAKAPI_DB_USER=${SERVICE_USER_DATABASE}
+    - WAKAPI_DB_PASSWORD=${SERVICE_PASSWORD_DATABASE}
+    - WAKAPI_DB_HOST=${WAKAPI_DB_HOST:-postgres}
+    - WAKAPI_DB_PORT=${WAKAPI_DB_PORT:-5432}
+    - WAKAPI_MAIL_ENABLED=${WAKAPI_MAIL_ENABLED:-false}
+    - WAKAPI_MAIL_PROVIDER=smtp
+    - WAKAPI_MAIL_SENDER=${WAKAPI_MAIL_SENDER}
+    - WAKAPI_MAIL_SMTP_HOST=${WAKAPI_MAIL_SMTP_HOST}
+    - WAKAPI_MAIL_SMTP_PORT=${WAKAPI_MAIL_SMTP_PORT:-587}
+    - WAKAPI_MAIL_SMTP_USER=${WAKAPI_MAIL_SMTP_USERNAME}
+    - WAKAPI_MAIL_SMTP_PASS=${WAKAPI_MAIL_SMTP_PASSWORD}
+    - WAKAPI_MAIL_SMTP_TLS=${WAKAPI_MAIL_SMTP_TLS:-true}
+    - WAKAPI_ALLOW_SIGNUP=${WAKAPI_ALLOW_SIGNUP:-true}
+    - WAKAPI_LEADERBOARD_ENABLED=${WAKAPI_LEADERBOARD_ENABLED:-true}
+    - WAKAPI_DISABLE_FRONTPAGE=${WAKAPI_DISABLE_FRONTPAGE:-true}
+    - WAKAPI_PUBLIC_URL=${WAKAPI_PUBLIC_URL}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:3000/
+      timeout: 10s
+    image: ghcr.io/muety/wakapi:latest
+    networks:
+      appnet:
+        aliases:
+        - wakapi-coolify_wakapi_1
+    restart: unless-stopped
+    volumes:
+    - wakapi-data:/data
+volumes:
+  wakapi-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/wakapi-data
+      o: bind
+      type: none
+  wakapi-postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/wakapi-postgres-data
+      o: bind
+      type: none

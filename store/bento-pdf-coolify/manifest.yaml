@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bento-pdf-coolify
+description: Process PDFs entirely in your browser. No uploads. No servers. Complete privacy.
+endpoint:
+  port: 8080
+  service: bento-pdf
+env:
+  SERVICE_URL_BENTOPDF_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bento-pdf-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- pdf
+- manipulation
+- web
+- tool
+title: Bento Pdf
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://bentopdf.com/docs
+  tags:
+  - pdf
+  - manipulation
+  - web
+  - tool
+  template: bento-pdf.yaml
+website: https://bentopdf.com/docs

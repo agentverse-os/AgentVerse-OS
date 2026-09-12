@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bitcoin-regtest-dashboard-umbrel
+description: Development toolkit for Bitcoin regtest
+endpoint:
+  port: 3000
+  service: dashboard
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bitcoin-regtest-dashboard-umbrel
+notes:
+- 'порт 60401:50001 (electrs) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Bitcoin Regtest Dashboard
+type: app
+upstream:
+  author: Corey Phillips
+  categories:
+  - bitcoin
+  release_notes: |-
+    - Added an auto-mine feature to mine blocks at a set interval, either until stopped or for a chosen duration
+    - Upgraded Bitcoin Core to v31.0
+  source: https://github.com/coreyphillips/bitcoin-regtest-dashboard
+  version: 1.0.4
+  website: https://github.com/coreyphillips/bitcoin-regtest-dashboard
+website: https://github.com/coreyphillips/bitcoin-regtest-dashboard

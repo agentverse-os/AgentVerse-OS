@@ -1,0 +1,18 @@
+# kanboard: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  kanboard:
+    environment:
+      PLUGIN_INSTALLER: ${PLUGIN_INSTALLER}
+    image: kanboard/kanboard:v1.2.53
+    networks:
+      appnet:
+        aliases:
+        - kanboard_kanboard_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/kanboard_data:/var/www/app/data
+    - ${APP_DATA_DIR}/data/kanboard_plugins:/var/www/app/plugins

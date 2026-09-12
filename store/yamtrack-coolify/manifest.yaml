@@ -1,0 +1,76 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/yamtrack-coolify
+description: Yamtrack is a self hosted media tracker for movies, tv shows, anime, manga, video games and books.
+endpoint:
+  port: 8000
+  service: yamtrack
+env:
+  REGISTRATION_ENABLED: 'true'
+  SERVICE_PASSWORD_SECRET:
+    generate: password
+  SERVICE_URL_YAMTRACK: https://${APP_DOMAIN}
+  SERVICE_URL_YAMTRACK_8000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: yamtrack-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: REGISTRATION_ENABLED
+  hint: 'по умолчанию: true'
+  label: registration enabled
+  options: null
+  required: false
+  type: text
+tags:
+- self-hosted
+- automation
+- tracker
+- media
+- movies
+- shows
+- anime
+- manga
+- games
+- books
+- comics
+title: Yamtrack
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/FuzzyGrim/Yamtrack/wiki
+  tags:
+  - self-hosted
+  - automation
+  - tracker
+  - media
+  - movies
+  - shows
+  - anime
+  - manga
+  - games
+  - books
+  - comics
+  template: yamtrack.yaml
+website: https://github.com/FuzzyGrim/Yamtrack/wiki

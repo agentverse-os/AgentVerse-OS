@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kan-umbrel
+description: The open source Trello alternative
+endpoint:
+  port: 3000
+  service: server
+env:
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/kan/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kan/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kan/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/kan/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: kan-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: kan
+type: app
+upstream:
+  author: kanbn
+  categories:
+  - files
+  release_notes: |-
+    Kan 0.6.0 adds card context menus and duplication, card ticket numbers with workspace prefixes, and mobile list snap scrolling.
+
+    It also improves workspace onboarding and logging, expands board slug length, and fixes avatar uploads, label fetching, card reordering, archive redirects, markdown paste formatting, password changes, attachment filename encoding, and drag-and-drop on wide boards.
+
+    Full release notes can be found at https://github.com/kanbn/kan/releases/tag/v0.6.0
+  source: https://github.com/kanbn/kan
+  version: 0.6.0
+  website: https://kan.bn/
+website: https://kan.bn/

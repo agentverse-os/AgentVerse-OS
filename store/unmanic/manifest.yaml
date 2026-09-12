@@ -1,0 +1,46 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/unmanic
+description: Unmanic - Library Optimiser.
+endpoint:
+  port: 8888
+  service: unmanic
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: unmanic
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Unmanic
+type: app
+upstream:
+  author: Unmanic
+  categories:
+  - utilities
+  - data
+  - media
+  source: https://github.com/Unmanic/unmanic
+  tipi_version: 10
+  version: staging
+website: https://github.com/Unmanic/unmanic

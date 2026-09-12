@@ -1,0 +1,69 @@
+# odoo-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  odoo:
+    environment:
+    - SERVICE_URL_ODOO_8069=${SERVICE_URL_ODOO_8069}
+    - HOST=postgresql
+    - USER=$SERVICE_USER_POSTGRES
+    - PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    healthcheck:
+      interval: 2s
+      retries: 30
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8069
+      timeout: 10s
+    image: odoo:18
+    networks:
+      appnet:
+        aliases:
+        - odoo-coolify_odoo_1
+    restart: unless-stopped
+    volumes:
+    - odoo-web-data:/var/lib/odoo
+    - odoo-extra-addons:/mnt/extra-addons
+  postgresql:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_DB=postgres
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d postgres
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - odoo-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+volumes:
+  odoo-extra-addons:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/odoo-extra-addons
+      o: bind
+      type: none
+  odoo-web-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/odoo-web-data
+      o: bind
+      type: none
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none

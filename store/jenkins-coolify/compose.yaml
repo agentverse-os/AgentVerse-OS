@@ -1,0 +1,39 @@
+# jenkins-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  jenkins:
+    environment:
+    - SERVICE_URL_JENKINS_8080=${SERVICE_URL_JENKINS_8080}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8080/login
+      timeout: 10s
+    image: jenkins/jenkins:latest
+    networks:
+      appnet:
+        aliases:
+        - jenkins-coolify_jenkins_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - jenkins-home:/var/jenkins_home
+volumes:
+  jenkins-home:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/jenkins-home
+      o: bind
+      type: none

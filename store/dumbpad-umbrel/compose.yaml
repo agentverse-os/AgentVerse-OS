@@ -1,0 +1,19 @@
+# dumbpad-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      BASE_URL: http://$DEVICE_DOMAIN_NAME:3000
+      SITE_TITLE: DumbPad
+    image: dumbwareio/dumbpad:1.0.4@sha256:03e4216d7842958287bccf6c51dde1c41735b35235844fb87c70b4443143ada6
+    networks:
+      appnet:
+        aliases:
+        - dumbpad_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data

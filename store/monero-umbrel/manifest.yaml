@@ -1,0 +1,107 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/monero-umbrel
+description: Run a monero node
+endpoint:
+  port: 9976
+  service: server
+env:
+  APP_MONERO_COMMAND: ''
+  APP_MONERO_DATA_DIR: ${APP_DATA_DIR}/data/monero
+  APP_MONERO_I2P_DAEMON_IP: 10.21.21.181
+  APP_MONERO_IP: 10.21.22.178
+  APP_MONERO_NODE_IP: 10.21.21.179
+  APP_MONERO_P2P_HIDDEN_SERVICE: ''
+  APP_MONERO_P2P_PORT: '38080'
+  APP_MONERO_RESTRICTED_RPC_PORT: '18089'
+  APP_MONERO_RPC_HIDDEN_SERVICE: ''
+  APP_MONERO_RPC_PASS: ''
+  APP_MONERO_RPC_PORT: '38081'
+  APP_MONERO_RPC_USER: ''
+  APP_MONERO_TOR_PORT: '9901'
+  APP_MONERO_TOR_PROXY_IP: 10.21.21.180
+  APP_MONERO_ZMQ_PORT: '18083'
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  MONERO_DEFAULT_NETWORK: ${MONERO_CHAIN}
+  TOR_DATA_DIR: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/monero/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/monero/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/monero/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/monero/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: monero-umbrel
+notes:
+- 'порт ${APP_MONERO_P2P_PORT}:${APP_MONERO_P2P_PORT} (monerod) не публикуется: доступ только через edge/gate'
+- 'порт ${APP_MONERO_RPC_PORT}:${APP_MONERO_RPC_PORT} (monerod) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_MONERO_COMMAND
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app monero command
+  options: null
+  required: false
+  type: text
+- env: APP_MONERO_P2P_HIDDEN_SERVICE
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app monero p2p hidden service
+  options: null
+  required: false
+  type: text
+- env: APP_MONERO_RPC_HIDDEN_SERVICE
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app monero rpc hidden service
+  options: null
+  required: false
+  type: text
+- env: APP_MONERO_RPC_PASS
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app monero rpc pass
+  options: null
+  required: false
+  type: text
+- env: APP_MONERO_RPC_USER
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app monero rpc user
+  options: null
+  required: false
+  type: text
+- env: TOR_DATA_DIR
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: tor data dir
+  options: null
+  required: false
+  type: text
+tags: []
+title: Monero Node
+type: app
+upstream:
+  author: deverickapollo
+  categories:
+  - crypto
+  release_notes: |-
+    This update upgrades the Monero daemon to v0.18.5.1, a recommended maintenance release with fixes and hardening across blockchain synchronization, peer handling, transaction pool processing, and general daemon stability. It also updates RandomX to v1.2.2.
+
+    Full release notes can be found at https://www.getmonero.org/2026/07/08/monero-0.18.5.1-released.html
+  source: https://github.com/deverickapollo/umbrel-monero
+  version: 0.18.5.1
+  website: https://www.getmonero.org/
+website: https://www.getmonero.org/

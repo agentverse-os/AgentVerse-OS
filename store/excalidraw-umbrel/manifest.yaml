@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/excalidraw-umbrel
+description: An open source virtual hand-drawn style whiteboard
+endpoint:
+  port: 80
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/excalidraw/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/excalidraw/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/excalidraw/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/excalidraw/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: excalidraw-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Excalidraw
+type: app
+upstream:
+  author: Excalidraw Team
+  categories:
+  - files
+  release_notes: |-
+    This update brings several new features and fixes:
+      - Board sharing is now supported via shareable links with separate edit and read-only permissions
+      - Board IDs have been migrated to UUIDs, with automatic migration of existing boards
+      - Saving is now incremental, syncing only changed elements for better performance
+      - The "Trash" tab has been renamed to "Archive" in the interface
+      - Fixed the copy URL button not working on non-HTTPS connections
+      - Fixed various issues with loading states and error handling
+  source: https://github.com/ozencb/excalidraw-persist
+  version: 0.18.0-7
+  website: https://excalidraw.com/
+website: https://excalidraw.com/

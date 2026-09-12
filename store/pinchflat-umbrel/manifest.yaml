@@ -1,0 +1,49 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pinchflat-umbrel
+description: A automated media backup solution, for online media sources
+endpoint:
+  port: 8945
+  service: web
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/pinchflat/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pinchflat/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pinchflat/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/pinchflat/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pinchflat-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Pinchflat
+type: app
+upstream:
+  author: Kieran Eglin
+  categories:
+  - media
+  release_notes: null
+  source: https://github.com/kieraneglin/pinchflat
+  version: 2025.6.6
+  website: https://github.com/kieraneglin/pinchflat
+website: https://github.com/kieraneglin/pinchflat

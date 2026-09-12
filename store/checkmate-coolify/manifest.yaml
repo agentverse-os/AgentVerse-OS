@@ -1,0 +1,55 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/checkmate-coolify
+description: An open source server and websites monitoring application
+endpoint:
+  port: 52345
+  service: checkmate
+env:
+  SERVICE_PASSWORD_64_JWT:
+    generate: hex64
+  SERVICE_URL_CHECKMATE: https://${APP_DOMAIN}
+  SERVICE_URL_CHECKMATE_52345: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: checkmate-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- monitoring
+- server
+- uptime
+- healthcheck
+title: Checkmate
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://docs.checkmate.so/
+  tags:
+  - monitoring
+  - server
+  - uptime
+  - healthcheck
+  template: checkmate.yaml
+website: https://docs.checkmate.so/

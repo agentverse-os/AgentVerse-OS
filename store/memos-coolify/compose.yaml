@@ -1,0 +1,24 @@
+# memos-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  memos:
+    environment:
+    - SERVICE_URL_MEMOS_5230=${SERVICE_URL_MEMOS_5230}
+    image: neosmemo/memos:stable
+    networks:
+      appnet:
+        aliases:
+        - memos-coolify_memos_1
+    restart: unless-stopped
+    volumes:
+    - memos/:/var/opt/memos
+volumes:
+  memos/:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/memos/
+      o: bind
+      type: none

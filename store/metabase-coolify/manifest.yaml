@@ -1,0 +1,77 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/metabase-coolify
+description: Fast analytics with the friendly UX and integrated tooling to let your company explore data on their own.
+endpoint:
+  port: 3000
+  service: metabase
+env:
+  POSTGRESQL_DATABASE: metabase
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_METABASE_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: metabase-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: metabase'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- analytics
+- bi
+- business
+- intelligence
+title: Metabase
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://www.metabase.com
+  tags:
+  - analytics
+  - bi
+  - business
+  - intelligence
+  template: metabase.yaml
+website: https://www.metabase.com

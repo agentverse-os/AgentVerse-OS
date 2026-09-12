@@ -1,0 +1,28 @@
+# slink-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      IMAGE_COMPRESSION_QUALITY: 80
+      IMAGE_MAX_SIZE: 15M
+      IMAGE_STRIP_EXIF_METADATA: 'true'
+      ORIGIN: http://${DEVICE_DOMAIN_NAME}:8811
+      REQUIRE_SSL: 'false'
+      STORAGE_PROVIDER: local
+      TZ: UTC
+      USER_APPROVAL_REQUIRED: 'false'
+      USER_PASSWORD_MIN_LENGTH: 8
+      USER_PASSWORD_REQUIREMENTS: 15
+    image: anirdev/slink:v1.13.1@sha256:5b6c29592f63edccbef613fbbd3b106f322bf21290d0bb6451d105ca14802b90
+    networks:
+      appnet:
+        aliases:
+        - slink_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/var:/app/var/data
+    - ${APP_DATA_DIR}/data/images:/app/slink/images

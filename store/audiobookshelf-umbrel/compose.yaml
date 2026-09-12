@@ -1,0 +1,28 @@
+# audiobookshelf-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+    - CONFIG_PATH=/home/node/config
+    - METADATA_PATH=/home/node/metadata
+    - AUDIOBOOKSHELF_UID=1000
+    - AUDIOBOOKSHELF_GID=1000
+    healthcheck:
+      disable: true
+    image: ghcr.io/advplyr/audiobookshelf:2.36.0@sha256:180acad33d69c99ed208676465d8edcb268fa46967735579a7810859885b1a8e
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - audiobookshelf_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/home/node/config
+    - ${APP_DATA_DIR}/data/metadata:/home/node/metadata
+    - ${UMBREL_ROOT}/data/storage/downloads/audiobooks:/audiobooks
+    - ${UMBREL_ROOT}/data/storage/downloads/podcasts:/podcasts

@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pi-hole-umbrel
+description: Block ads on your entire network
+endpoint:
+  port: 8082
+  service: server
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/pi-hole/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pi-hole/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pi-hole/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/pi-hole/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pi-hole-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Pi-hole
+type: app
+upstream:
+  author: Pi-hole®
+  categories:
+  - networking
+  release_notes: |-
+    ⚠️ If you have set up your router to use Pi-hole as its only DNS server, umbrelOS may be unable to resolve domain names during the update, preventing it from downloading the update files. To avoid issues, temporarily set a backup DNS server (e.g., 1.1.1.1) on your router before updating— or configure a permanent fallback DNS to prevent future issues.
+
+    This update includes a Docker image fix for Pi-hole security advisory GHSA-h8w9-qx2v-wrww.
+
+    It also moves Pi-hole's logrotate file to the standard /etc/logrotate.d/pihole location.
+
+    Full release notes can be found at https://github.com/pi-hole/docker-pi-hole/releases/tag/2026.07.2
+  source: https://github.com/pi-hole/docker-pi-hole
+  version: 2026.07.2
+  website: https://pi-hole.net
+website: https://pi-hole.net

@@ -1,0 +1,202 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ntfy-coolify
+description: ntfy is a simple HTTP-based pub-sub notification service. It allows you to send notifications to your phone or desktop via scripts from any computer, and/or using a REST API.
+endpoint:
+  port: 80
+  service: ntfy
+env:
+  NTFY_ATTACHMENT_EXPIRY_DURATION: 24h
+  NTFY_ATTACHMENT_FILE_SIZE_LIMIT: 10M
+  NTFY_ATTACHMENT_TOTAL_SIZE_LIMIT: 1G
+  NTFY_AUTH_DEFAULT_ACCESS: read-write
+  NTFY_BEHIND_PROXY: 'true'
+  NTFY_CACHE_DURATION: 24h
+  NTFY_ENABLE_LOGIN: 'true'
+  NTFY_ENABLE_SIGNUP: 'true'
+  NTFY_KEEPALIVE_INTERVAL: 5m
+  NTFY_MANAGER_INTERVAL: 5m
+  NTFY_SMTP_SENDER_ADDR: smtp.your-domain.de
+  NTFY_SMTP_SENDER_FROM: no-reply@de
+  NTFY_SMTP_SENDER_PASS: password
+  NTFY_SMTP_SENDER_USER: no-reply@de
+  NTFY_VISITOR_ATTACHMENT_DAILY_BANDWIDTH_LIMIT: 1G
+  NTFY_VISITOR_MESSAGE_DAILY_LIMIT: '100'
+  NTFY_WEB_PUSH_EMAIL_ADDRESS: ''
+  NTFY_WEB_PUSH_PRIVATE_KEY: ''
+  NTFY_WEB_PUSH_PUBLIC_KEY: ''
+  SERVICE_URL_NTFY: https://${APP_DOMAIN}
+  SERVICE_URL_NTFY_80: https://${APP_DOMAIN}
+  UPSTREAM_ACCESS_TOKEN: ''
+  UPSTREAM_BASE_URL: https://ntfy.sh
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: NTFY_ENABLE_LOGIN
+name: ntfy-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NTFY_BEHIND_PROXY
+  hint: 'по умолчанию: true'
+  label: ntfy behind proxy
+  options: null
+  required: false
+  type: text
+- env: UPSTREAM_BASE_URL
+  hint: 'по умолчанию: https://ntfy.sh'
+  label: upstream base url
+  options: null
+  required: false
+  type: text
+- env: NTFY_ENABLE_SIGNUP
+  hint: 'по умолчанию: true'
+  label: ntfy enable signup
+  options: null
+  required: false
+  type: text
+- env: NTFY_ENABLE_LOGIN
+  hint: 'по умолчанию: true'
+  label: ntfy enable login
+  options: null
+  required: false
+  type: text
+- env: NTFY_CACHE_DURATION
+  hint: 'по умолчанию: 24h'
+  label: ntfy cache duration
+  options: null
+  required: false
+  type: text
+- env: NTFY_ATTACHMENT_TOTAL_SIZE_LIMIT
+  hint: 'по умолчанию: 1G'
+  label: ntfy attachment total size limit
+  options: null
+  required: false
+  type: text
+- env: NTFY_ATTACHMENT_FILE_SIZE_LIMIT
+  hint: 'по умолчанию: 10M'
+  label: ntfy attachment file size limit
+  options: null
+  required: false
+  type: text
+- env: NTFY_ATTACHMENT_EXPIRY_DURATION
+  hint: 'по умолчанию: 24h'
+  label: ntfy attachment expiry duration
+  options: null
+  required: false
+  type: text
+- env: NTFY_SMTP_SENDER_ADDR
+  hint: 'по умолчанию: smtp.your-domain.de'
+  label: ntfy smtp sender addr
+  options: null
+  required: false
+  type: text
+- env: NTFY_SMTP_SENDER_USER
+  hint: 'по умолчанию: no-reply@de'
+  label: ntfy smtp sender user
+  options: null
+  required: false
+  type: text
+- env: NTFY_SMTP_SENDER_PASS
+  hint: 'по умолчанию: password'
+  label: ntfy smtp sender pass
+  options: null
+  required: false
+  type: text
+- env: NTFY_SMTP_SENDER_FROM
+  hint: 'по умолчанию: no-reply@de'
+  label: ntfy smtp sender from
+  options: null
+  required: false
+  type: text
+- env: NTFY_KEEPALIVE_INTERVAL
+  hint: 'по умолчанию: 5m'
+  label: ntfy keepalive interval
+  options: null
+  required: false
+  type: text
+- env: NTFY_MANAGER_INTERVAL
+  hint: 'по умолчанию: 5m'
+  label: ntfy manager interval
+  options: null
+  required: false
+  type: text
+- env: NTFY_VISITOR_MESSAGE_DAILY_LIMIT
+  hint: 'по умолчанию: 100'
+  label: ntfy visitor message daily limit
+  options: null
+  required: false
+  type: text
+- env: NTFY_VISITOR_ATTACHMENT_DAILY_BANDWIDTH_LIMIT
+  hint: 'по умолчанию: 1G'
+  label: ntfy visitor attachment daily bandwidth limit
+  options: null
+  required: false
+  type: text
+- env: UPSTREAM_ACCESS_TOKEN
+  hint: null
+  label: upstream access token
+  options: null
+  required: false
+  type: password
+- env: NTFY_AUTH_DEFAULT_ACCESS
+  hint: 'по умолчанию: read-write'
+  label: ntfy auth default access
+  options: null
+  required: false
+  type: text
+- env: NTFY_WEB_PUSH_PUBLIC_KEY
+  hint: null
+  label: ntfy web push public key
+  options: null
+  required: false
+  type: password
+- env: NTFY_WEB_PUSH_PRIVATE_KEY
+  hint: null
+  label: ntfy web push private key
+  options: null
+  required: false
+  type: password
+- env: NTFY_WEB_PUSH_EMAIL_ADDRESS
+  hint: null
+  label: ntfy web push email address
+  options: null
+  required: false
+  type: text
+tags:
+- ntfy
+- notification
+- push notification
+- pub-sub
+- notify
+title: Ntfy
+type: app
+upstream:
+  categories:
+  - messaging
+  source: https://docs.ntfy.sh/
+  tags:
+  - ntfy
+  - notification
+  - push notification
+  - pub-sub
+  - notify
+  template: ntfy.yaml
+website: https://docs.ntfy.sh/

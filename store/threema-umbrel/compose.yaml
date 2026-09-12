@@ -1,0 +1,13 @@
+# threema-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: dennysubke/threema-web:v2.6.5@sha256:01f8b0ca6322f11579610b012c3440001743efb593dd845668a4e1f3d881e1a2
+    networks:
+      appnet:
+        aliases:
+        - threema_web_1
+    restart: on-failure

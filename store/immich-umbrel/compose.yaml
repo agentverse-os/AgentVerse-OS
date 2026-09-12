@@ -1,0 +1,105 @@
+# immich-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  machine-learning:
+    environment:
+      <<:
+        DB_DATABASE_NAME: immich
+        DB_HOSTNAME: immich_postgres_1
+        DB_PASSWORD: moneyprintergobrrr
+        DB_USERNAME: immich
+        DISABLE_REVERSE_GEOCODING: 'false'
+        IMMICH_MACHINE_LEARNING_URL: http://immich_machine-learning_1:3003
+        JWT_SECRET: ${APP_SEED}
+        LOG_LEVEL: log
+        NODE_ENV: production
+        PUBLIC_LOGIN_PAGE_MESSAGE: ''
+        REDIS_HOSTNAME: immich_redis_1
+        REVERSE_GEOCODING_PRECISION: '3'
+    image: ghcr.io/immich-app/immich-machine-learning:v3.1.0@sha256:5a0839dc5303cd7215bcd2180a26aed3af41675aefb3e75e5157e9f10ad16e6e
+    networks:
+      appnet:
+        aliases:
+        - immich_machine-learning_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/model-cache:/cache
+  postgres:
+    environment:
+      <<:
+        DB_DATABASE_NAME: immich
+        DB_HOSTNAME: immich_postgres_1
+        DB_PASSWORD: moneyprintergobrrr
+        DB_USERNAME: immich
+        DISABLE_REVERSE_GEOCODING: 'false'
+        IMMICH_MACHINE_LEARNING_URL: http://immich_machine-learning_1:3003
+        JWT_SECRET: ${APP_SEED}
+        LOG_LEVEL: log
+        NODE_ENV: production
+        PUBLIC_LOGIN_PAGE_MESSAGE: ''
+        REDIS_HOSTNAME: immich_redis_1
+        REVERSE_GEOCODING_PRECISION: '3'
+      POSTGRES_DB: immich
+      POSTGRES_INITDB_ARGS: --data-checksums
+      POSTGRES_PASSWORD: moneyprintergobrrr
+      POSTGRES_USER: immich
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:41eacbe83eca995561fe43814fd4891e16e39632806253848efaf04d3c8a8b84
+    networks:
+      appnet:
+        aliases:
+        - immich_postgres_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  redis:
+    image: valkey/valkey:8-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+    networks:
+      appnet:
+        aliases:
+        - immich_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  server:
+    depends_on:
+    - redis
+    - postgres
+    environment:
+      <<:
+        DB_DATABASE_NAME: immich
+        DB_HOSTNAME: immich_postgres_1
+        DB_PASSWORD: moneyprintergobrrr
+        DB_USERNAME: immich
+        DISABLE_REVERSE_GEOCODING: 'false'
+        IMMICH_MACHINE_LEARNING_URL: http://immich_machine-learning_1:3003
+        JWT_SECRET: ${APP_SEED}
+        LOG_LEVEL: log
+        NODE_ENV: production
+        PUBLIC_LOGIN_PAGE_MESSAGE: ''
+        REDIS_HOSTNAME: immich_redis_1
+        REVERSE_GEOCODING_PRECISION: '3'
+    image: ghcr.io/immich-app/immich-server:v3.1.0@sha256:b434cb9287eea1471c9974845914d4dd328c9c2d652e446ed4930f99944f0ceb
+    networks:
+      appnet:
+        aliases:
+        - immich_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/upload:/data
+x-environment:
+  DB_DATABASE_NAME: immich
+  DB_HOSTNAME: immich_postgres_1
+  DB_PASSWORD: moneyprintergobrrr
+  DB_USERNAME: immich
+  DISABLE_REVERSE_GEOCODING: 'false'
+  IMMICH_MACHINE_LEARNING_URL: http://immich_machine-learning_1:3003
+  JWT_SECRET: ${APP_SEED}
+  LOG_LEVEL: log
+  NODE_ENV: production
+  PUBLIC_LOGIN_PAGE_MESSAGE: ''
+  REDIS_HOSTNAME: immich_redis_1
+  REVERSE_GEOCODING_PRECISION: '3'

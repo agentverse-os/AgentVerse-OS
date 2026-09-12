@@ -1,0 +1,71 @@
+# glpi-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  glpi:
+    depends_on:
+      glpi-db:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_GLPI_80=${SERVICE_URL_GLPI_80}
+    - GLPI_DB_HOST=glpi-db
+    - GLPI_DB_PORT=3306
+    - GLPI_DB_NAME=${MYSQL_DATABASE:-glpi-db}
+    - GLPI_DB_USER=${SERVICE_USER_MYSQL}
+    - GLPI_DB_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost/
+      timeout: 10s
+    image: glpi/glpi:11
+    networks:
+      appnet:
+        aliases:
+        - glpi-coolify_glpi_1
+    restart: unless-stopped
+    volumes:
+    - glpi-data:/var/glpi:rw
+  glpi-db:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-glpi-db}
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - 127.0.0.1
+      timeout: 20s
+    image: mysql:8
+    networks:
+      appnet:
+        aliases:
+        - glpi-coolify_glpi-db_1
+    restart: unless-stopped
+    volumes:
+    - mysql-data:/var/lib/mysql
+volumes:
+  glpi-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/glpi-data
+      o: bind
+      type: none
+  mysql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mysql-data
+      o: bind
+      type: none

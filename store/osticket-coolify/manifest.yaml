@@ -1,0 +1,100 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/osticket-coolify
+description: osTicket is a widely-used open source support ticket system.
+endpoint:
+  port: 80
+  service: osticket
+env:
+  CRON_INTERVAL: '10'
+  OSTICKET_ADMIN_EMAIL: admin@example.com
+  OSTICKET_DATABASE: osticket-db
+  OSTICKET_FIRSTNAME: Admin
+  OSTICKET_LASTNAME: istrator
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_MARIADBROOT:
+    generate: password
+  SERVICE_PASSWORD_OSTICKETADMINPASS:
+    generate: password
+  SERVICE_PASSWORD_OSTICKETSECRET:
+    generate: password
+  SERVICE_URL_OSTICKET: https://${APP_DOMAIN}
+  SERVICE_URL_OSTICKET_80: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+  SERVICE_USER_OSTICKETADMIN:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_OSTICKETADMINPASS
+  path: null
+  user: OSTICKET_ADMIN_EMAIL
+name: osticket-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CRON_INTERVAL
+  hint: 'по умолчанию: 10'
+  label: cron interval
+  options: null
+  required: false
+  type: text
+- env: OSTICKET_DATABASE
+  hint: 'по умолчанию: osticket-db'
+  label: osticket database
+  options: null
+  required: false
+  type: text
+- env: OSTICKET_FIRSTNAME
+  hint: 'по умолчанию: Admin'
+  label: osticket firstname
+  options: null
+  required: false
+  type: text
+- env: OSTICKET_LASTNAME
+  hint: 'по умолчанию: istrator'
+  label: osticket lastname
+  options: null
+  required: false
+  type: text
+- env: OSTICKET_ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: osticket admin email
+  options: null
+  required: false
+  type: text
+tags:
+- helpdesk
+- ticketing
+- support
+- open-source
+title: Osticket
+type: app
+upstream:
+  categories:
+  - helpdesk
+  source: https://docs.osticket.com/en/latest/
+  tags:
+  - helpdesk
+  - ticketing
+  - support
+  - open-source
+  template: osticket.yaml
+website: https://docs.osticket.com/en/latest/

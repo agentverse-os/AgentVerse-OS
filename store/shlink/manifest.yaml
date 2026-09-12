@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/shlink
+description: Shlink is a self-hosted URL shortener
+endpoint:
+  port: 8080
+  service: shlink
+env:
+  SHLINK_POSTGRES_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: shlink
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SHLINK_POSTGRES_PASSWORD
+  hint: null
+  label: Database password
+  options: null
+  required: false
+  type: random
+tags: []
+title: Shlink
+type: app
+upstream:
+  author: https://shlink.io/
+  categories:
+  - utilities
+  source: https://github.com/shlinkio/shlink
+  tipi_version: 40
+  version: 5.1.5
+website: https://github.com/shlinkio/shlink

@@ -1,0 +1,24 @@
+# podfetch: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  podfetch:
+    environment:
+      BASIC_AUTH: 'true'
+      PASSWORD: ${PODFETCH_PASSWORD}
+      PODINDEX_API_KEY: ${PODFETCH_PODINDEX_API_KEY}
+      PODINDEX_API_SECRET: ${PODFETCH_PODINDEX_API_SECRET}
+      POLLING_INTERVAL: '60'
+      SERVER_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      USERNAME: ${PODFETCH_USERNAME}
+    image: samuel19982/podfetch:latest
+    networks:
+      appnet:
+        aliases:
+        - podfetch_podfetch_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/podfetch-db:/app/db
+    - ${ROOT_FOLDER_HOST}/media/data/podcasts:/app/podcasts

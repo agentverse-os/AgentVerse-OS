@@ -1,0 +1,75 @@
+# mindsdb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mindsdb:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_MINDSDB_47334=${SERVICE_URL_MINDSDB_47334}
+    - SERVICE_URL_API_47335=/api
+    - MINDSDB_DOCKER_ENV=true
+    - MINDSDB_STORAGE_DIR=/mindsdb/var
+    - FLASK_DEBUG=${FLASK_DEBUG:-1}
+    - OPENAI_API_KEY=${OPENAI_API_KEY}
+    - LANGFUSE_HOST=${LANGFUSE_HOST}
+    - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+    - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+    - LANGFUSE_RELEASE=${LANGFUSE_RELEASE:-local}
+    - LANGFUSE_DEBUG=${LANGFUSE_DEBUG:-False}
+    - LANGFUSE_TIMEOUT=${LANGFUSE_TIMEOUT:-10}
+    - LANGFUSE_SAMPLE_RATE=${LANGFUSE_SAMPLE_RATE:-1.0}
+    - MINDSDB_DB_CON=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql/${POSTGRES_DB:-mindsdb-db}
+    healthcheck:
+      interval: 30s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:47334/api/util/ping
+      timeout: 5s
+    image: mindsdb/mindsdb:latest
+    networks:
+      appnet:
+        aliases:
+        - mindsdb-coolify_mindsdb_1
+    restart: unless-stopped
+    volumes:
+    - mindsdb-data:/mindsdb/var
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-mindsdb-db}
+    healthcheck:
+      interval: 10s
+      retries: 15
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 5s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - mindsdb-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - mindsdb-postgresql-data:/var/lib/postgresql/data
+volumes:
+  mindsdb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mindsdb-data
+      o: bind
+      type: none
+  mindsdb-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mindsdb-postgresql-data
+      o: bind
+      type: none

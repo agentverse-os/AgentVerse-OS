@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/transmission-umbrel
+description: A fast, easy and free BitTorrent client
+endpoint:
+  port: 9091
+  service: server
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/transmission/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/transmission/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/transmission/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/transmission/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: transmission-umbrel
+notes:
+- 'порт 51413:51413 (server) не публикуется: доступ только через edge/gate'
+- 'порт 51413:51413/udp (server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Transmission
+type: app
+upstream:
+  author: Transmission
+  categories:
+  - networking
+  release_notes: |-
+    This bugfix release includes important security and stability fixes:
+      - Fixed a CORS issue that could leak the anti-CSRF nonce when remote access is enabled
+      - Fixed a peer-code use-after-free bug
+      - Fixed build and test issues
+
+
+    Full release notes are available at https://github.com/transmission/transmission/releases/tag/4.1.3
+  source: https://github.com/transmission/transmission
+  version: 4.1.3
+  website: https://transmissionbt.com/
+website: https://transmissionbt.com/

@@ -1,0 +1,20 @@
+# mstream: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mstream:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/mstream:v5.12.2-ls190
+    networks:
+      appnet:
+        aliases:
+        - mstream_mstream_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mstream-config:/data
+    - ${ROOT_FOLDER_HOST}/media/data/music:/music

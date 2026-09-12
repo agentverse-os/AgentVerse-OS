@@ -1,0 +1,18 @@
+# kiwix-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    command: |
+      /data/*.zim -k
+    image: ghcr.io/kiwix/kiwix-serve:3.8.2@sha256:0b6541355b250c6b45d2d7725e88f22f1d6a0f45ad9480d9c0bd4bc58436a12f
+    networks:
+      appnet:
+        aliases:
+        - kiwix_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${UMBREL_ROOT}/data/storage/downloads:/data

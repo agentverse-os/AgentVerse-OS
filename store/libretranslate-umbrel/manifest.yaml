@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/libretranslate-umbrel
+description: Free and Open Source machine translation API
+endpoint:
+  port: 5000
+  service: main
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/libretranslate/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/libretranslate/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/libretranslate/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/libretranslate/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: libretranslate-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LibreTranslate
+type: app
+upstream:
+  author: LibreTranslate Contributors
+  categories:
+  - ai
+  release_notes: |-
+    This update includes several improvements and new features:
+      - Improved Traditional Chinese translations
+      - Enhanced language detection capabilities
+      - Added emoji translation request detection
+      - Various UI and accessibility improvements
+
+
+    Full release notes are found at https://github.com/LibreTranslate/LibreTranslate/releases
+  source: https://github.com/LibreTranslate/LibreTranslate
+  version: 1.6.5
+  website: https://libretranslate.com
+website: https://libretranslate.com

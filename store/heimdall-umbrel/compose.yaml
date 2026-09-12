@@ -1,0 +1,18 @@
+# heimdall-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    image: linuxserver/heimdall:2.8.2@sha256:e0292a96e0c1e79d251dd5d882421b0fc50a9002a1074ce5024b97ffb0eacfb6
+    networks:
+      appnet:
+        aliases:
+        - heimdall_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/config:/config

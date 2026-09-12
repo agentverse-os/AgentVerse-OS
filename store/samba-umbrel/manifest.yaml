@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/samba-umbrel
+description: Make your storage accessible using Samba
+endpoint:
+  port: 80
+  service: homepage
+env:
+  APP_PASSWORD:
+    generate: password
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/samba/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/samba/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/samba/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/samba/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: umbrel
+name: samba-umbrel
+notes:
+- 'порт 446:445 (server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Samba
+type: app
+upstream:
+  author: Samba
+  categories:
+  - networking
+  release_notes: |-
+    This release includes several improvements and updates to the Samba file sharing service.
+
+    Full release notes are found at https://github.com/dockur/samba/releases/tag/v4.23.5-r1
+  source: https://github.com/dockur/samba
+  version: 4.23.5-r1
+  website: https://www.samba.org/
+website: https://www.samba.org/

@@ -1,0 +1,19 @@
+# tautulli: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  tautulli:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/tautulli:2.18.0
+    networks:
+      appnet:
+        aliases:
+        - tautulli_tautulli_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config

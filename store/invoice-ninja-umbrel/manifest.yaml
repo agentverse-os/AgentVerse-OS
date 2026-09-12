@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/invoice-ninja-umbrel
+description: We'll help with the invoicing
+endpoint:
+  port: 80
+  service: nginx
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/invoice-ninja/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/invoice-ninja/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/invoice-ninja/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/invoice-ninja/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: admin@example.com
+name: invoice-ninja-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Invoice Ninja
+type: app
+upstream:
+  author: InvoiceNinja, Inc.
+  categories:
+  - finance
+  release_notes: |-
+    This update improves payment and refund handling, client portal switching, password reset validation, tax summary reports, company exports, project linkage, and Swiss QR codes. It also adds Daily Task Digest notifications and support for task due dates and estimated duration.
+
+    Full release notes are available at https://github.com/invoiceninja/invoiceninja/releases/tag/v5.13.37
+  source: https://github.com/invoiceninja/invoiceninja
+  version: 5.13.37
+  website: https://invoiceninja.com
+website: https://invoiceninja.com

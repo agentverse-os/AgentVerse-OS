@@ -1,0 +1,17 @@
+# spacedrive: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  spacedrive:
+    environment:
+      SD_AUTH: ${SD_AUTH_USER}:${SD_AUTH_PASSWORD}
+    image: ghcr.io/spacedriveapp/spacedrive/server:0.4.2
+    networks:
+      appnet:
+        aliases:
+        - spacedrive_spacedrive_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/spacedrive:/var/spacedrive

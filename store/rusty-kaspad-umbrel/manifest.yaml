@@ -1,0 +1,65 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rusty-kaspad-umbrel
+description: A Rust implementation of a Kaspa full node
+endpoint:
+  port: 4321
+  service: frontend
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/rusty-kaspad/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/rusty-kaspad/2.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/rusty-kaspad/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: rusty-kaspad-umbrel
+notes:
+- 'порт 16110:16110 (kaspad) не публикуется: доступ только через edge/gate'
+- 'порт 16111:16111 (kaspad) не публикуется: доступ только через edge/gate'
+- 'порт 17110:17110 (kaspad) не публикуется: доступ только через edge/gate'
+- 'порт 18110:18110 (kaspad) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Rusty Kaspad
+type: app
+upstream:
+  author: Kaspa Community
+  categories:
+  - crypto
+  release_notes: |-
+    This release updates Rusty Kaspa to v2.0.1, a drop-in maintenance update for v2.0.0 nodes.
+
+    Key highlights in this release:
+      - New RPC support for Toccata seq-commit state and lane proofs
+      - Wallet/core and Wasm notifications for SMT sync progress
+      - SMT database inspection tooling for operators and developers
+      - Improved transaction-generation tooling for user-lane workflows
+      - Node sync and error-reporting refinements
+      - Refined covenant binding handling across client and wallet components
+
+
+    Full release notes can be found at https://github.com/kaspanet/rusty-kaspa/releases
+
+    All mainnet operators are encouraged to upgrade from v2.0.0 to v2.0.1.
+  source: https://github.com/kaspanet/rusty-kaspa
+  version: v2.0.1
+  website: https://github.com/kaspanet/rusty-kaspa
+website: https://github.com/kaspanet/rusty-kaspa

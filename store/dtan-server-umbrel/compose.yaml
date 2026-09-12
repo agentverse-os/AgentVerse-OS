@@ -1,0 +1,18 @@
+# dtan-server-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+    - RUST_LOG=info
+    image: voidic/dtan-server:v0.2.0@sha256:8ffce76cc82d00fbe8571bedfd6699fbd91e97d89ff5e6cbc32dbf03b9d58ad1
+    networks:
+      appnet:
+        aliases:
+        - dtan-server_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/app/data
+    - ${APP_DATA_DIR}/data/config/config.yml:/app/config.yml

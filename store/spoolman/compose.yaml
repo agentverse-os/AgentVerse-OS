@@ -1,0 +1,17 @@
+# spoolman: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  spoolman:
+    environment:
+      TZ: ${TZ}
+    image: ghcr.io/donkie/spoolman:0.26.1
+    networks:
+      appnet:
+        aliases:
+        - spoolman_spoolman_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/home/app/.local/share/spoolman

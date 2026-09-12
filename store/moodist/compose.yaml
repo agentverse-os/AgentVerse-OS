@@ -1,0 +1,15 @@
+# moodist: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  moodist:
+    image: ghcr.io/remvze/moodist:v2.6.1
+    networks:
+      appnet:
+        aliases:
+        - moodist_moodist_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro

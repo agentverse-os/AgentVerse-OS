@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/soju-coolify
+description: A user-friendly IRC bouncer with a modern web interface
+endpoint:
+  port: 80
+  service: gamja
+env:
+  SERVICE_FQDN_GAMJA_80: ${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: soju-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- irc
+- bouncer
+- chat
+- messaging
+- relay
+title: Soju
+type: app
+upstream:
+  categories:
+  - communication
+  source: https://soju.im/
+  tags:
+  - irc
+  - bouncer
+  - chat
+  - messaging
+  - relay
+  template: soju.yaml
+website: https://soju.im/

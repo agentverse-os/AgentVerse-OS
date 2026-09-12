@@ -1,0 +1,53 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mailpit-coolify
+description: Email & SMTP testing tool with API for developers
+endpoint:
+  port: 8025
+  service: mailpit
+env:
+  SERVICE_URL_MAILPIT_8025: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mailpit-coolify
+notes:
+- 'порт 1025:1025 (mailpit) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- mailpit
+- email
+- testing
+- smtp
+title: Mailpit
+type: app
+upstream:
+  categories:
+  - email
+  source: https://mailpit.axllent.org/docs/
+  tags:
+  - mailpit
+  - email
+  - testing
+  - smtp
+  template: mailpit.yaml
+website: https://mailpit.axllent.org/docs/

@@ -1,0 +1,81 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/flatnotes
+description: A self-hosted, database-less note taking web app
+endpoint:
+  port: 8080
+  service: flatnotes
+env:
+  FLATNOTES_AUTH_TYPE: ''
+  FLATNOTES_PASSWORD: ''
+  FLATNOTES_SECRET_KEY:
+    generate: token
+  FLATNOTES_TOTP_KEY:
+    generate: token
+  FLATNOTES_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: FLATNOTES_PASSWORD
+  path: null
+  user: FLATNOTES_USERNAME
+name: flatnotes
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: FLATNOTES_AUTH_TYPE
+  hint: Either `password` or `totp` for 2FA
+  label: Flatnotes Auth Type
+  options: null
+  required: true
+  type: text
+- env: FLATNOTES_USERNAME
+  hint: null
+  label: Flatnotes Username
+  options: null
+  required: true
+  type: text
+- env: FLATNOTES_PASSWORD
+  hint: null
+  label: Flatnotes Password
+  options: null
+  required: true
+  type: text
+- env: FLATNOTES_SECRET_KEY
+  hint: null
+  label: FLATNOTES_SECRET_KEY
+  options: null
+  required: false
+  type: random
+- env: FLATNOTES_TOTP_KEY
+  hint: null
+  label: FLATNOTES_TOTP_KEY
+  options: null
+  required: false
+  type: random
+tags: []
+title: flatnotes
+type: app
+upstream:
+  author: Dullage
+  categories:
+  - utilities
+  source: https://github.com/Dullage/flatnotes
+  tipi_version: 42
+  version: v5.5.5
+website: https://github.com/Dullage/flatnotes

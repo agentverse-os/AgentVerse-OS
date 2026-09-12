@@ -1,0 +1,5 @@
+💸 Monetr is a personal finance application that helps users understand their spending and manage their money with clarity. It focuses on presenting a clear picture of available funds by showing how much remains after accounting for upcoming expenses and savings goals. The application allows users to organise their finances around real obligations and planned costs rather than relying on a simple monthly view. It supports recurring expenses of any interval and uses these to calculate what must be set aside so that future payments are always covered.
+
+Monetr provides tools to categorise transactions, track spending patterns and manage budgets in a way that adapts to individual financial habits. It allows users to build an accurate overview of their financial commitments and ensures that both regular and irregular payments are reflected in their balance. The system encourages a realistic approach to budgeting by helping users allocate money intentionally and avoid unexpected shortfalls.
+
+Through its design, monetr aims to make personal financial planning more predictable and less stressful by giving users a structured and transparent view of their finances.

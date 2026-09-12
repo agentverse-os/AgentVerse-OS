@@ -1,0 +1,21 @@
+# jellyfin: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  jellyfin:
+    environment:
+      JELLYFIN_PublishedServerUrl: ${APP_PROTOCOL:-http}://${APP_DOMAIN}/
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/jellyfin:10.11.11
+    networks:
+      appnet:
+        aliases:
+        - jellyfin_jellyfin_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${ROOT_FOLDER_HOST}/media/data:/media/data

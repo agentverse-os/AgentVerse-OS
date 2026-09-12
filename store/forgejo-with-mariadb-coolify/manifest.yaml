@@ -1,0 +1,71 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/forgejo-with-mariadb-coolify
+description: Forgejo is a self-hosted lightweight software forge. Easy to install and low maintenance, it just does the job.
+endpoint:
+  port: 3000
+  service: forgejo
+env:
+  MYSQL_DATABASE: forgejo
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_FORGEJO: https://${APP_DOMAIN}
+  SERVICE_URL_FORGEJO_3000: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: forgejo-with-mariadb-coolify
+notes:
+- 'порт 22222:22 (forgejo) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: forgejo'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+tags:
+- version control
+- collaboration
+- code
+- hosting
+- lightweight
+- mariadb
+title: Forgejo With Mariadb
+type: app
+upstream:
+  categories:
+  - git
+  source: https://forgejo.org/docs
+  tags:
+  - version control
+  - collaboration
+  - code
+  - hosting
+  - lightweight
+  - mariadb
+  template: forgejo-with-mariadb.yaml
+website: https://forgejo.org/docs

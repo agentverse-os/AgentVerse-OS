@@ -1,0 +1,64 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/zoraxy-umbrel
+description: An efficient reverse proxy server with automated SSL management
+endpoint:
+  port: 8000
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/zoraxy/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zoraxy/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zoraxy/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zoraxy/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zoraxy/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/zoraxy/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: zoraxy-umbrel
+notes:
+- 'порт 41080:80 (server) не публикуется: доступ только через edge/gate'
+- 'порт 41443:443 (server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Zoraxy
+type: app
+upstream:
+  author: Toby Chui
+  categories:
+  - networking
+  release_notes: |-
+    This version refreshes the Zoraxy user experience and improves proxy management, authentication, TLS, and Docker hardening.
+
+    Key highlights:
+      - Refreshes the UI and adds a more modern built-in App Store experience
+      - Improves Forward Auth with ignored paths and bulk virtual-directory updates
+      - Fixes SSO redirect loops when the SSO URL omits an http(s) scheme
+      - Improves TLS and ACME handling, including custom preferred CAs and fallback certificates
+      - Fixes HTTP routing issues around the port 80 listener, default-site routing, and rate limit UI values
+      - Improves the Plugin Manager UI and container hardening
+
+
+    Full release notes can be found at https://github.com/tobychui/zoraxy/releases/tag/v3.3.4
+  source: https://github.com/tobychui/zoraxy
+  version: 3.3.4
+  website: https://zoraxy.aroz.org/
+website: https://zoraxy.aroz.org/

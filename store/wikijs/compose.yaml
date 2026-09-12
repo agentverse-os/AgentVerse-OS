@@ -1,0 +1,37 @@
+# wikijs: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  wikijs:
+    depends_on:
+    - wikijs-db
+    environment:
+      DB_HOST: wikijs-db
+      DB_NAME: wiki
+      DB_PASS: ${WIKI_JS_DB_PASS}
+      DB_PORT: '5432'
+      DB_TYPE: postgres
+      DB_USER: wikijs
+    image: ghcr.io/requarks/wiki:2.5.314
+    networks:
+      appnet:
+        aliases:
+        - wikijs_wikijs_1
+    restart: unless-stopped
+  wikijs-db:
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_PASSWORD: ${WIKI_JS_DB_PASS}
+      POSTGRES_USER: wikijs
+    image: postgres:11-alpine
+    logging:
+      driver: none
+    networks:
+      appnet:
+        aliases:
+        - wikijs_wikijs-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data

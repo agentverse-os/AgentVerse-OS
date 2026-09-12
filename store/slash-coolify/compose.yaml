@@ -1,0 +1,34 @@
+# slash-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  slash:
+    environment:
+    - SERVICE_URL_SLASH_5231=${SERVICE_URL_SLASH_5231}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:5231
+      timeout: 10s
+    image: yourselfhosted/slash
+    networks:
+      appnet:
+        aliases:
+        - slash-coolify_slash_1
+    restart: unless-stopped
+    volumes:
+    - slash-data:/var/opt/slash
+volumes:
+  slash-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/slash-data
+      o: bind
+      type: none

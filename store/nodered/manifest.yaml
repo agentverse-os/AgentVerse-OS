@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nodered
+description: Low-code programming for event-driven applications
+endpoint:
+  port: 1880
+  service: nodered
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nodered
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Node-RED
+type: app
+upstream:
+  author: node-red
+  categories:
+  - automation
+  source: https://github.com/node-red/node-red
+  tipi_version: 47
+  version: 5.0.4
+website: https://github.com/node-red/node-red

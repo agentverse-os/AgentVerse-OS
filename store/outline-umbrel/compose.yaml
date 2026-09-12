@@ -1,0 +1,98 @@
+# outline-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      POSTGRES_DB: outline
+      POSTGRES_PASSWORD: outlinepass
+      POSTGRES_USER: outline
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - pg_isready
+      - -d
+      - outline
+      - -U
+      - outline
+      timeout: 20s
+    image: postgres:17.9-alpine@sha256:778d0b486d6daa02b77434d0358ec57a1b21fd8b6d22ac2eef56a33e816928f6
+    networks:
+      appnet:
+        aliases:
+        - outline_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  dex:
+    command:
+    - dex
+    - serve
+    - /etc/dex/config.yaml
+    image: dexidp/dex:v2.45.1@sha256:8499afd690c437f52301efd2b05b2455da5bd2dfc20332cd697dc9937f808462
+    networks:
+      appnet:
+        aliases:
+        - outline_dex_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/etc/dex
+    - ${APP_DATA_DIR}/data/dex:/var/dex
+  redis:
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 30s
+    image: redis:8.4.2-alpine@sha256:812a2556fa70318d980d248a65f62a3bdb72c0882e90d96e50d5c8cf2bed438d
+    networks:
+      appnet:
+        aliases:
+        - outline_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  web:
+    depends_on:
+    - db
+    - redis
+    - dex
+    environment:
+      DATABASE_URL: postgres://outline:outlinepass@outline_db_1:5432/outline
+      FILE_STORAGE: local
+      FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+      FILE_STORAGE_UPLOAD_MAX_SIZE: 262144000
+      NODE_ENV: production
+      OIDC_AUTH_URI: http://${DEVICE_DOMAIN_NAME}:8943/dex/auth
+      OIDC_CLIENT_ID: outline
+      OIDC_CLIENT_SECRET: ${APP_SEED}
+      OIDC_DISPLAY_NAME: Dex
+      OIDC_SCOPES: openid profile email
+      OIDC_TOKEN_URI: http://outline_dex_1:5556/dex/token
+      OIDC_USERINFO_URI: http://outline_dex_1:5556/dex/userinfo
+      OIDC_USERNAME_CLAIM: preferred_username
+      PGSSLMODE: disable
+      PORT: 3000
+      REDIS_URL: redis://outline_redis_1:6379
+      SECRET_KEY: ${APP_SEED}
+      URL: http://${DEVICE_DOMAIN_NAME}:${APP_OUTLINE_PORT}
+      UTILS_SECRET: ${APP_SEED}
+    image: outlinewiki/outline:1.7.1@sha256:361df7040e6f0d7abac768b99f40122197921626a7e69501aabb5fcb496fc1b4
+    networks:
+      appnet:
+        aliases:
+        - outline_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/var/lib/outline/data

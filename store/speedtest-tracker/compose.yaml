@@ -1,0 +1,49 @@
+# speedtest-tracker: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  speedtest-tracker:
+    depends_on:
+    - speedtest-tracker-db
+    environment:
+      APP_KEY: ${SPEEDTEST_APP_KEY}
+      APP_TIMEZONE: ${TZ}
+      DB_CONNECTION: pgsql
+      DB_DATABASE: speedtest-tracker
+      DB_HOST: speedtest-tracker-db
+      DB_PASSWORD: ${SPEEDTEST_TRACKER_DB_PASSWORD}
+      DB_PORT: '5432'
+      DB_USERNAME: tipi
+      DISPLAY_TIMEZONE: ${TZ}
+      PGID: '1000'
+      PUID: '1000'
+      SPEEDTEST_SCHEDULE: ${SPEEDTEST_SCHEDULE:-'30 * * * *'}
+      SPEEDTEST_SERVERS: ${SPEEDTEST_SERVERS:-''}
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/speedtest-tracker:1.15.0
+    networks:
+      appnet:
+        aliases:
+        - speedtest-tracker_speedtest-tracker_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/speedtest-tracker/config:/config
+  speedtest-tracker-db:
+    environment:
+      POSTGRES_DB: speedtest-tracker
+      POSTGRES_PASSWORD: ${SPEEDTEST_TRACKER_DB_PASSWORD}
+      POSTGRES_USER: tipi
+    healthcheck:
+      retries: 3
+      test: pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+    image: postgres:15
+    networks:
+      appnet:
+        aliases:
+        - speedtest-tracker_speedtest-tracker-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data

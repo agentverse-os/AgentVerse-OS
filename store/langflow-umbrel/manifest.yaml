@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/langflow-umbrel
+description: Build AI agents and workflows visually
+endpoint:
+  port: 7860
+  service: app
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/langflow/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/langflow/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/langflow/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/langflow/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/langflow/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/langflow/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: null
+name: langflow-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Langflow
+type: app
+upstream:
+  author: Langflow
+  categories:
+  - ai
+  release_notes: |-
+    Adds the foundations for role-based authorization, SSO identity flows, provider policies, and expanded telemetry.
+    Improves Knowledge Base and Memory Base vector database support, deployment workflows, and accessibility across the interface.
+    Includes security hardening for MCP, public sharing, model-provider SSRF protections, generated code, file/storage handling, and secret export redaction.
+  source: https://github.com/langflow-ai/langflow
+  version: 1.12.0
+  website: https://www.langflow.org/
+website: https://www.langflow.org/

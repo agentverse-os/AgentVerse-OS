@@ -1,0 +1,17 @@
+# downtify-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  downtify:
+    image: ghcr.io/henriquesebastiao/downtify:2.10.1@sha256:81ed28f332c97ca7492cdbc2e5b4c744b76401ebb54de194cf67e9e9582815d5
+    networks:
+      appnet:
+        aliases:
+        - downtify_downtify_1
+    restart: unless-stopped
+    stop_grace_period: 1m
+    volumes:
+    - ${UMBREL_ROOT}/data/storage/downloads/downtify:/downloads
+    - ${APP_DATA_DIR}/data:/data

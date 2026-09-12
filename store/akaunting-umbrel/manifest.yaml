@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/akaunting-umbrel
+description: An intuitive accounting solution for small businesses and freelancers
+endpoint:
+  port: 80
+  service: app
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/akaunting/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/akaunting/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/akaunting/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/akaunting/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/akaunting/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/akaunting/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: umbrel@umbrel.local
+name: akaunting-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Akaunting
+type: app
+upstream:
+  author: Akaunting Inc.
+  categories:
+  - finance
+  release_notes: |-
+    This update includes an important fix:
+      - Fixed cache module version issue
+
+
+    Full release notes can be found at https://github.com/akaunting/akaunting/releases
+  source: https://github.com/akaunting/akaunting
+  version: 3.1.21
+  website: https://akaunting.com/
+website: https://akaunting.com/

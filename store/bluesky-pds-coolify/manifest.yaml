@@ -1,0 +1,141 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bluesky-pds-coolify
+description: Bluesky PDS (Personal Data Server)
+endpoint:
+  port: 3000
+  service: pds
+env:
+  LOG_ENABLED: 'true'
+  PDS_ADMIN_EMAIL: ''
+  PDS_BLOB_UPLOAD_LIMIT: '104857600'
+  PDS_BSKY_APP_VIEW_DID: did:web:api.bsky.app
+  PDS_BSKY_APP_VIEW_URL: https://api.bsky.app
+  PDS_CRAWLERS: https://bsky.network
+  PDS_DATA_DIRECTORY: /pds
+  PDS_DID_PLC_URL: https://plc.directory
+  PDS_EMAIL_FROM_ADDRESS: ''
+  PDS_EMAIL_SMTP_URL: ''
+  PDS_REPORT_SERVICE_DID: did:plc:ar7c4by46qjdydhdevvrndac
+  PDS_REPORT_SERVICE_URL: https://mod.bsky.app/xrpc/com.atproto.moderation.createReport
+  SERVICE_FQDN_PDS: ${APP_DOMAIN}
+  SERVICE_HEX_64_JWTSECRET:
+    generate: hex64
+  SERVICE_HEX_64_ROTATIONKEY:
+    generate: hex64
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_URL_PDS_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: PDS_ADMIN_EMAIL
+name: bluesky-pds-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PDS_ADMIN_EMAIL
+  hint: null
+  label: pds admin email
+  options: null
+  required: false
+  type: text
+- env: PDS_DATA_DIRECTORY
+  hint: 'по умолчанию: /pds'
+  label: pds data directory
+  options: null
+  required: false
+  type: text
+- env: PDS_BLOB_UPLOAD_LIMIT
+  hint: 'по умолчанию: 104857600'
+  label: pds blob upload limit
+  options: null
+  required: false
+  type: text
+- env: PDS_DID_PLC_URL
+  hint: 'по умолчанию: https://plc.directory'
+  label: pds did plc url
+  options: null
+  required: false
+  type: text
+- env: PDS_EMAIL_FROM_ADDRESS
+  hint: null
+  label: pds email from address
+  options: null
+  required: false
+  type: text
+- env: PDS_EMAIL_SMTP_URL
+  hint: null
+  label: pds email smtp url
+  options: null
+  required: false
+  type: text
+- env: PDS_BSKY_APP_VIEW_URL
+  hint: 'по умолчанию: https://api.bsky.app'
+  label: pds bsky app view url
+  options: null
+  required: false
+  type: text
+- env: PDS_BSKY_APP_VIEW_DID
+  hint: 'по умолчанию: did:web:api.bsky.app'
+  label: pds bsky app view did
+  options: null
+  required: false
+  type: text
+- env: PDS_REPORT_SERVICE_URL
+  hint: 'по умолчанию: https://mod.bsky.app/xrpc/com.atproto.moderation.createReport'
+  label: pds report service url
+  options: null
+  required: false
+  type: text
+- env: PDS_REPORT_SERVICE_DID
+  hint: 'по умолчанию: did:plc:ar7c4by46qjdydhdevvrndac'
+  label: pds report service did
+  options: null
+  required: false
+  type: text
+- env: PDS_CRAWLERS
+  hint: 'по умолчанию: https://bsky.network'
+  label: pds crawlers
+  options: null
+  required: false
+  type: text
+- env: LOG_ENABLED
+  hint: 'по умолчанию: true'
+  label: log enabled
+  options: null
+  required: false
+  type: text
+tags:
+- bluesky
+- pds
+- platform
+title: Bluesky Pds
+type: app
+upstream:
+  categories:
+  - backend
+  source: https://github.com/bluesky-social/pds
+  tags:
+  - bluesky
+  - pds
+  - platform
+  template: bluesky-pds.yaml
+website: https://github.com/bluesky-social/pds

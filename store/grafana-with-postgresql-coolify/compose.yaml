@@ -1,0 +1,69 @@
+# grafana-with-postgresql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  grafana:
+    depends_on:
+    - postgresql
+    environment:
+    - SERVICE_URL_GRAFANA_3000=${SERVICE_URL_GRAFANA_3000}
+    - GF_SERVER_ROOT_URL=${SERVICE_URL_GRAFANA}
+    - GF_SERVER_DOMAIN=${SERVICE_FQDN_GRAFANA}
+    - GF_SECURITY_ADMIN_PASSWORD=${SERVICE_PASSWORD_GRAFANA}
+    - GF_DATABASE_TYPE=postgres
+    - GF_DATABASE_HOST=postgresql
+    - GF_DATABASE_USER=$SERVICE_USER_POSTGRES
+    - GF_DATABASE_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - GF_DATABASE_NAME=${POSTGRES_DB:-grafana}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000/api/health
+      timeout: 20s
+    image: grafana/grafana-oss
+    networks:
+      appnet:
+        aliases:
+        - grafana-with-postgresql-coolify_grafana_1
+    restart: unless-stopped
+    volumes:
+    - grafana-data:/var/lib/grafana
+  postgresql:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_DB=${POSTGRES_DB:-grafana}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - grafana-with-postgresql-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+volumes:
+  grafana-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/grafana-data
+      o: bind
+      type: none
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none

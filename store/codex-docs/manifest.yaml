@@ -1,0 +1,68 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/codex-docs
+description: Free Docs app powered by Editor.js ecosystem.
+endpoint:
+  port: 3000
+  service: codex-docs
+env:
+  CODEX_AUTH_PASSWORD:
+    generate: password
+  CODEX_AUTH_SECRET:
+    generate: token
+  CODEX_DB_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: CODEX_AUTH_PASSWORD
+  path: null
+  user: null
+name: codex-docs
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CODEX_AUTH_PASSWORD
+  hint: null
+  label: Auth Password
+  options: null
+  required: true
+  type: password
+- env: CODEX_DB_PASSWORD
+  hint: null
+  label: CODEX_DB_PASSWORD
+  options: null
+  required: false
+  type: random
+- env: CODEX_AUTH_SECRET
+  hint: null
+  label: CODEX_AUTH_SECRET
+  options: null
+  required: false
+  type: random
+tags: []
+title: CodeX.docs
+type: app
+upstream:
+  author: https://docs.codex.so/
+  categories:
+  - media
+  source: https://github.com/codex-team/codex.docs
+  tipi_version: 9
+  version: v2.3
+website: https://github.com/codex-team/codex.docs

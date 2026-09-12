@@ -1,0 +1,19 @@
+# plex: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  plex:
+    environment:
+      ADVERTISE_IP: ${APP_PROTOCOL:-http}://${APP_DOMAIN}/
+      PGID: '1000'
+      PUID: '1000'
+      VERSION: docker
+    image: lscr.io/linuxserver/plex:1.43.3
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${APP_DATA_DIR}/data/transcode:/transcode
+    - ${ROOT_FOLDER_HOST}/media/data:/media

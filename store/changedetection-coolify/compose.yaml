@@ -1,0 +1,69 @@
+# changedetection-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  browser-sockpuppet-chrome:
+    cap_add:
+    - SYS_ADMIN
+    environment:
+    - SCREEN_WIDTH=${SCREEN_WIDTH:-1920}
+    - SCREEN_HEIGHT=${SCREEN_HEIGHT:-1024}
+    - SCREEN_DEPTH=${SCREEN_DEPTH:-16}
+    - MAX_CONCURRENT_CHROME_PROCESSES=${MAX_CONCURRENT_CHROME_PROCESSES:-10}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - echo
+      - ok
+      timeout: 20s
+    hostname: browser-sockpuppet-chrome
+    image: dgtlmoon/sockpuppetbrowser:latest
+    networks:
+      appnet:
+        aliases:
+        - changedetection-coolify_browser-sockpuppet-chrome_1
+    restart: unless-stopped
+  changedetection:
+    depends_on:
+      browser-sockpuppet-chrome:
+        condition: service_started
+    environment:
+    - SERVICE_URL_CHANGEDETECTION_5000=${SERVICE_URL_CHANGEDETECTION_5000}
+    - BASE_URL=${SERVICE_URL_CHANGEDETECTION}
+    - PUID=${PUID:-1000}
+    - PGID=${PGID:-1000}
+    - PLAYWRIGHT_DRIVER_URL=${PLAYWRIGHT_DRIVER_URL:-ws://browser-sockpuppet-chrome:3000}
+    - HIDE_REFERER=${HIDE_REFERER:-true}
+    - FETCH_WORKERS=${FETCH_WORKERS:-10}
+    - MINIMUM_SECONDS_RECHECK_TIME=${MINIMUM_SECONDS_RECHECK_TIME:-3}
+    - DISABLE_VERSION_CHECK=${DISABLE_VERSION_CHECK:-true}
+    - SCREENSHOT_MAX_HEIGHT=${SCREENSHOT_MAX_HEIGHT:-16000}
+    - TZ=${TZ:-UTC}
+    - LOGGER_LEVEL=${LOGGER_LEVEL:-DEBUG}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - echo
+      - ok
+      timeout: 20s
+    image: ghcr.io/dgtlmoon/changedetection.io
+    networks:
+      appnet:
+        aliases:
+        - changedetection-coolify_changedetection_1
+    restart: unless-stopped
+    volumes:
+    - changedetection-data:/datastore
+volumes:
+  changedetection-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/changedetection-data
+      o: bind
+      type: none

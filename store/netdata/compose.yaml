@@ -1,0 +1,34 @@
+# netdata: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  netdata:
+    cap_add:
+    - SYS_PTRACE
+    - SYS_ADMIN
+    environment:
+      DOCKER_HOST: tcp://cloudos-docker-ro:2375
+    image: netdata/netdata:v2.11.0
+    networks:
+      appnet:
+        aliases:
+        - netdata_netdata_1
+      dockerro: {}
+    pid: host
+    restart: unless-stopped
+    security_opt:
+    - apparmor:unconfined
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/etc/netdata
+    - ${APP_DATA_DIR}/data/lib:/var/lib/netdata
+    - ${APP_DATA_DIR}/data/cache:/var/cache/netdata
+    - /etc/passwd:/host/etc/passwd:ro
+    - /etc/group:/host/etc/group:ro
+    - /proc:/host/proc:ro
+    - /sys:/host/sys:ro
+    - /etc/os-release:/host/etc/os-release:ro

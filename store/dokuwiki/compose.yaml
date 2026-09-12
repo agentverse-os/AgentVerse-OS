@@ -1,0 +1,22 @@
+# dokuwiki: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  dokuwiki:
+    environment:
+      TZ: ${TZ}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test: curl --fail http://localhost || exit 1
+      timeout: 10s
+    image: lscr.io/linuxserver/dokuwiki:2024-02-06b-ls250
+    networks:
+      appnet:
+        aliases:
+        - dokuwiki_dokuwiki_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config

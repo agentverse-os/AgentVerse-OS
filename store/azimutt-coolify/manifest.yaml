@@ -1,0 +1,173 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/azimutt-coolify
+description: 'Next-Gen ERD: Design, Explore, Document and Analyze your database.'
+endpoint:
+  port: 4000
+  service: backend
+env:
+  AUTH_PASSWORD: 'true'
+  EMAIL_ADAPTER: smtp
+  FILE_STORAGE_ADAPTER: s3
+  PORT: '4000'
+  POSTGRES_DB: azimutt
+  POSTGRES_USER: ''
+  PUBLIC_SITE: 'false'
+  RELAY_PORT: '587'
+  S3_BUCKET: ''
+  S3_HOST: ''
+  S3_KEY_ID: ''
+  S3_KEY_SECRET: ''
+  SERVICE_BASE64_64_AZIMUTT:
+    generate: hex64
+  SERVICE_PASSWORD_MINIO:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_SMTP:
+    generate: password
+  SERVICE_URL_AZIMUTT: https://${APP_DOMAIN}
+  SERVICE_URL_AZIMUTT_4000: https://${APP_DOMAIN}
+  SERVICE_URL_SMTP: https://${APP_DOMAIN}
+  SERVICE_USER_MINIO:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SKIP_EMAIL_CONFIRMATION: 'true'
+  SKIP_ONBOARDING_FUNNEL: 'true'
+  SMTP_PORT: '587'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: azimutt-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: azimutt'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: RELAY_PORT
+  hint: 'по умолчанию: 587'
+  label: relay port
+  options: null
+  required: false
+  type: text
+- env: PORT
+  hint: 'по умолчанию: 4000'
+  label: port
+  options: null
+  required: false
+  type: text
+- env: FILE_STORAGE_ADAPTER
+  hint: 'по умолчанию: s3'
+  label: file storage adapter
+  options: null
+  required: false
+  type: text
+- env: AUTH_PASSWORD
+  hint: 'по умолчанию: true'
+  label: auth password
+  options: null
+  required: false
+  type: password
+- env: SKIP_ONBOARDING_FUNNEL
+  hint: 'по умолчанию: true'
+  label: skip onboarding funnel
+  options: null
+  required: false
+  type: text
+- env: SKIP_EMAIL_CONFIRMATION
+  hint: 'по умолчанию: true'
+  label: skip email confirmation
+  options: null
+  required: false
+  type: text
+- env: PUBLIC_SITE
+  hint: 'по умолчанию: false'
+  label: public site
+  options: null
+  required: false
+  type: text
+- env: S3_BUCKET
+  hint: null
+  label: s3 bucket
+  options: null
+  required: false
+  type: text
+- env: S3_HOST
+  hint: null
+  label: s3 host
+  options: null
+  required: false
+  type: text
+- env: S3_KEY_ID
+  hint: null
+  label: s3 key id
+  options: null
+  required: false
+  type: password
+- env: S3_KEY_SECRET
+  hint: null
+  label: s3 key secret
+  options: null
+  required: false
+  type: password
+- env: EMAIL_ADAPTER
+  hint: 'по умолчанию: smtp'
+  label: email adapter
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: 'по умолчанию: 587'
+  label: smtp port
+  options: null
+  required: false
+  type: text
+tags:
+- erd
+- entity-relationship diagram
+- database tool
+- database schema
+- diagram
+title: Azimutt
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.azimutt.app/
+  tags:
+  - erd
+  - entity-relationship diagram
+  - database tool
+  - database schema
+  - diagram
+  template: azimutt.yaml
+website: https://docs.azimutt.app/

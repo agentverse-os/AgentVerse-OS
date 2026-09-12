@@ -1,0 +1,68 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/freshrss-with-mariadb-coolify
+description: A free, self-hostable feed aggregator.
+endpoint:
+  port: 80
+  service: freshrss
+env:
+  CRON_MIN: 1,31
+  MARIADB_DATABASE: freshrss
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_URL_FRESHRSS_80: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: freshrss-with-mariadb-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CRON_MIN
+  hint: 'по умолчанию: 1,31'
+  label: cron min
+  options: null
+  required: false
+  type: text
+- env: MARIADB_DATABASE
+  hint: 'по умолчанию: freshrss'
+  label: mariadb database
+  options: null
+  required: false
+  type: text
+tags:
+- rss
+- feed
+title: Freshrss With Mariadb
+type: app
+upstream:
+  categories:
+  - RSS
+  source: https://freshrss.org/index.html
+  tags:
+  - rss
+  - feed
+  template: freshrss-with-mariadb.yaml
+website: https://freshrss.org/index.html

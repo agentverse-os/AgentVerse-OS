@@ -1,0 +1,73 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/podfetch
+description: A sleek and efficient podcast downloader.
+endpoint:
+  port: 8000
+  service: podfetch
+env:
+  PODFETCH_PASSWORD:
+    generate: password
+  PODFETCH_PODINDEX_API_KEY: ''
+  PODFETCH_PODINDEX_API_SECRET: ''
+  PODFETCH_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: PODFETCH_PASSWORD
+  path: null
+  user: PODFETCH_USERNAME
+name: podfetch
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PODFETCH_USERNAME
+  hint: null
+  label: PodFetch Username
+  options: null
+  required: true
+  type: text
+- env: PODFETCH_PASSWORD
+  hint: null
+  label: PodFetch Password
+  options: null
+  required: true
+  type: password
+- env: PODFETCH_PODINDEX_API_KEY
+  hint: The API key sent to you via mail
+  label: Podcast Index API Key
+  options: null
+  required: false
+  type: text
+- env: PODFETCH_PODINDEX_API_SECRET
+  hint: The API secret sent to you via mail
+  label: Podcast Index API Secret
+  options: null
+  required: false
+  type: text
+tags: []
+title: PodFetch
+type: app
+upstream:
+  author: SamTV12345
+  categories:
+  - media
+  source: https://github.com/SamTV12345/PodFetch
+  tipi_version: 7
+  version: latest
+website: https://github.com/SamTV12345/PodFetch

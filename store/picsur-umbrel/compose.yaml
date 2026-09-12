@@ -1,0 +1,56 @@
+# picsur-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    cpu_shares: 1024
+    environment:
+      POSTGRES_DB: picsur
+      POSTGRES_PASSWORD: picsurpass
+      POSTGRES_USER: picsuruser
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD
+      - pg_isready
+      - -q
+      - -d
+      - picsur
+      - -U
+      - picsuruser
+      timeout: 45s
+    image: postgres:17.4@sha256:fe3f571d128e8efadcd8b2fde0e2b73ebab6dbec33f6bfe69d98c682c7d8f7bd
+    mem_limit: 1g
+    networks:
+      appnet:
+        aliases:
+        - picsur_db_1
+    restart: on-failure
+    security_opt:
+    - no-new-privileges:true
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data:rw
+  web:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PICSUR_ADMIN_PASSWORD: ${APP_PASSWORD}
+      PICSUR_DB_DATABASE: picsur
+      PICSUR_DB_HOST: picsur_db_1
+      PICSUR_DB_PASSWORD: picsurpass
+      PICSUR_DB_PORT: 5432
+      PICSUR_DB_USERNAME: picsuruser
+      PICSUR_MAX_FILE_SIZE: 128000000000
+      PICSUR_PORT: 8286
+    image: ghcr.io/caramelfur/picsur:0.5.6@sha256:209ce21d338cd7d9a1adc838a67695e903149359bf192359819607df1b3c4417
+    networks:
+      appnet:
+        aliases:
+        - picsur_web_1
+    restart: on-failure
+    user: 1000:1000

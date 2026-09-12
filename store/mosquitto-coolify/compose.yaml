@@ -1,0 +1,30 @@
+# mosquitto-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mosquitto:
+    entrypoint: sh -c " if [ '$REQUIRE_CERTIFICATE' = 'true' ]; then echo 'listener 8883' > /mosquitto/config/mosquitto.conf && echo 'cafile /certs/ca.crt' >> /mosquitto/config/mosquitto.conf && echo 'certfile /certs/server.crt' >> /mosquitto/config/mosquitto.conf && echo 'keyfile  /certs/server.key' >> /mosquitto/config/mosquitto.conf; else echo 'listener 1883' > /mosquitto/config/mosquitto.conf; fi && echo 'require_certificate '$REQUIRE_CERTIFICATE >> /mosquitto/config/mosquitto.conf && echo 'allow_anonymous '$ALLOW_ANONYMOUS >> /mosquitto/config/mosquitto.conf; if [ -n '$SERVICE_USER_MOSQUITTO' ] && [ -n '$SERVICE_PASSWORD_MOSQUITTO' ]; then echo 'password_file /mosquitto/config/passwords' >> /mosquitto/config/mosquitto.conf && touch /mosquitto/config/passwords && chmod 0700 /mosquitto/config/passwords && chown root:root /mosquitto/config/passwords && mosquitto_passwd -b -c /mosquitto/config/passwords $SERVICE_USER_MOSQUITTO $SERVICE_PASSWORD_MOSQUITTO && chown mosquitto:mosquitto /mosquitto/config/passwords; fi && exec mosquitto -c /mosquitto/config/mosquitto.conf "
+    environment:
+    - SERVICE_URL_MOSQUITTO_1883=${SERVICE_URL_MOSQUITTO_1883}
+    - MQTT_USERNAME=${SERVICE_USER_MOSQUITTO}
+    - MQTT_PASSWORD=${SERVICE_PASSWORD_MOSQUITTO}
+    - REQUIRE_CERTIFICATE=${REQUIRE_CERTIFICATE:-false}
+    - ALLOW_ANONYMOUS=${ALLOW_ANONYMOUS:-true}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - exit 0
+      timeout: 10s
+    image: eclipse-mosquitto
+    networks:
+      appnet:
+        aliases:
+        - mosquitto-coolify_mosquitto_1
+    restart: unless-stopped
+    volumes:
+    - ./mosquitto/config:/mosquitto/config
+    - ./certs:/certs

@@ -1,0 +1,19 @@
+# dockge: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  dockge:
+    environment:
+      DOCKGE_STACKS_DIR: ${APP_DATA_DIR}/data/stacks
+    image: louislam/dockge:1.5.0
+    networks:
+      appnet:
+        aliases:
+        - dockge_dockge_1
+    restart: unless-stopped
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ${APP_DATA_DIR}/data/app-data:/app/data
+    - ${APP_DATA_DIR}/data/stacks:${APP_DATA_DIR}/data/stacks

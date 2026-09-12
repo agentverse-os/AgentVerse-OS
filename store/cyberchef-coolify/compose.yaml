@@ -1,0 +1,34 @@
+# cyberchef-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cyberchef:
+    environment:
+    - SERVICE_URL_CYBERCHEF_80=${SERVICE_URL_CYBERCHEF_80}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: ghcr.io/gchq/cyberchef:latest
+    networks:
+      appnet:
+        aliases:
+        - cyberchef-coolify_cyberchef_1
+    platform: linux/amd64
+    restart: unless-stopped
+    volumes:
+    - cyberchef-data:/app/data
+volumes:
+  cyberchef-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/cyberchef-data
+      o: bind
+      type: none

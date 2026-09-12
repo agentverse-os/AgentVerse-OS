@@ -1,0 +1,14 @@
+# snort-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: voidic/snort:v0.5.3@sha256:410778efd4d74f001bb20e91e9f752bda8bb2e5d5f796a2020b253be8b9ca099
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - snort_web_1
+    restart: unless-stopped

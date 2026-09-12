@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/emulatorjs
+description: Self-hosted Javascript emulation for various system.
+endpoint:
+  port: 80
+  service: emulatorjs
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: emulatorjs
+notes:
+- 'порт 8165→3000 (emulatorjs) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Emulatorjs
+type: app
+upstream:
+  author: EmulatorJS
+  categories:
+  - gaming
+  source: https://github.com/EmulatorJS/EmulatorJS
+  tipi_version: 18
+  version: 1.9.2
+website: https://github.com/EmulatorJS/EmulatorJS

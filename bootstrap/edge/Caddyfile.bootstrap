@@ -1,0 +1,5 @@
+# Стартовая конфигурация edge: только Admin API. Всё остальное загружает cloudd (POST /load).
+{
+  admin 0.0.0.0:2019
+  persist_config off
+}

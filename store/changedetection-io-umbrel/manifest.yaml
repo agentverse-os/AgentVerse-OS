@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/changedetection-io-umbrel
+description: Website change detection and alerts
+endpoint:
+  port: 5000
+  service: app
+env:
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/changedetection-io/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/changedetection-io/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/changedetection-io/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/changedetection-io/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/changedetection-io/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/changedetection-io/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: changedetection-io-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: changedetection.io
+type: app
+upstream:
+  author: dgtlmoon
+  categories:
+  - automation
+  release_notes: This update improves page title detection for pages with large head sections, fixes watch errors for invalid JSON responses and URLs containing "|" in fragments, fixes password-protected tag RSS feeds, and includes translation and restock notification improvements.
+  source: https://github.com/dgtlmoon/changedetection.io
+  version: 0.55.8
+  website: https://changedetection.io/
+website: https://changedetection.io/

@@ -1,0 +1,359 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/trigger-coolify
+description: The open source background jobs platform for developers
+endpoint:
+  port: 3000
+  service: trigger
+env:
+  ADMIN_EMAILS: ''
+  AUTH: '1'
+  AUTH_GITHUB_CLIENT_ID: ''
+  AUTH_GITHUB_CLIENT_SECRET: ''
+  CONTAINERS: '1'
+  DEFAULT_ENV_EXECUTION_CONCURRENCY_LIMIT: '100'
+  DEFAULT_ORG_EXECUTION_CONCURRENCY_LIMIT: '300'
+  DEPLOY_REGISTRY_HOST: ghcr.io
+  DEPLOY_REGISTRY_NAMESPACE: trigger
+  DEPLOY_REGISTRY_PASSWORD: ''
+  DEPLOY_REGISTRY_PROTOCOL: https
+  DEPLOY_REGISTRY_USERNAME: ''
+  DEV_OTEL_EXPORTER_OTLP_ENDPOINT: ''
+  DISTRIBUTION: '1'
+  DOCKER_AUTOREMOVE_EXITED_CONTAINERS: '1'
+  DOCKER_RUNNER_NETWORKS: ''
+  EMAIL_TRANSPORT: smtp
+  FROM_EMAIL: ''
+  IMAGES: '1'
+  INFO: '1'
+  INTERNAL_OTEL_TRACE_LOGGING_ENABLED: '0'
+  NETWORKS: '1'
+  OBJECT_STORE_ACCESS_KEY_ID: ''
+  OBJECT_STORE_BASE_URL: ''
+  OBJECT_STORE_SECRET_ACCESS_KEY: ''
+  POST: '1'
+  POSTGRES_DB: trigger-db
+  POSTGRES_USER: ''
+  REPLY_TO_EMAIL: ''
+  RESEND_API_KEY: ''
+  SERVICE_PASSWORD_64_CLICKHOUSE:
+    generate: hex64
+  SERVICE_PASSWORD_64_ELECTRIC:
+    generate: hex64
+  SERVICE_PASSWORD_64_MAGICLINK:
+    generate: hex64
+  SERVICE_PASSWORD_64_SESSION:
+    generate: hex64
+  SERVICE_PASSWORD_64_WORKERSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_ENCRYPTIONKEY:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_TRIGGER_3000: https://${APP_DOMAIN}
+  SERVICE_USER_CLICKHOUSE:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SMTP_HOST: ''
+  SMTP_PASSWORD: ''
+  SMTP_PORT: ''
+  SMTP_SECURE: ''
+  SMTP_USER: ''
+  SUPERVISOR_DEBUG: '0'
+  TRIGGER_TELEMETRY_DISABLED: 'true'
+  TRIGGER_WORKER_TOKEN: ''
+  TRIGGER_WORKLOAD_API_DOMAIN: ''
+  WHITELISTED_EMAILS: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: DEPLOY_REGISTRY_PASSWORD
+  path: null
+  user: DEPLOY_REGISTRY_USERNAME
+name: trigger-coolify
+notes:
+- 'docker-proxy: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TRIGGER_WORKER_TOKEN
+  hint: null
+  label: trigger worker token
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_DB
+  hint: 'по умолчанию: trigger-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: DEV_OTEL_EXPORTER_OTLP_ENDPOINT
+  hint: null
+  label: dev otel exporter otlp endpoint
+  options: null
+  required: false
+  type: text
+- env: DEPLOY_REGISTRY_HOST
+  hint: 'по умолчанию: ghcr.io'
+  label: deploy registry host
+  options: null
+  required: false
+  type: text
+- env: DEPLOY_REGISTRY_PROTOCOL
+  hint: 'по умолчанию: https'
+  label: deploy registry protocol
+  options: null
+  required: false
+  type: text
+- env: DEPLOY_REGISTRY_NAMESPACE
+  hint: 'по умолчанию: trigger'
+  label: deploy registry namespace
+  options: null
+  required: false
+  type: text
+- env: OBJECT_STORE_BASE_URL
+  hint: null
+  label: object store base url
+  options: null
+  required: false
+  type: text
+- env: OBJECT_STORE_ACCESS_KEY_ID
+  hint: null
+  label: object store access key id
+  options: null
+  required: false
+  type: password
+- env: OBJECT_STORE_SECRET_ACCESS_KEY
+  hint: null
+  label: object store secret access key
+  options: null
+  required: false
+  type: password
+- env: DEFAULT_ORG_EXECUTION_CONCURRENCY_LIMIT
+  hint: 'по умолчанию: 300'
+  label: default org execution concurrency limit
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_ENV_EXECUTION_CONCURRENCY_LIMIT
+  hint: 'по умолчанию: 100'
+  label: default env execution concurrency limit
+  options: null
+  required: false
+  type: text
+- env: AUTH_GITHUB_CLIENT_ID
+  hint: null
+  label: auth github client id
+  options: null
+  required: false
+  type: text
+- env: AUTH_GITHUB_CLIENT_SECRET
+  hint: null
+  label: auth github client secret
+  options: null
+  required: false
+  type: password
+- env: EMAIL_TRANSPORT
+  hint: 'по умолчанию: smtp'
+  label: email transport
+  options: null
+  required: false
+  type: text
+- env: RESEND_API_KEY
+  hint: null
+  label: resend api key
+  options: null
+  required: false
+  type: password
+- env: SMTP_HOST
+  hint: null
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: null
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_USER
+  hint: null
+  label: smtp user
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: null
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: SMTP_SECURE
+  hint: null
+  label: smtp secure
+  options: null
+  required: false
+  type: text
+- env: FROM_EMAIL
+  hint: null
+  label: from email
+  options: null
+  required: false
+  type: text
+- env: REPLY_TO_EMAIL
+  hint: null
+  label: reply to email
+  options: null
+  required: false
+  type: text
+- env: WHITELISTED_EMAILS
+  hint: null
+  label: whitelisted emails
+  options: null
+  required: false
+  type: text
+- env: ADMIN_EMAILS
+  hint: null
+  label: admin emails
+  options: null
+  required: false
+  type: text
+- env: INTERNAL_OTEL_TRACE_LOGGING_ENABLED
+  hint: 'по умолчанию: 0'
+  label: internal otel trace logging enabled
+  options: null
+  required: false
+  type: text
+- env: TRIGGER_TELEMETRY_DISABLED
+  hint: 'по умолчанию: true'
+  label: trigger telemetry disabled
+  options: null
+  required: false
+  type: text
+- env: TRIGGER_WORKLOAD_API_DOMAIN
+  hint: null
+  label: trigger workload api domain
+  options: null
+  required: false
+  type: text
+- env: DOCKER_RUNNER_NETWORKS
+  hint: null
+  label: docker runner networks
+  options: null
+  required: false
+  type: text
+- env: DOCKER_AUTOREMOVE_EXITED_CONTAINERS
+  hint: 'по умолчанию: 1'
+  label: docker autoremove exited containers
+  options: null
+  required: false
+  type: text
+- env: DEPLOY_REGISTRY_USERNAME
+  hint: null
+  label: deploy registry username
+  options: null
+  required: false
+  type: text
+- env: DEPLOY_REGISTRY_PASSWORD
+  hint: null
+  label: deploy registry password
+  options: null
+  required: false
+  type: password
+- env: SUPERVISOR_DEBUG
+  hint: 'по умолчанию: 0'
+  label: supervisor debug
+  options: null
+  required: false
+  type: text
+- env: POST
+  hint: 'по умолчанию: 1'
+  label: post
+  options: null
+  required: false
+  type: text
+- env: CONTAINERS
+  hint: 'по умолчанию: 1'
+  label: containers
+  options: null
+  required: false
+  type: text
+- env: IMAGES
+  hint: 'по умолчанию: 1'
+  label: images
+  options: null
+  required: false
+  type: text
+- env: INFO
+  hint: 'по умолчанию: 1'
+  label: info
+  options: null
+  required: false
+  type: text
+- env: NETWORKS
+  hint: 'по умолчанию: 1'
+  label: networks
+  options: null
+  required: false
+  type: text
+- env: AUTH
+  hint: 'по умолчанию: 1'
+  label: auth
+  options: null
+  required: false
+  type: text
+- env: DISTRIBUTION
+  hint: 'по умолчанию: 1'
+  label: distribution
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- background-jobs
+- typescript
+- javascript
+- scheduling
+- workflows
+- automation
+- tasks
+- queues
+title: Trigger
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://trigger.dev/docs/self-hosting/overview
+  tags:
+  - background-jobs
+  - typescript
+  - javascript
+  - scheduling
+  - workflows
+  - automation
+  - tasks
+  - queues
+  template: trigger.yaml
+website: https://trigger.dev/docs/self-hosting/overview

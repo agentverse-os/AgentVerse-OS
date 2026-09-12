@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/seafile-umbrel
+description: Reliable and Performant File Sync and Share Solution
+endpoint:
+  port: 80
+  service: seafile
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/seafile/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/seafile/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/seafile/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/seafile/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: umbrel
+name: seafile-umbrel
+notes:
+- 'порт 8921:80 (seadoc) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Seafile
+type: app
+upstream:
+  author: Seafile
+  categories:
+  - files
+  release_notes: Updated Seafile Community Edition to the latest 13.0.25 maintenance release.
+  source: https://github.com/haiwen/seafile
+  version: 13.0.25
+  website: https://www.seafile.com/
+website: https://www.seafile.com/

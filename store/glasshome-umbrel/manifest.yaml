@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/glasshome-umbrel
+description: A beautiful, local-first dashboard for Home Assistant
+endpoint:
+  port: 3123
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/glasshome/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/glasshome/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/glasshome/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/glasshome/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: glasshome-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: GlassHome
+type: app
+upstream:
+  author: GlassHome
+  categories:
+  - automation
+  release_notes: |-
+    This update adds a new Media section in Settings for reviewing storage use, uploading pictures, browsing recent and library items, and deleting unused pictures. It also rejects very large background photos before they can slow down or take the dashboard offline.
+
+    Full release notes can be found at https://glasshome.app/docs/dash/changelog/#120---2026-08-27.
+  source: https://github.com/glasshome/homeassistant-addon
+  version: 1.2.0
+  website: https://glasshome.app
+website: https://glasshome.app

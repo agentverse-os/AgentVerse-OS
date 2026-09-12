@@ -1,0 +1,96 @@
+# maybe-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: maybe
+      POSTGRES_PASSWORD: maybe
+      POSTGRES_USER: maybe
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U maybe
+      timeout: 5s
+    image: postgres:16@sha256:1bf73ccae25238fa555100080042f0b2f9be08eb757e200fe6afc1fc413a1b3c
+    networks:
+      appnet:
+        aliases:
+        - maybe_db_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 5s
+    image: redis:7.4.2@sha256:fbdbaea47b9ae4ecc2082ecdb4e1cea81e32176ffb1dcf643d422ad07427e5d9
+    networks:
+      appnet:
+        aliases:
+        - maybe_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  web:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://maybe:maybe@maybe%5Fdb%5F1:5432/maybe
+      GOOD_JOB_EXECUTION_MODE: async
+      PORT: 3063
+      POSTGRES_DB: maybe
+      POSTGRES_PASSWORD: maybe
+      POSTGRES_USER: maybe
+      RAILS_ASSUME_SSL: 'false'
+      RAILS_FORCE_SSL: 'false'
+      REDIS_URL: redis://maybe_redis_1:6379/1
+      SECRET_KEY_BASE: $APP_SEED
+      SELF_HOSTING_ENABLED: 'true'
+    image: ghcr.io/maybe-finance/maybe:0.6.0@sha256:1e791e88ecc4d124d05142d943bcec5b5a172e889f648c97d334363133384f01
+    networks:
+      appnet:
+        aliases:
+        - maybe_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/rails:/rails/storage
+  worker:
+    command: bundle exec sidekiq
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://maybe:maybe@maybe%5Fdb%5F1:5432/maybe
+      GOOD_JOB_EXECUTION_MODE: async
+      PORT: 3063
+      POSTGRES_DB: maybe
+      POSTGRES_PASSWORD: maybe
+      POSTGRES_USER: maybe
+      RAILS_ASSUME_SSL: 'false'
+      RAILS_FORCE_SSL: 'false'
+      REDIS_URL: redis://maybe_redis_1:6379/1
+      SECRET_KEY_BASE: $APP_SEED
+      SELF_HOSTING_ENABLED: 'true'
+    image: ghcr.io/maybe-finance/maybe:0.6.0@sha256:1e791e88ecc4d124d05142d943bcec5b5a172e889f648c97d334363133384f01
+    networks:
+      appnet:
+        aliases:
+        - maybe_worker_1
+    restart: on-failure

@@ -1,0 +1,37 @@
+# prowlarr-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  prowlarr:
+    environment:
+    - SERVICE_URL_PROWLARR_9696=${SERVICE_URL_PROWLARR_9696}
+    - _APP_URL=$SERVICE_URL_PROWLARR
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-America/Toronto}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:9696/ping
+      timeout: 10s
+    image: lscr.io/linuxserver/prowlarr:latest
+    networks:
+      appnet:
+        aliases:
+        - prowlarr-coolify_prowlarr_1
+    restart: unless-stopped
+    volumes:
+    - prowlarr-config:/config
+volumes:
+  prowlarr-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/prowlarr-config
+      o: bind
+      type: none

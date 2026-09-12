@@ -1,0 +1,175 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/chaskiq-coolify
+description: Chaskiq is an messaging platform for marketing, support & sales
+endpoint:
+  port: 3000
+  service: chaskiq
+env:
+  ACTIVE_STORAGE_SERVICE: local
+  ADMIN_EMAIL: admin@example
+  AWS_ACCESS_KEY_ID: ''
+  AWS_S3_BUCKET: ''
+  AWS_S3_REGION: ''
+  AWS_SECRET_ACCESS_KEY: ''
+  CHASKIQ_APPSTORE_TOKEN: ''
+  DEFAULT_SENDER_EMAIL: admin@example
+  POSTGRES_DB: chaskiq
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_64_SECRET:
+    generate: hex64
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_CHASKIQ: https://${APP_DOMAIN}
+  SERVICE_URL_CHASKIQ_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SMTP_ADDRESS: ''
+  SMTP_DELIVERY_METHOD: ''
+  SMTP_PASSWORD: ''
+  SMTP_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: ADMIN_EMAIL
+name: chaskiq-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: chaskiq'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: AWS_ACCESS_KEY_ID
+  hint: null
+  label: aws access key id
+  options: null
+  required: false
+  type: password
+- env: AWS_SECRET_ACCESS_KEY
+  hint: null
+  label: aws secret access key
+  options: null
+  required: false
+  type: password
+- env: AWS_S3_BUCKET
+  hint: null
+  label: aws s3 bucket
+  options: null
+  required: false
+  type: text
+- env: AWS_S3_REGION
+  hint: null
+  label: aws s3 region
+  options: null
+  required: false
+  type: text
+- env: ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example'
+  label: admin email
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_SENDER_EMAIL
+  hint: 'по умолчанию: admin@example'
+  label: default sender email
+  options: null
+  required: false
+  type: text
+- env: ACTIVE_STORAGE_SERVICE
+  hint: 'по умолчанию: local'
+  label: active storage service
+  options: null
+  required: false
+  type: text
+- env: SMTP_DELIVERY_METHOD
+  hint: null
+  label: smtp delivery method
+  options: null
+  required: false
+  type: text
+- env: SMTP_ADDRESS
+  hint: null
+  label: smtp address
+  options: null
+  required: false
+  type: text
+- env: SMTP_USERNAME
+  hint: null
+  label: smtp username
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: null
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: CHASKIQ_APPSTORE_TOKEN
+  hint: null
+  label: chaskiq appstore token
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- chaskiq
+- messaging
+- chat
+- marketing
+- support
+- sales
+- open
+- source
+- rails
+- redis
+- postgresql
+- sidekiq
+title: Chaskiq
+type: app
+upstream:
+  categories:
+  - helpdesk
+  source: https://chaskiq.io
+  tags:
+  - chaskiq
+  - messaging
+  - chat
+  - marketing
+  - support
+  - sales
+  - open
+  - source
+  - rails
+  - redis
+  - postgresql
+  - sidekiq
+  template: chaskiq.yaml
+website: https://chaskiq.io

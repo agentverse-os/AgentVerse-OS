@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/slink-umbrel
+description: A powerful, privacy-first image sharing platform
+endpoint:
+  port: 3000
+  service: web
+env:
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/slink/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/slink/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/slink/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/slink/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/slink/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: slink-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Slink
+type: app
+upstream:
+  author: Andrii Kryvoviaz
+  categories:
+  - files
+  release_notes: |-
+    This update applies storage settings immediately without requiring a container restart and improves validation for custom S3 endpoints such as Backblaze B2.
+
+    It also rejects invalid image list ordering requests instead of surfacing errors and updates core runtime dependencies.
+
+    Full release notes can be found at https://github.com/andrii-kryvoviaz/slink/releases/tag/v1.13.1
+  source: https://github.com/andrii-kryvoviaz/slink
+  version: 1.13.1
+  website: https://docs.slinkapp.io/
+website: https://docs.slinkapp.io/

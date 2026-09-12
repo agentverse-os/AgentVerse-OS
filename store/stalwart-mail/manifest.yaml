@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/stalwart-mail
+description: Open-source mail server solution with JMAP, IMAP4, and SMTP support
+endpoint:
+  port: 8080
+  service: stalwart-mail
+env:
+  NETWORK_INTERFACE: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: stalwart-mail
+notes:
+- 'порт 25→25 (stalwart-mail) не публикуется: доступ только через edge/gate'
+- 'порт 143→143 (stalwart-mail) не публикуется: доступ только через edge/gate'
+- 'порт 465→465 (stalwart-mail) не публикуется: доступ только через edge/gate'
+- 'порт 587→587 (stalwart-mail) не публикуется: доступ только через edge/gate'
+- 'порт 993→993 (stalwart-mail) не публикуется: доступ только через edge/gate'
+- 'порт 4190→4190 (stalwart-mail) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NETWORK_INTERFACE
+  hint: null
+  label: 'Network Interface (default: 0.0.0.0)'
+  options: null
+  required: false
+  type: ip
+tags: []
+title: Stalwart Mail
+type: app
+upstream:
+  author: Stalwart Labs
+  categories:
+  - media
+  - network
+  - utilities
+  source: https://github.com/stalwartlabs
+  tipi_version: 78
+  version: v0.16.19
+website: https://github.com/stalwartlabs

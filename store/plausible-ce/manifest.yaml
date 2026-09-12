@@ -1,0 +1,230 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/plausible-ce
+description: Simple, open-source, lightweight (< 1 KB) and privacy-friendly web analytics alternative to Google Analytics.
+endpoint:
+  port: 8000
+  service: plausible-ce
+env:
+  PLAUSIBLE_DB_PASSWORD:
+    generate: token
+  PLAUSIBLE_DISABLE_REGISTRATION: 'true'
+  PLAUSIBLE_ENABLE_EMAIL_VERIFICATION: 'false'
+  PLAUSIBLE_GOOGLE_CLIENT_ID: ''
+  PLAUSIBLE_GOOGLE_CLIENT_SECRET: ''
+  PLAUSIBLE_MAILER_ADAPTER: Bamboo.SMTPAdapter
+  PLAUSIBLE_MAILER_EMAIL: hello@plausible.local
+  PLAUSIBLE_MAILER_NAME: Plausible
+  PLAUSIBLE_MAILGUN_API_KEY: ''
+  PLAUSIBLE_MAILGUN_BASE_URI: https://api.mailgun.net/v3
+  PLAUSIBLE_MAILGUN_DOMAIN: ''
+  PLAUSIBLE_MANDRILL_API_KEY: ''
+  PLAUSIBLE_MAXMIND_EDITION: GeoLite2-City
+  PLAUSIBLE_MAXMIND_LICENSE_KEY: ''
+  PLAUSIBLE_POSTMARK_API_KEY: ''
+  PLAUSIBLE_SECRET_KEY_BASE:
+    generate: hex64
+  PLAUSIBLE_SENDGRID_API_KEY: ''
+  PLAUSIBLE_SMTP_HOST_ADDR: ''
+  PLAUSIBLE_SMTP_HOST_PORT: '25'
+  PLAUSIBLE_SMTP_HOST_SSL_ENABLED: 'false'
+  PLAUSIBLE_SMTP_RETRIES: '2'
+  PLAUSIBLE_SMTP_USER_NAME: ''
+  PLAUSIBLE_SMTP_USER_PWD:
+    generate: password
+  PLAUSIBLE_TOTP_VAULT_KEY:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: plausible-ce
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PLAUSIBLE_SECRET_KEY_BASE
+  hint: Configures the secret used for sessions in the dashboard, doesn't have any defaults and needs to be provided in the ENV vars
+  label: Plausible Secret Key Base
+  options: null
+  required: false
+  type: random
+- env: PLAUSIBLE_TOTP_VAULT_KEY
+  hint: Configures the secret used for encrypting TOTP secrets at rest using AES256-GCM, doesn't have any defaults and needs to be provided in the ENV vars
+  label: Plausible TOTP Vault Key
+  options: null
+  required: false
+  type: random
+- env: PLAUSIBLE_DB_PASSWORD
+  hint: null
+  label: Plausible Database Password
+  options: null
+  required: false
+  type: random
+- env: PLAUSIBLE_DISABLE_REGISTRATION
+  hint: Restricts registration of new users. Possible values are true (full restriction), false (no restriction), and invite_only (only the invited users can register).
+  label: Disable Registration
+  options:
+  - label: 'true'
+    value: 'true'
+  - label: invite-only
+    value: invite-only
+  - label: 'false'
+    value: 'false'
+  required: false
+  type: text
+- env: PLAUSIBLE_ENABLE_EMAIL_VERIFICATION
+  hint: When enabled, new users need to verify their email addressby following a link delivered to their mailbox. Please configure your server for SMTP to receive this email.
+  label: Enable Email Verification
+  options: null
+  required: false
+  type: boolean
+- env: PLAUSIBLE_GOOGLE_CLIENT_ID
+  hint: The Client ID from the Google API Console for your project. Not set by default.
+  label: Google Client ID
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_GOOGLE_CLIENT_SECRET
+  hint: The Client Secret from the Google API Console for your project. Not set by default.
+  label: Google Client Secret
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_MAXMIND_LICENSE_KEY
+  hint: If set, this ENV variable takes precedence over IP_GEOLOCATION_DB and makes Plausible download (and keep up to date) a free MaxMind GeoLite2 MMDB of the selected edition
+  label: MaxMind License Key
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_MAXMIND_EDITION
+  hint: MaxMind database edition to use (only if MAXMIND_LICENSE_KEY is set)
+  label: MaxMind Edition
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_MAILER_ADAPTER
+  hint: The mail provider to use for sending emails. The default is the built-in SMTP adapter.
+  label: Mail Provider
+  options:
+  - label: Default SMTP Adapter
+    value: Bamboo.SMTPAdapter
+  - label: MailGun
+    value: Bamboo.MailgunAdapter
+  - label: Mandrill
+    value: Bamboo.MandrillAdapter
+  - label: SendGrid
+    value: Bamboo.SendGridAdapter
+  required: false
+  type: text
+- env: PLAUSIBLE_MAILER_EMAIL
+  hint: The email id to use for as from address of all communications from Plausible.
+  label: From Email
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_MAILER_NAME
+  hint: The display name for the sender (from).
+  label: From Email Name
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_SMTP_HOST_ADDR
+  hint: The host address of your SMTP relay.
+  label: SMTP Host
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_SMTP_HOST_PORT
+  hint: The port of your SMTP relay.
+  label: SMTP Host Port
+  options: null
+  required: false
+  type: number
+- env: PLAUSIBLE_SMTP_USER_NAME
+  hint: The username/email in case SMTP auth is required on your SMTP relay.
+  label: SMTP User Name
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_SMTP_USER_PWD
+  hint: The username/email in case SMTP auth is required on your SMTP relay.
+  label: SMTP User Password
+  options: null
+  required: false
+  type: password
+- env: PLAUSIBLE_SMTP_HOST_SSL_ENABLED
+  hint: Configures whether SMTPS (SMTP over SSL) is enabled for SMTP connection, e.g. when you use port 465.
+  label: SMTP Host SSL Enabled
+  options: null
+  required: false
+  type: boolean
+- env: PLAUSIBLE_SMTP_RETRIES
+  hint: Number of retries to make until mailer gives up.
+  label: SMTP Retries
+  options: null
+  required: false
+  type: number
+- env: PLAUSIBLE_POSTMARK_API_KEY
+  hint: You also have to set the MAILER_EMAIL variable which needs to be configured in PostmarkApps sender signatures.
+  label: Postmark API Key
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_MAILGUN_API_KEY
+  hint: null
+  label: MailGun API Key
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_MAILGUN_DOMAIN
+  hint: null
+  label: MailGun Domain
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_MAILGUN_BASE_URI
+  hint: Mailgun makes a difference in the API base URL between sender domains from within the EU and outside. By default, the base URL is set to https://api.mailgun.net/v3. To override this you can pass https://api.eu.mailgun.net/v3 if you are using an EU domain.
+  label: MailGun BASE URI
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_MANDRILL_API_KEY
+  hint: null
+  label: Mandrill API Key
+  options: null
+  required: false
+  type: text
+- env: PLAUSIBLE_SENDGRID_API_KEY
+  hint: null
+  label: Sendgrid API Key
+  options: null
+  required: false
+  type: text
+tags: []
+title: Plausible CE
+type: app
+upstream:
+  author: Plausible
+  categories:
+  - utilities
+  source: https://github.com/plausible/community-edition
+  tipi_version: 59
+  version: 2.1.5
+website: https://github.com/plausible/community-edition

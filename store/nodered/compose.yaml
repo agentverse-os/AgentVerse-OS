@@ -1,0 +1,15 @@
+# nodered: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nodered:
+    image: nodered/node-red:5.0.4
+    networks:
+      appnet:
+        aliases:
+        - nodered_nodered_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

@@ -1,0 +1,38 @@
+# monica: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  monica:
+    depends_on:
+    - monica-db
+    environment:
+      APP_KEY: ${MONICA_APP_KEY}
+      APP_TRUSTED_PROXIES: 172.18.0.0/16
+      DB_HOST: monica-db
+      DB_PASSWORD: ${MONICA_DB_PASS}
+      DB_USERNAME: usermonica
+    image: monica:4.1.2
+    networks:
+      appnet:
+        aliases:
+        - monica_monica_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/var/www/html/storage
+  monica-db:
+    environment:
+      MARIADB_DATABASE: monica
+      MARIADB_PASSWORD: ${MONICA_DB_PASS}
+      MARIADB_RANDOM_ROOT_PASSWORD: 'true'
+      MARIADB_USER: usermonica
+      TZ: ${TZ}
+    image: mariadb:10.6.11
+    networks:
+      appnet:
+        aliases:
+        - monica_monica-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/mysql:/var/lib/mysql

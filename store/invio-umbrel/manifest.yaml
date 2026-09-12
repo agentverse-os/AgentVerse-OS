@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/invio-umbrel
+description: Invio is a self-hosted invoicing app without the bloat
+endpoint:
+  port: 8000
+  service: frontend
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/invio/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/invio/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/invio/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/invio/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: invio-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Invio
+type: app
+upstream:
+  author: kittendevv
+  categories:
+  - finance
+  release_notes: This update adds Spanish (Colombia) and Turkish translations, and improves invoice numbering with new per-customer sequence and customer-number tokens.
+  source: https://github.com/kittendevv/invio
+  version: 2.2.0
+  website: https://github.com/kittendevv/invio
+website: https://github.com/kittendevv/invio

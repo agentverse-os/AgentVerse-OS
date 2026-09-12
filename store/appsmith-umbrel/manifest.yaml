@@ -1,0 +1,61 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/appsmith-umbrel
+description: Platform to build admin panels, internal tools, and dashboards
+endpoint:
+  port: 80
+  service: app
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/appsmith/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/appsmith/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/appsmith/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/appsmith/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/appsmith/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: appsmith-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Appsmith
+type: app
+upstream:
+  author: Appsmith
+  categories:
+  - developer
+  release_notes: |-
+    Appsmith 2.3 keeps the automatic migration for older Umbrel installs, so Appsmith may take some time to come back online while the migration finishes. Please leave Appsmith running until it has started.
+    Appsmith AI datasource connections are being retired: after upgrading, new Appsmith AI datasources and queries can no longer be created, while existing ones continue to work until September 30, 2026.
+    Highlights include:
+      - Added Ask AI to Community Edition and AI Copilot support for Custom Widgets.
+      - Added the Card widget, Button label styling options, widget tab-order controls, and configurable HTML language attributes.
+      - Fixed multiple security issues covering datasource authorization, Git imports, permission group boundaries, anonymous tenant responses, login redirects, frame ancestors, SMTP TLS verification, rate limiting, and dependency CVEs.
+      - Improved Git error messages and Git import behavior.
+      - Fixed several UI and widget issues, including application theme permissions, copy-to-application scrolling, table menu button widths, and link handling in Text widgets.
+
+    Full release notes can be found at https://github.com/appsmithorg/appsmith/releases/tag/v2.3
+  source: https://github.com/appsmithorg/appsmith
+  version: v2.3
+  website: https://www.appsmith.com/
+website: https://www.appsmith.com/

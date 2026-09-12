@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sikka-umbrel
+description: Feeless, quantum-safe cryptocurrency node
+endpoint:
+  port: 64552
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/sikka/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/sikka/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/sikka/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/sikka/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: sikka-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Sikka
+type: app
+upstream:
+  author: besoeasy
+  categories:
+  - crypto
+  release_notes: |-
+    This update upgrades Sikka to 0.2.0 with protocol version 2 and storage format version 2.
+
+    It adds witness stripping, spent UTXO purging, and weight index compaction to reduce disk usage and improve wallet balance and UTXO query performance.
+
+    It also includes the 0.1.3 wallet tip panel and Tor network health parsing improvements.
+  source: https://github.com/sikkalabs/sikka
+  version: 0.2.0
+  website: https://github.com/sikkalabs
+website: https://github.com/sikkalabs

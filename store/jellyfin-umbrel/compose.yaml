@@ -1,0 +1,19 @@
+# jellyfin-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    image: linuxserver/jellyfin:10.11.11@sha256:c123ef2f82195e377d8ca3df275f13f9dfa5c6e61b195958662b42b5e54362ab
+    networks:
+      appnet:
+        aliases:
+        - jellyfin_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${UMBREL_ROOT}/data/storage/downloads:/downloads

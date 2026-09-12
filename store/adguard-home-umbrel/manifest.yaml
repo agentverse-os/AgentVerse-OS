@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/adguard-home-umbrel
+description: Network-wide software for blocking ads and tracking
+endpoint:
+  port: 8095
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: adguard-home-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: AdGuard Home
+type: app
+upstream:
+  author: Adguard
+  categories:
+  - networking
+  release_notes: |-
+    This release updates Go to address upstream Go security fixes and improves DNS-over-QUIC resistance to resource exhaustion attacks.
+
+    Bootstrap server configuration now supports comments, install API configuration accepts a language property, and static DHCP lease hostnames can be removed through the HTTP API.
+
+    It also fixes DNS64 handling of unresolved CNAME/DNAME chains and blocked requests without EDNS(0) OPT records. The `strict_sni_check` option is now deprecated.
+
+    Full release notes can be found at https://github.com/AdguardTeam/AdGuardHome/releases/tag/v0.107.79
+  source: https://github.com/AdguardTeam/AdGuardHome
+  version: 0.107.79
+  website: https://adguard.com/fr/adguard-home/overview.html
+website: https://adguard.com/fr/adguard-home/overview.html

@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ddns-updater
+description: Program to keep DNS A and/or AAAA records updated for multiple DNS providers.
+endpoint:
+  port: 8000
+  service: ddns-updater
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ddns-updater
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: DDNS Updater
+type: app
+upstream:
+  author: qdm12
+  categories:
+  - utilities
+  source: https://github.com/qdm12/ddns-updater
+  tipi_version: 12
+  version: v2.10.0
+website: https://github.com/qdm12/ddns-updater

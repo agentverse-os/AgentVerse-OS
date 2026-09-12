@@ -1,0 +1,17 @@
+Empowering insights. Preserving privacy.
+
+Umami makes it easy to collect, analyze, and understand your web data — while maintaining visitor privacy and data ownership.
+
+⚠️ Note
+Change the default password by clicking on the avatar in the top right corner and then 'profile'.
+You may need to expose Umami to the web in order to use the app in its intended way with websites.
+The easiest way to do this is to use the 'Cloudflare Tunnel' app from the umbrel app store, and expose the Umami app using your own domain.
+
+😌 Easy to use
+Umami is easy to use and understand without needing to run complicated reports. All data is available at a glance.
+
+💾 Own your data
+Data ownership is vitally important for maintinaing compliance with ever changing privacy laws. Rest assured knowing your data is in your control.
+
+🔒 Respect data privacy
+Umami lets you gather the data you need while respecting the privacy of your users. All data is anonymized and no personal data is ever collected. Cookie banners not required.

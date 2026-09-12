@@ -1,0 +1,95 @@
+# faraday-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  faraday:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    entrypoint: /entrypoint.sh
+    environment:
+    - SERVICE_URL_FARADAY_5985=${SERVICE_URL_FARADAY_5985}
+    - AUTHENTIK_POSTGRESQL__PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - PGSQL_USER=${SERVICE_USER_POSTGRESQL}
+    - PGSQL_PASSWD=${SERVICE_PASSWORD_POSTGRESQL}
+    - PGSQL_DBNAME=${POSTGRES_DB}
+    - PGSQL_HOST=postgresql
+    - REDIS_SERVER=redis
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - nc
+      - -z
+      - localhost
+      - '5985'
+      timeout: 10s
+    image: faradaysec/faraday:latest
+    networks:
+      appnet:
+        aliases:
+        - faraday-coolify_faraday_1
+    restart: unless-stopped
+    volumes:
+    - faraday:/home/faraday/.faraday:rw
+  postgresql:
+    environment:
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRES_DB:-faraday}
+    healthcheck:
+      interval: 15s
+      retries: 15
+      test:
+      - CMD-SHELL
+      - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      timeout: 10s
+    image: postgres:latest
+    networks:
+      appnet:
+        aliases:
+        - faraday-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - faraday-db:/var/lib/postgresql/data
+  redis:
+    command: --save 60 1 --loglevel warning
+    healthcheck:
+      interval: 15s
+      retries: 15
+      test:
+      - CMD-SHELL
+      - redis-cli ping | grep PONG
+      timeout: 10s
+    image: redis:alpine
+    networks:
+      appnet:
+        aliases:
+        - faraday-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - redis:/data
+volumes:
+  faraday:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/faraday
+      o: bind
+      type: none
+  faraday-db:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/faraday-db
+      o: bind
+      type: none
+  redis:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis
+      o: bind
+      type: none

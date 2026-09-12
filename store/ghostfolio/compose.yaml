@@ -1,0 +1,66 @@
+# ghostfolio: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  ghostfolio:
+    depends_on:
+      ghostfolio-db:
+        condition: service_healthy
+      ghostfolio-redis:
+        condition: service_healthy
+    environment:
+      ACCESS_TOKEN_SALT: $GHOSTFOLIO_ACCESS_TOKEN_SALT
+      DATABASE_URL: postgresql://ghostfolio:${GHOSTFOLIO_DB_PASSWORD}@ghostfolio-db:5432/ghostfolio
+      HOST: 0.0.0.0
+      JWT_SECRET_KEY: ${GHOSTFOLIO_JWT_SECRET_KEY}
+      NODE_ENV: production
+      PORT: '3333'
+      POSTGRES_DB: ghostfolio
+      POSTGRES_PASSWORD: ${GHOSTFOLIO_DB_PASSWORD}
+      POSTGRES_USER: ghostfolio
+      REDIS_HOST: ghostfolio-redis
+      REDIS_PASSWORD: ${GHOSTFOLIO_REDIS_PASSWORD}
+      REDIS_PORT: '6379'
+    image: ghostfolio/ghostfolio:3.61.0
+    networks:
+      appnet:
+        aliases:
+        - ghostfolio_ghostfolio_1
+    restart: unless-stopped
+  ghostfolio-db:
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: ghostfolio
+      POSTGRES_PASSWORD: ${GHOSTFOLIO_DB_PASSWORD}
+      POSTGRES_USER: ghostfolio
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test: pg_isready -d ghostfolio -U ghostfolio
+      timeout: 5s
+    image: postgres:15.4-alpine
+    networks:
+      appnet:
+        aliases:
+        - ghostfolio_ghostfolio-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  ghostfolio-redis:
+    command: --requirepass ${GHOSTFOLIO_REDIS_PASSWORD}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      test: redis-cli ping
+      timeout: 5s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - ghostfolio_ghostfolio-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

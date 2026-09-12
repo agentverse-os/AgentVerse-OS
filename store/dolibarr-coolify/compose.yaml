@@ -1,0 +1,81 @@
+# dolibarr-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  dolibarr:
+    environment:
+    - SERVICE_URL_DOLIBARR_80=${SERVICE_URL_DOLIBARR_80}
+    - WWW_USER_ID=${WWW_USER_ID:-1000}
+    - WWW_GROUP_ID=${WWW_GROUP_ID:-1000}
+    - DOLI_DB_HOST=mariadb
+    - DOLI_DB_NAME=${MYSQL_DATABASE:-dolibarr-db}
+    - DOLI_DB_USER=${SERVICE_USER_MYSQL}
+    - DOLI_DB_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - DOLI_URL_ROOT=${SERVICE_URL_DOLIBARR}
+    - DOLI_ADMIN_LOGIN=${SERVICE_USER_DOLIBARR}
+    - DOLI_ADMIN_PASSWORD=${SERVICE_PASSWORD_DOLIBARR}
+    - DOLI_CRON=${DOLI_CRON:-0}
+    - DOLI_INIT_DEMO=${DOLI_INIT_DEMO:-0}
+    - DOLI_COMPANY_NAME=${DOLI_COMPANY_NAME:-MyBigCompany}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: dolibarr/dolibarr:latest
+    networks:
+      appnet:
+        aliases:
+        - dolibarr-coolify_dolibarr_1
+    restart: unless-stopped
+    volumes:
+    - dolibarr_docs:/var/www/documents
+    - dolibarr_custom:/var/www/html/custom
+  mariadb:
+    environment:
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-dolibarr-db}
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 20s
+    image: mariadb:latest
+    networks:
+      appnet:
+        aliases:
+        - dolibarr-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - dolibarr_mariadb_data:/var/lib/mysql
+volumes:
+  dolibarr_custom:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/dolibarr_custom
+      o: bind
+      type: none
+  dolibarr_docs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/dolibarr_docs
+      o: bind
+      type: none
+  dolibarr_mariadb_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/dolibarr_mariadb_data
+      o: bind
+      type: none

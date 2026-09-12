@@ -1,0 +1,50 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/web-check-coolify
+description: All-in-one OSINT tool for analysing any website
+endpoint:
+  port: 3000
+  service: web-check
+env:
+  SERVICE_URL_WEBCHECK_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: web-check-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- osint
+- website
+- analysis
+title: Web Check
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://github.com/lissy93/web-check
+  tags:
+  - osint
+  - website
+  - analysis
+  template: web-check.yaml
+website: https://github.com/lissy93/web-check

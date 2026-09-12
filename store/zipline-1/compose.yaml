@@ -1,0 +1,38 @@
+# zipline-1: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  zipline:
+    depends_on:
+    - zipline-db
+    environment:
+      CORE_HOSTNAME: 0.0.0.0
+      CORE_LOGGER: 'true'
+      CORE_PORT: '3000'
+      CORE_RETURN_HTTPS: 'false'
+      CORE_SECRET: ${ZIPLINE_CORE_SECRET}
+      DATABASE_URL: postgres://tipi:${ZIPLINE_DB_PASSWORD}@zipline-db/zipline
+    image: ghcr.io/diced/zipline:4.7.0
+    networks:
+      appnet:
+        aliases:
+        - zipline-1_zipline_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/uploads:/zipline/uploads
+    - ${APP_DATA_DIR}/data/public:/zipline/public
+  zipline-db:
+    environment:
+      POSTGRES_DB: zipline
+      POSTGRES_PASSWORD: ${ZIPLINE_DB_PASSWORD}
+      POSTGRES_USER: tipi
+    image: postgres:18
+    networks:
+      appnet:
+        aliases:
+        - zipline-1_zipline-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql

@@ -1,0 +1,82 @@
+# hoppscotch-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  backend:
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+    environment:
+    - SERVICE_URL_HOPPSCOTCH_80=${SERVICE_URL_HOPPSCOTCH_80}
+    - VITE_ALLOWED_AUTH_PROVIDERS=${VITE_ALLOWED_AUTH_PROVIDERS:-GOOGLE,GITHUB,MICROSOFT,EMAIL}
+    - DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@hoppscotch-db:5432/${POSTGRES_DB}
+    - DATA_ENCRYPTION_KEY=${SERVICE_BASE64_DATAENCRYPTIONKEY}
+    - WHITELISTED_ORIGINS=${SERVICE_URL_HOPPSCOTCH}/backend,${SERVICE_URL_HOPPSCOTCH},${SERVICE_URL_HOPPSCOTCH}/admin
+    - MAILER_USE_CUSTOM_CONFIGS=${MAILER_USE_CUSTOM_CONFIGS:-true}
+    - VITE_BASE_URL=${SERVICE_URL_HOPPSCOTCH}
+    - VITE_SHORTCODE_BASE_URL=${SERVICE_URL_HOPPSCOTCH}
+    - VITE_ADMIN_URL=${SERVICE_URL_HOPPSCOTCH}/admin
+    - VITE_BACKEND_GQL_URL=${SERVICE_URL_HOPPSCOTCH}/backend/graphql
+    - VITE_BACKEND_WS_URL=wss://${SERVICE_FQDN_HOPPSCOTCH}/backend/graphql
+    - VITE_BACKEND_API_URL=${SERVICE_URL_HOPPSCOTCH}/backend/v1
+    - VITE_APP_TOS_LINK=https://docs.hoppscotch.io/support/terms
+    - VITE_APP_PRIVACY_POLICY_LINK=https://docs.hoppscotch.io/support/privacy
+    - ENABLE_SUBPATH_BASED_ACCESS=true
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:80/
+      timeout: 20s
+    image: hoppscotch/hoppscotch:2026.2.1
+    networks:
+      appnet:
+        aliases:
+        - hoppscotch-coolify_backend_1
+    restart: unless-stopped
+  db-migration:
+    command: pnpx prisma migrate deploy
+    depends_on:
+      hoppscotch-db:
+        condition: service_healthy
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-hoppscotch}
+    - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@hoppscotch-db:5432/${POSTGRES_DB:-hoppscotch}
+    image: hoppscotch/hoppscotch:2026.2.1
+    networks:
+      appnet:
+        aliases:
+        - hoppscotch-coolify_db-migration_1
+    restart: on-failure
+  hoppscotch-db:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-hoppscotch}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -h localhost -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 10s
+    image: postgres:15
+    networks:
+      appnet:
+        aliases:
+        - hoppscotch-coolify_hoppscotch-db_1
+    restart: unless-stopped
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgres_data
+      o: bind
+      type: none

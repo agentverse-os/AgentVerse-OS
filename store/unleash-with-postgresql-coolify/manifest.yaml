@@ -1,0 +1,61 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/unleash-with-postgresql-coolify
+description: Open source feature flag management for enterprises.
+endpoint:
+  port: 4242
+  service: unleash
+env:
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_UNLEASH:
+    generate: password
+  SERVICE_URL_UNLEASH: https://${APP_DOMAIN}
+  SERVICE_URL_UNLEASH_4242: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_UNLEASH
+  path: null
+  user: null
+name: unleash-with-postgresql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- unleash
+- feature flags
+- feature toggles
+- ab testing
+- open source
+title: Unleash With Postgresql
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://docs.getunleash.io
+  tags:
+  - unleash
+  - feature flags
+  - feature toggles
+  - ab testing
+  - open source
+  template: unleash-with-postgresql.yaml
+website: https://docs.getunleash.io

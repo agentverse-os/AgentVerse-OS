@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/simplex-smp
+description: A reference implementation of the SimpleX Messaging Protocol for simplex queues over public networks.
+endpoint:
+  port: 5223
+  service: simplex-smp
+env:
+  SIMPLEX_SMP_PASSWORD:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: SIMPLEX_SMP_PASSWORD
+  path: null
+  user: null
+name: simplex-smp
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SIMPLEX_SMP_PASSWORD
+  hint: null
+  label: SMP Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: SimpleX SMP
+type: app
+upstream:
+  author: Simplex Team
+  categories:
+  - social
+  source: https://github.com/simplex-chat/simplexmq
+  tipi_version: 44
+  version: v6.5.2
+website: https://github.com/simplex-chat/simplexmq

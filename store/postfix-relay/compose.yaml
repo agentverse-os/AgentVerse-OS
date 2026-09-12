@@ -1,0 +1,29 @@
+# postfix-relay: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postfix-relay:
+    environment:
+      ACCEPTED_NETWORKS: ${RELAY_ACCEPTED_NETWORKS}
+      SMTP_HOST: ${RELAY_SMTP_HOST}
+      SMTP_LOGIN: ${RELAY_SMTP_LOGIN}
+      SMTP_PASSWORD: ${RELAY_SMTP_PASSWORD}
+      SMTP_PORT: ${RELAY_SMTP_PORT}
+      TLS_VERIFY: ${RELAY_TLS_VERIFY}
+      USE_TLS: ${RELAY_USE_TLS}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      test: netstat -an | grep 25 > /dev/null; if [ 0 != $? ]; then exit 1; fi;
+      timeout: 5s
+    image: simenduev/postfix-relay:1.4.0
+    networks:
+      appnet:
+        aliases:
+        - postfix-relay_postfix-relay_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/root/config

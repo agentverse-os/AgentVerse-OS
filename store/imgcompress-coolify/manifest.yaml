@@ -1,0 +1,66 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/imgcompress-coolify
+description: Offline image compression, conversion, and AI background removal for Docker homelabs.
+endpoint:
+  port: 5000
+  service: imgcompress
+env:
+  DISABLE_LOGO: 'false'
+  DISABLE_STORAGE_MANAGEMENT: 'false'
+  SERVICE_URL_IMGCOMPRESS_5000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: imgcompress-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DISABLE_LOGO
+  hint: 'по умолчанию: false'
+  label: disable logo
+  options: null
+  required: false
+  type: text
+- env: DISABLE_STORAGE_MANAGEMENT
+  hint: 'по умолчанию: false'
+  label: disable storage management
+  options: null
+  required: false
+  type: text
+tags:
+- compress
+- photo
+- server
+- metadata
+title: Imgcompress
+type: app
+upstream:
+  categories:
+  - media
+  source: https://imgcompress.karimzouine.com
+  tags:
+  - compress
+  - photo
+  - server
+  - metadata
+  template: imgcompress.yaml
+website: https://imgcompress.karimzouine.com

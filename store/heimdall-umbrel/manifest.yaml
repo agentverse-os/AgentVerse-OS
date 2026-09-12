@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/heimdall-umbrel
+description: Organize your most used web sites in a simple way
+endpoint:
+  port: 80
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/heimdall/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/heimdall/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/heimdall/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/heimdall/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: heimdall-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Heimdall
+type: app
+upstream:
+  author: LinuxServer.io
+  categories:
+  - files
+  release_notes: |-
+    This release includes improvements and bug fixes:
+
+
+      - Fixed inconsistent SVG tile icon sizes
+      - Improved session cookie handling by using a stable cookie name
+      - Updated the German translation
+
+
+    Full release notes can be found at https://github.com/linuxserver/Heimdall/releases/tag/v2.8.2
+  source: https://github.com/linuxserver/Heimdall
+  version: 2.8.2
+  website: https://heimdall.site
+website: https://heimdall.site

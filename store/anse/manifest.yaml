@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/anse
+description: Fully optimized UI for AI Chats.
+endpoint:
+  port: 8014
+  service: anse
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: anse
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Anse
+type: app
+upstream:
+  author: anse
+  categories:
+  - ai
+  source: https://github.com/anse-app/anse
+  tipi_version: 5
+  version: 1.1.11
+website: https://github.com/anse-app/anse

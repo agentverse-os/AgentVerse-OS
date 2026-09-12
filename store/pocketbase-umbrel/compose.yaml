@@ -1,0 +1,19 @@
+# pocketbase-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    image: ghcr.io/muchobien/pocketbase:0.40.1@sha256:8b14308d9634c37bfb4d8ecfd7b90e5961b0f0b4e6b7c8d7116f4c68fabbe58c
+    networks:
+      appnet:
+        aliases:
+        - pocketbase_app_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/data:/pb_data
+    - ${APP_DATA_DIR}/data/public:/pb_public
+    - ${APP_DATA_DIR}/data/hooks:/pb_hooks
+    - ${APP_DATA_DIR}/data/migrations:/pb_migrations

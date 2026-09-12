@@ -1,0 +1,61 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cloudflare-ddns-coolify
+description: A small, feature-rich, and robust Cloudflare DDNS updater.
+endpoint:
+  port: 80
+  service: cloudflare-ddns
+env:
+  IP6_PROVIDER: none
+  PROXIED: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cloudflare-ddns-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PROXIED
+  hint: 'по умолчанию: false'
+  label: proxied
+  options: null
+  required: false
+  type: text
+- env: IP6_PROVIDER
+  hint: 'по умолчанию: none'
+  label: ip6 provider
+  options: null
+  required: false
+  type: text
+tags:
+- cloud
+- ddns
+title: Cloudflare Ddns
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://github.com/favonia/cloudflare-ddns
+  tags:
+  - cloud
+  - ddns
+  template: cloudflare-ddns.yaml
+website: https://github.com/favonia/cloudflare-ddns

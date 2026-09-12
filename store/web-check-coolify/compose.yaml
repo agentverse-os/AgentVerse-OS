@@ -1,0 +1,22 @@
+# web-check-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web-check:
+    environment:
+    - SERVICE_URL_WEBCHECK_3000=${SERVICE_URL_WEBCHECK_3000}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:3000/
+      timeout: 20s
+    image: lissy93/web-check
+    networks:
+      appnet:
+        aliases:
+        - web-check-coolify_web-check_1
+    restart: unless-stopped

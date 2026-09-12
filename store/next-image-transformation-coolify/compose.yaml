@@ -1,0 +1,42 @@
+# next-image-transformation-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  imgproxy:
+    environment:
+    - IMGPROXY_ENABLE_WEBP_DETECTION=true
+    - IMGPROXY_JPEG_PROGRESSIVE=true
+    - IMGPROXY_USE_ETAG=true
+    healthcheck:
+      interval: 2s
+      retries: 5
+      test:
+      - CMD
+      - imgproxy
+      - health
+      timeout: 10s
+    image: darthsim/imgproxy
+    networks:
+      appnet:
+        aliases:
+        - next-image-transformation-coolify_imgproxy_1
+    restart: unless-stopped
+  next-image-transformation:
+    environment:
+    - SERVICE_URL_TRANSFORMATION_3000=${SERVICE_URL_TRANSFORMATION_3000}
+    - NODE_ENV=production
+    - ALLOWED_REMOTE_DOMAINS=${ALLOWED_REMOTE_DOMAINS:-*}
+    - IMGPROXY_URL=${IMGPROXY_URL:-http://imgproxy:8080}
+    healthcheck:
+      interval: 2s
+      retries: 5
+      test: wget -qO- http://127.0.0.1:3000/health || exit 1
+      timeout: 10s
+    image: ghcr.io/coollabsio/next-image-transformation:latest
+    networks:
+      appnet:
+        aliases:
+        - next-image-transformation-coolify_next-image-transformation_1
+    restart: unless-stopped

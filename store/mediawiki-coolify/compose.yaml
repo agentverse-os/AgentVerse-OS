@@ -1,0 +1,40 @@
+# mediawiki-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mediawiki:
+    environment:
+    - SERVICE_URL_MEDIAWIKI_80=${SERVICE_URL_MEDIAWIKI_80}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:80
+      timeout: 20s
+    image: mediawiki:latest
+    networks:
+      appnet:
+        aliases:
+        - mediawiki-coolify_mediawiki_1
+    restart: unless-stopped
+    volumes:
+    - mediawiki-images:/var/www/html/images
+    - mediawiki-sqlite:/var/www/html/data
+volumes:
+  mediawiki-images:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mediawiki-images
+      o: bind
+      type: none
+  mediawiki-sqlite:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mediawiki-sqlite
+      o: bind
+      type: none

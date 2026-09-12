@@ -1,0 +1,39 @@
+# Read-only прокси к сокету Docker для приложений из Store (3.8, threat model): только GET к списку контейнеров,
+# событиям, логам и информации; никаких POST/exec/create. Приложения получают DOCKER_HOST=tcp://cloudos-docker-ro:2375
+# в сети cloudos-docker-ro-net. Полный сокет остаётся только у Komodo Periphery (App Runtime).
+#   docker compose -p cloudos-docker-proxy up -d
+services:
+  docker-ro:
+    image: tecnativa/docker-socket-proxy:0.3.0
+    container_name: cloudos-docker-ro
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: warning
+      CONTAINERS: "1"
+      EVENTS: "1"
+      INFO: "1"
+      PING: "1"
+      VERSION: "1"
+      IMAGES: "1"
+      NETWORKS: "1"
+      VOLUMES: "1"
+      SERVICES: "0"
+      TASKS: "0"
+      NODES: "0"
+      POST: "0"
+      EXEC: "0"
+      BUILD: "0"
+      COMMIT: "0"
+      CONFIGS: "0"
+      SECRETS: "0"
+      SWARM: "0"
+      SYSTEM: "0"
+      PLUGINS: "0"
+      DISTRIBUTION: "0"
+      SESSION: "0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [docker-ro]
+networks:
+  docker-ro:
+    name: cloudos-docker-ro-net

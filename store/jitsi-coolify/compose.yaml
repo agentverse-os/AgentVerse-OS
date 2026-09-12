@@ -1,0 +1,172 @@
+# jitsi-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  jicofo:
+    depends_on:
+    - prosody
+    environment:
+    - AUTH_TYPE=internal
+    - ENABLE_AUTH=0
+    - XMPP_DOMAIN=meet.jitsi
+    - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+    - XMPP_INTERNAL_MUC_DOMAIN=internal.auth.meet.jitsi
+    - XMPP_MUC_DOMAIN=conference.meet.jitsi
+    - XMPP_SERVER=prosody
+    - JICOFO_COMPONENT_SECRET=${SERVICE_PASSWORD_JICOFO}
+    - JICOFO_AUTH_PASSWORD=${SERVICE_PASSWORD_JICOFO}
+    - JVB_BREWERY_MUC=jvbbrewery
+    - JICOFO_ENABLE_HEALTH_CHECKS=1
+    - TZ=${TZ:-UTC}
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8888/about/health
+      timeout: 10s
+    image: jitsi/jicofo:stable-10888
+    networks:
+      appnet:
+        aliases:
+        - jitsi-coolify_jicofo_1
+    restart: unless-stopped
+    volumes:
+    - jitsi-jicofo:/config
+  jitsi-web:
+    depends_on:
+    - prosody
+    - jicofo
+    - jvb
+    environment:
+    - SERVICE_URL_JITSI=${SERVICE_URL_JITSI}
+    - PUBLIC_URL=$SERVICE_URL_JITSI
+    - ENABLE_AUTH=0
+    - ENABLE_GUESTS=1
+    - ENABLE_LETSENCRYPT=0
+    - ENABLE_HTTP_REDIRECT=0
+    - DISABLE_HTTPS=1
+    - XMPP_DOMAIN=meet.jitsi
+    - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+    - XMPP_GUEST_DOMAIN=guest.meet.jitsi
+    - XMPP_MUC_DOMAIN=conference.meet.jitsi
+    - XMPP_INTERNAL_MUC_DOMAIN=internal.auth.meet.jitsi
+    - XMPP_BOSH_URL_BASE=http://prosody:5280
+    - JVB_BREWERY_MUC=jvbbrewery
+    - JICOFO_COMPONENT_SECRET=${SERVICE_PASSWORD_JICOFO}
+    - JICOFO_AUTH_PASSWORD=${SERVICE_PASSWORD_JICOFO}
+    - JVB_AUTH_PASSWORD=${SERVICE_PASSWORD_JVB}
+    - TZ=${TZ:-UTC}
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost
+      timeout: 10s
+    image: jitsi/web:stable-10888
+    networks:
+      appnet:
+        aliases:
+        - jitsi-coolify_jitsi-web_1
+    restart: unless-stopped
+    volumes:
+    - jitsi-web:/config
+  jvb:
+    depends_on:
+    - prosody
+    environment:
+    - XMPP_SERVER=prosody
+    - XMPP_DOMAIN=meet.jitsi
+    - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+    - XMPP_INTERNAL_MUC_DOMAIN=internal.auth.meet.jitsi
+    - XMPP_MUC_DOMAIN=conference.meet.jitsi
+    - JVB_AUTH_USER=jvb
+    - JVB_AUTH_PASSWORD=${SERVICE_PASSWORD_JVB}
+    - JVB_BREWERY_MUC=jvbbrewery
+    - JVB_PORT=10000
+    - JVB_ADVERTISE_IPS=${JVB_ADVERTISE_IPS:-}
+    - JVB_STUN_SERVERS=${JVB_STUN_SERVERS:-stun.l.google.com:19302}
+    - PUBLIC_URL=$SERVICE_URL_JITSI
+    - TZ=${TZ:-UTC}
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8080/about/health
+      timeout: 10s
+    image: jitsi/jvb:stable-10888
+    networks:
+      appnet:
+        aliases:
+        - jitsi-coolify_jvb_1
+    restart: unless-stopped
+    volumes:
+    - jitsi-jvb:/config
+  prosody:
+    environment:
+    - AUTH_TYPE=internal
+    - ENABLE_AUTH=0
+    - ENABLE_GUESTS=1
+    - XMPP_DOMAIN=meet.jitsi
+    - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+    - XMPP_GUEST_DOMAIN=guest.meet.jitsi
+    - XMPP_MUC_DOMAIN=conference.meet.jitsi
+    - XMPP_INTERNAL_MUC_DOMAIN=internal.auth.meet.jitsi
+    - JICOFO_COMPONENT_SECRET=${SERVICE_PASSWORD_JICOFO}
+    - JICOFO_AUTH_PASSWORD=${SERVICE_PASSWORD_JICOFO}
+    - JVB_AUTH_PASSWORD=${SERVICE_PASSWORD_JVB}
+    - PUBLIC_URL=$SERVICE_URL_JITSI
+    - TZ=${TZ:-UTC}
+    - LOG_LEVEL=${LOG_LEVEL:-info}
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:5280/http-bind
+      timeout: 10s
+    image: jitsi/prosody:stable-10888
+    networks:
+      appnet:
+        aliases:
+        - jitsi-coolify_prosody_1
+    restart: unless-stopped
+    volumes:
+    - jitsi-prosody:/config
+volumes:
+  jitsi-jicofo:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/jitsi-jicofo
+      o: bind
+      type: none
+  jitsi-jvb:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/jitsi-jvb
+      o: bind
+      type: none
+  jitsi-prosody:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/jitsi-prosody
+      o: bind
+      type: none
+  jitsi-web:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/jitsi-web
+      o: bind
+      type: none

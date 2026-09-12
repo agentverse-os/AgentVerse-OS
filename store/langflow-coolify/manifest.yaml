@@ -1,0 +1,91 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/langflow-coolify
+description: Langflow is an open-source, Python-based, customizable framework for building AI applications.
+endpoint:
+  port: 7860
+  service: langflow
+env:
+  LANGFLOW_AUTO_LOGIN: 'false'
+  POSTGRES_DB: langflow-db
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_LANGFLOW:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_LANGFLOW_7860: https://${APP_DOMAIN}
+  SERVICE_USER_LANGFLOW:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_LANGFLOW
+  path: null
+  user: SERVICE_USER_LANGFLOW
+name: langflow-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LANGFLOW_AUTO_LOGIN
+  hint: 'по умолчанию: false'
+  label: langflow auto login
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: langflow-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- langflow
+- ai
+- openai
+- gpt
+- llm
+- workflow
+- automation
+- open source
+- low code
+title: Langflow
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://docs.langflow.org
+  tags:
+  - langflow
+  - ai
+  - openai
+  - gpt
+  - llm
+  - workflow
+  - automation
+  - open source
+  - low code
+  template: langflow.yaml
+website: https://docs.langflow.org

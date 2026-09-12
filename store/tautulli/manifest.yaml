@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tautulli
+description: Monitoring and tracking tool for Plex Media Server.
+endpoint:
+  port: 8181
+  service: tautulli
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: tautulli
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Tautulli
+type: app
+upstream:
+  author: JonnyWong16
+  categories:
+  - media
+  - utilities
+  source: https://github.com/Tautulli/Tautulli
+  tipi_version: 36
+  version: 2.18.0
+website: https://github.com/Tautulli/Tautulli

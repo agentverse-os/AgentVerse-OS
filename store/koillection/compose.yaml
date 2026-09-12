@@ -1,0 +1,47 @@
+# koillection: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  koillection:
+    depends_on:
+    - koillection-db
+    environment:
+      APP_DEBUG: '0'
+      APP_ENV: prod
+      CORS_ALLOW_ORIGIN: '*'
+      DB_DRIVER: pdo_pgsql
+      DB_HOST: koillection-db
+      DB_NAME: koillection
+      DB_PASSWORD: '{KOILLECTION_DB_PASSWORD}'
+      DB_PORT: '5432'
+      DB_USER: '{KOILLECTION_DB_USER}'
+      DB_VERSION: '15'
+      HTTPS_ENABLED: '{APP_EXPOSED}'
+      JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
+      JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
+      PHP_MEMORY_LIMIT: 512M
+      PHP_TZ: ${TZ}
+      UPLOAD_MAX_FILESIZE: 20M
+    image: koillection/koillection:1.8.4
+    networks:
+      appnet:
+        aliases:
+        - koillection_koillection_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/uploads:/uploads
+  koillection-db:
+    environment:
+      POSTGRES_DB: koillection
+      POSTGRES_PASSWORD: '{KOILLECTION_DB_PASSWORD}'
+      POSTGRES_USER: '{KOILLECTION_DB_USER}'
+    image: postgres:15
+    networks:
+      appnet:
+        aliases:
+        - koillection_koillection-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/volumes/postgresql:/var/lib/postgresql/data

@@ -1,0 +1,20 @@
+# pyload-ng-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=Etc/UTC
+    image: linuxserver/pyload-ng:0.5.0@sha256:0ef3e1d15183eb7f517742afe2f75b42c1d58e14640f8d5741f6e88d2d7b9ab5
+    networks:
+      appnet:
+        aliases:
+        - pyload-ng_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${UMBREL_ROOT}/data/storage/downloads:/downloads

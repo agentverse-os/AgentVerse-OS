@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/jotty-umbrel
+description: A simple app, for your checklists and notes
+endpoint:
+  port: 3000
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/jotty/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jotty/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jotty/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jotty/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/jotty/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: jotty-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Jotty
+type: app
+upstream:
+  author: fccview
+  categories:
+  - files
+  release_notes: |-
+    Jotty 1.26.1 is a follow-up to the recent 1.26.0 update. If you are updating from a pre-1.26 version, back up your Jotty data before updating because 1.26 introduced a data migration for categories and sharing.
+
+    This release fixes third-party dependency CVEs, preserves non-Jotty frontmatter in notes, and fixes a read-only shared-category UI issue where users could select a category they did not have permission to write to.
+
+    Full release notes can be found at https://github.com/fccview/jotty/releases/tag/1.26.1
+  source: https://github.com/fccview/jotty
+  version: 1.26.1
+  website: https://jotty.page
+website: https://jotty.page

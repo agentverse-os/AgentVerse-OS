@@ -1,0 +1,28 @@
+# skybro-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  tracker:
+    image: xdeekay/skybro-tracker:1.5.7@sha256:bdf57d79bd57edab657fc8c87f6699636e381d796228c6e0f545864155b6ecc6
+    networks:
+      appnet:
+        aliases:
+        - skybro_tracker_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/data
+    - /etc/localtime:/etc/localtime:ro
+  web:
+    depends_on:
+    - tracker
+    image: xdeekay/skybro-dashboard:1.5.7@sha256:4582ab1ca4bd682e4b36631ab9f1ba37ef6d0b7acf17560395835da525c33158
+    networks:
+      appnet:
+        aliases:
+        - skybro_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/data
+    - /etc/localtime:/etc/localtime:ro

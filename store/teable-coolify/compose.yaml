@@ -1,0 +1,124 @@
+# teable-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  teable:
+    depends_on:
+      teable-cache:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_TEABLE_3000=${SERVICE_URL_TEABLE_3000}
+    - PUBLIC_ORIGIN=${SERVICE_URL_TEABLE}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - SECRET_KEY=${SERVICE_PASSWORD_64_SECRET}
+    - TZ=${TIMEZONE}
+    - PRISMA_DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@teable-db:${POSTGRES_PORT}/${POSTGRES_DB}
+    - NEXT_ENV_IMAGES_ALL_REMOTE=true
+    - PORT=3000
+    - REDIS_PASSWORD=${SERVICE_PASSWORD_REDIS}
+    - BACKEND_CACHE_PROVIDER=redis
+    - BACKEND_CACHE_REDIS_URI=redis://default:${SERVICE_PASSWORD_REDIS}@teable-cache:6379/0
+    - BACKEND_MAIL_HOST=${BACKEND_MAIL_HOST}
+    - BACKEND_MAIL_PORT=${BACKEND_MAIL_PORT}
+    - BACKEND_MAIL_SECURE=${BACKEND_MAIL_SECURE}
+    - BACKEND_MAIL_SENDER=${BACKEND_MAIL_SENDER}
+    - BACKEND_MAIL_SENDER_NAME=${BACKEND_MAIL_SENDER_NAME}
+    - BACKEND_MAIL_AUTH_USER=${BACKEND_MAIL_AUTH_USER}
+    - BACKEND_MAIL_AUTH_PASS=${BACKEND_MAIL_AUTH_PASS}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000
+      timeout: 20s
+    image: ghcr.io/teableio/teable:latest
+    networks:
+      appnet:
+        aliases:
+        - teable-coolify_teable_1
+    restart: unless-stopped
+    volumes:
+    - teable_data:/app/.assets:rw
+  teable-cache:
+    command: redis-server --appendonly yes --requirepass ${SERVICE_PASSWORD_REDIS}
+    environment:
+    - REDIS_PORT=6379
+    - REDIS_DB=0
+    - REDIS_PASSWORD=${SERVICE_PASSWORD_REDIS}
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+      - CMD
+      - redis-cli
+      - --raw
+      - incr
+      - ping
+      timeout: 3s
+    image: redis:7.2.4
+    networks:
+      appnet:
+        aliases:
+        - teable-coolify_teable-cache_1
+    restart: unless-stopped
+    volumes:
+    - teable_cache_data:/data:rw
+  teable-db:
+    environment:
+    - TZ=${TIMEZONE}
+    - POSTGRES_DB=${POSTGRES_DB:-teable}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:15.4
+    networks:
+      appnet:
+        aliases:
+        - teable-coolify_teable-db_1
+    restart: unless-stopped
+    volumes:
+    - teable_db_data:/var/lib/postgresql/data:rw
+  teable-db-migrate:
+    depends_on:
+      teable-db:
+        condition: service_healthy
+    environment:
+    - TZ=${TIMEZONE}
+    - PRISMA_DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@teable-db:${POSTGRES_PORT}/${POSTGRES_DB}
+    image: ghcr.io/teableio/teable-db-migrate:latest
+    networks:
+      appnet:
+        aliases:
+        - teable-coolify_teable-db-migrate_1
+    restart: no
+volumes:
+  teable_cache_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/teable_cache_data
+      o: bind
+      type: none
+  teable_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/teable_data
+      o: bind
+      type: none
+  teable_db_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/teable_db_data
+      o: bind
+      type: none

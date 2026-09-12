@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/calibre-web
+description: Calibre-web is a web app providing a clean interface for browsing, reading and downloading eBooks using an existing Calibre database.
+endpoint:
+  port: 8083
+  service: calibre-web
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: calibre-web
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Calibre-Web - EBook Reader
+type: app
+upstream:
+  author: https://github.com/janeczku/
+  categories:
+  - books
+  source: https://github.com/janeczku/calibre-web
+  tipi_version: 19
+  version: 0.6.27
+website: https://github.com/janeczku/calibre-web

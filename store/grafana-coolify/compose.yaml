@@ -1,0 +1,36 @@
+# grafana-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  grafana:
+    environment:
+    - SERVICE_URL_GRAFANA_3000=${SERVICE_URL_GRAFANA_3000}
+    - GF_SERVER_ROOT_URL=${SERVICE_URL_GRAFANA}
+    - GF_SERVER_DOMAIN=${SERVICE_FQDN_GRAFANA}
+    - GF_SECURITY_ADMIN_PASSWORD=${SERVICE_PASSWORD_GRAFANA}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000/api/health
+      timeout: 20s
+    image: grafana/grafana-oss
+    networks:
+      appnet:
+        aliases:
+        - grafana-coolify_grafana_1
+    restart: unless-stopped
+    volumes:
+    - grafana-data:/var/lib/grafana
+volumes:
+  grafana-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/grafana-data
+      o: bind
+      type: none

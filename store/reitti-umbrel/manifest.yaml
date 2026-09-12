@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/reitti-umbrel
+description: A location tracking and analysis application
+endpoint:
+  port: 8080
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/reitti/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/reitti/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/reitti/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/reitti/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/reitti/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/reitti/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: admin
+name: reitti-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Reitti
+type: app
+upstream:
+  author: Daniel Graf
+  categories:
+  - files
+  release_notes: |-
+    ⚠️ Reitti 5 is a recent major update. If you're updating from a pre-5.0 version, back up your app data first, let the first-start migration finish, and then verify your devices, API tokens, and map style selection in Settings.
+
+    This release improves GPX import performance on lower-power hardware by reducing database recalculation load, fixes Workbench point editing when Spatial Coverage is disabled, and restores complete French translations.
+
+    Full release notes can be found at https://github.com/dedicatedcode/reitti/releases/tag/v5.3.1.
+  source: https://github.com/dedicatedcode/reitti
+  version: 5.3.1
+  website: https://www.dedicatedcode.com/projects/reitti/overview/
+website: https://www.dedicatedcode.com/projects/reitti/overview/

@@ -1,0 +1,65 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/firefly-iii-data-importer
+description: The Firefly III Data Importer can import data into Firefly III
+endpoint:
+  port: 8080
+  service: firefly-iii-data-importer
+env:
+  FIREFLY_III_ACCESS_TOKEN: ''
+  FIREFLY_III_CLIENT_ID: ''
+  FIREFLY_III_URL: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: firefly-iii-data-importer
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: FIREFLY_III_URL
+  hint: null
+  label: Firefly III URL
+  options: null
+  required: false
+  type: text
+- env: FIREFLY_III_CLIENT_ID
+  hint: null
+  label: Firefly III Public Client ID
+  options: null
+  required: false
+  type: number
+- env: FIREFLY_III_ACCESS_TOKEN
+  hint: null
+  label: Firefly III OAuth Access Token
+  options: null
+  required: false
+  type: text
+tags: []
+title: Firefly III Data Importer
+type: app
+upstream:
+  author: JC5
+  categories:
+  - finance
+  source: https://github.com/firefly-iii/data-importer
+  tipi_version: 13
+  version: version-2
+website: https://github.com/firefly-iii/data-importer

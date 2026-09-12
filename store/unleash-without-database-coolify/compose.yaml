@@ -1,0 +1,31 @@
+# unleash-without-database-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  unleash:
+    command:
+    - node
+    - index.js
+    environment:
+    - SERVICE_URL_UNLEASH_4242=${SERVICE_URL_UNLEASH_4242}
+    - UNLEASH_URL=${SERVICE_URL_UNLEASH}
+    - UNLEASH_DEFAULT_ADMIN_PASSWORD=${SERVICE_PASSWORD_UNLEASH}
+    - DATABASE_URL=${DATABASE_URL}
+    - DATABASE_SSL=${DATABASE_SSL:-false}
+    - LOG_LEVEL=warn
+    - INIT_FRONTEND_API_TOKENS=default:default:development.unleash-insecure-frontend-api-token
+    - INIT_CLIENT_API_TOKENS=default:development.unleash-insecure-api-token
+    healthcheck:
+      interval: 1s
+      retries: 5
+      start_period: 15s
+      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:4242/health || exit 1
+      timeout: 1m
+    image: unleashorg/unleash-server:latest
+    networks:
+      appnet:
+        aliases:
+        - unleash-without-database-coolify_unleash_1
+    restart: unless-stopped

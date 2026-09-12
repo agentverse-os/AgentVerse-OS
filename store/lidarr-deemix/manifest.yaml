@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/lidarr-deemix
+description: Lidarr with some muscles thanks to deemix
+endpoint:
+  port: 8686
+  service: lidarr-deemix
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: lidarr-deemix
+notes:
+- 'порт 8187→6595 (lidarr-deemix) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Lidarr on Steroids
+type: app
+upstream:
+  author: Youegraillot
+  categories:
+  - media
+  source: https://github.com/youegraillot/lidarr-on-steroids
+  tipi_version: 11
+  version: 1.5.2
+website: https://github.com/youegraillot/lidarr-on-steroids

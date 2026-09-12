@@ -1,0 +1,121 @@
+# paymenter-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mariadb:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-paymenter-db}
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 20s
+    image: mariadb:11.8
+    networks:
+      appnet:
+        aliases:
+        - paymenter-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - paymenter_mariadb_data:/var/lib/mysql
+  paymenter:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      APP_ENV: production
+      APP_KEY: ${SERVICE_BASE64_KEY}
+      CACHE_STORE: redis
+      DB_CONNECTION: mariadb
+      DB_DATABASE: ${MYSQL_DATABASE:-paymenter-db}
+      DB_HOST: mariadb
+      DB_PASSWORD: ${SERVICE_PASSWORD_MYSQL}
+      DB_PORT: 3306
+      DB_USERNAME: ${SERVICE_USER_MYSQL}
+      QUEUE_CONNECTION: redis
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${SERVICE_PASSWORD_64_REDIS}
+      REDIS_USERNAME: default
+      SERVICE_URL_PAYMENTER: ${SERVICE_URL_PAYMENTER_80}
+      SESSION_DRIVER: redis
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - curl -sf http://localhost:80 || exit 1
+      timeout: 1s
+    image: ghcr.io/paymenter/paymenter:v1.4.5
+    networks:
+      appnet:
+        aliases:
+        - paymenter-coolify_paymenter_1
+    restart: unless-stopped
+    volumes:
+    - app_logs:/app/storage/logs
+    - extenstions:/app/extensions
+    - themes:/app/themes
+    - app_storage:/app/storage/app
+    - app_public_storage:/app/storage/app/public
+  redis:
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - redis-cli ping || exit 1
+      timeout: 1s
+    image: redis:alpine
+    networks:
+      appnet:
+        aliases:
+        - paymenter-coolify_redis_1
+    restart: unless-stopped
+volumes:
+  app_logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/app_logs
+      o: bind
+      type: none
+  app_public_storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/app_public_storage
+      o: bind
+      type: none
+  app_storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/app_storage
+      o: bind
+      type: none
+  extenstions:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/extenstions
+      o: bind
+      type: none
+  paymenter_mariadb_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/paymenter_mariadb_data
+      o: bind
+      type: none
+  themes:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/themes
+      o: bind
+      type: none

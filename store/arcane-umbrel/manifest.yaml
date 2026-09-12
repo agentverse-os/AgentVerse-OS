@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/arcane-umbrel
+description: An easy and modern Docker management platform
+endpoint:
+  port: 3552
+  service: arcane
+env:
+  APP_PASSWORD:
+    generate: password
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/arcane/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/arcane/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/arcane/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/arcane/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/arcane/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/arcane/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: arcane-admin
+  path: null
+  user: arcane
+name: arcane-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Arcane
+type: app
+upstream:
+  author: Arcane
+  categories:
+  - developer
+  release_notes: |-
+    Arcane 2.10.1 fixes browser session cookie size issues that could affect sign-ins and restores sidebar usernames when a display name is not set.
+    If you're updating from a pre-2.0 version, back up your Arcane data first and review the v2 migration guide if you use OIDC, API keys/automation, Edge mTLS remote environments, Apprise notifications, or deprecated prune/GitOps settings.
+    Full release notes can be found at https://github.com/getarcaneapp/arcane/releases/tag/v2.10.1
+  source: https://github.com/getarcaneapp/arcane
+  version: 2.10.1
+  website: https://getarcane.app/
+website: https://getarcane.app/

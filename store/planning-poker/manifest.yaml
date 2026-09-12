@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/planning-poker
+description: Online planning poker for scrum master.
+endpoint:
+  port: 8000
+  service: planning-poker
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: planning-poker
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Planning Poker
+type: app
+upstream:
+  author: axeleroy
+  categories:
+  - development
+  source: https://github.com/axeleroy/self-host-planning-poker
+  tipi_version: 5
+  version: 1.2.1
+website: https://github.com/axeleroy/self-host-planning-poker

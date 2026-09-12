@@ -1,0 +1,86 @@
+# forgejo-with-postgresql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  forgejo:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_FORGEJO_3000=${SERVICE_URL_FORGEJO_3000}
+    - FORGEJO__server__ROOT_URL=${SERVICE_URL_FORGEJO}
+    - FORGEJO__migrations__ALLOWED_DOMAINS=${FORGEJO__migrations__ALLOWED_DOMAINS}
+    - FORGEJO__migrations__ALLOW_LOCALNETWORKS=${FORGEJO__migrations__ALLOW_LOCALNETWORKS-false}
+    - USER_UID=1000
+    - USER_GID=1000
+    - FORGEJO__database__DB_TYPE=postgres
+    - FORGEJO__database__HOST=postgresql
+    - FORGEJO__database__NAME=${POSTGRESQL_DATABASE-forgejo}
+    - FORGEJO__database__USER=$SERVICE_USER_POSTGRESQL
+    - FORGEJO__database__PASSWD=$SERVICE_PASSWORD_POSTGRESQL
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000
+      timeout: 10s
+    image: codeberg.org/forgejo/forgejo:15
+    networks:
+      appnet:
+        aliases:
+        - forgejo-with-postgresql-coolify_forgejo_1
+    restart: unless-stopped
+    volumes:
+    - forgejo-data:/data
+    - forgejo-timezone:/etc/timezone:ro
+    - forgejo-localtime:/etc/localtime:ro
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - forgejo-with-postgresql-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - forgejo-postgresql-data:/var/lib/postgresql/data
+volumes:
+  forgejo-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-data
+      o: bind
+      type: none
+  forgejo-localtime:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-localtime
+      o: bind
+      type: none
+  forgejo-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-postgresql-data
+      o: bind
+      type: none
+  forgejo-timezone:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-timezone
+      o: bind
+      type: none

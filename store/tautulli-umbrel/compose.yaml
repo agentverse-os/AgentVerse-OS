@@ -1,0 +1,18 @@
+# tautulli-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    image: linuxserver/tautulli:2.18.1@sha256:13f03ecfc61a7af89d492677389771ac29682a72153ce08a5cd4faffbc0197e8
+    networks:
+      appnet:
+        aliases:
+        - tautulli_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config

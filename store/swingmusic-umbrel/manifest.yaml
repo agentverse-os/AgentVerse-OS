@@ -1,0 +1,65 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/swingmusic-umbrel
+description: Self-hosted music streaming
+endpoint:
+  port: 1970
+  service: app
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/swingmusic/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/swingmusic/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/swingmusic/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/swingmusic/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: swingmusic-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Swing Music
+type: app
+upstream:
+  author: Mungai Njoroge
+  categories:
+  - media
+  release_notes: |-
+    Important for existing users:
+      - This update does not change your existing Swing Music login.
+      - If you have not changed the old default login, you can still sign in with username "admin" and password "admin".
+      - After this update, Umbrel will no longer show those old default credentials, so we recommend changing the password in Swing Music after you sign in.
+
+
+    What's new in this release:
+      - Redesigned the Now Playing and Lyrics screens
+      - Added natural and article-aware sorting for folders, artists, and other sortable views
+      - Added BlurHash support for the web client; rescan your library to start using it
+      - Fresh installs now use Swing Music's first-run setup flow to create the admin account
+      - Fixed duplicate recently played items, multiple root folder errors, and playlist lookup by name in folder view
+      - Mixes are now a premium feature
+
+
+    Full release notes can be found at https://github.com/swingmx/swingmusic/releases/tag/v3.0.0
+  source: https://github.com/swingmx/swingmusic
+  version: 3.0.0
+  website: https://github.com/swingmx/swingmusic
+website: https://github.com/swingmx/swingmusic

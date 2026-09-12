@@ -1,0 +1,61 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/your-spotify
+description: Self hosted Spotify tracking dashboard.
+endpoint:
+  port: 3000
+  service: your-spotify
+env:
+  SPOTIFY_PUBLIC: ''
+  SPOTIFY_SECRET:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: your-spotify
+notes:
+- 'порт 32500→8080 (your-spotify-server) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SPOTIFY_PUBLIC
+  hint: The public key of your Spotify application
+  label: Spotify public key
+  options: null
+  required: true
+  type: text
+- env: SPOTIFY_SECRET
+  hint: The secret key of your Spotify application
+  label: Spotify secret key
+  options: null
+  required: true
+  type: password
+tags: []
+title: Your Spotify
+type: app
+upstream:
+  author: Yooooomi
+  categories:
+  - music
+  - utilities
+  source: https://github.com/Yooooomi/your_spotify
+  tipi_version: 32
+  version: 1.20.0
+website: https://github.com/Yooooomi/your_spotify

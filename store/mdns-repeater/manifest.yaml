@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mdns-repeater
+description: Re-broadcast mDNS packets.
+endpoint:
+  port: 9998
+  service: mdns-repeater
+env:
+  MDNS_DOCKER_NIC: ''
+  MDNS_HOST_NIC: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mdns-repeater
+notes:
+- 'mdns-repeater: network_mode=host из каталога'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MDNS_HOST_NIC
+  hint: null
+  label: MDNS > hostNIC (FROM network)
+  options: null
+  required: true
+  type: text
+- env: MDNS_DOCKER_NIC
+  hint: null
+  label: MDNS > dockerNIC (TO network)
+  options: null
+  required: true
+  type: text
+tags: []
+title: MDNS Repeater
+type: app
+upstream:
+  author: angelnu
+  categories:
+  - utilities
+  - automation
+  source: https://github.com/angelnu/docker-mdns_repeater
+  tipi_version: 6
+  version: latest
+website: https://github.com/angelnu/docker-mdns_repeater

@@ -1,0 +1,58 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rivet-engine-coolify
+description: Build and scale stateful workloads with long-lived processes
+endpoint:
+  port: 6420
+  service: rivet-engine
+env:
+  SERVICE_BASE64_TOKEN:
+    generate: hex64
+  SERVICE_URL_RIVET_6420: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: rivet-engine-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- stateful
+- actors
+- realtime
+- backend
+- serverless
+- postgresql
+title: Rivet Engine
+type: app
+upstream:
+  categories:
+  - development
+  source: https://www.rivet.dev/docs
+  tags:
+  - stateful
+  - actors
+  - realtime
+  - backend
+  - serverless
+  - postgresql
+  template: rivet-engine.yaml
+website: https://www.rivet.dev/docs

@@ -1,0 +1,21 @@
+# wallos-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Etc/UTC
+    image: bellamy/wallos:5.5.0@sha256:82a74706a343ee0713eb1c5b1d7814f656ed5a35de36c73f0cb42276d8f9d95e
+    networks:
+      appnet:
+        aliases:
+        - wallos_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/www/html/db
+    - ${APP_DATA_DIR}/data/logos:/var/www/html/images/uploads/logos

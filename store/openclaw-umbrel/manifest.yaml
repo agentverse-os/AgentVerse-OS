@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/openclaw-umbrel
+description: The AI that actually does things
+endpoint:
+  port: 18789
+  service: gateway
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/openclaw/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/openclaw/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/openclaw/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/openclaw/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: openclaw-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: OpenClaw
+type: app
+upstream:
+  author: OpenClaw
+  categories:
+  - ai
+  release_notes: |-
+    Fixed npm plugin updates so OpenClaw can install and update tracked official plugins correctly with newer npm clients.
+
+    Full release notes can be found at https://github.com/openclaw/openclaw/releases/tag/v2026.7.1-2
+  source: https://github.com/openclaw/openclaw
+  version: 2026.7.1-2
+  website: https://openclaw.ai
+website: https://openclaw.ai

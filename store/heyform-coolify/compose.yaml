@@ -1,0 +1,95 @@
+# heyform-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  heyform:
+    depends_on:
+      keydb:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_HEYFORM_9157=${SERVICE_URL_HEYFORM_9157}
+    - APP_HOMEPAGE_URL=${SERVICE_URL_HEYFORM}
+    - SESSION_KEY=${SERVICE_BASE64_64_SESSION}
+    - FORM_ENCRYPTION_KEY=${SERVICE_BASE64_64_FORM}
+    - MONGO_URI=mongodb://mongo:27017/heyform
+    - REDIS_HOST=keydb
+    - REDIS_PORT=6379
+    - REDIS_PASSWORD=${SERVICE_PASSWORD_KEYDB}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:9157 || exit 1
+      timeout: 5s
+    image: heyform/community-edition:latest
+    networks:
+      appnet:
+        aliases:
+        - heyform-coolify_heyform_1
+    restart: unless-stopped
+    volumes:
+    - heyform-assets:/app/static/upload
+  keydb:
+    command: keydb-server --appendonly yes
+    environment:
+    - KEYDB_PASSWORD=${SERVICE_PASSWORD_KEYDB}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      start_period: 5s
+      test:
+      - CMD-SHELL
+      - keydb-cli
+      - --pass
+      - ${SERVICE_PASSWORD_KEYDB}
+      - ping
+      timeout: 5s
+    image: eqalpha/keydb:latest
+    networks:
+      appnet:
+        aliases:
+        - heyform-coolify_keydb_1
+    restart: unless-stopped
+    volumes:
+    - heyform-keydb-data:/data
+  mongo:
+    healthcheck:
+      interval: 5s
+      retries: 10
+      start_period: 5s
+      test:
+      - CMD-SHELL
+      - echo 'ok' > /dev/null 2>&1
+      timeout: 5s
+    image: percona/percona-server-mongodb:latest
+    networks:
+      appnet:
+        aliases:
+        - heyform-coolify_mongo_1
+    restart: unless-stopped
+    volumes:
+    - heyform-mongo-data:/data/db
+volumes:
+  heyform-assets:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/heyform-assets
+      o: bind
+      type: none
+  heyform-keydb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/heyform-keydb-data
+      o: bind
+      type: none
+  heyform-mongo-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/heyform-mongo-data
+      o: bind
+      type: none

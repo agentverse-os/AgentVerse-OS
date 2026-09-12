@@ -1,0 +1,196 @@
+# solidtime-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_DEBUG: 'false'
+      APP_ENV: production
+      APP_FORCE_HTTPS: 'false'
+      APP_NAME: solidtime
+      APP_URL: http://${DEVICE_DOMAIN_NAME}:8770
+      AUTO_DB_MIGRATE: 'true'
+      CONTAINER_MODE: http
+      DB_CONNECTION: pgsql
+      DB_DATABASE: solidtime
+      DB_HOST: solidtime_db_1
+      DB_PASSWORD: solidtime
+      DB_PORT: '5432'
+      DB_SSLMODE: require
+      DB_USERNAME: solidtime
+      FILESYSTEM_DISK: local
+      GOTENBERG_URL: http://solidtime_gotenberg_1:3000
+      LOG_CHANNEL: stderr_daily
+      LOG_LEVEL: debug
+      MAIL_ENCRYPTION: tls
+      MAIL_FROM_ADDRESS: no-reply@your-domain.com
+      MAIL_FROM_NAME: solidtime
+      MAIL_HOST: ''
+      MAIL_MAILER: smtp
+      MAIL_PASSWORD: ''
+      MAIL_PORT: ''
+      MAIL_USERNAME: ''
+      PUBLIC_FILESYSTEM_DISK: public
+      QUEUE_CONNECTION: database
+      SUPER_ADMINS: umbrel@umbrel.local
+      TRUSTED_HOSTS: ${DEVICE_DOMAIN_NAME},${DEVICE_HOSTNAME},${APP_DOMAIN},${APP_HIDDEN_SERVICE},${APP_SOLIDTIME_LOCAL_IPS}
+      TRUSTED_PROXIES: 0.0.0.0/0,2000:0:0:0:0:0:0:0/3
+      VITE_APP_NAME: solidtime
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - curl --fail http://localhost:8000/health-check/up || exit 1
+    image: solidtime/solidtime:0.20.0@sha256:980d0924e2f392ae1abf5c4d0d932948c1e1312690207a5120bb5e888deba980
+    networks:
+      appnet:
+        aliases:
+        - solidtime_app_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/var/www/html/storage
+  db:
+    environment:
+      PGPASSWORD: soldtime
+      POSTGRES_DB: solidtime
+      POSTGRES_PASSWORD: solidtime
+      POSTGRES_USER: solidtime
+    healthcheck:
+      retries: 3
+      test:
+      - CMD
+      - pg_isready
+      - -q
+      - -d
+      - solidtime
+      - -U
+      - solidtime
+      timeout: 5s
+    image: postgres:17.3@sha256:0321e2252ebfeecb8bc1a899755084d29bce872953e1a5a3e25ec0860b739098
+    networks:
+      appnet:
+        aliases:
+        - solidtime_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  gotenberg:
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - --silent
+      - --fail
+      - http://localhost:3000/health
+    image: gotenberg/gotenberg:8.17.1@sha256:46e7b68adeadda1794a9ab194f1e2939f5b09ff21aadef6000e84102c9af6dd5
+    networks:
+      appnet:
+        aliases:
+        - solidtime_gotenberg_1
+    restart: on-failure
+    user: 1000:1000
+  queue:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_DEBUG: 'false'
+      APP_ENV: production
+      APP_FORCE_HTTPS: 'false'
+      APP_NAME: solidtime
+      APP_URL: http://${DEVICE_DOMAIN_NAME}:8770
+      CONTAINER_MODE: worker
+      DB_CONNECTION: pgsql
+      DB_DATABASE: solidtime
+      DB_HOST: solidtime_db_1
+      DB_PASSWORD: solidtime
+      DB_PORT: '5432'
+      DB_SSLMODE: require
+      DB_USERNAME: solidtime
+      FILESYSTEM_DISK: local
+      GOTENBERG_URL: http://solidtime_gotenberg_1:3000
+      LOG_CHANNEL: stderr_daily
+      LOG_LEVEL: debug
+      MAIL_ENCRYPTION: tls
+      MAIL_FROM_ADDRESS: no-reply@your-domain.com
+      MAIL_FROM_NAME: solidtime
+      MAIL_HOST: ''
+      MAIL_MAILER: smtp
+      MAIL_PASSWORD: ''
+      MAIL_PORT: ''
+      MAIL_USERNAME: ''
+      PUBLIC_FILESYSTEM_DISK: public
+      QUEUE_CONNECTION: database
+      SUPER_ADMINS: umbrel@umbrel.local
+      TRUSTED_HOSTS: ${DEVICE_DOMAIN_NAME},${DEVICE_HOSTNAME},${APP_DOMAIN},${APP_HIDDEN_SERVICE},${APP_SOLIDTIME_LOCAL_IPS}
+      TRUSTED_PROXIES: 0.0.0.0/0,2000:0:0:0:0:0:0:0/3
+      VITE_APP_NAME: solidtime
+      WORKER_COMMAND: php /var/www/html/artisan queue:work
+    healthcheck:
+      test:
+      - CMD
+      - healthcheck
+    image: solidtime/solidtime:0.20.0@sha256:980d0924e2f392ae1abf5c4d0d932948c1e1312690207a5120bb5e888deba980
+    networks:
+      appnet:
+        aliases:
+        - solidtime_queue_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/var/www/html/storage
+  scheduler:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_DEBUG: 'false'
+      APP_ENV: production
+      APP_FORCE_HTTPS: 'false'
+      APP_NAME: solidtime
+      APP_URL: http://${DEVICE_DOMAIN_NAME}:8770
+      CONTAINER_MODE: scheduler
+      DB_CONNECTION: pgsql
+      DB_DATABASE: solidtime
+      DB_HOST: solidtime_db_1
+      DB_PASSWORD: solidtime
+      DB_PORT: '5432'
+      DB_SSLMODE: require
+      DB_USERNAME: solidtime
+      FILESYSTEM_DISK: local
+      GOTENBERG_URL: http://solidtime_gotenberg_1:3000
+      LOG_CHANNEL: stderr_daily
+      LOG_LEVEL: debug
+      MAIL_ENCRYPTION: tls
+      MAIL_FROM_ADDRESS: no-reply@your-domain.com
+      MAIL_FROM_NAME: solidtime
+      MAIL_HOST: ''
+      MAIL_MAILER: smtp
+      MAIL_PASSWORD: ''
+      MAIL_PORT: ''
+      MAIL_USERNAME: ''
+      PUBLIC_FILESYSTEM_DISK: public
+      QUEUE_CONNECTION: database
+      SUPER_ADMINS: umbrel@umbrel.local
+      TRUSTED_HOSTS: ${DEVICE_DOMAIN_NAME},${DEVICE_HOSTNAME},${APP_DOMAIN},${APP_HIDDEN_SERVICE},${APP_SOLIDTIME_LOCAL_IPS}
+      TRUSTED_PROXIES: 0.0.0.0/0,2000:0:0:0:0:0:0:0/3
+      VITE_APP_NAME: solidtime
+    healthcheck:
+      test:
+      - CMD
+      - healthcheck
+    image: solidtime/solidtime:0.20.0@sha256:980d0924e2f392ae1abf5c4d0d932948c1e1312690207a5120bb5e888deba980
+    networks:
+      appnet:
+        aliases:
+        - solidtime_scheduler_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/var/www/html/storage

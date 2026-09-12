@@ -1,0 +1,78 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/espocrm-coolify
+description: EspoCRM is a free and open-source CRM platform.
+endpoint:
+  port: 80
+  service: espocrm
+env:
+  ESPOCRM_ADMIN_USERNAME: admin
+  MARIADB_DATABASE: espocrm
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_URL_ESPOCRM: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: ESPOCRM_ADMIN_USERNAME
+name: espocrm-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ESPOCRM_ADMIN_USERNAME
+  hint: 'по умолчанию: admin'
+  label: espocrm admin username
+  options: null
+  required: false
+  type: text
+- env: MARIADB_DATABASE
+  hint: 'по умолчанию: espocrm'
+  label: mariadb database
+  options: null
+  required: false
+  type: text
+tags:
+- crm
+- self-hosted
+- open-source
+- workflow
+- automation
+- project management
+title: Espocrm
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.espocrm.com
+  tags:
+  - crm
+  - self-hosted
+  - open-source
+  - workflow
+  - automation
+  - project management
+  template: espocrm.yaml
+website: https://docs.espocrm.com

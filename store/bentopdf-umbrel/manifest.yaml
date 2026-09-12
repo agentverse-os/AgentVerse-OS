@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bentopdf-umbrel
+description: A Privacy First PDF Toolkit
+endpoint:
+  port: 8080
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bentopdf-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: BentoPDF
+type: app
+upstream:
+  author: BentoPDF
+  categories:
+  - files
+  release_notes: |-
+    This update adds PDF text editing with live reflow, font/styling controls, find and replace, image/object editing, and accessibility helpers.
+
+    It also adds a new duplex sort tool, improves PDF editor support for Korean, CJK, Indic, and other non-Latin text, removes analytics from the self-hosted tools, and fixes service worker precaching, PDF rendering, PDF-to-TIFF memory, URL redirection, commenting cursor, and WASM initialization issues.
+
+    Full release notes can be found at https://github.com/alam00000/bentopdf/releases/tag/v2.8.8
+  source: https://github.com/alam00000/bentopdf
+  version: 2.8.8
+  website: https://bentopdf.com/
+website: https://bentopdf.com/

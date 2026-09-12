@@ -1,0 +1,49 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pyload-ng-umbrel
+description: The free and open-source Download Manager
+endpoint:
+  port: 8000
+  service: web
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/pyload-ng/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pyload-ng/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pyload-ng/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/pyload-ng/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: pyload
+  path: null
+  user: pyload
+name: pyload-ng-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: pyload-ng
+type: app
+upstream:
+  author: pyload
+  categories:
+  - files
+  release_notes: null
+  source: https://github.com/pyload/pyload/
+  version: 0.5.0
+  website: https://pyload.net/
+website: https://pyload.net/

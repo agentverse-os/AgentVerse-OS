@@ -1,0 +1,35 @@
+# docuseal-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      POSTGRES_DB: docuseal
+      POSTGRES_PASSWORD: docusealpass
+      POSTGRES_USER: docusealuser
+    image: postgres:17.3@sha256:0321e2252ebfeecb8bc1a899755084d29bce872953e1a5a3e25ec0860b739098
+    networks:
+      appnet:
+        aliases:
+        - docuseal_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+  server:
+    depends_on:
+    - db
+    environment:
+      DATABASE_URL: postgresql://docusealuser:docusealpass@docuseal_db_1:5432/docuseal?sslmode=disable
+    image: docuseal/docuseal:3.2.3@sha256:209b1ef44d4bc0246188c3e81fbba706c4788dfd11012a5a2c9a9b06e00a586b
+    networks:
+      appnet:
+        aliases:
+        - docuseal_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/data/docuseal

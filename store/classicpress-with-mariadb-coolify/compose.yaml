@@ -1,0 +1,68 @@
+# classicpress-with-mariadb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  classicpress:
+    depends_on:
+    - mariadb
+    environment:
+    - SERVICE_URL_CLASSICPRESS=${SERVICE_URL_CLASSICPRESS}
+    - CLASSICPRESS_DB_HOST=mariadb
+    - CLASSICPRESS_DB_USER=$SERVICE_USER_CLASSICPRESS
+    - CLASSICPRESS_DB_PASSWORD=$SERVICE_PASSWORD_CLASSICPRESS
+    - CLASSICPRESS_DB_NAME=classicpress
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: classicpress/classicpress:latest
+    networks:
+      appnet:
+        aliases:
+        - classicpress-with-mariadb-coolify_classicpress_1
+    restart: unless-stopped
+    volumes:
+    - classicpress-files:/var/www/html
+  mariadb:
+    environment:
+    - MYSQL_ROOT_PASSWORD=$SERVICE_PASSWORD_ROOT
+    - MYSQL_DATABASE=classicpress
+    - MYSQL_USER=$SERVICE_USER_CLASSICPRESS
+    - MYSQL_PASSWORD=$SERVICE_PASSWORD_CLASSICPRESS
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 20s
+    image: mariadb:11
+    networks:
+      appnet:
+        aliases:
+        - classicpress-with-mariadb-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - mariadb-data:/var/lib/mysql
+volumes:
+  classicpress-files:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/classicpress-files
+      o: bind
+      type: none
+  mariadb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mariadb-data
+      o: bind
+      type: none

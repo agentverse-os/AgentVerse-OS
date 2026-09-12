@@ -1,0 +1,25 @@
+# yuvomi-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+    - NODE_ENV=production
+    - PORT=3000
+    - DB_PATH=/data/yuvomi.db
+    - BACKUP_DIR=/backups
+    - SESSION_SECRET=${APP_SEED}
+    - DB_ENCRYPTION_KEY=${APP_SEED}
+    - SESSION_SECURE=false
+    image: ghcr.io/ulsklyc/yuvomi:2.62.0@sha256:8a45f3cab10feb241573a926a1dc25e2b415a21f20cefee2f380288819d435a9
+    networks:
+      appnet:
+        aliases:
+        - yuvomi_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/data
+    - ${APP_DATA_DIR}/data/backups:/backups

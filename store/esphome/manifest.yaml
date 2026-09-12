@@ -1,0 +1,65 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/esphome
+description: Control your ESP8266/ESP32.
+endpoint:
+  port: 6052
+  service: esphome
+env:
+  ESPHOME_PASSWORD: ''
+  ESPHOME_PING: ''
+  ESPHOME_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: ESPHOME_PASSWORD
+  path: null
+  user: ESPHOME_USERNAME
+name: esphome
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ESPHOME_USERNAME
+  hint: Username of your ESP Home account
+  label: Username
+  options: null
+  required: false
+  type: text
+- env: ESPHOME_PASSWORD
+  hint: Password of your ESP Home account
+  label: Password
+  options: null
+  required: false
+  type: password
+- env: ESPHOME_PING
+  hint: mDNS doesn't work across VLANs, use static IP for devices when disabling mDNS
+  label: Use ping for devices availability ? (default to mDNS)
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: ESP Home
+type: app
+upstream:
+  author: ESP Home
+  categories:
+  - automation
+  source: https://github.com/esphome/esphome
+  tipi_version: 127
+  version: 2026.8.2
+website: https://github.com/esphome/esphome

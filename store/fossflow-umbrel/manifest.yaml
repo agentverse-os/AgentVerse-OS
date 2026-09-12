@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/fossflow-umbrel
+description: Make beautiful isometric infrastructure diagrams
+endpoint:
+  port: 80
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/fossflow/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/fossflow/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/fossflow/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/fossflow/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: fossflow-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: FossFLOW
+type: app
+upstream:
+  author: stan-smith
+  categories:
+  - networking
+  release_notes: |-
+    This release includes:
+      - Updated FossFLOW to the latest upstream master build
+      - Includes the latest diagram editor fixes and dependency updates from upstream
+      - Keeps browser-local diagram editing and optional server-backed diagram storage behavior unchanged
+
+
+    Full release notes can be found at: https://hub.docker.com/r/stnsmith/fossflow/tags?name=master-b69fc2e
+  source: https://github.com/stan-smith/FossFLOW
+  version: b69fc2e
+  website: https://github.com/stan-smith/FossFLOW
+website: https://github.com/stan-smith/FossFLOW

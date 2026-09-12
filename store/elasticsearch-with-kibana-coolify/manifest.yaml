@@ -1,0 +1,134 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/elasticsearch-with-kibana-coolify
+description: Elastic + Kibana is a Free and Open Source Search, Monitoring, and Visualization Stack
+endpoint:
+  port: 5601
+  service: kibana
+env:
+  BODY: ''
+  CREATED: ''
+  ELASTICSEARCH_SERVICEACCOUNTTOKEN: ''
+  ELASTIC_PASSWORD: ''
+  HTTP_CODE: ''
+  RESPONSE: ''
+  SERVICE_FQDN_KIBANA: ${APP_DOMAIN}
+  SERVICE_PASSWORD_ELASTICSEARCH:
+    generate: password
+  SERVICE_PASSWORD_KIBANA:
+    generate: password
+  SERVICE_PASSWORD_XPACKENCRYPTEDSAVEDOBJECTS:
+    generate: password
+  SERVICE_PASSWORD_XPACKREPORTING:
+    generate: password
+  SERVICE_PASSWORD_XPACKSECURITY:
+    generate: password
+  SERVICE_URL_KIBANA: https://${APP_DOMAIN}
+  SERVICE_URL_KIBANA_5601: https://${APP_DOMAIN}
+  TELEMETRY_OPTIN: 'false'
+  TOKEN_VALUE: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_KIBANA
+  path: null
+  user: null
+name: elasticsearch-with-kibana-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ELASTICSEARCH_SERVICEACCOUNTTOKEN
+  hint: null
+  label: elasticsearch serviceaccounttoken
+  options: null
+  required: false
+  type: password
+- env: TELEMETRY_OPTIN
+  hint: 'по умолчанию: false'
+  label: telemetry optin
+  options: null
+  required: false
+  type: text
+- env: ELASTIC_PASSWORD
+  hint: null
+  label: elastic password
+  options: null
+  required: false
+  type: password
+- env: RESPONSE
+  hint: null
+  label: response
+  options: null
+  required: false
+  type: text
+- env: HTTP_CODE
+  hint: null
+  label: http code
+  options: null
+  required: false
+  type: text
+- env: BODY
+  hint: null
+  label: body
+  options: null
+  required: false
+  type: text
+- env: CREATED
+  hint: null
+  label: created
+  options: null
+  required: false
+  type: text
+- env: TOKEN_VALUE
+  hint: null
+  label: token value
+  options: null
+  required: false
+  type: password
+tags:
+- elastic
+- kibana
+- elasticsearch
+- search
+- visualization
+- logging
+- monitoring
+- observability
+- analytics
+- stack
+- devops
+title: Elasticsearch With Kibana
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/install-kibana-with-docker
+  tags:
+  - elastic
+  - kibana
+  - elasticsearch
+  - search
+  - visualization
+  - logging
+  - monitoring
+  - observability
+  - analytics
+  - stack
+  - devops
+  template: elasticsearch-with-kibana.yaml
+website: https://www.elastic.co/docs/deploy-manage/deploy/self-managed/install-kibana-with-docker

@@ -1,0 +1,85 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bookstack-umbrel
+description: A simple, self-hosted platform for organizing documentation
+endpoint:
+  port: 80
+  service: server
+env:
+  APP_BOOKSTACK_APP_KEY: ''
+  APP_BOOKSTACK_DB_PASSWORD: ''
+  APP_BOOKSTACK_DB_ROOT_PASSWORD: ''
+  MARIADB_ROOT_PASSWORD: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bookstack/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bookstack/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bookstack/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bookstack/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bookstack/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bookstack/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: password
+  path: null
+  user: admin@admin.com
+name: bookstack-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_BOOKSTACK_DB_PASSWORD
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bookstack db password
+  options: null
+  required: false
+  type: password
+- env: APP_BOOKSTACK_DB_ROOT_PASSWORD
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bookstack db root password
+  options: null
+  required: false
+  type: password
+- env: MARIADB_ROOT_PASSWORD
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: mariadb root password
+  options: null
+  required: false
+  type: password
+- env: APP_BOOKSTACK_APP_KEY
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bookstack app key
+  options: null
+  required: false
+  type: password
+tags: []
+title: BookStack
+type: app
+upstream:
+  author: BookStack
+  categories:
+  - files
+  release_notes: |-
+    BookStack 26.05.4 is a security release that fixes vulnerabilities affecting attachment updates, drawing requests, draft page handling, ZIP imports, draft search visibility, and recycle-bin permission updates.
+
+    The release also improves image content-type checks and fixes issues with anchor and SFTP links in page content.
+
+    Updating is especially recommended for instances where untrusted users have access.
+
+    Full release notes can be found at https://github.com/BookStackApp/BookStack/releases/tag/v26.05.4
+  source: https://github.com/BookStackApp/BookStack
+  version: 26.05.4
+  website: https://www.bookstackapp.com/
+website: https://www.bookstackapp.com/

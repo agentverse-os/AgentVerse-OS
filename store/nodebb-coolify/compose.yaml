@@ -1,0 +1,86 @@
+# nodebb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nodebb:
+    command: |
+      /bin/bash -c " cat > /usr/src/app/setup.json <<EOL {
+          \"defaults\": {
+              \"postgres\": {
+                  \"host\": \"postgres\",
+                  \"port\": 5432,
+                  \"database\": \"nodebb\",
+                  \"username\": \"${SERVICE_USER_POSTGRES}\",
+                  \"password\": \"${SERVICE_PASSWORD_POSTGRES}\"
+              }
+          }
+      } EOL && tini -- entrypoint.sh "
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_NODEBB_4567=${SERVICE_URL_NODEBB_4567}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/4567' || exit 1
+      timeout: 20s
+    image: ghcr.io/nodebb/nodebb:latest
+    networks:
+      appnet:
+        aliases:
+        - nodebb-coolify_nodebb_1
+    restart: unless-stopped
+    volumes:
+    - nodebb_build:/usr/src/app/build
+    - nodebb_uploads:/usr/src/app/public/uploads
+    - nodebb_config:/opt/config
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=nodebb
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:17.2-alpine
+    networks:
+      appnet:
+        aliases:
+        - nodebb-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - nodebb_postgres_data:/var/lib/postgresql/data
+volumes:
+  nodebb_build:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nodebb_build
+      o: bind
+      type: none
+  nodebb_config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nodebb_config
+      o: bind
+      type: none
+  nodebb_postgres_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nodebb_postgres_data
+      o: bind
+      type: none
+  nodebb_uploads:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nodebb_uploads
+      o: bind
+      type: none

@@ -1,0 +1,43 @@
+# nextcloud-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nextcloud:
+    environment:
+    - SERVICE_URL_NEXTCLOUD_80=${SERVICE_URL_NEXTCLOUD_80}
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-Europe/Madrid}
+    healthcheck:
+      interval: 30s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80/status.php
+      timeout: 10s
+    image: lscr.io/linuxserver/nextcloud:latest
+    networks:
+      appnet:
+        aliases:
+        - nextcloud-coolify_nextcloud_1
+    restart: unless-stopped
+    volumes:
+    - nextcloud-config:/config
+    - nextcloud-data:/data
+volumes:
+  nextcloud-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nextcloud-config
+      o: bind
+      type: none
+  nextcloud-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nextcloud-data
+      o: bind
+      type: none

@@ -1,0 +1,32 @@
+# fizzy-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    environment:
+      ACTIVE_STORAGE_SERVICE: local
+      ASSUME_SSL: 'false'
+      DATABASE_ADAPTER: sqlite
+      FORCE_SSL: 'false'
+      RAILS_ENV: production
+      SECRET_KEY_BASE: ${APP_SEED}
+      SOLID_QUEUE_IN_PUMA: 'true'
+    image: ghcr.io/mauricewipf/fizzy-umbrel:5f45e54@sha256:2d7a493a8933aa784b4d06cc96bd8b047beaf19173d1eec04c767e9dd7f4c28b
+    networks:
+      appnet:
+        aliases:
+        - fizzy_server_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/rails/storage

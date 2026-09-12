@@ -1,0 +1,13 @@
+# nginx: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nginx:
+    image: nginx:1.31.4
+    networks:
+      appnet:
+        aliases:
+        - nginx_nginx_1
+    restart: unless-stopped

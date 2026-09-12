@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/flatnotes-umbrel
+description: A self-hosted, database-less markdown note-taking app
+endpoint:
+  port: 8080
+  service: server
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/flatnotes/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/flatnotes/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/flatnotes/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/flatnotes/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: flatnotes-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: flatnotes
+type: app
+upstream:
+  author: Adam Dullage
+  categories:
+  - files
+  release_notes: This update refreshes Flatnotes' Python, JavaScript, and Docker base dependencies.
+  source: https://github.com/dullage/flatnotes
+  version: 5.5.5
+  website: https://github.com/dullage/flatnotes
+website: https://github.com/dullage/flatnotes

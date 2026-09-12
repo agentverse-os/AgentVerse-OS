@@ -1,0 +1,39 @@
+# dockge-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  docker:
+    command: |
+      dockerd
+        --bridge dind0
+        --data-root /data/data
+        --exec-root /data/exec
+        --host unix:///data/docker.sock
+        --pidfile /data/docker.pid
+    entrypoint: /entrypoint.sh
+    environment:
+      DOCKER_ENSURE_BRIDGE: dind0:10.32.0.1/16
+    image: docker:24.0.5-dind@sha256:3c6e4dca7a63c9a32a4e00da40461ce067f255987ccc9721cf18ffa087bcd1ef
+    network_mode: host
+    privileged: true
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/entrypoint.sh:/entrypoint.sh
+    - ${APP_DATA_DIR}/data/docker:/data
+  dockge:
+    environment:
+      DOCKGE_ENABLE_CONSOLE: 'true'
+      DOCKGE_STACKS_DIR: /opt/stacks
+    image: louislam/dockge:1.5.0@sha256:335c6368b880ecc203236ed89e6e5232e0d6578e8ef5920e4a502390451502bf
+    networks:
+      appnet:
+        aliases:
+        - dockge_dockge_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/docker:/var/run
+    - ${APP_DATA_DIR}/data/dockge-data:/app/data
+    - ${APP_DATA_DIR}/data/dockge-stacks:/opt/stacks

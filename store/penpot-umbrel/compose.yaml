@@ -1,0 +1,98 @@
+# penpot-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  penpot-backend:
+    depends_on:
+    - penpot-postgres
+    - penpot-valkey
+    environment:
+    - PENPOT_FLAGS=enable-registration enable-login-with-password disable-email-verification disable-smtp enable-prepl-server disable-secure-session-cookies
+    - PENPOT_SECRET_KEY=${APP_SEED}
+    - PENPOT_DATABASE_URI=postgresql://penpot-postgres/penpot
+    - PENPOT_DATABASE_USERNAME=penpot
+    - PENPOT_DATABASE_PASSWORD=penpot
+    - PENPOT_REDIS_URI=redis://penpot_penpot-valkey_1/0
+    - PENPOT_OBJECTS_STORAGE_BACKEND=fs
+    - PENPOT_OBJECTS_STORAGE_FS_DIRECTORY=/opt/data/assets
+    - PENPOT_TELEMETRY_ENABLED=false
+    - PENPOT_PUBLIC_URI=http://${DEVICE_DOMAIN_NAME}:${APP_PENPOT_UI_PORT}
+    image: penpotapp/backend:2.17.2@sha256:770b55f6e51bfcee49152b30858ca6a47143256de8d43953a50b952b5c60bb55
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-backend_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/assets:/opt/data/assets
+  penpot-exporter:
+    environment:
+    - PENPOT_SECRET_KEY=${APP_SEED}
+    - PENPOT_PUBLIC_URI=http://${DEVICE_DOMAIN_NAME}:${APP_PENPOT_UI_PORT}
+    - PENPOT_INTERNAL_URI=http://penpot-frontend:8080
+    - PENPOT_REDIS_URI=redis://penpot_penpot-valkey_1/0
+    image: penpotapp/exporter:2.17.2@sha256:72a8061e88069b9baf0767bc11fbf3310d2527bb5964ca084cf8c844d84306c8
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-exporter_1
+    restart: on-failure
+    user: 1000:1000
+  penpot-frontend:
+    depends_on:
+    - penpot-backend
+    - penpot-exporter
+    - penpot-mcp
+    environment:
+    - PENPOT_FLAGS=enable-registration enable-login-with-password
+    image: penpotapp/frontend:2.17.2@sha256:94fa2864d8fc0cd62245af95c03cca89306a7fd23c206a98a3e9dc9a376ea27e
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-frontend_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/assets:/opt/data/assets
+  penpot-mcp:
+    image: penpotapp/mcp:2.17.2@sha256:84f3f07ead11745ad95c2c1db90d33d00c550cff76844791ca4389d307f1be37
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-mcp_1
+    restart: on-failure
+    user: 1000:1000
+  penpot-postgres:
+    environment:
+    - POSTGRES_INITDB_ARGS=--data-checksums
+    - POSTGRES_DB=penpot
+    - POSTGRES_USER=penpot
+    - POSTGRES_PASSWORD=penpot
+    image: postgres:15@sha256:546445ad21cb5893c0997080b831ee45945e798c4359270e16413c8bd93575db
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-postgres_1
+    restart: on-failure
+    stop_signal: SIGINT
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  penpot-valkey:
+    healthcheck:
+      interval: 1s
+      retries: 5
+      start_period: 3s
+      test:
+      - CMD-SHELL
+      - valkey-cli ping | grep PONG
+      timeout: 3s
+    image: valkey/valkey:8.1.3@sha256:facc1d2c3462975c34e10fccb167bfa92b0e0dbd992fc282c29a61c3243afb11
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-valkey_1
+    restart: on-failure
+    user: 1000:1000

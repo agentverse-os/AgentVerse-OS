@@ -1,0 +1,13 @@
+# seedtool-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    image: dennysubke/seedtool:2.3.0@sha256:ab5a3bd42d7d4d0afc9c77ea9448e5d34244b66d7064eac75247601934fb90cc
+    networks:
+      appnet:
+        aliases:
+        - seedtool_app_1
+    restart: on-failure

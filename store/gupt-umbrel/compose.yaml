@@ -1,0 +1,15 @@
+# gupt-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: ghcr.io/besoeasy/gupt:4.1.13@sha256:b0f15a2075bed76a9420ad7d128f92774077bf2bbd60fb6ce8816b24ee5dc48b
+    networks:
+      appnet:
+        aliases:
+        - gupt_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000

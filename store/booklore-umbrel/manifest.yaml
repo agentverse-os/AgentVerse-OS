@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/booklore-umbrel
+description: An app for managing and reading books
+endpoint:
+  port: 6060
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/6.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/booklore/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: booklore-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: BookLore
+type: app
+upstream:
+  author: BookLore
+  categories:
+  - files
+  release_notes: |-
+    This packaging update enables BookLore's BookDrop watched folder, which the app description advertises but the package previously did not wire up.
+
+    A "bookdrop" folder is now available in the Files app at Apps/booklore/data/bookdrop. Drop book files there and BookLore detects them within seconds; review and import them from the Bookdrop page in the app. After a successful import BookLore moves the file out of the folder and into your library, so the folder emptying itself is expected behavior, not data loss.
+
+    There are no changes to the BookLore application itself in this update.
+  source: https://github.com/booklore-app/booklore
+  version: 2.3.1-2
+  website: https://demo.booklore.dev/login
+website: https://demo.booklore.dev/login

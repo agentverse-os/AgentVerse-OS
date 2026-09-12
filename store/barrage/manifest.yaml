@@ -1,0 +1,74 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/barrage
+description: Minimal Deluge WebUI with full mobile support
+endpoint:
+  port: 3000
+  service: barrage
+env:
+  BARRAGE_PASSWORD:
+    generate: password
+  DELUGE_PASSWORD: ''
+  DELUGE_URL: ''
+  NEXTAUTH_SECRET:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: BARRAGE_PASSWORD
+  path: null
+  user: null
+name: barrage
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NEXTAUTH_SECRET
+  hint: null
+  label: NEXTAUTH_SECRET
+  options: null
+  required: false
+  type: random
+- env: DELUGE_URL
+  hint: URL of your deluge client
+  label: Deluge URL
+  options: null
+  required: true
+  type: text
+- env: DELUGE_PASSWORD
+  hint: null
+  label: Deluge password
+  options: null
+  required: true
+  type: text
+- env: BARRAGE_PASSWORD
+  hint: null
+  label: Barrage password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Barrage
+type: app
+upstream:
+  author: https://github.com/maulik9898
+  categories:
+  - utilities
+  source: https://github.com/maulik9898/barrage
+  tipi_version: 7
+  version: 0.3.0
+website: https://github.com/maulik9898/barrage

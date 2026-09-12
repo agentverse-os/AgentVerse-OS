@@ -1,0 +1,41 @@
+# Сеть создаёт cloudd (external); данные — bind-mount в tank/apps/garage (2.8), не named volume.
+# rpc_secret / admin_token / metrics_token приходят из env (генерирует ядро), в конфиге их нет.
+services:
+  garage:
+    image: dxflrs/garage:v2.3.0
+    restart: unless-stopped
+    command: ["/garage", "server", "--single-node"]
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN}
+      GARAGE_METRICS_TOKEN: ${GARAGE_METRICS_TOKEN}
+    configs:
+      - source: garage_toml
+        target: /etc/garage.toml
+    volumes:
+      - ${APP_DATA_DIR}/meta:/var/lib/garage/meta
+      - ${APP_DATA_DIR}/data:/var/lib/garage/data
+    networks: [appnet]
+configs:
+  garage_toml:
+    content: |
+      metadata_dir = "/var/lib/garage/meta"
+      data_dir = "/var/lib/garage/data"
+      db_engine = "lmdb"
+      replication_factor = 1
+      compression_level = 1
+      rpc_bind_addr = "[::]:3901"
+      rpc_public_addr = "127.0.0.1:3901"
+      [s3_api]
+      s3_region = "garage"
+      api_bind_addr = "[::]:3900"
+      root_domain = ".s3.garage"
+      [s3_web]
+      bind_addr = "[::]:3902"
+      root_domain = ".web.garage"
+      [admin]
+      api_bind_addr = "[::]:3903"
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}

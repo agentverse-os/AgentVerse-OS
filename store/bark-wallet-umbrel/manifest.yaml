@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bark-wallet-umbrel
+description: One wallet for Lightning, Ark, and on-chain
+endpoint:
+  port: 8080
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bark-wallet/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bark-wallet/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bark-wallet/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bark-wallet/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bark-wallet/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bark-wallet/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bark-wallet-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Bark Wallet
+type: app
+upstream:
+  author: Second
+  categories:
+  - bitcoin
+  release_notes: |-
+    Changes:
+      - New guided setup for creating or importing a wallet
+      - Added timeframe selection to the balance chart
+      - Improved validation and fee estimates across send, board, offboard, and emergency exit flows
+      - Improved protection for recovery phrase access
+      - Updated the Bark wallet daemon to version 0.6.2
+
+    Full release notes can be found at https://gitlab.com/ark-bitcoin/labs/bark-web/-/releases/v0.8.0
+  source: https://gitlab.com/ark-bitcoin/labs/bark-web
+  version: 0.8.0
+  website: https://second.tech
+website: https://second.tech

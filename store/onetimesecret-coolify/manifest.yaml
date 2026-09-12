@@ -1,0 +1,91 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/onetimesecret-coolify
+description: Share sensitive information securely with self-destructing links that are only viewable once.
+endpoint:
+  port: 3000
+  service: onetimesecret
+env:
+  AUTH_AUTOVERIFY: 'true'
+  AUTH_SIGNUP: 'true'
+  COLONEL: admin@example.com
+  HOST: localhost
+  SERVICE_PASSWORD_ONETIMESECRET:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_URL_ONETIMESECRET_3000: https://${APP_DOMAIN}
+  SSL: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ONETIMESECRET
+  path: null
+  user: null
+name: onetimesecret-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: AUTH_AUTOVERIFY
+  hint: 'по умолчанию: true'
+  label: auth autoverify
+  options: null
+  required: false
+  type: text
+- env: AUTH_SIGNUP
+  hint: 'по умолчанию: true'
+  label: auth signup
+  options: null
+  required: false
+  type: text
+- env: COLONEL
+  hint: 'по умолчанию: admin@example.com'
+  label: colonel
+  options: null
+  required: false
+  type: text
+- env: HOST
+  hint: 'по умолчанию: localhost'
+  label: host
+  options: null
+  required: false
+  type: text
+- env: SSL
+  hint: 'по умолчанию: false'
+  label: ssl
+  options: null
+  required: false
+  type: text
+tags:
+- auth
+- password
+- secret
+- secure
+title: Onetimesecret
+type: app
+upstream:
+  categories:
+  - security
+  source: https://docs.onetimesecret.com
+  tags:
+  - auth
+  - password
+  - secret
+  - secure
+  template: onetimesecret.yaml
+website: https://docs.onetimesecret.com

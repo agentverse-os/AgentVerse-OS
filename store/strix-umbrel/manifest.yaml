@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/strix-umbrel
+description: IP camera stream discovery tool for Frigate
+endpoint:
+  port: 4567
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/strix/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/strix/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/strix/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/strix/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/strix/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/strix/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: strix-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Strix
+type: app
+upstream:
+  author: eduard256
+  categories:
+  - automation
+  release_notes: |-
+    - Added Xiaomi camera support with Mi Cloud integration, miIO detection, a dedicated setup page, and a go2rtc compatibility warning.
+    - Added TP-Link Tapo, VIGI, and Kasa protocol support.
+    - Improved Frigate config generation by nesting vendor credentials under go2rtc and fixed ONVIF/go2rtc generated-config issues.
+  source: https://github.com/eduard256/Strix
+  version: 2.2.0
+  website: https://github.com/eduard256/Strix
+website: https://github.com/eduard256/Strix

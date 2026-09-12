@@ -1,0 +1,183 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/argilla-coolify
+description: Argilla is a collaboration tool for AI engineers and domain experts who need to build high-quality datasets for their projects.
+endpoint:
+  port: 6900
+  service: argilla
+env:
+  ARGILLA_ENABLE_TELEMETRY: '0'
+  ARGILLA_USERNAME: argilla
+  BACKGROUND_NUM_WORKERS: '1'
+  CLUSTER_NAME: es-argilla-local
+  CLUSTER_ROUTING_ALLOCATION_DISK_THRESHOLD_ENABLED: 'false'
+  DEFAULT_USER_ENABLED: 'true'
+  DISCOVERY_TYPE: single-node
+  ES_JAVA_OPTS: \"-Xms512m -Xmx512m\"
+  HF_HUB_DISABLE_TELEMETRY: '1'
+  NODE_NAME: elasticsearch
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  REINDEX_DATASETS: '1'
+  SERVICE_PASSWORD_APIKEY:
+    generate: password
+  SERVICE_PASSWORD_ARGILLA:
+    generate: password
+  SERVICE_PASSWORD_AUTHSECRET:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_ARGILLA_6900: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  WORKSPACE: default
+  XPACK_SECURITY_ENABLED: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ARGILLA
+  path: null
+  user: ARGILLA_USERNAME
+name: argilla-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: ARGILLA_ENABLE_TELEMETRY
+  hint: 'по умолчанию: 0'
+  label: argilla enable telemetry
+  options: null
+  required: false
+  type: text
+- env: HF_HUB_DISABLE_TELEMETRY
+  hint: 'по умолчанию: 1'
+  label: hf hub disable telemetry
+  options: null
+  required: false
+  type: text
+- env: REINDEX_DATASETS
+  hint: 'по умолчанию: 1'
+  label: reindex datasets
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_USER_ENABLED
+  hint: 'по умолчанию: true'
+  label: default user enabled
+  options: null
+  required: false
+  type: text
+- env: ARGILLA_USERNAME
+  hint: 'по умолчанию: argilla'
+  label: argilla username
+  options: null
+  required: false
+  type: text
+- env: WORKSPACE
+  hint: 'по умолчанию: default'
+  label: workspace
+  options: null
+  required: false
+  type: text
+- env: BACKGROUND_NUM_WORKERS
+  hint: 'по умолчанию: 1'
+  label: background num workers
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: NODE_NAME
+  hint: 'по умолчанию: elasticsearch'
+  label: node name
+  options: null
+  required: false
+  type: text
+- env: CLUSTER_NAME
+  hint: 'по умолчанию: es-argilla-local'
+  label: cluster name
+  options: null
+  required: false
+  type: text
+- env: DISCOVERY_TYPE
+  hint: 'по умолчанию: single-node'
+  label: discovery type
+  options: null
+  required: false
+  type: text
+- env: ES_JAVA_OPTS
+  hint: 'по умолчанию: \"-Xms512m -Xmx512m\"'
+  label: es java opts
+  options: null
+  required: false
+  type: text
+- env: CLUSTER_ROUTING_ALLOCATION_DISK_THRESHOLD_ENABLED
+  hint: 'по умолчанию: false'
+  label: cluster routing allocation disk threshold enabled
+  options: null
+  required: false
+  type: text
+- env: XPACK_SECURITY_ENABLED
+  hint: 'по умолчанию: false'
+  label: xpack security enabled
+  options: null
+  required: false
+  type: text
+tags:
+- workflow
+- orchestration
+- data-pipeline
+- python
+- argilla
+- ai
+- elasticsearch
+- datasets
+- data
+- machine-learning
+- data-science
+- nlp
+title: Argilla
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://docs.argilla.io/latest/
+  tags:
+  - workflow
+  - orchestration
+  - data-pipeline
+  - python
+  - argilla
+  - ai
+  - elasticsearch
+  - datasets
+  - data
+  - machine-learning
+  - data-science
+  - nlp
+  template: argilla.yaml
+website: https://docs.argilla.io/latest/

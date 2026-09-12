@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tautulli-umbrel
+description: Monitor your Plex Media Server
+endpoint:
+  port: 8181
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/tautulli/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/tautulli/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/tautulli/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/tautulli/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: tautulli-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: tautulli
+type: app
+upstream:
+  author: Tautulli
+  categories:
+  - media
+  release_notes: |-
+    This update fixes activity and history issues, including empty session rows and detailed history expansion when Current Activity in History Tables is enabled.
+
+    It also fixes notification settings bugs, including email passwords being overwritten on save, repeated new-device notifications for local users, and sentinel values appearing in notification text.
+
+    API and security fixes include preventing guest users from retrieving another user's history through the API, restoring the get_plex_logs response shape, and adding X-Frame-Options support to the config.
+  source: https://github.com/Tautulli/Tautulli
+  version: 2.18.1
+  website: https://tautulli.com/
+website: https://tautulli.com/

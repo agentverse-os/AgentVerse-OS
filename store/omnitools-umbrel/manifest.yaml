@@ -1,0 +1,77 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/omnitools-umbrel
+description: An all-in-one collection of powerful web-based tools for everyday tasks
+endpoint:
+  port: 80
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/omnitools/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/omnitools/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/omnitools/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/omnitools/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/omnitools/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/omnitools/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: omnitools-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: OmniTools
+type: app
+upstream:
+  author: Ibrahima Gaye Coulibaly
+  categories:
+  - files
+  release_notes: |-
+    New features in this release include:
+
+      - Password Generator
+      - URL Encode and Decode
+      - Hidden Character Detector
+      - JSON Comparison
+      - Merge Video
+      - Random Port and Number Generators
+      - Convert Unix to Date
+
+    Translations are now available in multiple languages including Spanish, French, German, Chinese, Japanese, Hindi, Dutch, Portuguese, and Russian.
+
+    A new bookmarking feature allows you to save your favorite tools for quick access, and it's persistent across sessions.
+
+    The app now includes filtering options for General Users and Developers to easily find relevant tools.
+
+    Additional improvements:
+
+      - Image Editor with crop, rotate, filters, watermark, and annotation features
+      - PDF Editor for adding text, images, signatures, and checkboxes
+      - Video to GIF conversion
+      - Audio extraction, speed change, trimming, and merging
+      - Crontab Explainer and Leap Year Checker
+      - Text Censor tool
+      - XML Beautifier and Validator
+
+    For full release notes, visit https://github.com/iib0011/omni-tools/releases
+  source: https://github.com/iib0011/omni-tools
+  version: 0.6.0
+  website: https://omnitools.app/
+website: https://omnitools.app/

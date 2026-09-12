@@ -1,0 +1,52 @@
+# forgejo-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  forgejo:
+    environment:
+    - SERVICE_URL_FORGEJO_3000=${SERVICE_URL_FORGEJO_3000}
+    - FORGEJO__server__ROOT_URL=${SERVICE_URL_FORGEJO}
+    - FORGEJO__migrations__ALLOWED_DOMAINS=${FORGEJO__migrations__ALLOWED_DOMAINS}
+    - FORGEJO__migrations__ALLOW_LOCALNETWORKS=${FORGEJO__migrations__ALLOW_LOCALNETWORKS-false}
+    - USER_UID=1000
+    - USER_GID=1000
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000
+      timeout: 10s
+    image: codeberg.org/forgejo/forgejo:15
+    networks:
+      appnet:
+        aliases:
+        - forgejo-coolify_forgejo_1
+    restart: unless-stopped
+    volumes:
+    - forgejo-data:/data
+    - forgejo-timezone:/etc/timezone:ro
+    - forgejo-localtime:/etc/localtime:ro
+volumes:
+  forgejo-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-data
+      o: bind
+      type: none
+  forgejo-localtime:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-localtime
+      o: bind
+      type: none
+  forgejo-timezone:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-timezone
+      o: bind
+      type: none

@@ -1,0 +1,9 @@
+🪆 Baikal Server is a lightweight CalDAV and CardDAV server designed for users who want to manage their calendar and contact information securely on their own server. This robust application offers an extensive web interface that simplifies the management of users, address books, and calendars, making it accessible for both beginners and experienced users.
+
+One of the key features of Baikal is its ease of installation and configuration. It requires only a basic PHP-capable server, which means you don't need extensive technical knowledge to get started. The server supports both MySQL and SQLite databases for data storage, providing flexibility depending on your preferences and needs.
+
+Baikal allows users to seamlessly access their contacts and calendars from any device. It is compatible with a wide range of applications, including iOS, macOS, DAVx5 on Android, Mozilla Thunderbird, and many other CalDAV and CardDAV capable applications. This compatibility ensures that you can sync your data across multiple platforms without any hassle.
+
+In addition to its user-friendly features, Baikal emphasizes privacy and data security. By hosting your calendars and contacts yourself, you maintain full control over your personal information, protecting it from potential breaches and unauthorized access. This is particularly important in an era where data privacy is a growing concern.
+
+Whether you are an individual looking for a reliable personal organizer or a small team needing a collaborative solution, Baikal Server provides a practical and efficient way to manage your scheduling and contact needs while ensuring your data remains private and secure. With its fast performance and straightforward interface, Baikal is an excellent choice for anyone seeking a self-hosted calendar and contact management solution.

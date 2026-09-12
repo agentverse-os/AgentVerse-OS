@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bitwatch-umbrel
+description: Monitor Bitcoin addresses in real-time
+endpoint:
+  port: 3117
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bitwatch/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitwatch/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitwatch/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bitwatch/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bitwatch-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Bitwatch
+type: app
+upstream:
+  author: Zap-O-Matic
+  categories:
+  - bitcoin
+  release_notes: |-
+    This release addresses privacy concerns:
+
+      - when a local mempool instance is configured, address links open to that service url
+  source: https://github.com/zapomatic/bitwatch
+  version: 1.7.2
+  website: https://github.com/zapomatic/bitwatch
+website: https://github.com/zapomatic/bitwatch

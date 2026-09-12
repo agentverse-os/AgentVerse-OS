@@ -1,0 +1,73 @@
+# paperless-ngx: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  broker:
+    image: redis:7
+    networks:
+      appnet:
+        aliases:
+        - paperless-ngx_broker_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  db:
+    environment:
+      POSTGRES_DB: paperless
+      POSTGRES_PASSWORD: paperless
+      POSTGRES_USER: paperless
+    image: postgres:17
+    networks:
+      appnet:
+        aliases:
+        - paperless-ngx_db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  gotenberg:
+    command:
+    - gotenberg
+    - --chromium-disable-javascript=true
+    - --chromium-allow-list=file:///tmp/.*
+    image: gotenberg/gotenberg:8.36
+    networks:
+      appnet:
+        aliases:
+        - paperless-ngx_gotenberg_1
+    restart: unless-stopped
+  paperless-ngx:
+    depends_on:
+    - db
+    - broker
+    environment:
+      COMPOSE_PROJECT_NAME: paperless-ngx
+      PAPERLESS_ADMIN_PASSWORD: ${PAPERLESS_ADMIN_PASSWORD}
+      PAPERLESS_ADMIN_USER: ${PAPERLESS_ADMIN_USERNAME}
+      PAPERLESS_CSRF_TRUSTED_ORIGINS: https://${APP_LOCAL_DOMAIN},https://${APP_DOMAIN},http://${INTERNAL_IP}:${APP_PORT}
+      PAPERLESS_DBHOST: db
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY}
+      PAPERLESS_TIKA_ENABLED: ${PAPERLESS_TIKA_ENABLED}
+      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+      PAPERLESS_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.5
+    networks:
+      appnet:
+        aliases:
+        - paperless-ngx_paperless-ngx_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/paperless_data:/usr/src/paperless/data
+    - ${APP_DATA_DIR}/data/paperless_media:/usr/src/paperless/media
+    - ${APP_DATA_DIR}/data/paperless_export:/usr/src/paperless/export
+    - ${APP_DATA_DIR}/data/paperless_consume:/usr/src/paperless/consume
+  tika:
+    image: apache/tika:latest
+    networks:
+      appnet:
+        aliases:
+        - paperless-ngx_tika_1
+    restart: unless-stopped

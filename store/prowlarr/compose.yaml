@@ -1,0 +1,17 @@
+# prowlarr: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  prowlarr:
+    environment:
+      TZ: ${TZ}
+    image: ghcr.io/linuxserver/prowlarr:2.5.2
+    networks:
+      appnet:
+        aliases:
+        - prowlarr_prowlarr_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config

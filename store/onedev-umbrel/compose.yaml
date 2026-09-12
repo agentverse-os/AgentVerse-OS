@@ -1,0 +1,64 @@
+# onedev-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  docker:
+    command: |
+      dockerd --bridge dind0 --data-root /data/data --exec-root /data/exec --host unix:///data/docker.sock --pidfile /data/docker.pid
+    entrypoint: /entrypoint.sh
+    environment:
+      DOCKER_ENSURE_BRIDGE: dind0:10.32.0.1/16
+    image: docker:27.2.0-dind@sha256:f9f72ad901a78f27be922b2d320bbc263174f12919c1b37e6a01f828fa904565
+    network_mode: host
+    privileged: true
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/entrypoint.sh:/entrypoint.sh
+    - ${APP_DATA_DIR}/data/docker:/data
+  postgres:
+    environment:
+      POSTGRES_DB: onedev
+      POSTGRES_PASSWORD: ${APP_SEED}
+      POSTGRES_USER: postgres
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres -d onedev
+      timeout: 5s
+    image: postgres:17.10-alpine@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+    networks:
+      appnet:
+        aliases:
+        - onedev_postgres_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  web:
+    depends_on:
+      docker:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      ONEDEV_SERVICE_HOST: ${DEVICE_DOMAIN_NAME}:${APP_PROXY_PORT}
+      hibernate_connection_driver_class: org.postgresql.Driver
+      hibernate_connection_password: ${APP_SEED}
+      hibernate_connection_url: jdbc:postgresql://onedev_postgres_1:5432/onedev
+      hibernate_connection_username: postgres
+      hibernate_dialect: io.onedev.server.persistence.PostgreSQLDialect
+    image: 1dev/server:16.5.10@sha256:f860a14912d7279609b5fdeeceba5006b24a5ebc21d652ba2ecfcc7bafc1a437
+    networks:
+      appnet:
+        aliases:
+        - onedev_web_1
+    restart: on-failure
+    tty: true
+    volumes:
+    - ${APP_DATA_DIR}/data/onedev:/opt/onedev
+    - ${APP_DATA_DIR}/data/docker:/var/run

@@ -1,0 +1,15 @@
+# element-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: vectorim/element-web:v1.12.27@sha256:7050130b263bbcf0e4ad8da875a2821cd89dc55b2f04e93aaa13f682d013019e
+    networks:
+      appnet:
+        aliases:
+        - element_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: nginx:nginx

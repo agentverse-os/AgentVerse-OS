@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/forgejo-umbrel
+description: A self-hosted lightweight software forge
+endpoint:
+  port: 8101
+  service: server
+env:
+  APP_FORGEJO_SSH_PORT: '2223'
+  APP_FORGEJO_TOR_HS_EXTRA_PORTS: 22:forgejo_server_1:${APP_FORGEJO_SSH_PORT}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/forgejo/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/forgejo/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/forgejo/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/forgejo/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: forgejo-umbrel
+notes:
+- 'порт ${APP_FORGEJO_SSH_PORT}:${APP_FORGEJO_SSH_PORT} (server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Forgejo
+type: app
+upstream:
+  author: Forgejo Community
+  categories:
+  - developer
+  release_notes: |-
+    Forgejo 16.0.3 is a security and bug-fix release. If you're updating from a pre-16.0 version, existing repositories remain compatible, and admins can optionally follow Forgejo's upgrade guide to clean up old per-repository hook/example files after making a backup.
+
+    If you manually enabled Forgejo reverse proxy authentication on your Umbrel, review Forgejo's trusted-proxy configuration guidance before upgrading.
+
+    This point release fixes pull-request update endpoint access checks, reusable workflow handling, invalid owner collaboration access, repository adoption from user settings, Matrix webhook delivery, Actions triggers, package and wiki API edge cases, hook-script quoting, search result formatting, task-log cleanup, and review-comment errors.
+
+    Full release notes are available at https://codeberg.org/forgejo/forgejo/releases/tag/v16.0.3
+  source: https://codeberg.org/forgejo/forgejo
+  version: 16.0.3
+  website: https://forgejo.org/
+website: https://forgejo.org/

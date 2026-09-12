@@ -1,0 +1,60 @@
+# easyappointments-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  easyappointments:
+    depends_on:
+    - mysql
+    environment:
+    - SERVICE_URL_EASYAPPOINTMENTS_80=${SERVICE_URL_EASYAPPOINTMENTS_80}
+    - BASE_URL=${SERVICE_URL_EASYAPPOINTMENTS}
+    - DB_HOST=mysql
+    - DB_NAME=easyappointments
+    - DB_USERNAME=root
+    - DB_PASSWORD=${SERVICE_PASSWORD_EASYAPPOINTMENTS}
+    healthcheck:
+      interval: 2s
+      retries: 30
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: alextselegidis/easyappointments:latest
+    networks:
+      appnet:
+        aliases:
+        - easyappointments-coolify_easyappointments_1
+    restart: unless-stopped
+  mysql:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_EASYAPPOINTMENTS}
+    - MYSQL_DATABASE=easyappointments
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - 127.0.0.1
+      timeout: 20s
+    image: mysql:8
+    networks:
+      appnet:
+        aliases:
+        - easyappointments-coolify_mysql_1
+    restart: unless-stopped
+    volumes:
+    - easyappointments-mysql-data:/var/lib/mysql
+volumes:
+  easyappointments-mysql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/easyappointments-mysql-data
+      o: bind
+      type: none

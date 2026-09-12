@@ -1,0 +1,260 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/postiz-coolify
+description: Open source social media scheduling tool.
+endpoint:
+  port: 5000
+  service: postiz
+env:
+  CLOUDFLARE_ACCESS_KEY: ''
+  CLOUDFLARE_ACCOUNT_ID: ''
+  CLOUDFLARE_BUCKETNAME: ''
+  CLOUDFLARE_BUCKET_URL: ''
+  CLOUDFLARE_REGION: ''
+  CLOUDFLARE_SECRET_ACCESS_KEY: ''
+  EMAIL_FROM_ADDRESS: ''
+  EMAIL_FROM_NAME: ''
+  EMAIL_PROVIDER: ''
+  FEE_AMOUNT: '0.05'
+  INSTAGRAM_APP_ID: ''
+  INSTAGRAM_APP_SECRET: ''
+  NEXT_PUBLIC_DISCORD_SUPPORT: ''
+  NEXT_PUBLIC_POLOTNO: ''
+  NEXT_PUBLIC_UPLOAD_DIRECTORY: /uploads
+  NEXT_PUBLIC_UPLOAD_STATIC_DIRECTORY: ''
+  NOT_SECURED: 'false'
+  NX_ADD_PLUGINS: 'false'
+  POSTGRESQL_DATABASE: postiz-db
+  POSTGRES_DB: postiz-db
+  POSTGRES_USER: ''
+  RESEND_API_KEY: ''
+  SERVICE_PASSWORD_JWTSECRET:
+    generate: password
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_URL_POSTIZ: https://${APP_DOMAIN}
+  SERVICE_URL_POSTIZ_5000: https://${APP_DOMAIN}
+  SLACK_SIGNING_SECRET: ''
+  STORAGE_PROVIDER: local
+  STRIPE_PUBLISHABLE_KEY: ''
+  STRIPE_SECRET_KEY: ''
+  STRIPE_SIGNING_KEY: ''
+  STRIPE_SIGNING_KEY_CONNECT: ''
+  UPLOAD_DIRECTORY: /uploads
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: postiz-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: postiz-db'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: CLOUDFLARE_ACCOUNT_ID
+  hint: null
+  label: cloudflare account id
+  options: null
+  required: false
+  type: text
+- env: CLOUDFLARE_ACCESS_KEY
+  hint: null
+  label: cloudflare access key
+  options: null
+  required: false
+  type: password
+- env: CLOUDFLARE_SECRET_ACCESS_KEY
+  hint: null
+  label: cloudflare secret access key
+  options: null
+  required: false
+  type: password
+- env: CLOUDFLARE_BUCKETNAME
+  hint: null
+  label: cloudflare bucketname
+  options: null
+  required: false
+  type: text
+- env: CLOUDFLARE_BUCKET_URL
+  hint: null
+  label: cloudflare bucket url
+  options: null
+  required: false
+  type: text
+- env: CLOUDFLARE_REGION
+  hint: null
+  label: cloudflare region
+  options: null
+  required: false
+  type: text
+- env: STORAGE_PROVIDER
+  hint: 'по умолчанию: local'
+  label: storage provider
+  options: null
+  required: false
+  type: text
+- env: UPLOAD_DIRECTORY
+  hint: 'по умолчанию: /uploads'
+  label: upload directory
+  options: null
+  required: false
+  type: text
+- env: NEXT_PUBLIC_UPLOAD_DIRECTORY
+  hint: 'по умолчанию: /uploads'
+  label: next public upload directory
+  options: null
+  required: false
+  type: text
+- env: NEXT_PUBLIC_UPLOAD_STATIC_DIRECTORY
+  hint: null
+  label: next public upload static directory
+  options: null
+  required: false
+  type: text
+- env: RESEND_API_KEY
+  hint: null
+  label: resend api key
+  options: null
+  required: false
+  type: password
+- env: EMAIL_FROM_ADDRESS
+  hint: null
+  label: email from address
+  options: null
+  required: false
+  type: text
+- env: EMAIL_FROM_NAME
+  hint: null
+  label: email from name
+  options: null
+  required: false
+  type: text
+- env: EMAIL_PROVIDER
+  hint: null
+  label: email provider
+  options: null
+  required: false
+  type: text
+- env: SLACK_SIGNING_SECRET
+  hint: null
+  label: slack signing secret
+  options: null
+  required: false
+  type: password
+- env: INSTAGRAM_APP_ID
+  hint: null
+  label: instagram app id
+  options: null
+  required: false
+  type: text
+- env: INSTAGRAM_APP_SECRET
+  hint: null
+  label: instagram app secret
+  options: null
+  required: false
+  type: password
+- env: NEXT_PUBLIC_DISCORD_SUPPORT
+  hint: null
+  label: next public discord support
+  options: null
+  required: false
+  type: text
+- env: NEXT_PUBLIC_POLOTNO
+  hint: null
+  label: next public polotno
+  options: null
+  required: false
+  type: text
+- env: NX_ADD_PLUGINS
+  hint: 'по умолчанию: false'
+  label: nx add plugins
+  options: null
+  required: false
+  type: text
+- env: NOT_SECURED
+  hint: 'по умолчанию: false'
+  label: not secured
+  options: null
+  required: false
+  type: text
+- env: FEE_AMOUNT
+  hint: 'по умолчанию: 0.05'
+  label: fee amount
+  options: null
+  required: false
+  type: text
+- env: STRIPE_PUBLISHABLE_KEY
+  hint: null
+  label: stripe publishable key
+  options: null
+  required: false
+  type: password
+- env: STRIPE_SECRET_KEY
+  hint: null
+  label: stripe secret key
+  options: null
+  required: false
+  type: password
+- env: STRIPE_SIGNING_KEY
+  hint: null
+  label: stripe signing key
+  options: null
+  required: false
+  type: password
+- env: STRIPE_SIGNING_KEY_CONNECT
+  hint: null
+  label: stripe signing key connect
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: postiz-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- post everywhere
+- social media
+- planning
+title: Postiz
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://docs.postiz.com
+  tags:
+  - post everywhere
+  - social media
+  - planning
+  template: postiz.yaml
+website: https://docs.postiz.com

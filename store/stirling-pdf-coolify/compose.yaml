@@ -1,0 +1,51 @@
+# stirling-pdf-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  stirling-pdf:
+    environment:
+    - SERVICE_URL_SPDF_8080=${SERVICE_URL_SPDF_8080}
+    - DOCKER_ENABLE_SECURITY=false
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: curl --fail --silent http://127.0.0.1:8080/api/v1/info/status | grep -q "UP" || exit 1
+      timeout: 20s
+    image: stirlingtools/stirling-pdf:latest
+    networks:
+      appnet:
+        aliases:
+        - stirling-pdf-coolify_stirling-pdf_1
+    restart: unless-stopped
+    volumes:
+    - stirling-training-data:/usr/share/tesseract-ocr/5/tessdata
+    - stirling-configs:/configs
+    - stirling-custom-files:/customFiles/
+    - stirling-logs:/logs/
+volumes:
+  stirling-configs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/stirling-configs
+      o: bind
+      type: none
+  stirling-custom-files:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/stirling-custom-files
+      o: bind
+      type: none
+  stirling-logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/stirling-logs
+      o: bind
+      type: none
+  stirling-training-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/stirling-training-data
+      o: bind
+      type: none

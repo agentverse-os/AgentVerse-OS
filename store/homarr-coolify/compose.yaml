@@ -1,0 +1,33 @@
+# homarr-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  homarr:
+    environment:
+    - SERVICE_URL_HOMARR_7575=${SERVICE_URL_HOMARR_7575}
+    - SECRET_ENCRYPTION_KEY=${SERVICE_HEX_64_HOMARR}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:7575
+      timeout: 20s
+    image: ghcr.io/homarr-labs/homarr:v1.40.0
+    networks:
+      appnet:
+        aliases:
+        - homarr-coolify_homarr_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - ./homarr/appdata:/appdata

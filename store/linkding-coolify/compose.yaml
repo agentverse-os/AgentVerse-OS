@@ -1,0 +1,32 @@
+# linkding-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  linkding:
+    environment:
+    - SERVICE_URL_LINKDING_9090=${SERVICE_URL_LINKDING_9090}
+    - LD_SUPERUSER_NAME=${SERVICE_USER_LINKDING}
+    - LD_SUPERUSER_PASSWORD=${SERVICE_PASSWORD_LINKDING}
+    healthcheck:
+      interval: 5s
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/9090' || exit 1
+      timeout: 5s
+    image: sissbruecker/linkding:latest
+    networks:
+      appnet:
+        aliases:
+        - linkding-coolify_linkding_1
+    restart: unless-stopped
+    volumes:
+    - linkding_data:/etc/linkding/data
+volumes:
+  linkding_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/linkding_data
+      o: bind
+      type: none

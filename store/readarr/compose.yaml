@@ -1,0 +1,21 @@
+# readarr: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  readarr:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/readarr:0.4.19-nightly
+    networks:
+      appnet:
+        aliases:
+        - readarr_readarr_1
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${APP_DATA_DIR}/data:/config
+    - ${ROOT_FOLDER_HOST}/media:/media

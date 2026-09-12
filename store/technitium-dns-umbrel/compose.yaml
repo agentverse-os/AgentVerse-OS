@@ -1,0 +1,15 @@
+# technitium-dns-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  dns-server:
+    environment:
+    - DNS_SERVER_DOMAIN=${DEVICE_DOMAIN_NAME}
+    - DNS_SERVER_ADMIN_PASSWORD=${APP_PASSWORD}
+    image: technitium/dns-server:15.4.0@sha256:df7d90ef0f7b6fff6916d291a7022cd902290cc31c3141d4158b6c375a641b41
+    network_mode: host
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/etc/dns

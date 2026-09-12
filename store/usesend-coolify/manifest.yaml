@@ -1,0 +1,91 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/usesend-coolify
+description: Usesend is an open-source alternative to Resend, Sendgrid, Mailgun and Postmark etc.
+endpoint:
+  port: 3000
+  service: usesend
+env:
+  API_RATE_LIMIT: '1'
+  NEXT_PUBLIC_IS_CLOUD: 'false'
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_BASE64_64_NEXTAUTHSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_USESEND: https://${APP_DOMAIN}
+  SERVICE_URL_USESEND_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: usesend-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: NEXT_PUBLIC_IS_CLOUD
+  hint: 'по умолчанию: false'
+  label: next public is cloud
+  options: null
+  required: false
+  type: text
+- env: API_RATE_LIMIT
+  hint: 'по умолчанию: 1'
+  label: api rate limit
+  options: null
+  required: false
+  type: text
+tags:
+- resend
+- mailer
+- marketing emails
+- transaction emails
+- self-hosting
+- postmark
+title: Usesend
+type: app
+upstream:
+  categories:
+  - email
+  source: https://docs.usesend.com/self-hosting/overview
+  tags:
+  - resend
+  - mailer
+  - marketing emails
+  - transaction emails
+  - self-hosting
+  - postmark
+  template: usesend.yaml
+website: https://docs.usesend.com/self-hosting/overview

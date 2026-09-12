@@ -1,0 +1,89 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/freescout-coolify
+description: FreeScout is the super lightweight and powerful free open source help desk and shared inbox written in PHP (Laravel framework).
+endpoint:
+  port: 80
+  service: freescout
+env:
+  ADMIN_EMAIL: admin@example.com
+  DISPLAY_ERRORS: 'FALSE'
+  MARIADB_DATABASE: freescout
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_URL_FREESCOUT: https://${APP_DOMAIN}
+  SERVICE_URL_FREESCOUT_80: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+  TIMEZONE: UTC
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: ADMIN_EMAIL
+name: freescout-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MARIADB_DATABASE
+  hint: 'по умолчанию: freescout'
+  label: mariadb database
+  options: null
+  required: false
+  type: text
+- env: ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: admin email
+  options: null
+  required: false
+  type: text
+- env: DISPLAY_ERRORS
+  hint: 'по умолчанию: FALSE'
+  label: display errors
+  options: null
+  required: false
+  type: text
+- env: TIMEZONE
+  hint: 'по умолчанию: UTC'
+  label: timezone
+  options: null
+  required: false
+  type: text
+tags:
+- helpdesk
+- support
+- ticketing
+- customer-support
+title: Freescout
+type: app
+upstream:
+  categories:
+  - helpdesk
+  source: https://github.com/freescout-help-desk/freescout/wiki/
+  tags:
+  - helpdesk
+  - support
+  - ticketing
+  - customer-support
+  template: freescout.yaml
+website: https://github.com/freescout-help-desk/freescout/wiki/

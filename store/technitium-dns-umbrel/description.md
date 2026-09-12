@@ -1,0 +1,1 @@
+Technitium DNS Server is an open source authoritative, as well as recursive, DNS server that can be used for self hosting a DNS server for privacy & security. It works out-of-the-box with no or minimal configuration.

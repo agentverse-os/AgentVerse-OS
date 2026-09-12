@@ -1,0 +1,124 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rallly
+description: Scheduling and collaboration tool
+endpoint:
+  port: 3000
+  service: rallly
+env:
+  RALLLY_ALLOWED_EMAILS: ''
+  RALLLY_DB_PASSWORD:
+    generate: token
+  RALLLY_NOREPLY_EMAIL: ''
+  RALLLY_SECRET_KEY:
+    generate: token
+  RALLLY_SMTP_HOST: ''
+  RALLLY_SMTP_PORT: ''
+  RALLLY_SMTP_PWD:
+    generate: password
+  RALLLY_SMTP_SECURE: ''
+  RALLLY_SMTP_TLS_ENABLED: ''
+  RALLLY_SMTP_USER: ''
+  RALLLY_SUPPORT_EMAIL: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: rallly
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: RALLLY_DB_PASSWORD
+  hint: null
+  label: Database Password
+  options: null
+  required: false
+  type: random
+- env: RALLLY_SECRET_KEY
+  hint: null
+  label: Secret key for User session
+  options: null
+  required: false
+  type: random
+- env: RALLLY_NOREPLY_EMAIL
+  hint: null
+  label: NoReply Email
+  options: null
+  required: false
+  type: email
+- env: RALLLY_SUPPORT_EMAIL
+  hint: null
+  label: Support Email
+  options: null
+  required: true
+  type: email
+- env: RALLLY_ALLOWED_EMAILS
+  hint: Comma separated list of email addresses that are allowed to register and login. You can use wildcard syntax to match a range of email addresses.
+  label: Allowed Emails
+  options: null
+  required: false
+  type: text
+- env: RALLLY_SMTP_HOST
+  hint: null
+  label: SMTP Host
+  options: null
+  required: true
+  type: text
+- env: RALLLY_SMTP_PORT
+  hint: null
+  label: SMTP Port
+  options: null
+  required: true
+  type: number
+- env: RALLLY_SMTP_SECURE
+  hint: null
+  label: SMTP Secure
+  options: null
+  required: false
+  type: boolean
+- env: RALLLY_SMTP_TLS_ENABLED
+  hint: null
+  label: SMTP Enable TLS
+  options: null
+  required: false
+  type: boolean
+- env: RALLLY_SMTP_USER
+  hint: null
+  label: SMTP User
+  options: null
+  required: false
+  type: text
+- env: RALLLY_SMTP_PWD
+  hint: null
+  label: SMTP Password
+  options: null
+  required: false
+  type: password
+tags: []
+title: Rallly
+type: app
+upstream:
+  author: lukevella
+  categories:
+  - utilities
+  source: https://github.com/lukevella/rallly
+  tipi_version: 59
+  version: 4.13.1
+website: https://github.com/lukevella/rallly

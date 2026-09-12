@@ -1,0 +1,118 @@
+# leantime-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  leantime:
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+    - SERVICE_URL_LEANTIME_8080=${SERVICE_URL_LEANTIME_8080}
+    - LEAN_APP_URL=${SERVICE_URL_LEANTIME}
+    - LEAN_DB_HOST=mysql
+    - LEAN_DB_USER=${SERVICE_USER_MYSQLDB}
+    - LEAN_DB_PASSWORD=${SERVICE_PASSWORD_MYSQLDB}
+    - LEAN_DB_DATABASE=${DB_NAME:-leantime-db}
+    - LEAN_SESSION_PASSWORD=${SERVICE_PASSWORD_64_SALT}
+    - LEAN_SESSION_EXPIRATION=${SESSION_EXPIRATION:-28800}
+    - LEAN_USE_REDIS=${USE_REDIS:-true}
+    - LEAN_REDIS_HOST=redis
+    - LEAN_REDIS_PORT=${REDIS_PORT:-6379}
+    - LEAN_REDIS_SCHEME=${REDIS_SCHEME:-tcp}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8080
+      timeout: 20s
+    image: leantime/leantime:latest
+    networks:
+      appnet:
+        aliases:
+        - leantime-coolify_leantime_1
+    restart: unless-stopped
+    volumes:
+    - public-userfiles:/var/www/html/public/userfiles
+    - userfiles:/var/www/html/userfiles
+    - plugins:/var/www/html/app/Plugins
+  mysql:
+    command: --character-set-server=UTF8MB4 --collation-server=UTF8MB4_unicode_ci
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
+    - MYSQL_USER=${SERVICE_USER_MYSQLDB}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQLDB}
+    - MYSQL_DATABASE=${DB_NAME:-leantime-db}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - localhost
+      timeout: 10s
+    image: mysql:8.4
+    networks:
+      appnet:
+        aliases:
+        - leantime-coolify_mysql_1
+    restart: unless-stopped
+    volumes:
+    - leantime_mysql_data:/var/lib/mysql
+  redis:
+    command: redis-server --appendonly yes
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 5s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - leantime-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - leantime_redis_data:/data
+volumes:
+  leantime_mysql_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/leantime_mysql_data
+      o: bind
+      type: none
+  leantime_redis_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/leantime_redis_data
+      o: bind
+      type: none
+  plugins:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/plugins
+      o: bind
+      type: none
+  public-userfiles:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/public-userfiles
+      o: bind
+      type: none
+  userfiles:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/userfiles
+      o: bind
+      type: none

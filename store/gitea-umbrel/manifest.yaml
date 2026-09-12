@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gitea-umbrel
+description: A painless self-hosted Git service
+endpoint:
+  port: 8085
+  service: server
+env:
+  APP_GITEA_SSH_PORT: '2222'
+  APP_GITEA_TOR_HS_EXTRA_PORTS: 22:gitea_server_1:${APP_GITEA_SSH_PORT}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/gitea/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/gitea/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/gitea/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/gitea/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: gitea-umbrel
+notes:
+- 'порт ${APP_GITEA_SSH_PORT}:${APP_GITEA_SSH_PORT} (server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Gitea
+type: app
+upstream:
+  author: Gitea
+  categories:
+  - developer
+  release_notes: |-
+    Gitea 1.27.3 is a follow-up to the recent Gitea 1.27 major update. If you're updating from a pre-1.27 version, note that Gitea 1.27 includes breaking changes for reusable workflows and adds Content-Security-Policy script nonces, which may affect custom integrations that rely on old workflow behavior or inline scripts.
+
+    If you're already on Gitea 1.27, this update fixes security issues around package access, repository attachments, markup access checks, Actions artifact signatures, API permissions, hidden repositories, Git hooks, and issue search. It also includes fixes for Actions workflow rendering and validation, repository migrations, pull request merge state, Swift package versioning, dashboard feeds, and user/API handling.
+
+    Full release notes: https://github.com/go-gitea/gitea/releases/tag/v1.27.3
+  source: https://github.com/go-gitea/gitea
+  version: 1.27.3
+  website: https://gitea.io/en-us/
+website: https://gitea.io/en-us/

@@ -1,0 +1,100 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/leantime-coolify
+description: Leantime is a goals focused project management system for non-project managers.
+endpoint:
+  port: 8080
+  service: leantime
+env:
+  DB_NAME: leantime-db
+  REDIS_PORT: '6379'
+  REDIS_SCHEME: tcp
+  SERVICE_PASSWORD_64_SALT:
+    generate: hex64
+  SERVICE_PASSWORD_MYSQLDB:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_LEANTIME: https://${APP_DOMAIN}
+  SERVICE_URL_LEANTIME_8080: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQLDB:
+    generate: password
+  SESSION_EXPIRATION: '28800'
+  USE_REDIS: 'true'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: leantime-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DB_NAME
+  hint: 'по умолчанию: leantime-db'
+  label: db name
+  options: null
+  required: false
+  type: text
+- env: SESSION_EXPIRATION
+  hint: 'по умолчанию: 28800'
+  label: session expiration
+  options: null
+  required: false
+  type: text
+- env: USE_REDIS
+  hint: 'по умолчанию: true'
+  label: use redis
+  options: null
+  required: false
+  type: text
+- env: REDIS_PORT
+  hint: 'по умолчанию: 6379'
+  label: redis port
+  options: null
+  required: false
+  type: text
+- env: REDIS_SCHEME
+  hint: 'по умолчанию: tcp'
+  label: redis scheme
+  options: null
+  required: false
+  type: text
+tags:
+- project management
+- productivity
+- php
+- mysql
+- laravel
+- open source
+title: Leantime
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://leantime.io
+  tags:
+  - project management
+  - productivity
+  - php
+  - mysql
+  - laravel
+  - open source
+  template: leantime.yaml
+website: https://leantime.io

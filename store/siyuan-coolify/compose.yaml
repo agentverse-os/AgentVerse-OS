@@ -1,0 +1,39 @@
+# siyuan-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  siyuan:
+    environment:
+    - SERVICE_URL_SIYUAN_6806=${SERVICE_URL_SIYUAN_6806}
+    - TZ=${TZ:-UTC}
+    - PUID=1000
+    - PGID=1000
+    - SIYUAN_ACCESS_AUTH_CODE=${SERVICE_PASSWORD_SIYUAN}
+    healthcheck:
+      interval: 15s
+      retries: 5
+      start_period: 20s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - --quiet
+      - http://127.0.0.1:6806/api/system/version
+      timeout: 10s
+    image: b3log/siyuan:v3.3.5
+    networks:
+      appnet:
+        aliases:
+        - siyuan-coolify_siyuan_1
+    restart: unless-stopped
+    volumes:
+    - siyuan_workspace:/siyuan/workspace
+volumes:
+  siyuan_workspace:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/siyuan_workspace
+      o: bind
+      type: none

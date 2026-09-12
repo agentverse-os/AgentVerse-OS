@@ -1,0 +1,56 @@
+# crowdsec: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  crowdsec:
+    environment:
+      COLLECTIONS: crowdsecurity/linux crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/sshd
+      DOCKER_HOST: tcp://cloudos-docker-ro:2375
+      GID: ${GID-1000}
+    image: crowdsecurity/crowdsec:v1.7.8
+    networks:
+      appnet:
+        aliases:
+        - crowdsec_crowdsec_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - ${APP_DATA_DIR}/data/crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
+    - ${APP_DATA_DIR}/data/crowdsec:/etc/crowdsec
+    - ${APP_DATA_DIR}/data/crowdsec/db:/var/lib/crowdsec/data
+    - /var/log/auth.log:/var/log/auth.log:ro
+    - /var/log/traefik:/var/log/traefik:ro
+    - /var/log/crowdsec:/var/log/crowdsec:ro
+  crowdsec-bouncer-traefik:
+    depends_on:
+    - crowdsec
+    environment:
+      CROWDSEC_AGENT_HOST: crowdsec:8080
+      CROWDSEC_BOUNCER_API_KEY: ${CROWDSEC_BOUNCER_API_KEY}
+    image: fbonalair/traefik-crowdsec-bouncer:latest
+    networks:
+      appnet:
+        aliases:
+        - crowdsec_crowdsec-bouncer-traefik_1
+    restart: unless-stopped
+  crowdsec-dashboard:
+    depends_on:
+    - crowdsec
+    environment:
+      MB_DB_FILE: /data/metabase.db
+      MGID: ${GID-1000}
+    image: metabase/metabase
+    networks:
+      appnet:
+        aliases:
+        - crowdsec_crowdsec-dashboard_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/crowdsec-dashboard/data:/data
+    - ${APP_DATA_DIR}/data/crowdsec/db:/metabase-data

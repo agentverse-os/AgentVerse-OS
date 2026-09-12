@@ -1,0 +1,19 @@
+# grav-2: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  grav-2:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ}
+    image: lscr.io/linuxserver/grav:2.0.21
+    networks:
+      appnet:
+        aliases:
+        - grav-2_grav-2_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/grav-comfig:/config

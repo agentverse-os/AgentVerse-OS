@@ -1,0 +1,21 @@
+# calibre-web: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  calibre-web:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/calibre-web:0.6.27
+    networks:
+      appnet:
+        aliases:
+        - calibre-web_calibre-web_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${APP_DATA_DIR}/data/calibre:/calibre
+    - ${ROOT_FOLDER_HOST}/media/data/books:/books

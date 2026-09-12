@@ -1,0 +1,79 @@
+# paperless-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  paperless:
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_PAPERLESS_8000=${SERVICE_URL_PAPERLESS_8000}
+    - PAPERLESS_URL=$SERVICE_URL_PAPERLESS
+    - PAPERLESS_ADMIN_PASSWORD=${SERVICE_PASSWORD_PAPERLESS}
+    - PAPERLESS_ADMIN_USER=${SERVICE_USER_PAPERLESS}
+    - PAPERLESS_REDIS=redis://redis:6379
+    - PAPERLESS_SECRET_KEY=${SERVICE_REALBASE64_64_PAPERLESS}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -fs
+      - -S
+      - --max-time
+      - '2'
+      - http://localhost:8000
+      timeout: 10s
+    image: paperlessngx/paperless-ngx:latest
+    networks:
+      appnet:
+        aliases:
+        - paperless-coolify_paperless_1
+    restart: unless-stopped
+    volumes:
+    - paperless-data:/usr/src/paperless/data
+    - paperless-media:/usr/src/paperless/media
+    - source: ./export
+      target: /usr/src/paperless/export
+      type: bind
+    - source: ./consume
+      target: /usr/src/paperless/consume
+      type: bind
+  redis:
+    healthcheck:
+      retries: 3
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 10s
+    image: redis:7.4
+    networks:
+      appnet:
+        aliases:
+        - paperless-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - paperless-redis:/data
+volumes:
+  paperless-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/paperless-data
+      o: bind
+      type: none
+  paperless-media:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/paperless-media
+      o: bind
+      type: none
+  paperless-redis:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/paperless-redis
+      o: bind
+      type: none

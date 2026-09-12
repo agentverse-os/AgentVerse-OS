@@ -1,0 +1,38 @@
+# hermes-agent: официальный образ Nous Research, один контейнер — gateway (мессенджеры), OpenAI-совместимый API (8642) и Web Dashboard
+# (9119, HERMES_DASHBOARD=1). Данные агента (.env, config.yaml, sessions, memories, skills) — в /opt/data → ${APP_DATA_DIR}/data.
+# Дашборд слушает не loopback, поэтому сам включает auth gate: логин admin, пароль и секрет сессий генерирует Cloud OS.
+# PUID/PGID=1000 — соглашение образа для подмены пользователя; ядро создаёт каталог данных с тем же владельцем.
+# Сеть создаёт cloudd (external), порты не публикуются. Обновление — смена тега образа, конфиг мигрирует сам.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  hermes:
+    image: nousresearch/hermes-agent:v2026.8.31
+    command: ["gateway", "run"]
+    restart: unless-stopped
+    environment:
+      HERMES_DASHBOARD: "1"
+      HERMES_DASHBOARD_BASIC_AUTH_USERNAME: admin
+      HERMES_DASHBOARD_BASIC_AUTH_PASSWORD: ${HERMES_DASHBOARD_PASSWORD}
+      HERMES_DASHBOARD_BASIC_AUTH_SECRET: ${HERMES_DASHBOARD_SECRET}
+      HERMES_DASHBOARD_PUBLIC_URL: https://${APP_DOMAIN}
+      API_SERVER_ENABLED: "true"
+      API_SERVER_HOST: 0.0.0.0
+      API_SERVER_KEY: ${HERMES_API_SERVER_KEY}
+      PUID: "1000"
+      PGID: "1000"
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ${APP_DATA_DIR}/data:/opt/data
+    networks: [appnet]
+    deploy:
+      resources:
+        limits:
+          memory: 4G

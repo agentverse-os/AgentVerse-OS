@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/archivebox-umbrel
+description: Open-source self-hosted web archiving
+endpoint:
+  port: 8000
+  service: archivebox
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/archivebox/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/archivebox/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/archivebox/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/archivebox/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: archivebox-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: ArchiveBox
+type: app
+upstream:
+  author: ArchiveBox
+  categories:
+  - files
+  release_notes: null
+  source: https://github.com/ArchiveBox/ArchiveBox
+  version: 0.7.4
+  website: https://archivebox.io
+website: https://archivebox.io

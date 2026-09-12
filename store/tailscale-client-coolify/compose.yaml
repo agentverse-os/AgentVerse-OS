@@ -1,0 +1,56 @@
+# tailscale-client-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nginx:
+    depends_on:
+    - tailscale-client
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:80/
+      - -o
+      - /dev/null
+      timeout: 5s
+    image: nginx:latest
+    network_mode: service:tailscale-client
+    restart: unless-stopped
+  tailscale-client:
+    cap_add:
+    - net_admin
+    devices:
+    - /dev/net/tun:/dev/net/tun
+    environment:
+    - TS_HOSTNAME=${TS_HOSTNAME:-coolify-ts}
+    - TS_AUTHKEY=
+    - TS_STATE_DIR=${TS_STATE_DIR:-/var/lib/tailscale}
+    - TS_USERSPACE=${TS_USERSPACE:-false}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - tailscale status --json | grep -q 'BackendState'
+      timeout: 5s
+    hostname: ${TS_HOSTNAME:-coolify-ts}
+    image: tailscale/tailscale:latest
+    networks:
+      appnet:
+        aliases:
+        - tailscale-client-coolify_tailscale-client_1
+    restart: unless-stopped
+    volumes:
+    - tailscale-client:/var/lib/tailscale
+volumes:
+  tailscale-client:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/tailscale-client
+      o: bind
+      type: none

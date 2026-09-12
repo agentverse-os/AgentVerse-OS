@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/copyparty-umbrel
+description: A versatile all-in-one file server for everything
+endpoint:
+  port: 3923
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/copyparty/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: umbrel
+  path: null
+  user: admin
+name: copyparty-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: copyparty
+type: app
+upstream:
+  author: '9001'
+  categories:
+  - files
+  release_notes: |-
+    New features and improvements in this release:
+      - Adds custom thumbnail extractors and SVG support in the lightbox
+      - Improves WOPI support with access limits, persistent file IDs for real-time collaboration, and narrower per-file tokens
+      - Improves upload recovery and adds clearer guidance when reverse proxy request-size limits break uploads
+      - Fixes a first-visit JavaScript duplication issue, an image drag-and-drop panic, and a config autodetection crash
+
+
+    Full release notes can be found at https://github.com/9001/copyparty/releases/tag/v1.20.21
+  source: https://github.com/9001/copyparty
+  version: 1.20.21
+  website: https://github.com/9001/copyparty
+website: https://github.com/9001/copyparty

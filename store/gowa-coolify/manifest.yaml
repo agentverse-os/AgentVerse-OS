@@ -1,0 +1,72 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gowa-coolify
+description: Golang WhatsApp - Built with Go for efficient memory use
+endpoint:
+  port: 3000
+  service: gowa
+env:
+  SERVICE_PASSWORD_GOWA:
+    generate: password
+  SERVICE_URL_GOWA_3000: https://${APP_DOMAIN}
+  SERVICE_USER_GOWA:
+    generate: password
+  WHATSAPP_WEBHOOK: ''
+  WHATSAPP_WEBHOOK_SECRET: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_GOWA
+  path: null
+  user: SERVICE_USER_GOWA
+name: gowa-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: WHATSAPP_WEBHOOK
+  hint: null
+  label: whatsapp webhook
+  options: null
+  required: false
+  type: text
+- env: WHATSAPP_WEBHOOK_SECRET
+  hint: null
+  label: whatsapp webhook secret
+  options: null
+  required: false
+  type: password
+tags:
+- whatsapp
+- golang
+- multidevice
+- api
+- go-whatsapp
+title: Gowa
+type: app
+upstream:
+  categories:
+  - messaging
+  source: https://github.com/aldinokemal/go-whatsapp-web-multidevice
+  tags:
+  - whatsapp
+  - golang
+  - multidevice
+  - api
+  - go-whatsapp
+  template: gowa.yaml
+website: https://github.com/aldinokemal/go-whatsapp-web-multidevice

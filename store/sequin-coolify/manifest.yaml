@@ -1,0 +1,87 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sequin-coolify
+description: The fastest Postgres change data capture
+endpoint:
+  port: 7376
+  service: sequin
+env:
+  CRASH_REPORTING_DISABLED: 'false'
+  FEATURE_ACCOUNT_SELF_SIGNUP: 'false'
+  POSTGRES_DB: sequin-db
+  SEQUIN_TELEMETRY_DISABLED: 'false'
+  SERVICE_FQDN_SEQUIN: ${APP_DOMAIN}
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_REALBASE64_64_SECRETKEY:
+    generate: hex64
+  SERVICE_REALBASE64_VAULTKEY:
+    generate: hex64
+  SERVICE_URL_SEQUIN_7376: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: sequin-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: sequin-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: FEATURE_ACCOUNT_SELF_SIGNUP
+  hint: 'по умолчанию: false'
+  label: feature account self signup
+  options: null
+  required: false
+  type: text
+- env: SEQUIN_TELEMETRY_DISABLED
+  hint: 'по умолчанию: false'
+  label: sequin telemetry disabled
+  options: null
+  required: false
+  type: text
+- env: CRASH_REPORTING_DISABLED
+  hint: 'по умолчанию: false'
+  label: crash reporting disabled
+  options: null
+  required: false
+  type: text
+tags:
+- postgres
+- sync
+- data
+title: Sequin
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://sequinstream.com/docs/
+  tags:
+  - postgres
+  - sync
+  - data
+  template: sequin.yaml
+website: https://sequinstream.com/docs/

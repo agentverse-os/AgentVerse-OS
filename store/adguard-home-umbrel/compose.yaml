@@ -1,0 +1,23 @@
+# adguard-home-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    cap_add:
+    - NET_ADMIN
+    command:
+    - --no-check-update
+    - -c
+    - /opt/adguardhome/conf/AdGuardHome.yaml
+    - -w
+    - /opt/adguardhome/work
+    - --web-addr
+    - 0.0.0.0:8095
+    image: adguard/adguardhome:v0.107.79@sha256:aba9e3bf0613be3ba3755e1fc311b126e2c24bec25e18b6483894a88283074f0
+    network_mode: host
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/work:/opt/adguardhome/work
+    - ${APP_DATA_DIR}/data/conf:/opt/adguardhome/conf

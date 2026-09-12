@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/halo
+description: Halo - Open source website building tool.
+endpoint:
+  port: 8090
+  service: halo
+env:
+  HALO_DATABASE_PASSWORD:
+    generate: token
+  HALO_EXTERNAL_URL: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: halo
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: HALO_DATABASE_PASSWORD
+  hint: null
+  label: Database password
+  options: null
+  required: false
+  type: random
+- env: HALO_EXTERNAL_URL
+  hint: null
+  label: External url
+  options: null
+  required: false
+  type: url
+tags: []
+title: Halo
+type: app
+upstream:
+  author: halo-dev
+  categories:
+  - social
+  - media
+  source: https://github.com/halo-dev/halo
+  tipi_version: 96
+  version: 2.26.0
+website: https://github.com/halo-dev/halo

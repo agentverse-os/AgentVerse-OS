@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/write-freely
+description: Markdown-based publishing platform.
+endpoint:
+  port: 8080
+  service: write-freely
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: write-freely
+notes:
+- 'порт 70→70 (write-freely) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Write-Freely
+type: app
+upstream:
+  author: nephatrine
+  categories:
+  - social
+  source: https://hub.docker.com/r/nephatrine/write-freely
+  tipi_version: 8
+  version: '0.16'
+website: https://hub.docker.com/r/nephatrine/write-freely

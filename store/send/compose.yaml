@@ -1,0 +1,37 @@
+# send: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  send:
+    depends_on:
+    - send-redis
+    environment:
+      BASE_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      FILE_DIR: /uploads
+      MAX_FILE_SIZE: '2147483648'
+      NODE_ENV: production
+      REDIS_HOST: send-redis
+    image: registry.gitlab.com/timvisee/send:latest
+    networks:
+      appnet:
+        aliases:
+        - send_send_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/uploads:/uploads
+  send-redis:
+    healthcheck:
+      interval: 5s
+      retries: 30
+      test: redis-cli ping
+      timeout: 3s
+    image: redis:alpine
+    networks:
+      appnet:
+        aliases:
+        - send_send-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

@@ -1,0 +1,21 @@
+# mylar3: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mylar3:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/mylar3:v0.7.1-ls84
+    networks:
+      appnet:
+        aliases:
+        - mylar3_mylar3_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mylar3-config:/config
+    - ${ROOT_FOLDER_HOST}/media/data/comics:/comics
+    - ${ROOT_FOLDER_HOST}/media/downloads/mylar3:/downloads

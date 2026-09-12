@@ -1,0 +1,17 @@
+# shopstr-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      PORT: 3000
+    image: calvadev/shopstr:v0.7.5@sha256:b123e9d16f4267ea766813cbc12ac0989afcea03a72b42edfa37b64951ececdb
+    networks:
+      appnet:
+        aliases:
+        - shopstr_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000

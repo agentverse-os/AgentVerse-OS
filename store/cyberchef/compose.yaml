@@ -1,0 +1,15 @@
+# cyberchef: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cyberchef:
+    environment:
+      TZ: ${TZ}
+    image: ghcr.io/gchq/cyberchef:11.4.0
+    networks:
+      appnet:
+        aliases:
+        - cyberchef_cyberchef_1
+    restart: unless-stopped

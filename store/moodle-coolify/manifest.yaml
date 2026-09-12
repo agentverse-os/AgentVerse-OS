@@ -1,0 +1,84 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/moodle-coolify
+description: Moodle is the world’s most customisable and trusted eLearning solution that empowers educators to improve our world.
+endpoint:
+  port: 8080
+  service: moodle
+env:
+  MOODLE_SITE_NAME: New Site
+  MOODLE_USERNAME: user
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_MOODLE:
+    generate: password
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_URL_MOODLE_8080: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_MOODLE
+  path: null
+  user: MOODLE_USERNAME
+name: moodle-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MOODLE_USERNAME
+  hint: 'по умолчанию: user'
+  label: moodle username
+  options: null
+  required: false
+  type: text
+- env: MOODLE_SITE_NAME
+  hint: 'по умолчанию: New Site'
+  label: moodle site name
+  options: null
+  required: false
+  type: text
+tags:
+- moodle
+- elearning
+- education
+- lms
+- cms
+- open
+- source
+- low
+- code
+title: Moodle
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://moodle.org
+  tags:
+  - moodle
+  - elearning
+  - education
+  - lms
+  - cms
+  - open
+  - source
+  - low
+  - code
+  template: moodle.yaml
+website: https://moodle.org

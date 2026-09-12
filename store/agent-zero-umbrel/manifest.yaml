@@ -1,0 +1,65 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/agent-zero-umbrel
+description: A personal, organic agentic framework that grows and learns with you
+endpoint:
+  port: 80
+  service: web
+env:
+  APP_AGENTZERO_LOCAL_IPS: ${local_ips}
+  APP_AGENTZERO_LOCAL_URLS: ${ips_with_port}
+  APP_AGENTZERO_PORT: '3015'
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  DEVICE_HOSTNAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/agent-zero/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/agent-zero/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/agent-zero/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/agent-zero/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: agent-zero-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Agent Zero
+type: app
+upstream:
+  author: Agent Zero AI
+  categories:
+  - ai
+  release_notes: |-
+    Agent Zero v2.11 is a follow-up to the recent v2.0 major update. If you're updating from a pre-v2.0 version, Agent Zero recommends creating a backup from Settings > Check for Updates > Backup & Restore before upgrading, then checking chats, projects, memory, settings, and plugins after the update.
+
+    Important changes in this release:
+      - Adds new bundled plugins for context window usage, Context Doctor JSON repair, vision sidecar model presets, result extension handling, and WebUI plugin slots
+      - Improves live streaming and real-time WebUI synchronization with safe Markdown/LaTeX rendering, progressive tool output, stable message actions, and faster chat/sidebar updates
+      - Improves memory, embeddings, and context handling, including provider-prefixed embedding model IDs, JSON-safe relevance scores, cached local embedding models, and preserved compacted context summaries
+      - Adds configurable keyboard layouts for the interactive browser and improves browser input and legacy CDP endpoint handling
+      - Changes the default LiteLLM transport to Chat Completions; providers that depended on implicit Responses transport now need explicit Responses mode
+      - Fixes mobile canvas hiding, onboarding model preset flow, empty vision summaries, ACP artwork, launcher links, and Context Doctor dependency installation after self-update
+
+
+    Full release notes can be found at https://github.com/agent0ai/agent-zero/releases/tag/v2.11
+  source: https://github.com/agent0ai/agent-zero
+  version: v2.11
+  website: https://github.com/agent0ai/agent-zero
+website: https://github.com/agent0ai/agent-zero

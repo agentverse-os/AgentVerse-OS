@@ -1,0 +1,21 @@
+⚠️ PrivateBin requires HTTPS and exposure to the public internet to work. The easiest way to do this is with the Cloudflare Tunnel app or Nginx Proxy Manager app on the Umbrel App Store.
+
+PrivateBin is an open-source, minimalist, and encrypted pastebin service. It allows users to share text or code snippets securely, with end-to-end encryption, ensuring that only the intended recipient can read the contents. The server hosting PrivateBin cannot decrypt or access the data being shared, providing a high level of privacy.
+
+Here are some key features of PrivateBin:
+
+🔒 End-to-End Encryption: All data is encrypted in the browser before it's sent to the server. The server never sees the unencrypted content.
+
+🔥 Expiration and Burn-After-Reading: Users can set expiration times for their pastes, or opt for a "burn-after-reading" option where the content self-destructs after a single viewing.
+
+👤 No User Accounts: PrivateBin doesn't require user registration or authentication, making it ideal for anonymous sharing of sensitive information.
+
+🛡️ Password Protection: Users can add an extra layer of security by setting a password for the paste.
+
+📜 Syntax Highlighting: PrivateBin supports syntax highlighting for programming languages, making it useful for sharing code snippets.
+
+🏠 Self-Hosted: As a self-hosted solution, PrivateBin offers full control over where the data is stored and the ability to integrate it with various server environments.
+
+🚫 No Metadata: Unlike some other pastebin services, PrivateBin doesn't store IP addresses or any identifiable metadata about users or pastes.
+
+It's popular in privacy-conscious communities for securely sharing snippets without leaving a trace.

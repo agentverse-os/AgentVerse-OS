@@ -1,0 +1,16 @@
+# rust
+/cloudd/target/
+# node
+node_modules/
+/desktop/dist/
+# terraform/tofu
+.terraform/
+*.tfstate
+*.tfstate.backup
+# secrets / local
+*.env
+.komodo.env
+dist/
+__pycache__/
+# e2e screenshots are run artifacts
+desktop/e2e/shots/

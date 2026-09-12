@@ -1,0 +1,35 @@
+# pgadmin-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  pgadmin:
+    environment:
+    - SERVICE_URL_PGADMIN=${SERVICE_URL_PGADMIN}
+    - PGADMIN_DEFAULT_EMAIL=
+    - PGADMIN_DEFAULT_PASSWORD=
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD
+      - wget
+      - -qO-
+      - http://localhost:80/login
+      timeout: 10s
+    image: dpage/pgadmin4:latest
+    networks:
+      appnet:
+        aliases:
+        - pgadmin-coolify_pgadmin_1
+    restart: unless-stopped
+    volumes:
+    - pgadmin-data:/var/lib/pgadmin
+volumes:
+  pgadmin-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pgadmin-data
+      o: bind
+      type: none

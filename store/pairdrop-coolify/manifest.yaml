@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pairdrop-coolify
+description: Pairdrop is a self-hosted file sharing and collaboration platform, offering secure file sharing and collaboration capabilities for efficient teamwork.
+endpoint:
+  port: 3000
+  service: pairdrop
+env:
+  SERVICE_URL_PAIRDROP_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pairdrop-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- file
+- sharing
+- collaboration
+- teamwork
+title: Pairdrop
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://pairdrop.net/
+  tags:
+  - file
+  - sharing
+  - collaboration
+  - teamwork
+  template: pairdrop.yaml
+website: https://pairdrop.net/

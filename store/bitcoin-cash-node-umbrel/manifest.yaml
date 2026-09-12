@@ -1,0 +1,63 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bitcoin-cash-node-umbrel
+description: Run your own Bitcoin Cash full node (BCHN)
+endpoint:
+  port: 3000
+  service: web
+env:
+  APP_BITCOIN_CASH_NODE_NODE_IP: 10.21.21.50
+  APP_BITCOIN_CASH_NODE_P2P_PORT: '8335'
+  APP_BITCOIN_CASH_NODE_RPC_PASS: ''
+  APP_BITCOIN_CASH_NODE_RPC_PORT: '8332'
+  APP_BITCOIN_CASH_NODE_RPC_USER: umbrel
+  APP_BITCOIN_CASH_NODE_TOR_IP: 10.21.22.50
+  APP_BITCOIN_CASH_NODE_ZMQ_HASHBLOCK_PORT: '28332'
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-cash-node/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-cash-node/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-cash-node/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-cash-node/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bitcoin-cash-node-umbrel
+notes:
+- 'порт 8335:8335 (bitcoind) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_BITCOIN_CASH_NODE_RPC_PASS
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bitcoin cash node rpc pass
+  options: null
+  required: false
+  type: text
+tags: []
+title: Bitcoin Cash Node
+type: app
+upstream:
+  author: LoneStrike Labs
+  categories:
+  - crypto
+  release_notes: Follow-up fixes to the onion peers panel from store review. An onion peer that connected and later went offline now rotates out instead of holding its slot forever, the keep-connected option can once again reach its full four peers when some are already connected, and the known count now matches the list exactly (duplicate entries under different ports are merged).
+  source: https://github.com/danhaus93-ops/umbrel-bch-apps
+  version: 29.1.37
+  website: https://bitcoincashnode.org
+website: https://bitcoincashnode.org

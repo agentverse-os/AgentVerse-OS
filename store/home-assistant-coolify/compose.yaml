@@ -1,0 +1,56 @@
+# home-assistant-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  homeassistant-inline-1:
+    content: |
+      # Loads default set of integrations. Do not remove.
+      default_config:
+
+      # Configuration for reverse proxy support (required for Coolify)
+      http:
+        use_x_forwarded_for: true
+        trusted_proxies:
+          - 10.0.0.0/8
+          - 172.16.0.0/12
+          - 192.168.0.0/16
+        ip_ban_enabled: true
+        login_attempts_threshold: 5
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  homeassistant:
+    configs:
+    - source: homeassistant-inline-1
+      target: /config/configuration.yaml
+    environment:
+    - SERVICE_URL_HOMEASSISTANT_8123=${SERVICE_URL_HOMEASSISTANT_8123}
+    - TZ=${TZ:-UTC}
+    - DISABLE_JEMALLOC=${DISABLE_JEMALLOC:-false}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 60s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8123
+      timeout: 10s
+    image: ghcr.io/home-assistant/home-assistant:2025.10.2
+    networks:
+      appnet:
+        aliases:
+        - home-assistant-coolify_homeassistant_1
+    privileged: true
+    restart: unless-stopped
+    volumes:
+    - homeassistant-config:/config
+    - /run/dbus:/run/dbus:ro
+volumes:
+  homeassistant-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/homeassistant-config
+      o: bind
+      type: none

@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/trip-umbrel
+description: Minimalist Map Tracker and Trip Planner
+endpoint:
+  port: 8000
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/trip/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/trip/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/trip/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/trip/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/trip/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/trip/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: trip-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Trip
+type: app
+upstream:
+  author: itskovacs
+  categories:
+  - files
+  release_notes: |-
+    This update adds the Photon search provider, a notifications panel, link title fetching (available in settings), collapsible trip days, and switches the default map tiles to OpenStreetMap after CARTO's free-tier change.
+    It also adds weekday labels, Markdown rendering for plan item comments, a copy-coordinates map action, and fixes CSV export compatibility plus booking chip and input-number UI issues.
+    Full release notes can be found at https://github.com/itskovacs/trip/releases/tag/1.49.0
+  source: https://github.com/itskovacs/trip
+  version: 1.49.0
+  website: https://itskovacs-trip.netlify.app/
+website: https://itskovacs-trip.netlify.app/

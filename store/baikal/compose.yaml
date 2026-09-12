@@ -1,0 +1,16 @@
+# baikal: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  baikal:
+    image: ghcr.io/aalmenar/baikal:0.11.1
+    networks:
+      appnet:
+        aliases:
+        - baikal_baikal_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/config:/var/www/baikal/config
+    - ${APP_DATA_DIR}/specific:/var/www/baikal/Specific

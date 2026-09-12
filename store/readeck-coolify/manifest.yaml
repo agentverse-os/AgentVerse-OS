@@ -1,0 +1,59 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/readeck-coolify
+description: Simple web application that lets you save the precious readable content of web pages you like and want to keep forever.
+endpoint:
+  port: 8000
+  service: readeck
+env:
+  READECK_USE_X_FORWARDED: 'true'
+  SERVICE_URL_READECK: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: readeck-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: READECK_USE_X_FORWARDED
+  hint: 'по умолчанию: true'
+  label: readeck use x forwarded
+  options: null
+  required: false
+  type: text
+tags:
+- read-it-later
+- pocket-alternative
+- omnivore-alternative
+- instapaper-alternative
+title: Readeck
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://readeck.org/en/docs/
+  tags:
+  - read-it-later
+  - pocket-alternative
+  - omnivore-alternative
+  - instapaper-alternative
+  template: readeck.yaml
+website: https://readeck.org/en/docs/

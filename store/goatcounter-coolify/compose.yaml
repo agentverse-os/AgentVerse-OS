@@ -1,0 +1,31 @@
+# goatcounter-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  goatcounter:
+    environment:
+    - SERVICE_URL_GOATCOUNTER_8080=${SERVICE_URL_GOATCOUNTER_8080}
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:8080/status >/dev/null 2>&1 || exit 1
+      timeout: 5s
+    image: arp242/goatcounter:2.7
+    networks:
+      appnet:
+        aliases:
+        - goatcounter-coolify_goatcounter_1
+    restart: unless-stopped
+    volumes:
+    - goatcounter-data:/home/goatcounter/goatcounter-data
+volumes:
+  goatcounter-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/goatcounter-data
+      o: bind
+      type: none

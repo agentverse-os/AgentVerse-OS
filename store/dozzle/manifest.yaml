@@ -1,0 +1,25 @@
+# Живые логи контейнеров (3.10). Docker — через read-only прокси cloudos-docker-ro (DOCKER_HOST), сокет хоста не монтируется.
+schema: 1
+origin: manual
+name: dozzle
+title: Dozzle
+description: "Live logs of Docker containers"
+i18n:
+  ru: { description: "Живые логи Docker-контейнеров" }
+  uk: { description: "Живі логи Docker-контейнерів" }
+  es: { description: "Registros en vivo de los contenedores Docker" }
+icon: 📜
+type: app
+compose: ./compose.yaml
+provides: []
+requires: []
+route: { mode: port, open: iframe }
+auth: own
+env: {}
+data: []
+health: http://dozzle:8080/healthcheck
+endpoint: { service: dozzle, port: 8080 }
+
+# входа нет: доступ ограничен сетью Cloud OS
+login:
+  mode: none

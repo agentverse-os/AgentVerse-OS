@@ -1,0 +1,69 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/martin-coolify
+description: Martin is a tile server able to generate and serve vector tiles on the fly from large PostGIS databases, PMTiles (local or remote), and MBTiles files, allowing multiple tile sources to be dynamically combined into one.
+endpoint:
+  port: 3000
+  service: martin
+env:
+  POSTGRES_DB: martin-db
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_MARTIN: https://${APP_DOMAIN}
+  SERVICE_URL_MARTIN_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: martin-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: martin-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- postgis
+- vector
+- tiles
+title: Martin
+type: app
+upstream:
+  categories:
+  - backend
+  source: https://maplibre.org/martin/introduction.html/
+  tags:
+  - postgis
+  - vector
+  - tiles
+  template: martin.yaml
+website: https://maplibre.org/martin/introduction.html/

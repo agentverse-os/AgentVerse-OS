@@ -1,0 +1,87 @@
+# inngest-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  inngest:
+    command: inngest start --host 0.0.0.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_INNGEST_8288=${SERVICE_URL_INNGEST_8288}
+    - INNGEST_EVENT_KEY=${SERVICE_HEX_32_EVENTKEY}
+    - INNGEST_SIGNING_KEY=${SERVICE_HEX_32_SIGNINGKEY}
+    - INNGEST_POSTGRES_URI=postgres://inngest:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/inngest
+    - INNGEST_REDIS_URI=redis://redis:6379
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - inngest
+      - alpha
+      - doctor
+      - healthcheck
+      timeout: 10s
+    image: inngest/inngest:v1.27.0
+    networks:
+      appnet:
+        aliases:
+        - inngest-coolify_inngest_1
+    restart: unless-stopped
+  postgres:
+    environment:
+    - POSTGRES_DB=inngest
+    - POSTGRES_USER=inngest
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U inngest -d inngest
+      timeout: 5s
+    image: postgres:17
+    networks:
+      appnet:
+        aliases:
+        - inngest-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - postgres-data:/var/lib/postgresql/data
+  redis:
+    command: redis-server --appendonly yes
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 3s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - inngest-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - redis-data:/data
+volumes:
+  postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgres-data
+      o: bind
+      type: none
+  redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis-data
+      o: bind
+      type: none

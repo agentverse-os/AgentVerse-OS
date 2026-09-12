@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ersatztv-legacy-umbrel
+description: Build your own live TV channels
+endpoint:
+  port: 8409
+  service: web
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/ersatztv-legacy/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ersatztv-legacy/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ersatztv-legacy/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/ersatztv-legacy/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ersatztv-legacy-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: ErsatzTV Legacy
+type: app
+upstream:
+  author: ErsatzTV
+  categories:
+  - media
+  release_notes: |-
+    - Fixes a security issue affecting linked Plex and Emby media servers; after updating, Plex and Emby users should rotate their ErsatzTV credentials as upstream recommends. - Adds a Re-authenticate with Plex button so Plex credentials can be refreshed without recreating media sources. - Requires the X-Etv-Api-Key header for all /api requests; custom scripted schedule/API clients must send the key, while the bundled scripted schedule entrypoint handles it automatically. - Improves Plex server handling and fixes mirror channels falling out of sync when using the Next streaming engine.
+    Full release notes can be found at https://github.com/ErsatzTV/legacy/releases/tag/v26.8.1
+  source: https://github.com/ErsatzTV/legacy
+  version: 26.8.1
+  website: https://ersatztv.org
+website: https://ersatztv.org

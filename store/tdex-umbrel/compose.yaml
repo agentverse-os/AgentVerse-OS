@@ -1,0 +1,77 @@
+# tdex-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  caddy:
+    image: caddy:2.6.4-alpine@sha256:4dfec6c3b22c36b63ea4a3633c7cdbdaa9926d1324c27db2b0e2b70ef9cd105a
+    networks:
+      appnet:
+        aliases:
+        - tdex_caddy_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/caddy-data/Caddyfile:/etc/caddy/Caddyfile
+  dashboard:
+    environment:
+      IS_PACKAGED: 'true'
+      TRADER_HIDDEN_SERVICE: ${APP_TDEX_DAEMON_HIDDEN_SERVICE}
+      USE_PROXY: 'false'
+    image: ghcr.io/tdex-network/dashboard:v1.0.2@sha256:71d598afb0d5ec9966306f4ef0d5f6839a9d7dc50726a935f3d0bb38f1925d78
+    networks:
+      appnet:
+        aliases:
+        - tdex_dashboard_1
+    restart: on-failure
+  oceand:
+    environment:
+      OCEAN_DB_TYPE: badger
+      OCEAN_LOG_LEVEL: 5
+      OCEAN_NO_PROFILER: 'true'
+      OCEAN_NO_TLS: 'true'
+      OCEAN_UTXO_EXPIRY_DURATION_IN_SECONDS: 240
+    image: ghcr.io/vulpemventures/oceand:v0.1.17@sha256:37b813b43b068e32d918b9f42539c33287308cc81d00909c742b7164dfefc0c4
+    networks:
+      appnet:
+        aliases:
+        - tdex_oceand_1
+    restart: on-failure
+    stop_grace_period: 1m
+    tty: true
+    volumes:
+    - ${APP_DATA_DIR}/ocean-data:/home/ocean/.oceand
+  tdexd:
+    depends_on:
+    - oceand
+    environment:
+      TDEX_CONNECT_ADDR: ${APP_TDEX_DAEMON_HIDDEN_SERVICE}
+      TDEX_CONNECT_PROTO: http
+      TDEX_LOG_LEVEL: 5
+      TDEX_NO_OPERATOR_TLS: 'true'
+      TDEX_OPERATOR_LISTENING_PORT: ${APP_TDEX_PORT}
+      TDEX_TRADE_LISTENING_PORT: ${APP_TDEX_PORT}
+      TDEX_WALLET_ADDR: oceand:18000
+    image: ghcr.io/tdex-network/tdexd:v1.0.1@sha256:eef1f31e98208e9a35ddf308317bc1df71065e189fa0915c769c7a01394ef79a
+    networks:
+      appnet:
+        aliases:
+        - tdex_tdexd_1
+    restart: on-failure
+    stop_grace_period: 1m
+    tty: true
+    volumes:
+    - ${APP_DATA_DIR}/tdexd:/home/tdex/.tdex-daemon
+  tor:
+    environment:
+      HOME: /tmp
+    image: ghcr.io/getumbrel/tor:0.4.9.11@sha256:e382b8629c0dfef6ceb396b062622d4e4e955b19d6f16b883fd2c0723ad5671a
+    networks:
+      appnet:
+        aliases:
+        - tdex_tor_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/torrc:/etc/tor/torrc:ro
+    - ${TOR_DATA_DIR}:/data

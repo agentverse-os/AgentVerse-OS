@@ -1,0 +1,3 @@
+Wealthfolio is an open source investment portfolio tracker for monitoring holdings, accounts, performance, and market activity from your own server. It is designed for private wealth tracking, with a browser-based dashboard and local SQLite storage for portfolio data.
+
+Use Wealthfolio to keep a self-hosted view of your investments without sending portfolio details to a third-party tracking service. It supports portfolio and account management, performance views, market data workflows, and a focused web interface for personal finance monitoring.

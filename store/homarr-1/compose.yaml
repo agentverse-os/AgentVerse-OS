@@ -1,0 +1,23 @@
+# homarr-1: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  homarr:
+    environment:
+      DOCKER_HOST: tcp://cloudos-docker-ro:2375
+      SECRET_ENCRYPTION_KEY: ${HOMARR_SECRET_ENCRYPTION_KEY}
+      TZ: ${TZ}
+    image: ghcr.io/homarr-labs/homarr:v1.76.2
+    networks:
+      appnet:
+        aliases:
+        - homarr-1_homarr_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/appdata:/appdata

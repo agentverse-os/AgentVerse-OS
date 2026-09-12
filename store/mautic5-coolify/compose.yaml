@@ -1,0 +1,209 @@
+# mautic5-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mautic_cron:
+    depends_on:
+      mautic_web:
+        condition: service_healthy
+    environment:
+    - DOCKER_MAUTIC_ROLE=mautic_cron
+    - MAUTIC_DB_HOST=${MYSQL_HOST:-mysql}
+    - MAUTIC_DB_PORT=${MYSQL_PORT:-3306}
+    - MAUTIC_DB_DATABASE=${MYSQL_DATABASE:-mautic}
+    - MAUTIC_DB_USER=${SERVICE_USER_MYSQL}
+    - MAUTIC_DB_PASSWORD=${SERVICE_PASSWORD_64_MYSQL}
+    - MAUTIC_MESSENGER_DSN_EMAIL=${MAUTIC_MESSENGER_DSN_EMAIL:-amqp://guest:guest@rabbitmq:5672/mautic/messages}
+    - MAUTIC_MESSENGER_DSN_HIT=${MAUTIC_MESSENGER_DSN_HIT:-amqp://guest:guest@rabbitmq:5672/mautic/messages}
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test:
+      - CMD-SHELL
+      - exit 0
+      timeout: 10s
+    image: mautic/mautic:latest
+    networks:
+      appnet:
+        aliases:
+        - mautic5-coolify_mautic_cron_1
+    restart: unless-stopped
+    volumes:
+    - mautic_data/config:/var/www/html/config:z
+    - mautic_data/logs:/var/www/html/var/logs:z
+    - mautic_data/media/files:/var/www/html/docroot/media/files:z
+    - mautic_data/media/images:/var/www/html/docroot/media/images:z
+    - mautic_data/plugins:/var/www/html/docroot/plugins:z
+    - mautic_data/vendor:/var/www/html/vendor:z
+    - mautic_data/bin:/var/www/html/bin:z
+    - mautic_data/cron:/opt/mautic/cron:z
+  mautic_web:
+    environment:
+    - SERVICE_URL_MAUTIC_80=${SERVICE_URL_MAUTIC_80}
+    - DOCKER_MAUTIC_LOAD_TEST_DATA=${MAUTIC_LOAD_TEST_DATA:-false}
+    - DOCKER_MAUTIC_RUN_MIGRATIONS=${MAUTIC_RUN_MIGRATIONS:-false}
+    - MAUTIC_DB_HOST=${MYSQL_HOST:-mysql}
+    - MAUTIC_DB_PORT=${MYSQL_PORT:-3306}
+    - MAUTIC_DB_DATABASE=${MYSQL_DATABASE:-mautic}
+    - MAUTIC_DB_USER=${SERVICE_USER_MYSQL}
+    - MAUTIC_DB_PASSWORD=${SERVICE_PASSWORD_64_MYSQL}
+    - MAUTIC_MESSENGER_DSN_EMAIL=${MAUTIC_MESSENGER_DSN_EMAIL:-amqp://guest:guest@rabbitmq:5672/mautic/messages}
+    - MAUTIC_MESSENGER_DSN_HIT=${MAUTIC_MESSENGER_DSN_HIT:-amqp://guest:guest@rabbitmq:5672/mautic/messages}
+    healthcheck:
+      interval: 15s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost
+      timeout: 10s
+    image: mautic/mautic:latest
+    networks:
+      appnet:
+        aliases:
+        - mautic5-coolify_mautic_web_1
+    restart: unless-stopped
+    volumes:
+    - mautic_data/config:/var/www/html/config:z
+    - mautic_data/logs:/var/www/html/var/logs:z
+    - mautic_data/media/files:/var/www/html/docroot/media/files:z
+    - mautic_data/media/images:/var/www/html/docroot/media/images:z
+    - mautic_data/plugins:/var/www/html/docroot/plugins:z
+    - mautic_data/vendor:/var/www/html/vendor:z
+    - mautic_data/bin:/var/www/html/bin:z
+    - mautic_data/cron:/opt/mautic/cron:z
+  mautic_worker:
+    depends_on:
+      mautic_web:
+        condition: service_healthy
+    environment:
+    - DOCKER_MAUTIC_ROLE=mautic_worker
+    - MAUTIC_DB_HOST=${MYSQL_HOST:-mysql}
+    - MAUTIC_DB_PORT=${MYSQL_PORT:-3306}
+    - MAUTIC_DB_DATABASE=${MYSQL_DATABASE:-mautic}
+    - MAUTIC_DB_USER=${SERVICE_USER_MYSQL}
+    - MAUTIC_DB_PASSWORD=${SERVICE_PASSWORD_64_MYSQL}
+    - MAUTIC_MESSENGER_DSN_EMAIL=${MAUTIC_MESSENGER_DSN_EMAIL:-amqp://guest:guest@rabbitmq:5672/mautic/messages}
+    - MAUTIC_MESSENGER_DSN_HIT=${MAUTIC_MESSENGER_DSN_HIT:-amqp://guest:guest@rabbitmq:5672/mautic/messages}
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test:
+      - CMD-SHELL
+      - exit 0
+      timeout: 10s
+    image: mautic/mautic:latest
+    networks:
+      appnet:
+        aliases:
+        - mautic5-coolify_mautic_worker_1
+    restart: unless-stopped
+    volumes:
+    - mautic_data/config:/var/www/html/config:z
+    - mautic_data/logs:/var/www/html/var/logs:z
+    - mautic_data/media/files:/var/www/html/docroot/media/files:z
+    - mautic_data/media/images:/var/www/html/docroot/media/images:z
+    - mautic_data/plugins:/var/www/html/docroot/plugins:z
+    - mautic_data/vendor:/var/www/html/vendor:z
+    - mautic_data/bin:/var/www/html/bin:z
+    - mautic_data/cron:/opt/mautic/cron:z
+  mysql:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_64_MYSQLROOT}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-mautic}
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_64_MYSQL}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      test: mysqladmin ping --silent --user=$$SERVICE_USER_MYSQL --password=$$SERVICE_PASSWORD_64_MYSQL
+      timeout: 5s
+    image: mysql:8.0
+    networks:
+      appnet:
+        aliases:
+        - mautic5-coolify_mysql_1
+    restart: unless-stopped
+    volumes:
+    - mysql-data:/var/lib/mysql
+  rabbitmq:
+    environment:
+    - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST:-mautic}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: rabbitmq-diagnostics -q ping
+      timeout: 30s
+    image: rabbitmq:3
+    networks:
+      appnet:
+        aliases:
+        - mautic5-coolify_rabbitmq_1
+    restart: unless-stopped
+    volumes:
+    - rabbitmq-data:/var/lib/rabbitmq
+volumes:
+  mautic_data/bin:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mautic_data/bin
+      o: bind
+      type: none
+  mautic_data/config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mautic_data/config
+      o: bind
+      type: none
+  mautic_data/cron:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mautic_data/cron
+      o: bind
+      type: none
+  mautic_data/logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mautic_data/logs
+      o: bind
+      type: none
+  mautic_data/media/files:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mautic_data/media/files
+      o: bind
+      type: none
+  mautic_data/media/images:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mautic_data/media/images
+      o: bind
+      type: none
+  mautic_data/plugins:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mautic_data/plugins
+      o: bind
+      type: none
+  mautic_data/vendor:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mautic_data/vendor
+      o: bind
+      type: none
+  mysql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mysql-data
+      o: bind
+      type: none
+  rabbitmq-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/rabbitmq-data
+      o: bind
+      type: none

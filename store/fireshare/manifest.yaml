@@ -1,0 +1,68 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/fireshare
+description: Self host your media and share with unique links
+endpoint:
+  port: 80
+  service: fireshare
+env:
+  FIRESHARE_PASSWORD:
+    generate: password
+  FIRESHARE_SECRET_KEY:
+    generate: token
+  FIRESHARE_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: FIRESHARE_PASSWORD
+  path: null
+  user: FIRESHARE_USERNAME
+name: fireshare
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: FIRESHARE_SECRET_KEY
+  hint: null
+  label: FIRESHARE_SECRET_KEY
+  options: null
+  required: false
+  type: random
+- env: FIRESHARE_USERNAME
+  hint: null
+  label: Fireshare username
+  options: null
+  required: true
+  type: text
+- env: FIRESHARE_PASSWORD
+  hint: null
+  label: Fireshare password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Fireshare
+type: app
+upstream:
+  author: https://github.com/ShaneIsrael
+  categories:
+  - gaming
+  - media
+  source: https://github.com/ShaneIsrael/fireshare
+  tipi_version: 79
+  version: 1.7.7
+website: https://github.com/ShaneIsrael/fireshare

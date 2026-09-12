@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/file-drop-umbrel
+description: Decentralized, Anonymous, and Secure File Sharing
+endpoint:
+  port: 3232
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/file-drop/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/file-drop/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/file-drop/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/file-drop/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: file-drop-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: File Drop
+type: app
+upstream:
+  author: besoeasy
+  categories:
+  - files
+  release_notes: This update improves File Drop's IPFS backend with low-power DHT routing, persistent IPFS data storage, and a 5 GB default upload limit. It also updates the bundled Node.js and IPFS runtime components.
+  source: https://github.com/besoeasy/file-drop
+  version: 1.4.3
+  website: https://github.com/besoeasy/file-drop
+website: https://github.com/besoeasy/file-drop

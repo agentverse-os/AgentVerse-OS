@@ -1,0 +1,48 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/librespeed-coolify
+description: Self-hosted lightweight Speed Test.
+endpoint:
+  port: 82
+  service: librespeed
+env:
+  SERVICE_URL_LIBRESPEED_82: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: librespeed-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- speedtest
+- internet-speed
+title: Librespeed
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://github.com/librespeed/speedtest
+  tags:
+  - speedtest
+  - internet-speed
+  template: librespeed.yaml
+website: https://github.com/librespeed/speedtest

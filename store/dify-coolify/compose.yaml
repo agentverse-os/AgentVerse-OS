@@ -1,0 +1,932 @@
+# dify-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  nginx-inline-1:
+    content: |
+      # Please do not directly edit this file. Instead, modify the .env variables related to NGINX configuration.
+
+      user  nginx;
+          worker_processes  ${NGINX_WORKER_PROCESSES};
+
+          error_log  /var/log/nginx/error.log notice;
+          pid        /var/run/nginx.pid;
+
+
+          events {
+              worker_connections  1024;
+          }
+
+
+          http {
+              include       /etc/nginx/mime.types;
+              default_type  application/octet-stream;
+
+              log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                                '$status $body_bytes_sent "$http_referer" '
+                                '"$http_user_agent" "$http_x_forwarded_for"';
+
+              access_log  /var/log/nginx/access.log  main;
+
+              sendfile        on;
+              #tcp_nopush     on;
+
+              keepalive_timeout  ${NGINX_KEEPALIVE_TIMEOUT};
+
+              #gzip  on;
+              client_max_body_size ${NGINX_CLIENT_MAX_BODY_SIZE};
+
+              include /etc/nginx/conf.d/*.conf;
+          }
+  nginx-inline-2:
+    content: |
+      # Please do not directly edit this file. Instead, modify the .env variables related to NGINX configuration.
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_read_timeout ${NGINX_PROXY_READ_TIMEOUT};
+        proxy_send_timeout ${NGINX_PROXY_SEND_TIMEOUT};
+  nginx-inline-3:
+    content: |
+      # Please do not directly edit this file. Instead, modify the .env variables related to NGINX configuration.
+
+      listen ${NGINX_SSL_PORT} ssl;
+      ssl_certificate ${SSL_CERTIFICATE_PATH};
+      ssl_certificate_key ${SSL_CERTIFICATE_KEY_PATH};
+      ssl_protocols ${NGINX_SSL_PROTOCOLS};
+      ssl_prefer_server_ciphers on;
+      ssl_session_cache shared:SSL:10m;
+      ssl_session_timeout 10m;
+  nginx-inline-4:
+    content: |
+      #!/bin/bash
+
+      if [ "${NGINX_HTTPS_ENABLED}" = "true" ]; then
+          # Check if the certificate and key files for the specified domain exist
+          if [ -n "${CERTBOT_DOMAIN}" ] && \
+            [ -f "/etc/letsencrypt/live/${CERTBOT_DOMAIN}/${NGINX_SSL_CERT_FILENAME}" ] && \
+            [ -f "/etc/letsencrypt/live/${CERTBOT_DOMAIN}/${NGINX_SSL_CERT_KEY_FILENAME}" ]; then
+              SSL_CERTIFICATE_PATH="/etc/letsencrypt/live/${CERTBOT_DOMAIN}/${NGINX_SSL_CERT_FILENAME}"
+              SSL_CERTIFICATE_KEY_PATH="/etc/letsencrypt/live/${CERTBOT_DOMAIN}/${NGINX_SSL_CERT_KEY_FILENAME}"
+          else
+              SSL_CERTIFICATE_PATH="/etc/ssl/${NGINX_SSL_CERT_FILENAME}"
+              SSL_CERTIFICATE_KEY_PATH="/etc/ssl/${NGINX_SSL_CERT_KEY_FILENAME}"
+          fi
+          export SSL_CERTIFICATE_PATH
+          export SSL_CERTIFICATE_KEY_PATH
+
+          # set the HTTPS_CONFIG environment variable to the content of the https.conf.template
+          HTTPS_CONFIG=$(envsubst < /etc/nginx/https.conf.template)
+          export HTTPS_CONFIG
+          # Substitute the HTTPS_CONFIG in the default.conf.template with content from https.conf.template
+          envsubst '${HTTPS_CONFIG}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+      fi
+
+      if [ "${NGINX_ENABLE_CERTBOT_CHALLENGE}" = "true" ]; then
+          ACME_CHALLENGE_LOCATION='location /.well-known/acme-challenge/ { root /var/www/html; }'
+      else
+          ACME_CHALLENGE_LOCATION=''
+      fi
+      export ACME_CHALLENGE_LOCATION
+
+      env_vars=$(printenv | cut -d= -f1 | sed 's/^/$/g' | paste -sd, -)
+
+      envsubst "$env_vars" < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+      envsubst "$env_vars" < /etc/nginx/proxy.conf.template > /etc/nginx/proxy.conf
+
+      envsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+
+      # Start Nginx using the default entrypoint
+      exec nginx -g 'daemon off;'
+  nginx-inline-5:
+    content: |
+      # Please do not directly edit this file. Instead, modify the .env variables related to NGINX configuration.
+
+      server {
+          listen ${NGINX_PORT};
+          server_name ${NGINX_SERVER_NAME};
+
+          location /console/api {
+            proxy_pass http://api:5001;
+            include proxy.conf;
+          }
+
+          location /api {
+            proxy_pass http://api:5001;
+            include proxy.conf;
+          }
+
+          location /v1 {
+            proxy_pass http://api:5001;
+            include proxy.conf;
+          }
+
+          location /files {
+            proxy_pass http://api:5001;
+            include proxy.conf;
+          }
+
+          location / {
+            proxy_pass http://web:3000;
+            include proxy.conf;
+          }
+
+          # placeholder for acme challenge location
+          ${ACME_CHALLENGE_LOCATION}
+
+          # placeholder for https config defined in https.conf.template
+          ${HTTPS_CONFIG}
+      }
+  ssrf-proxy-inline-6:
+    content: "acl localnet src 0.0.0.1-0.255.255.255\t# RFC 1122 \"this\" network (LAN)\nacl localnet src 10.0.0.0/8\t\t# RFC 1918 local private network (LAN)\nacl localnet src 100.64.0.0/10\t\t# RFC 6598 shared address space (CGN)\nacl localnet src 169.254.0.0/16 \t# RFC 3927 link-local (directly plugged) machines\nacl localnet src 172.16.0.0/12\t\t# RFC 1918 local private network (LAN)\nacl localnet src 192.168.0.0/16\t\t# RFC 1918 local private network (LAN)\nacl localnet src fc00::/7       \t# RFC 4193 local private network range\nacl localnet src fe80::/10      \t# RFC 4291 link-local (directly plugged) machines\nacl SSL_ports port 443\nacl Safe_ports port 80\t\t# http\nacl Safe_ports port 21\t\t# ftp\nacl Safe_ports port 443\t\t# https\nacl Safe_ports port 70\t\t# gopher\nacl Safe_ports port 210\t\t# wais\nacl Safe_ports port 1025-65535\t# unregistered ports\nacl Safe_ports port 280\t\t# http-mgmt\nacl Safe_ports port 488\t\t# gss-http\nacl Safe_ports port 591\t\t# filemaker\nacl Safe_ports port 777\t\t# multiling http\nacl CONNECT method CONNECT\nhttp_access deny !Safe_ports\nhttp_access deny CONNECT !SSL_ports\nhttp_access allow localhost manager\nhttp_access deny manager\nhttp_access allow localhost\ninclude /etc/squid/conf.d/*.conf\nhttp_access deny all\n\n################################## Proxy Server ################################\nhttp_port 3128\ncoredump_dir ${COREDUMP_DIR}\nrefresh_pattern ^ftp:\t\t1440\t20%\t10080\nrefresh_pattern ^gopher:\t1440\t0%\t1440\nrefresh_pattern -i (/cgi-bin/|\\?) 0\t0%\t0\nrefresh_pattern \\/(Packages|Sources)(|\\.bz2|\\.gz|\\.xz)$ 0 0% 0 refresh-ims\nrefresh_pattern \\/Release(|\\.gpg)$ 0 0% 0 refresh-ims\nrefresh_pattern \\/InRelease$ 0 0% 0 refresh-ims\nrefresh_pattern \\/(Translation-.*)(|\\.bz2|\\.gz|\\.xz)$ 0 0% 0 refresh-ims\nrefresh_pattern .\t\t0\t20%\t4320\n\n\n# cache_dir ufs /var/spool/squid 100 16 256\n# upstream proxy, set to your own upstream proxy IP to avoid SSRF attacks\n# cache_peer 172.1.1.1 parent 3128 0 no-query no-digest no-netdb-exchange default\n\n################################## Reverse Proxy To Sandbox ################################\nhttp_port 3129 accel vhost\ncache_peer ${SANDBOX_HOST} parent ${SANDBOX_PORT} 0 no-query originserver\nacl src_all src all\nhttp_access allow src_all\n"
+  ssrf-proxy-inline-7:
+    content: |
+      #!/bin/bash
+
+      # Modified based on Squid OCI image entrypoint
+
+      # This entrypoint aims to forward the squid logs to stdout to assist users of
+      # common container related tooling (e.g., kubernetes, docker-compose, etc) to
+      # access the service logs.
+
+      # Moreover, it invokes the squid binary, leaving all the desired parameters to
+      # be provided by the "command" passed to the spawned container. If no command
+      # is provided by the user, the default behavior (as per the CMD statement in
+      # the Dockerfile) will be to use Ubuntu's default configuration [1] and run
+      # squid with the "-NYC" options to mimic the behavior of the Ubuntu provided
+      # systemd unit.
+
+      # [1] The default configuration is changed in the Dockerfile to allow local
+      # network connections. See the Dockerfile for further information.
+
+      echo "[ENTRYPOINT] re-create snakeoil self-signed certificate removed in the build process"
+      if [ ! -f /etc/ssl/private/ssl-cert-snakeoil.key ]; then
+          /usr/sbin/make-ssl-cert generate-default-snakeoil --force-overwrite > /dev/null 2>&1
+      fi
+
+      tail -F /var/log/squid/access.log 2>/dev/null &
+      tail -F /var/log/squid/error.log 2>/dev/null &
+      tail -F /var/log/squid/store.log 2>/dev/null &
+      tail -F /var/log/squid/cache.log 2>/dev/null &
+
+      # Replace environment variables in the template and output to the squid.conf
+      echo "[ENTRYPOINT] replacing environment variables in the template"
+      awk '{
+          while(match($0, /\${[A-Za-z_][A-Za-z_0-9]*}/)) {
+              var = substr($0, RSTART+2, RLENGTH-3)
+              val = ENVIRON[var]
+              $0 = substr($0, 1, RSTART-1) val substr($0, RSTART+RLENGTH)
+          }
+          print
+      }' /etc/squid/squid.conf.template > /etc/squid/squid.conf
+
+      /usr/sbin/squid -Nz
+      echo "[ENTRYPOINT] starting squid"
+      /usr/sbin/squid -f /etc/squid/squid.conf -NYC 1
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  api:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<:
+        ALIYUN_OSS_ACCESS_KEY: ${ALIYUN_OSS_ACCESS_KEY:-}
+        ALIYUN_OSS_AUTH_VERSION: ${ALIYUN_OSS_AUTH_VERSION:-v4}
+        ALIYUN_OSS_BUCKET_NAME: ${ALIYUN_OSS_BUCKET_NAME:-}
+        ALIYUN_OSS_ENDPOINT: ${ALIYUN_OSS_ENDPOINT:-}
+        ALIYUN_OSS_REGION: ${ALIYUN_OSS_REGION:-}
+        ALIYUN_OSS_SECRET_KEY: ${ALIYUN_OSS_SECRET_KEY:-}
+        ANALYTICDB_ACCOUNT: ${ANALYTICDB_ACCOUNT:-}
+        ANALYTICDB_INSTANCE_ID: ${ANALYTICDB_INSTANCE_ID:-}
+        ANALYTICDB_KEY_ID: ${ANALYTICDB_KEY_ID:-}
+        ANALYTICDB_KEY_SECRET: ${ANALYTICDB_KEY_SECRET:-}
+        ANALYTICDB_NAMESPACE: ${ANALYTICDB_NAMESPACE:-dify}
+        ANALYTICDB_NAMESPACE_PASSWORD: ${ANALYTICDB_NAMESPACE_PASSWORD:-}
+        ANALYTICDB_PASSWORD: ${ANALYTICDB_PASSWORD:-}
+        ANALYTICDB_REGION_ID: ${ANALYTICDB_REGION_ID:-}
+        API_TOOL_DEFAULT_CONNECT_TIMEOUT: ${API_TOOL_DEFAULT_CONNECT_TIMEOUT:-10}
+        API_TOOL_DEFAULT_READ_TIMEOUT: ${API_TOOL_DEFAULT_READ_TIMEOUT:-60}
+        APP_MAX_ACTIVE_REQUESTS: ${APP_MAX_ACTIVE_REQUESTS:-0}
+        APP_WEB_URL: ${APP_WEB_URL:-}
+        AZURE_BLOB_ACCOUNT_KEY: ${AZURE_BLOB_ACCOUNT_KEY:-}
+        AZURE_BLOB_ACCOUNT_NAME: ${AZURE_BLOB_ACCOUNT_NAME:-}
+        AZURE_BLOB_ACCOUNT_URL: ${AZURE_BLOB_ACCOUNT_URL:-}
+        AZURE_BLOB_CONTAINER_NAME: ${AZURE_BLOB_CONTAINER_NAME:-}
+        BROKER_USE_SSL: ${BROKER_USE_SSL:-false}
+        CELERY_AUTO_SCALE: ${CELERY_AUTO_SCALE:-false}
+        CELERY_BROKER_URL: redis://:$SERVICE_PASSWORD_REDIS@redis:6379/1
+        CELERY_MAX_WORKERS: ${CELERY_MAX_WORKERS:-}
+        CELERY_MIN_WORKERS: ${CELERY_MIN_WORKERS:-}
+        CELERY_WORKER_AMOUNT: ${CELERY_WORKER_AMOUNT:-}
+        CELERY_WORKER_CLASS: ${CELERY_WORKER_CLASS:-}
+        CHECK_UPDATE_URL: ${CHECK_UPDATE_URL:-https://updates.dify.ai}
+        CODE_EXECUTION_API_KEY: ${SANDBOX_API_KEY:-dify-sandbox}
+        CODE_EXECUTION_ENDPOINT: ${CODE_EXECUTION_ENDPOINT:-http://sandbox:8194}
+        CODE_MAX_NUMBER: ${CODE_MAX_NUMBER:-9223372036854775807}
+        CODE_MAX_NUMBER_ARRAY_LENGTH: ${CODE_MAX_NUMBER_ARRAY_LENGTH:-1000}
+        CODE_MAX_OBJECT_ARRAY_LENGTH: ${CODE_MAX_OBJECT_ARRAY_LENGTH:-30}
+        CODE_MAX_STRING_ARRAY_LENGTH: ${CODE_MAX_STRING_ARRAY_LENGTH:-30}
+        CODE_MAX_STRING_LENGTH: ${CODE_MAX_STRING_LENGTH:-80000}
+        CODE_MIN_NUMBER: ${CODE_MIN_NUMBER:--9223372036854775808}
+        CONSOLE_API_URL: ${CONSOLE_API_URL:-}
+        CONSOLE_CORS_ALLOW_ORIGINS: ${CONSOLE_CORS_ALLOW_ORIGINS:-*}
+        CONSOLE_WEB_URL: ${CONSOLE_WEB_URL:-}
+        DB_DATABASE: dify
+        DB_HOST: ${DB_HOST:-db}
+        DB_PASSWORD: $SERVICE_PASSWORD_POSTGRES
+        DB_PORT: ${DB_PORT:-5432}
+        DB_USERNAME: $SERVICE_USER_POSTGRES
+        DEBUG: ${DEBUG:-false}
+        DEPLOY_ENV: ${DEPLOY_ENV:-PRODUCTION}
+        DIFY_BIND_ADDRESS: ${DIFY_BIND_ADDRESS:-0.0.0.0}
+        DIFY_PORT: ${DIFY_PORT:-5001}
+        ETL_TYPE: ${ETL_TYPE:-dify}
+        FILES_ACCESS_TIMEOUT: ${FILES_ACCESS_TIMEOUT:-300}
+        FILES_URL: ${FILES_URL:-}
+        FLASK_DEBUG: ${FLASK_DEBUG:-false}
+        GOOGLE_STORAGE_BUCKET_NAME: ${GOOGLE_STORAGE_BUCKET_NAME:-}
+        GOOGLE_STORAGE_SERVICE_ACCOUNT_JSON_BASE64: ${GOOGLE_STORAGE_SERVICE_ACCOUNT_JSON_BASE64:-}
+        GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-360}
+        INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH: ${INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH:-1000}
+        INVITE_EXPIRY_HOURS: ${INVITE_EXPIRY_HOURS:-72}
+        LOG_LEVEL: ${LOG_LEVEL:-INFO}
+        MAIL_DEFAULT_SEND_FROM: ${MAIL_DEFAULT_SEND_FROM:-}
+        MAIL_TYPE: ${MAIL_TYPE:-resend}
+        MIGRATION_ENABLED: ${MIGRATION_ENABLED:-true}
+        MULTIMODAL_SEND_IMAGE_FORMAT: ${MULTIMODAL_SEND_IMAGE_FORMAT:-base64}
+        NOTION_CLIENT_ID: ${NOTION_CLIENT_ID:-}
+        NOTION_CLIENT_SECRET: ${NOTION_CLIENT_SECRET:-}
+        NOTION_INTEGRATION_TYPE: ${NOTION_INTEGRATION_TYPE:-public}
+        NOTION_INTERNAL_SECRET: ${NOTION_INTERNAL_SECRET:-}
+        OCI_ACCESS_KEY: ${OCI_ACCESS_KEY:-}
+        OCI_BUCKET_NAME: ${OCI_BUCKET_NAME:-}
+        OCI_ENDPOINT: ${OCI_ENDPOINT:-}
+        OCI_REGION: ${OCI_REGION:-}
+        OCI_SECRET_KEY: ${OCI_SECRET_KEY:-}
+        OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.openai.com/v1}
+        POSTGRES_EFFECTIVE_CACHE_SIZE: ${POSTGRES_EFFECTIVE_CACHE_SIZE:-4096MB}
+        POSTGRES_MAINTENANCE_WORK_MEM: ${POSTGRES_MAINTENANCE_WORK_MEM:-64MB}
+        POSTGRES_MAX_CONNECTIONS: ${POSTGRES_MAX_CONNECTIONS:-100}
+        POSTGRES_SHARED_BUFFERS: ${POSTGRES_SHARED_BUFFERS:-128MB}
+        POSTGRES_WORK_MEM: ${POSTGRES_WORK_MEM:-4MB}
+        REDIS_DB: 0
+        REDIS_HOST: ${REDIS_HOST:-redis}
+        REDIS_PASSWORD: $SERVICE_PASSWORD_REDIS
+        REDIS_PORT: ${REDIS_PORT:-6379}
+        REDIS_USERNAME: ${REDIS_USERNAME:-}
+        REDIS_USE_SSL: ${REDIS_USE_SSL:-false}
+        RELYT_DATABASE: ${RELYT_DATABASE:-postgres}
+        RELYT_HOST: ${RELYT_HOST:-db}
+        RELYT_PASSWORD: $SERVICE_PASSWORD_RELYT
+        RELYT_PORT: ${RELYT_PORT:-5432}
+        RELYT_USER: $SERVICE_USER_RELYT
+        RESEND_API_KEY: ${RESEND_API_KEY:-your-resend-api-key}
+        RESEND_API_URL: https://api.resend.com
+        RESET_PASSWORD_TOKEN_EXPIRY_HOURS: ${RESET_PASSWORD_TOKEN_EXPIRY_HOURS:-24}
+        S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+        S3_BUCKET_NAME: ${S3_BUCKET_NAME:-}
+        S3_ENDPOINT: ${S3_ENDPOINT:-}
+        S3_REGION: ${S3_REGION:-us-east-1}
+        S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+        S3_USE_AWS_MANAGED_IAM: ${S3_USE_AWS_MANAGED_IAM:-false}
+        SENTRY_DSN: ${API_SENTRY_DSN:-}
+        SENTRY_PROFILES_SAMPLE_RATE: ${API_SENTRY_PROFILES_SAMPLE_RATE:-1.0}
+        SENTRY_TRACES_SAMPLE_RATE: ${API_SENTRY_TRACES_SAMPLE_RATE:-1.0}
+        SERVER_WORKER_AMOUNT: ${SERVER_WORKER_AMOUNT:-}
+        SERVER_WORKER_CLASS: ${SERVER_WORKER_CLASS:-}
+        SERVICE_API_URL: null
+        SMTP_OPPORTUNISTIC_TLS: ${SMTP_OPPORTUNISTIC_TLS:-false}
+        SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+        SMTP_PORT: ${SMTP_PORT:-465}
+        SMTP_SERVER: ${SMTP_SERVER:-}
+        SMTP_USERNAME: ${SMTP_USERNAME:-}
+        SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+        SQLALCHEMY_ECHO: ${SQLALCHEMY_ECHO:-false}
+        SQLALCHEMY_POOL_RECYCLE: ${SQLALCHEMY_POOL_RECYCLE:-3600}
+        SQLALCHEMY_POOL_SIZE: ${SQLALCHEMY_POOL_SIZE:-30}
+        SSRF_PROXY_HTTPS_URL: ${SSRF_PROXY_HTTPS_URL:-http://ssrf_proxy:3128}
+        SSRF_PROXY_HTTP_URL: ${SSRF_PROXY_HTTP_URL:-http://ssrf_proxy:3128}
+        STORAGE_LOCAL_PATH: storage
+        STORAGE_TYPE: ${STORAGE_TYPE:-local}
+        TEMPLATE_TRANSFORM_MAX_LENGTH: ${TEMPLATE_TRANSFORM_MAX_LENGTH:-80000}
+        TENCENT_COS_BUCKET_NAME: ${TENCENT_COS_BUCKET_NAME:-}
+        TENCENT_COS_REGION: ${TENCENT_COS_REGION:-}
+        TENCENT_COS_SCHEME: ${TENCENT_COS_SCHEME:-}
+        TENCENT_COS_SECRET_ID: ${TENCENT_COS_SECRET_ID:-}
+        TENCENT_COS_SECRET_KEY: ${TENCENT_COS_SECRET_KEY:-}
+        TENCENT_VECTOR_DB_API_KEY: ${TENCENT_VECTOR_DB_API_KEY:-dify}
+        TENCENT_VECTOR_DB_DATABASE: ${TENCENT_VECTOR_DB_DATABASE:-dify}
+        TENCENT_VECTOR_DB_REPLICAS: ${TENCENT_VECTOR_DB_REPLICAS:-2}
+        TENCENT_VECTOR_DB_SHARD: ${TENCENT_VECTOR_DB_SHARD:-1}
+        TENCENT_VECTOR_DB_TIMEOUT: ${TENCENT_VECTOR_DB_TIMEOUT:-30}
+        TENCENT_VECTOR_DB_URL: ${TENCENT_VECTOR_DB_URL:-http://127.0.0.1}
+        TENCENT_VECTOR_DB_USERNAME: ${TENCENT_VECTOR_DB_USERNAME:-dify}
+        TIDB_VECTOR_DATABASE: ${TIDB_VECTOR_DATABASE:-dify}
+        TIDB_VECTOR_HOST: ${TIDB_VECTOR_HOST:-tidb}
+        TIDB_VECTOR_PASSWORD: $SERVICE_PASSWORD_TIDB
+        TIDB_VECTOR_PORT: ${TIDB_VECTOR_PORT:-4000}
+        TIDB_VECTOR_USER: $SERVICE_USER_TIDB
+        UPLOAD_FILE_BATCH_LIMIT: ${UPLOAD_FILE_BATCH_LIMIT:-5}
+        UPLOAD_FILE_SIZE_LIMIT: ${UPLOAD_FILE_SIZE_LIMIT:-15}
+        UPLOAD_IMAGE_FILE_SIZE_LIMIT: ${UPLOAD_IMAGE_FILE_SIZE_LIMIT:-10}
+        VECTOR_STORE: ${VECTOR_STORE:-weaviate}
+        WEAVIATE_API_KEY: $SERVICE_PASSWORD_WEAVIATE
+        WEAVIATE_ENDPOINT: ${WEAVIATE_ENDPOINT:-http://weaviate:8080}
+        WEB_API_CORS_ALLOW_ORIGINS: ${WEB_API_CORS_ALLOW_ORIGINS:-*}
+      INIT_PASSWORD: $SERVICE_USER_INITPASSWORD
+      MODE: api
+      SECRET_KEY: $SERVICE_PASSWORD_64_SECRETKEY
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:5001/health
+      timeout: 10s
+    image: langgenius/dify-api:latest
+    networks:
+      appnet:
+        aliases:
+        - dify-coolify_api_1
+    restart: unless-stopped
+    volumes:
+    - dify-storage:/app/api/storage
+  db:
+    command: |
+      postgres -c 'max_connections=${POSTGRES_MAX_CONNECTIONS:-100}'
+               -c 'shared_buffers=${POSTGRES_SHARED_BUFFERS:-128MB}'
+               -c 'work_mem=${POSTGRES_WORK_MEM:-4MB}'
+               -c 'maintenance_work_mem=${POSTGRES_MAINTENANCE_WORK_MEM:-64MB}'
+               -c 'effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-4096MB}'
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: dify
+      POSTGRES_PASSWORD: $SERVICE_PASSWORD_POSTGRES
+      POSTGRES_USER: $SERVICE_USER_POSTGRES
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - pg_isready
+      - -U
+      - $SERVICE_USER_POSTGRES
+      - -d
+      - dify
+      timeout: 5s
+    image: postgres:15-alpine
+    networks:
+      appnet:
+        aliases:
+        - dify-coolify_db_1
+    restart: unless-stopped
+    volumes:
+    - dify-db-data:/var/lib/postgresql/data
+  nginx:
+    configs:
+    - source: nginx-inline-1
+      target: /etc/nginx/nginx.conf.template
+    - source: nginx-inline-2
+      target: /etc/nginx/proxy.conf.template
+    - source: nginx-inline-3
+      target: /etc/nginx/https.conf.template
+    - source: nginx-inline-4
+      target: /docker-entrypoint-mount.sh
+    - source: nginx-inline-5
+      target: /etc/nginx/conf.d/default.conf.template
+    depends_on:
+    - api
+    - web
+    entrypoint:
+    - sh
+    - -c
+    - "cp /docker-entrypoint-mount.sh /docker-entrypoint.sh && sed -i 's/\r$$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh && /docker-entrypoint.sh"
+    environment:
+      CERTBOT_DOMAIN: ${CERTBOT_DOMAIN:-}
+      NGINX_CLIENT_MAX_BODY_SIZE: ${NGINX_CLIENT_MAX_BODY_SIZE:-15M}
+      NGINX_ENABLE_CERTBOT_CHALLENGE: ${NGINX_ENABLE_CERTBOT_CHALLENGE:-false}
+      NGINX_HTTPS_ENABLED: ${NGINX_HTTPS_ENABLED:-false}
+      NGINX_KEEPALIVE_TIMEOUT: ${NGINX_KEEPALIVE_TIMEOUT:-65}
+      NGINX_PORT: ${NGINX_PORT:-80}
+      NGINX_PROXY_READ_TIMEOUT: ${NGINX_PROXY_READ_TIMEOUT:-3600s}
+      NGINX_PROXY_SEND_TIMEOUT: ${NGINX_PROXY_SEND_TIMEOUT:-3600s}
+      NGINX_SERVER_NAME: $SERVICE_URL_NGINX
+      NGINX_SSL_CERT_FILENAME: ${NGINX_SSL_CERT_FILENAME:-dify.crt}
+      NGINX_SSL_CERT_KEY_FILENAME: ${NGINX_SSL_CERT_KEY_FILENAME:-dify.key}
+      NGINX_SSL_PORT: ${NGINX_SSL_PORT:-443}
+      NGINX_SSL_PROTOCOLS: ${NGINX_SSL_PROTOCOLS:-TLSv1.1 TLSv1.2 TLSv1.3}
+      NGINX_WORKER_PROCESSES: ${NGINX_WORKER_PROCESSES:-auto}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - nginx
+      - -t
+      timeout: 10s
+    image: nginx:latest
+    networks:
+      appnet:
+        aliases:
+        - dify-coolify_nginx_1
+    restart: unless-stopped
+    volumes:
+    - ./nginx/ssl:/etc/ssl
+    - ./volumes/certbot/conf/live:/etc/letsencrypt/live
+    - ./volumes/certbot/conf:/etc/letsencrypt
+    - ./volumes/certbot/www:/var/www/html
+  redis:
+    command: redis-server --requirepass "$SERVICE_PASSWORD_REDIS"
+    environment:
+      REDIS_PASSWORD: $SERVICE_PASSWORD_REDIS
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - -a
+      - $SERVICE_PASSWORD_REDIS
+      - ping
+    image: redis:6-alpine
+    networks:
+      appnet:
+        aliases:
+        - dify-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - dify-redis-data:/data
+  sandbox:
+    environment:
+      API_KEY: ${SANDBOX_API_KEY:-dify-sandbox}
+      ENABLE_NETWORK: ${SANDBOX_ENABLE_NETWORK:-true}
+      GIN_MODE: ${SANDBOX_GIN_MODE:-release}
+      HTTPS_PROXY: ${SANDBOX_HTTPS_PROXY:-http://ssrf_proxy:3128}
+      HTTP_PROXY: ${SANDBOX_HTTP_PROXY:-http://ssrf_proxy:3128}
+      SANDBOX_PORT: ${SANDBOX_PORT:-8194}
+      WORKER_TIMEOUT: ${SANDBOX_WORKER_TIMEOUT:-15}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/8194' || exit 1
+      timeout: 20s
+    image: langgenius/dify-sandbox:latest
+    networks:
+      appnet:
+        aliases:
+        - dify-coolify_sandbox_1
+    restart: always
+    volumes:
+    - ./volumes/sandbox/dependencies:/dependencies
+  ssrf_proxy:
+    configs:
+    - source: ssrf-proxy-inline-6
+      target: /etc/squid/squid.conf.template
+    - source: ssrf-proxy-inline-7
+      target: /docker-entrypoint.sh
+    entrypoint:
+    - /bin/sh
+    - /docker-entrypoint.sh
+    environment:
+      COREDUMP_DIR: ${SSRF_COREDUMP_DIR:-/var/spool/squid}
+      HTTP_PORT: ${SSRF_HTTP_PORT:-3128}
+      REVERSE_PROXY_PORT: ${SSRF_REVERSE_PROXY_PORT:-8194}
+      SANDBOX_HOST: ${SSRF_SANDBOX_HOST:-sandbox}
+      SANDBOX_PORT: ${SANDBOX_PORT:-8194}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - squid
+      - -k
+      - check
+      timeout: 10s
+    image: ubuntu/squid:latest
+    networks:
+      appnet:
+        aliases:
+        - dify-coolify_ssrf_proxy_1
+    restart: unless-stopped
+    volumes:
+    - ssrf_proxy_var_log_squid:/var/log/squid
+    - ssrf_proxy_var_spool_squid:/var/spool/squid
+  weaviate:
+    environment:
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: ${WEAVIATE_AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED:-false}
+      AUTHENTICATION_APIKEY_ALLOWED_KEYS: $SERVICE_PASSWORD_WEAVIATE
+      AUTHENTICATION_APIKEY_ENABLED: ${WEAVIATE_AUTHENTICATION_APIKEY_ENABLED:-true}
+      AUTHENTICATION_APIKEY_USERS: $SERVICE_USER_WEAVIATE
+      AUTHORIZATION_ADMINLIST_ENABLED: ${WEAVIATE_AUTHORIZATION_ADMINLIST_ENABLED:-true}
+      AUTHORIZATION_ADMINLIST_USERS: $SERVICE_USER_WEAVIATE
+      CLUSTER_HOSTNAME: ${WEAVIATE_CLUSTER_HOSTNAME:-node1}
+      DEFAULT_VECTORIZER_MODULE: ${WEAVIATE_DEFAULT_VECTORIZER_MODULE:-none}
+      PERSISTENCE_DATA_PATH: ${WEAVIATE_PERSISTENCE_DATA_PATH:-/var/lib/weaviate}
+      QUERY_DEFAULTS_LIMIT: ${WEAVIATE_QUERY_DEFAULTS_LIMIT:-25}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://localhost:8080/v1/.well-known/live
+      timeout: 10s
+    image: semitechnologies/weaviate:1.19.0
+    networks:
+      appnet:
+        aliases:
+        - dify-coolify_weaviate_1
+    profiles:
+    - ''
+    - weaviate
+    restart: unless-stopped
+    volumes:
+    - dify-weaviate-data:/var/lib/weaviate
+  web:
+    environment:
+    - SERVICE_URL_WEB_3000=${SERVICE_URL_WEB_3000}
+    - CONSOLE_API_URL=${SERVICE_URL_WEB}
+    - APP_API_URL=${SERVICE_URL_API}
+    - SENTRY_DSN=${WEB_SENTRY_DSN:-}
+    - NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED:-0}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://web:3000
+      timeout: 10s
+    image: langgenius/dify-web:latest
+    networks:
+      appnet:
+        aliases:
+        - dify-coolify_web_1
+    restart: unless-stopped
+  worker:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<:
+        ALIYUN_OSS_ACCESS_KEY: ${ALIYUN_OSS_ACCESS_KEY:-}
+        ALIYUN_OSS_AUTH_VERSION: ${ALIYUN_OSS_AUTH_VERSION:-v4}
+        ALIYUN_OSS_BUCKET_NAME: ${ALIYUN_OSS_BUCKET_NAME:-}
+        ALIYUN_OSS_ENDPOINT: ${ALIYUN_OSS_ENDPOINT:-}
+        ALIYUN_OSS_REGION: ${ALIYUN_OSS_REGION:-}
+        ALIYUN_OSS_SECRET_KEY: ${ALIYUN_OSS_SECRET_KEY:-}
+        ANALYTICDB_ACCOUNT: ${ANALYTICDB_ACCOUNT:-}
+        ANALYTICDB_INSTANCE_ID: ${ANALYTICDB_INSTANCE_ID:-}
+        ANALYTICDB_KEY_ID: ${ANALYTICDB_KEY_ID:-}
+        ANALYTICDB_KEY_SECRET: ${ANALYTICDB_KEY_SECRET:-}
+        ANALYTICDB_NAMESPACE: ${ANALYTICDB_NAMESPACE:-dify}
+        ANALYTICDB_NAMESPACE_PASSWORD: ${ANALYTICDB_NAMESPACE_PASSWORD:-}
+        ANALYTICDB_PASSWORD: ${ANALYTICDB_PASSWORD:-}
+        ANALYTICDB_REGION_ID: ${ANALYTICDB_REGION_ID:-}
+        API_TOOL_DEFAULT_CONNECT_TIMEOUT: ${API_TOOL_DEFAULT_CONNECT_TIMEOUT:-10}
+        API_TOOL_DEFAULT_READ_TIMEOUT: ${API_TOOL_DEFAULT_READ_TIMEOUT:-60}
+        APP_MAX_ACTIVE_REQUESTS: ${APP_MAX_ACTIVE_REQUESTS:-0}
+        APP_WEB_URL: ${APP_WEB_URL:-}
+        AZURE_BLOB_ACCOUNT_KEY: ${AZURE_BLOB_ACCOUNT_KEY:-}
+        AZURE_BLOB_ACCOUNT_NAME: ${AZURE_BLOB_ACCOUNT_NAME:-}
+        AZURE_BLOB_ACCOUNT_URL: ${AZURE_BLOB_ACCOUNT_URL:-}
+        AZURE_BLOB_CONTAINER_NAME: ${AZURE_BLOB_CONTAINER_NAME:-}
+        BROKER_USE_SSL: ${BROKER_USE_SSL:-false}
+        CELERY_AUTO_SCALE: ${CELERY_AUTO_SCALE:-false}
+        CELERY_BROKER_URL: redis://:$SERVICE_PASSWORD_REDIS@redis:6379/1
+        CELERY_MAX_WORKERS: ${CELERY_MAX_WORKERS:-}
+        CELERY_MIN_WORKERS: ${CELERY_MIN_WORKERS:-}
+        CELERY_WORKER_AMOUNT: ${CELERY_WORKER_AMOUNT:-}
+        CELERY_WORKER_CLASS: ${CELERY_WORKER_CLASS:-}
+        CHECK_UPDATE_URL: ${CHECK_UPDATE_URL:-https://updates.dify.ai}
+        CODE_EXECUTION_API_KEY: ${SANDBOX_API_KEY:-dify-sandbox}
+        CODE_EXECUTION_ENDPOINT: ${CODE_EXECUTION_ENDPOINT:-http://sandbox:8194}
+        CODE_MAX_NUMBER: ${CODE_MAX_NUMBER:-9223372036854775807}
+        CODE_MAX_NUMBER_ARRAY_LENGTH: ${CODE_MAX_NUMBER_ARRAY_LENGTH:-1000}
+        CODE_MAX_OBJECT_ARRAY_LENGTH: ${CODE_MAX_OBJECT_ARRAY_LENGTH:-30}
+        CODE_MAX_STRING_ARRAY_LENGTH: ${CODE_MAX_STRING_ARRAY_LENGTH:-30}
+        CODE_MAX_STRING_LENGTH: ${CODE_MAX_STRING_LENGTH:-80000}
+        CODE_MIN_NUMBER: ${CODE_MIN_NUMBER:--9223372036854775808}
+        CONSOLE_API_URL: ${CONSOLE_API_URL:-}
+        CONSOLE_CORS_ALLOW_ORIGINS: ${CONSOLE_CORS_ALLOW_ORIGINS:-*}
+        CONSOLE_WEB_URL: ${CONSOLE_WEB_URL:-}
+        DB_DATABASE: dify
+        DB_HOST: ${DB_HOST:-db}
+        DB_PASSWORD: $SERVICE_PASSWORD_POSTGRES
+        DB_PORT: ${DB_PORT:-5432}
+        DB_USERNAME: $SERVICE_USER_POSTGRES
+        DEBUG: ${DEBUG:-false}
+        DEPLOY_ENV: ${DEPLOY_ENV:-PRODUCTION}
+        DIFY_BIND_ADDRESS: ${DIFY_BIND_ADDRESS:-0.0.0.0}
+        DIFY_PORT: ${DIFY_PORT:-5001}
+        ETL_TYPE: ${ETL_TYPE:-dify}
+        FILES_ACCESS_TIMEOUT: ${FILES_ACCESS_TIMEOUT:-300}
+        FILES_URL: ${FILES_URL:-}
+        FLASK_DEBUG: ${FLASK_DEBUG:-false}
+        GOOGLE_STORAGE_BUCKET_NAME: ${GOOGLE_STORAGE_BUCKET_NAME:-}
+        GOOGLE_STORAGE_SERVICE_ACCOUNT_JSON_BASE64: ${GOOGLE_STORAGE_SERVICE_ACCOUNT_JSON_BASE64:-}
+        GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-360}
+        INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH: ${INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH:-1000}
+        INVITE_EXPIRY_HOURS: ${INVITE_EXPIRY_HOURS:-72}
+        LOG_LEVEL: ${LOG_LEVEL:-INFO}
+        MAIL_DEFAULT_SEND_FROM: ${MAIL_DEFAULT_SEND_FROM:-}
+        MAIL_TYPE: ${MAIL_TYPE:-resend}
+        MIGRATION_ENABLED: ${MIGRATION_ENABLED:-true}
+        MULTIMODAL_SEND_IMAGE_FORMAT: ${MULTIMODAL_SEND_IMAGE_FORMAT:-base64}
+        NOTION_CLIENT_ID: ${NOTION_CLIENT_ID:-}
+        NOTION_CLIENT_SECRET: ${NOTION_CLIENT_SECRET:-}
+        NOTION_INTEGRATION_TYPE: ${NOTION_INTEGRATION_TYPE:-public}
+        NOTION_INTERNAL_SECRET: ${NOTION_INTERNAL_SECRET:-}
+        OCI_ACCESS_KEY: ${OCI_ACCESS_KEY:-}
+        OCI_BUCKET_NAME: ${OCI_BUCKET_NAME:-}
+        OCI_ENDPOINT: ${OCI_ENDPOINT:-}
+        OCI_REGION: ${OCI_REGION:-}
+        OCI_SECRET_KEY: ${OCI_SECRET_KEY:-}
+        OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.openai.com/v1}
+        POSTGRES_EFFECTIVE_CACHE_SIZE: ${POSTGRES_EFFECTIVE_CACHE_SIZE:-4096MB}
+        POSTGRES_MAINTENANCE_WORK_MEM: ${POSTGRES_MAINTENANCE_WORK_MEM:-64MB}
+        POSTGRES_MAX_CONNECTIONS: ${POSTGRES_MAX_CONNECTIONS:-100}
+        POSTGRES_SHARED_BUFFERS: ${POSTGRES_SHARED_BUFFERS:-128MB}
+        POSTGRES_WORK_MEM: ${POSTGRES_WORK_MEM:-4MB}
+        REDIS_DB: 0
+        REDIS_HOST: ${REDIS_HOST:-redis}
+        REDIS_PASSWORD: $SERVICE_PASSWORD_REDIS
+        REDIS_PORT: ${REDIS_PORT:-6379}
+        REDIS_USERNAME: ${REDIS_USERNAME:-}
+        REDIS_USE_SSL: ${REDIS_USE_SSL:-false}
+        RELYT_DATABASE: ${RELYT_DATABASE:-postgres}
+        RELYT_HOST: ${RELYT_HOST:-db}
+        RELYT_PASSWORD: $SERVICE_PASSWORD_RELYT
+        RELYT_PORT: ${RELYT_PORT:-5432}
+        RELYT_USER: $SERVICE_USER_RELYT
+        RESEND_API_KEY: ${RESEND_API_KEY:-your-resend-api-key}
+        RESEND_API_URL: https://api.resend.com
+        RESET_PASSWORD_TOKEN_EXPIRY_HOURS: ${RESET_PASSWORD_TOKEN_EXPIRY_HOURS:-24}
+        S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+        S3_BUCKET_NAME: ${S3_BUCKET_NAME:-}
+        S3_ENDPOINT: ${S3_ENDPOINT:-}
+        S3_REGION: ${S3_REGION:-us-east-1}
+        S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+        S3_USE_AWS_MANAGED_IAM: ${S3_USE_AWS_MANAGED_IAM:-false}
+        SENTRY_DSN: ${API_SENTRY_DSN:-}
+        SENTRY_PROFILES_SAMPLE_RATE: ${API_SENTRY_PROFILES_SAMPLE_RATE:-1.0}
+        SENTRY_TRACES_SAMPLE_RATE: ${API_SENTRY_TRACES_SAMPLE_RATE:-1.0}
+        SERVER_WORKER_AMOUNT: ${SERVER_WORKER_AMOUNT:-}
+        SERVER_WORKER_CLASS: ${SERVER_WORKER_CLASS:-}
+        SERVICE_API_URL: null
+        SMTP_OPPORTUNISTIC_TLS: ${SMTP_OPPORTUNISTIC_TLS:-false}
+        SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+        SMTP_PORT: ${SMTP_PORT:-465}
+        SMTP_SERVER: ${SMTP_SERVER:-}
+        SMTP_USERNAME: ${SMTP_USERNAME:-}
+        SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+        SQLALCHEMY_ECHO: ${SQLALCHEMY_ECHO:-false}
+        SQLALCHEMY_POOL_RECYCLE: ${SQLALCHEMY_POOL_RECYCLE:-3600}
+        SQLALCHEMY_POOL_SIZE: ${SQLALCHEMY_POOL_SIZE:-30}
+        SSRF_PROXY_HTTPS_URL: ${SSRF_PROXY_HTTPS_URL:-http://ssrf_proxy:3128}
+        SSRF_PROXY_HTTP_URL: ${SSRF_PROXY_HTTP_URL:-http://ssrf_proxy:3128}
+        STORAGE_LOCAL_PATH: storage
+        STORAGE_TYPE: ${STORAGE_TYPE:-local}
+        TEMPLATE_TRANSFORM_MAX_LENGTH: ${TEMPLATE_TRANSFORM_MAX_LENGTH:-80000}
+        TENCENT_COS_BUCKET_NAME: ${TENCENT_COS_BUCKET_NAME:-}
+        TENCENT_COS_REGION: ${TENCENT_COS_REGION:-}
+        TENCENT_COS_SCHEME: ${TENCENT_COS_SCHEME:-}
+        TENCENT_COS_SECRET_ID: ${TENCENT_COS_SECRET_ID:-}
+        TENCENT_COS_SECRET_KEY: ${TENCENT_COS_SECRET_KEY:-}
+        TENCENT_VECTOR_DB_API_KEY: ${TENCENT_VECTOR_DB_API_KEY:-dify}
+        TENCENT_VECTOR_DB_DATABASE: ${TENCENT_VECTOR_DB_DATABASE:-dify}
+        TENCENT_VECTOR_DB_REPLICAS: ${TENCENT_VECTOR_DB_REPLICAS:-2}
+        TENCENT_VECTOR_DB_SHARD: ${TENCENT_VECTOR_DB_SHARD:-1}
+        TENCENT_VECTOR_DB_TIMEOUT: ${TENCENT_VECTOR_DB_TIMEOUT:-30}
+        TENCENT_VECTOR_DB_URL: ${TENCENT_VECTOR_DB_URL:-http://127.0.0.1}
+        TENCENT_VECTOR_DB_USERNAME: ${TENCENT_VECTOR_DB_USERNAME:-dify}
+        TIDB_VECTOR_DATABASE: ${TIDB_VECTOR_DATABASE:-dify}
+        TIDB_VECTOR_HOST: ${TIDB_VECTOR_HOST:-tidb}
+        TIDB_VECTOR_PASSWORD: $SERVICE_PASSWORD_TIDB
+        TIDB_VECTOR_PORT: ${TIDB_VECTOR_PORT:-4000}
+        TIDB_VECTOR_USER: $SERVICE_USER_TIDB
+        UPLOAD_FILE_BATCH_LIMIT: ${UPLOAD_FILE_BATCH_LIMIT:-5}
+        UPLOAD_FILE_SIZE_LIMIT: ${UPLOAD_FILE_SIZE_LIMIT:-15}
+        UPLOAD_IMAGE_FILE_SIZE_LIMIT: ${UPLOAD_IMAGE_FILE_SIZE_LIMIT:-10}
+        VECTOR_STORE: ${VECTOR_STORE:-weaviate}
+        WEAVIATE_API_KEY: $SERVICE_PASSWORD_WEAVIATE
+        WEAVIATE_ENDPOINT: ${WEAVIATE_ENDPOINT:-http://weaviate:8080}
+        WEB_API_CORS_ALLOW_ORIGINS: ${WEB_API_CORS_ALLOW_ORIGINS:-*}
+      MODE: worker
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD-SHELL
+      - celery inspect ping
+      timeout: 10s
+    image: langgenius/dify-api:latest
+    networks:
+      appnet:
+        aliases:
+        - dify-coolify_worker_1
+    restart: unless-stopped
+    volumes:
+    - dify-storage:/app/api/storage
+volumes:
+  dify-db-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/dify-db-data
+      o: bind
+      type: none
+  dify-redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/dify-redis-data
+      o: bind
+      type: none
+  dify-storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/dify-storage
+      o: bind
+      type: none
+  dify-weaviate-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/dify-weaviate-data
+      o: bind
+      type: none
+  ssrf_proxy_var_log_squid:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/ssrf_proxy_var_log_squid
+      o: bind
+      type: none
+  ssrf_proxy_var_spool_squid:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/ssrf_proxy_var_spool_squid
+      o: bind
+      type: none
+x-shared-env:
+  ALIYUN_OSS_ACCESS_KEY: ${ALIYUN_OSS_ACCESS_KEY:-}
+  ALIYUN_OSS_AUTH_VERSION: ${ALIYUN_OSS_AUTH_VERSION:-v4}
+  ALIYUN_OSS_BUCKET_NAME: ${ALIYUN_OSS_BUCKET_NAME:-}
+  ALIYUN_OSS_ENDPOINT: ${ALIYUN_OSS_ENDPOINT:-}
+  ALIYUN_OSS_REGION: ${ALIYUN_OSS_REGION:-}
+  ALIYUN_OSS_SECRET_KEY: ${ALIYUN_OSS_SECRET_KEY:-}
+  ANALYTICDB_ACCOUNT: ${ANALYTICDB_ACCOUNT:-}
+  ANALYTICDB_INSTANCE_ID: ${ANALYTICDB_INSTANCE_ID:-}
+  ANALYTICDB_KEY_ID: ${ANALYTICDB_KEY_ID:-}
+  ANALYTICDB_KEY_SECRET: ${ANALYTICDB_KEY_SECRET:-}
+  ANALYTICDB_NAMESPACE: ${ANALYTICDB_NAMESPACE:-dify}
+  ANALYTICDB_NAMESPACE_PASSWORD: ${ANALYTICDB_NAMESPACE_PASSWORD:-}
+  ANALYTICDB_PASSWORD: ${ANALYTICDB_PASSWORD:-}
+  ANALYTICDB_REGION_ID: ${ANALYTICDB_REGION_ID:-}
+  API_TOOL_DEFAULT_CONNECT_TIMEOUT: ${API_TOOL_DEFAULT_CONNECT_TIMEOUT:-10}
+  API_TOOL_DEFAULT_READ_TIMEOUT: ${API_TOOL_DEFAULT_READ_TIMEOUT:-60}
+  APP_MAX_ACTIVE_REQUESTS: ${APP_MAX_ACTIVE_REQUESTS:-0}
+  APP_WEB_URL: ${APP_WEB_URL:-}
+  AZURE_BLOB_ACCOUNT_KEY: ${AZURE_BLOB_ACCOUNT_KEY:-}
+  AZURE_BLOB_ACCOUNT_NAME: ${AZURE_BLOB_ACCOUNT_NAME:-}
+  AZURE_BLOB_ACCOUNT_URL: ${AZURE_BLOB_ACCOUNT_URL:-}
+  AZURE_BLOB_CONTAINER_NAME: ${AZURE_BLOB_CONTAINER_NAME:-}
+  BROKER_USE_SSL: ${BROKER_USE_SSL:-false}
+  CELERY_AUTO_SCALE: ${CELERY_AUTO_SCALE:-false}
+  CELERY_BROKER_URL: redis://:$SERVICE_PASSWORD_REDIS@redis:6379/1
+  CELERY_MAX_WORKERS: ${CELERY_MAX_WORKERS:-}
+  CELERY_MIN_WORKERS: ${CELERY_MIN_WORKERS:-}
+  CELERY_WORKER_AMOUNT: ${CELERY_WORKER_AMOUNT:-}
+  CELERY_WORKER_CLASS: ${CELERY_WORKER_CLASS:-}
+  CHECK_UPDATE_URL: ${CHECK_UPDATE_URL:-https://updates.dify.ai}
+  CODE_EXECUTION_API_KEY: ${SANDBOX_API_KEY:-dify-sandbox}
+  CODE_EXECUTION_ENDPOINT: ${CODE_EXECUTION_ENDPOINT:-http://sandbox:8194}
+  CODE_MAX_NUMBER: ${CODE_MAX_NUMBER:-9223372036854775807}
+  CODE_MAX_NUMBER_ARRAY_LENGTH: ${CODE_MAX_NUMBER_ARRAY_LENGTH:-1000}
+  CODE_MAX_OBJECT_ARRAY_LENGTH: ${CODE_MAX_OBJECT_ARRAY_LENGTH:-30}
+  CODE_MAX_STRING_ARRAY_LENGTH: ${CODE_MAX_STRING_ARRAY_LENGTH:-30}
+  CODE_MAX_STRING_LENGTH: ${CODE_MAX_STRING_LENGTH:-80000}
+  CODE_MIN_NUMBER: ${CODE_MIN_NUMBER:--9223372036854775808}
+  CONSOLE_API_URL: ${CONSOLE_API_URL:-}
+  CONSOLE_CORS_ALLOW_ORIGINS: ${CONSOLE_CORS_ALLOW_ORIGINS:-*}
+  CONSOLE_WEB_URL: ${CONSOLE_WEB_URL:-}
+  DB_DATABASE: dify
+  DB_HOST: ${DB_HOST:-db}
+  DB_PASSWORD: $SERVICE_PASSWORD_POSTGRES
+  DB_PORT: ${DB_PORT:-5432}
+  DB_USERNAME: $SERVICE_USER_POSTGRES
+  DEBUG: ${DEBUG:-false}
+  DEPLOY_ENV: ${DEPLOY_ENV:-PRODUCTION}
+  DIFY_BIND_ADDRESS: ${DIFY_BIND_ADDRESS:-0.0.0.0}
+  DIFY_PORT: ${DIFY_PORT:-5001}
+  ETL_TYPE: ${ETL_TYPE:-dify}
+  FILES_ACCESS_TIMEOUT: ${FILES_ACCESS_TIMEOUT:-300}
+  FILES_URL: ${FILES_URL:-}
+  FLASK_DEBUG: ${FLASK_DEBUG:-false}
+  GOOGLE_STORAGE_BUCKET_NAME: ${GOOGLE_STORAGE_BUCKET_NAME:-}
+  GOOGLE_STORAGE_SERVICE_ACCOUNT_JSON_BASE64: ${GOOGLE_STORAGE_SERVICE_ACCOUNT_JSON_BASE64:-}
+  GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-360}
+  INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH: ${INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH:-1000}
+  INVITE_EXPIRY_HOURS: ${INVITE_EXPIRY_HOURS:-72}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  MAIL_DEFAULT_SEND_FROM: ${MAIL_DEFAULT_SEND_FROM:-}
+  MAIL_TYPE: ${MAIL_TYPE:-resend}
+  MIGRATION_ENABLED: ${MIGRATION_ENABLED:-true}
+  MULTIMODAL_SEND_IMAGE_FORMAT: ${MULTIMODAL_SEND_IMAGE_FORMAT:-base64}
+  NOTION_CLIENT_ID: ${NOTION_CLIENT_ID:-}
+  NOTION_CLIENT_SECRET: ${NOTION_CLIENT_SECRET:-}
+  NOTION_INTEGRATION_TYPE: ${NOTION_INTEGRATION_TYPE:-public}
+  NOTION_INTERNAL_SECRET: ${NOTION_INTERNAL_SECRET:-}
+  OCI_ACCESS_KEY: ${OCI_ACCESS_KEY:-}
+  OCI_BUCKET_NAME: ${OCI_BUCKET_NAME:-}
+  OCI_ENDPOINT: ${OCI_ENDPOINT:-}
+  OCI_REGION: ${OCI_REGION:-}
+  OCI_SECRET_KEY: ${OCI_SECRET_KEY:-}
+  OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.openai.com/v1}
+  POSTGRES_EFFECTIVE_CACHE_SIZE: ${POSTGRES_EFFECTIVE_CACHE_SIZE:-4096MB}
+  POSTGRES_MAINTENANCE_WORK_MEM: ${POSTGRES_MAINTENANCE_WORK_MEM:-64MB}
+  POSTGRES_MAX_CONNECTIONS: ${POSTGRES_MAX_CONNECTIONS:-100}
+  POSTGRES_SHARED_BUFFERS: ${POSTGRES_SHARED_BUFFERS:-128MB}
+  POSTGRES_WORK_MEM: ${POSTGRES_WORK_MEM:-4MB}
+  REDIS_DB: 0
+  REDIS_HOST: ${REDIS_HOST:-redis}
+  REDIS_PASSWORD: $SERVICE_PASSWORD_REDIS
+  REDIS_PORT: ${REDIS_PORT:-6379}
+  REDIS_USERNAME: ${REDIS_USERNAME:-}
+  REDIS_USE_SSL: ${REDIS_USE_SSL:-false}
+  RELYT_DATABASE: ${RELYT_DATABASE:-postgres}
+  RELYT_HOST: ${RELYT_HOST:-db}
+  RELYT_PASSWORD: $SERVICE_PASSWORD_RELYT
+  RELYT_PORT: ${RELYT_PORT:-5432}
+  RELYT_USER: $SERVICE_USER_RELYT
+  RESEND_API_KEY: ${RESEND_API_KEY:-your-resend-api-key}
+  RESEND_API_URL: https://api.resend.com
+  RESET_PASSWORD_TOKEN_EXPIRY_HOURS: ${RESET_PASSWORD_TOKEN_EXPIRY_HOURS:-24}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+  S3_BUCKET_NAME: ${S3_BUCKET_NAME:-}
+  S3_ENDPOINT: ${S3_ENDPOINT:-}
+  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+  S3_USE_AWS_MANAGED_IAM: ${S3_USE_AWS_MANAGED_IAM:-false}
+  SENTRY_DSN: ${API_SENTRY_DSN:-}
+  SENTRY_PROFILES_SAMPLE_RATE: ${API_SENTRY_PROFILES_SAMPLE_RATE:-1.0}
+  SENTRY_TRACES_SAMPLE_RATE: ${API_SENTRY_TRACES_SAMPLE_RATE:-1.0}
+  SERVER_WORKER_AMOUNT: ${SERVER_WORKER_AMOUNT:-}
+  SERVER_WORKER_CLASS: ${SERVER_WORKER_CLASS:-}
+  SERVICE_API_URL: null
+  SMTP_OPPORTUNISTIC_TLS: ${SMTP_OPPORTUNISTIC_TLS:-false}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_PORT: ${SMTP_PORT:-465}
+  SMTP_SERVER: ${SMTP_SERVER:-}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+  SQLALCHEMY_ECHO: ${SQLALCHEMY_ECHO:-false}
+  SQLALCHEMY_POOL_RECYCLE: ${SQLALCHEMY_POOL_RECYCLE:-3600}
+  SQLALCHEMY_POOL_SIZE: ${SQLALCHEMY_POOL_SIZE:-30}
+  SSRF_PROXY_HTTPS_URL: ${SSRF_PROXY_HTTPS_URL:-http://ssrf_proxy:3128}
+  SSRF_PROXY_HTTP_URL: ${SSRF_PROXY_HTTP_URL:-http://ssrf_proxy:3128}
+  STORAGE_LOCAL_PATH: storage
+  STORAGE_TYPE: ${STORAGE_TYPE:-local}
+  TEMPLATE_TRANSFORM_MAX_LENGTH: ${TEMPLATE_TRANSFORM_MAX_LENGTH:-80000}
+  TENCENT_COS_BUCKET_NAME: ${TENCENT_COS_BUCKET_NAME:-}
+  TENCENT_COS_REGION: ${TENCENT_COS_REGION:-}
+  TENCENT_COS_SCHEME: ${TENCENT_COS_SCHEME:-}
+  TENCENT_COS_SECRET_ID: ${TENCENT_COS_SECRET_ID:-}
+  TENCENT_COS_SECRET_KEY: ${TENCENT_COS_SECRET_KEY:-}
+  TENCENT_VECTOR_DB_API_KEY: ${TENCENT_VECTOR_DB_API_KEY:-dify}
+  TENCENT_VECTOR_DB_DATABASE: ${TENCENT_VECTOR_DB_DATABASE:-dify}
+  TENCENT_VECTOR_DB_REPLICAS: ${TENCENT_VECTOR_DB_REPLICAS:-2}
+  TENCENT_VECTOR_DB_SHARD: ${TENCENT_VECTOR_DB_SHARD:-1}
+  TENCENT_VECTOR_DB_TIMEOUT: ${TENCENT_VECTOR_DB_TIMEOUT:-30}
+  TENCENT_VECTOR_DB_URL: ${TENCENT_VECTOR_DB_URL:-http://127.0.0.1}
+  TENCENT_VECTOR_DB_USERNAME: ${TENCENT_VECTOR_DB_USERNAME:-dify}
+  TIDB_VECTOR_DATABASE: ${TIDB_VECTOR_DATABASE:-dify}
+  TIDB_VECTOR_HOST: ${TIDB_VECTOR_HOST:-tidb}
+  TIDB_VECTOR_PASSWORD: $SERVICE_PASSWORD_TIDB
+  TIDB_VECTOR_PORT: ${TIDB_VECTOR_PORT:-4000}
+  TIDB_VECTOR_USER: $SERVICE_USER_TIDB
+  UPLOAD_FILE_BATCH_LIMIT: ${UPLOAD_FILE_BATCH_LIMIT:-5}
+  UPLOAD_FILE_SIZE_LIMIT: ${UPLOAD_FILE_SIZE_LIMIT:-15}
+  UPLOAD_IMAGE_FILE_SIZE_LIMIT: ${UPLOAD_IMAGE_FILE_SIZE_LIMIT:-10}
+  VECTOR_STORE: ${VECTOR_STORE:-weaviate}
+  WEAVIATE_API_KEY: $SERVICE_PASSWORD_WEAVIATE
+  WEAVIATE_ENDPOINT: ${WEAVIATE_ENDPOINT:-http://weaviate:8080}
+  WEB_API_CORS_ALLOW_ORIGINS: ${WEB_API_CORS_ALLOW_ORIGINS:-*}

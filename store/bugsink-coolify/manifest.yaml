@@ -1,0 +1,68 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bugsink-coolify
+description: Self-hosted Error Tracking.
+endpoint:
+  port: 8000
+  service: mysql
+env:
+  MYSQL_DATABASE: bugsink
+  SERVICE_PASSWORD_64_BUGSINK:
+    generate: hex64
+  SERVICE_PASSWORD_BUGSINK:
+    generate: password
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_URL_BUGSINK: https://${APP_DOMAIN}
+  SERVICE_URL_BUGSINK_8000: https://${APP_DOMAIN}
+  SERVICE_USER_BUGSINK:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_BUGSINK
+  path: null
+  user: SERVICE_USER_BUGSINK
+name: bugsink-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: bugsink'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+tags:
+- python
+- error-tracking
+- django
+- mysql
+title: Bugsink
+type: app
+upstream:
+  categories:
+  - monitoring
+  source: https://www.bugsink.com/docs/
+  tags:
+  - python
+  - error-tracking
+  - django
+  - mysql
+  template: bugsink.yaml
+website: https://www.bugsink.com/docs/

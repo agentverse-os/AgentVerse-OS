@@ -1,0 +1,30 @@
+# gotenberg-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  gotenberg:
+    command:
+    - gotenberg
+    - --api-enable-basic-auth
+    - --api-disable-health-check-logging
+    environment:
+    - SERVICE_URL_GOTENBERG_3000=${SERVICE_URL_GOTENBERG_3000}
+    - GOTENBERG_API_BASIC_AUTH_USERNAME=${SERVICE_USER_GOTENBERG}
+    - GOTENBERG_API_BASIC_AUTH_PASSWORD=${SERVICE_PASSWORD_GOTENBERG}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000/health
+      timeout: 20s
+    image: gotenberg/gotenberg:latest
+    networks:
+      appnet:
+        aliases:
+        - gotenberg-coolify_gotenberg_1
+    restart: unless-stopped

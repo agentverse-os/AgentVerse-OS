@@ -1,0 +1,92 @@
+# autobase-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  autobase:
+    depends_on:
+      autobase-api:
+        condition: service_healthy
+    environment:
+    - SERVICE_FQDN_AUTOBASE_80=${SERVICE_FQDN_AUTOBASE_80}
+    - PG_CONSOLE_AUTHORIZATION_TOKEN=${SERVICE_PASSWORD_UI}
+    - PG_CONSOLE_API_HOST=autobase-api
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - http://localhost:80/
+      timeout: 5s
+    image: autobase/console_ui:2.5.2
+    networks:
+      appnet:
+        aliases:
+        - autobase-coolify_autobase_1
+    platform: linux/amd64
+    restart: unless-stopped
+  autobase-api:
+    depends_on:
+      autobase-db:
+        condition: service_healthy
+    environment:
+    - PG_CONSOLE_DB_HOST=autobase-db
+    - PG_CONSOLE_DB_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - PG_CONSOLE_AUTHORIZATION_TOKEN=${SERVICE_PASSWORD_UI}
+    - PG_CONSOLE_ENCRYPTIONKEY=${SERVICE_BASE64_ENCRYPTIONKEY}
+    - PG_CONSOLE_LOGGER_LEVEL=${PG_CONSOLE_LOGGER_LEVEL:-info}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -fsS
+      - -H
+      - 'accept: application/json'
+      - -H
+      - 'Authorization: Bearer ${SERVICE_PASSWORD_UI}'
+      - http://localhost:8080/api/v1/version
+      timeout: 5s
+    image: autobase/console_api:2.5.2
+    networks:
+      appnet:
+        aliases:
+        - autobase-coolify_autobase-api_1
+      dockerro: {}
+    platform: linux/amd64
+    restart: unless-stopped
+    volumes:
+    - /tmp/ansible:/tmp/ansible
+  autobase-db:
+    environment:
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres
+      timeout: 5s
+    image: autobase/console_db:2.5.2
+    networks:
+      appnet:
+        aliases:
+        - autobase-coolify_autobase-db_1
+    platform: linux/amd64
+    restart: unless-stopped
+    volumes:
+    - autobase-db-data:/var/lib/postgresql
+volumes:
+  autobase-db-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/autobase-db-data
+      o: bind
+      type: none

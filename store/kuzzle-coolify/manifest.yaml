@@ -1,0 +1,99 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kuzzle-coolify
+description: Kuzzle is a generic backend offering the basic building blocks common to every application.
+endpoint:
+  port: 7512
+  service: kuzzle
+env:
+  DEBUG: kuzzle:*,-kuzzle:network:protocols:websocket,-kuzzle:events
+  DEBUG_COLORS: on
+  DEBUG_DEPTH: '0'
+  DEBUG_EXPAND: off
+  DEBUG_MAX_ARRAY: '100'
+  SERVICE_URL_KUZZLE_7512: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: kuzzle-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DEBUG
+  hint: 'по умолчанию: kuzzle:*,-kuzzle:network:protocols:websocket,-kuzzle:events'
+  label: debug
+  options: null
+  required: false
+  type: text
+- env: DEBUG_DEPTH
+  hint: 'по умолчанию: 0'
+  label: debug depth
+  options: null
+  required: false
+  type: text
+- env: DEBUG_MAX_ARRAY
+  hint: 'по умолчанию: 100'
+  label: debug max array
+  options: null
+  required: false
+  type: text
+- env: DEBUG_EXPAND
+  hint: 'по умолчанию: off'
+  label: debug expand
+  options: null
+  required: false
+  type: text
+- env: DEBUG_COLORS
+  hint: 'по умолчанию: on'
+  label: debug colors
+  options: null
+  required: false
+  type: text
+tags:
+- backend
+- api
+- realtime
+- websocket
+- mqtt
+- rest
+- sdk
+- iot
+- geofencing
+- low-code
+title: Kuzzle
+type: app
+upstream:
+  categories:
+  - backend
+  source: https://kuzzle.io
+  tags:
+  - backend
+  - api
+  - realtime
+  - websocket
+  - mqtt
+  - rest
+  - sdk
+  - iot
+  - geofencing
+  - low-code
+  template: kuzzle.yaml
+website: https://kuzzle.io

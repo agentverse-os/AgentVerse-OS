@@ -1,0 +1,24 @@
+# whoogle-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  whoogle:
+    environment:
+    - SERVICE_URL_WHOOGLE_5000=${SERVICE_URL_WHOOGLE_5000}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:5000
+      timeout: 10s
+    image: benbusby/whoogle-search:latest
+    networks:
+      appnet:
+        aliases:
+        - whoogle-coolify_whoogle_1
+    restart: unless-stopped

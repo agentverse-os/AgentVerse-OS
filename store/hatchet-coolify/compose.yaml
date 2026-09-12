@@ -1,0 +1,171 @@
+# hatchet-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  hatchet-dashboard:
+    command: sh ./entrypoint.sh --config /hatchet/config
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      setup-config:
+        condition: service_completed_successfully
+    environment:
+    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/$POSTGRES_DB
+    - SERVICE_URL_HATCHET_80=${SERVICE_URL_HATCHET_80}
+    image: ghcr.io/hatchet-dev/hatchet/hatchet-dashboard:latest
+    networks:
+      appnet:
+        aliases:
+        - hatchet-coolify_hatchet-dashboard_1
+    restart: unless-stopped
+    volumes:
+    - hatchet-certs:/hatchet/certs
+    - hatchet-config:/hatchet/config
+  hatchet-engine:
+    command: /hatchet/hatchet-engine --config /hatchet/config
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      setup-config:
+        condition: service_completed_successfully
+    environment:
+    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/$POSTGRES_DB
+    - SERVER_GRPC_BIND_ADDRESS=${SERVER_GRPC_BIND_ADDRESS:-0.0.0.0}
+    - SERVER_GRPC_INSECURE=${SERVER_GRPC_INSECURE:-t}
+    image: ghcr.io/hatchet-dev/hatchet/hatchet-engine:latest
+    networks:
+      appnet:
+        aliases:
+        - hatchet-coolify_hatchet-engine_1
+    restart: on-failure
+    volumes:
+    - hatchet-certs:/hatchet/certs
+    - hatchet-config:/hatchet/config
+  migration:
+    command: /hatchet/hatchet-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/$POSTGRES_DB
+    image: ghcr.io/hatchet-dev/hatchet/hatchet-migrate:latest
+    networks:
+      appnet:
+        aliases:
+        - hatchet-coolify_migration_1
+    restart: no
+  postgres:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_DB=${POSTGRES_DB:-hatchet}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - hatchet-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+  rabbitmq:
+    environment:
+    - SERVICE_URL_RABBITMQ_15672=${SERVICE_URL_RABBITMQ_15672}
+    - RABBITMQ_DEFAULT_USER=$SERVICE_USER_RABBITMQ
+    - RABBITMQ_DEFAULT_PASS=$SERVICE_PASSWORD_RABBITMQ
+    - PORT=${RABBITMQ_PORT:-5672}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: rabbitmq-diagnostics -q ping
+      timeout: 30s
+    hostname: rabbitmq
+    image: rabbitmq:3-management
+    networks:
+      appnet:
+        aliases:
+        - hatchet-coolify_rabbitmq_1
+    restart: unless-stopped
+    volumes:
+    - rabbitmq-data:/var/lib/rabbitmq/
+  setup-config:
+    command: /hatchet/hatchet-admin quickstart --skip certs --generated-config-dir /hatchet/config --overwrite=false
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/$POSTGRES_DB
+    - SERVER_TASKQUEUE_RABBITMQ_URL=amqp://$SERVICE_USER_RABBITMQ:$SERVICE_PASSWORD_RABBITMQ@rabbitmq:5672/
+    - SERVER_AUTH_COOKIE_DOMAIN=${SERVER_AUTH_COOKIE_DOMAIN:-localhost:8080}
+    - SERVER_AUTH_COOKIE_INSECURE=${SERVER_AUTH_COOKIE_INSECURE:-t}
+    - SERVER_GRPC_BIND_ADDRESS=${SERVER_GRPC_BIND_ADDRESS:-0.0.0.0}
+    - SERVER_GRPC_INSECURE=${SERVER_GRPC_INSECURE:-t}
+    - SERVER_GRPC_BROADCAST_ADDRESS=${SERVER_GRPC_BROADCAST_ADDRESS:-localhost:7077}
+    - SERVER_DEFAULT_ENGINE_VERSION=V1
+    - SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS=${SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS:-hatchet-engine:7077}
+    image: ghcr.io/hatchet-dev/hatchet/hatchet-admin:latest
+    networks:
+      appnet:
+        aliases:
+        - hatchet-coolify_setup-config_1
+    restart: no
+    volumes:
+    - hatchet_certs:/hatchet/certs
+    - hatchet_config:/hatchet/config
+volumes:
+  hatchet-certs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/hatchet-certs
+      o: bind
+      type: none
+  hatchet-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/hatchet-config
+      o: bind
+      type: none
+  hatchet_certs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/hatchet_certs
+      o: bind
+      type: none
+  hatchet_config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/hatchet_config
+      o: bind
+      type: none
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none
+  rabbitmq-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/rabbitmq-data
+      o: bind
+      type: none

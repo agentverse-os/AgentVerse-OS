@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/homarr-umbrel
+description: A customizable browser home page
+endpoint:
+  port: 7575
+  service: web
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/homarr/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homarr/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homarr/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homarr/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homarr/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/homarr/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: homarr-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Homarr
+type: app
+upstream:
+  author: homarr-labs
+  categories:
+  - files
+  release_notes: |-
+    This point release fixes MCP tool responses and improves startup reliability by using stable internal service addresses.
+
+    It also reverts the custom User-Agent behavior for outbound integration requests to avoid integration compatibility issues.
+
+    Full release notes can be found at https://github.com/homarr-labs/homarr/releases/tag/v1.76.2
+  source: https://github.com/homarr-labs/homarr
+  version: 1.76.2
+  website: https://homarr.dev/
+website: https://homarr.dev/

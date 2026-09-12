@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sabnzbd-umbrel
+description: The automated Usenet download tool
+endpoint:
+  port: 8080
+  service: web
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/sabnzbd/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/sabnzbd/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/sabnzbd/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/sabnzbd/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: sabnzbd-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: SABnzbd
+type: app
+upstream:
+  author: sabnzbd
+  categories:
+  - networking
+  release_notes: |-
+    This update fixes a critical remote code execution vulnerability and a high-severity path traversal vulnerability. If untrusted parties can reach your SABnzbd web interface or if SABnzbd processes NZBs from sources you do not fully trust, update promptly.
+
+    It also includes the authentication-bypass fix from SABnzbd 5.1.1 for anyone updating from an older version. If you relied on SABnzbd's username and password for network or internet access, rotate sensitive credentials after updating, including the SABnzbd username/password, API key, Usenet server passwords, RSS indexer API keys, and notification credentials.
+
+    Other fixes include RSS filters not being applied directly.
+
+    Full release notes are available at https://github.com/sabnzbd/sabnzbd/releases/tag/5.1.2
+  source: https://github.com/sabnzbd/sabnzbd
+  version: 5.1.2
+  website: https://sabnzbd.org/
+website: https://sabnzbd.org/

@@ -1,0 +1,47 @@
+# rallly: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  rallly:
+    depends_on:
+      rallly_db:
+        condition: service_healthy
+    environment:
+      ALLOWED_EMAILS: ${RALLLY_ALLOWED_EMAILS}
+      DATABASE_URL: postgres://tipi:${RALLLY_DB_PASSWORD}@rallly_db:5432/rallly
+      NEXT_PUBLIC_BASE_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      NOREPLY_EMAIL: ${RALLLY_NOREPLY_EMAIL}
+      SECRET_PASSWORD: ${RALLLY_SECRET_KEY}
+      SMTP_HOST: ${RALLLY_SMTP_HOST}
+      SMTP_PORT: ${RALLLY_SMTP_PORT}
+      SMTP_PWD: ${RALLLY_SMTP_PWD}
+      SMTP_SECURE: ${RALLLY_SMTP_SECURE}
+      SMTP_TLS_ENABLED: ${RALLLY_SMTP_TLS_ENABLED}
+      SMTP_USER: ${RALLLY_SMTP_USER}
+      SUPPORT_EMAIL: ${RALLLY_SUPPORT_EMAIL}
+    image: lukevella/rallly:4.13.1
+    networks:
+      appnet:
+        aliases:
+        - rallly_rallly_1
+    restart: unless-stopped
+  rallly_db:
+    environment:
+      POSTGRES_DB: rallly
+      POSTGRES_PASSWORD: ${RALLLY_DB_PASSWORD}
+      POSTGRES_USER: tipi
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test: pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+    image: postgres:14
+    networks:
+      appnet:
+        aliases:
+        - rallly_rallly_db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data

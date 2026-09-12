@@ -1,0 +1,36 @@
+# snapdrop-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  snapdrop:
+    environment:
+    - SERVICE_URL_SNAPDROP=${SERVICE_URL_SNAPDROP}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: linuxserver/snapdrop:version-b8b78cc2
+    networks:
+      appnet:
+        aliases:
+        - snapdrop-coolify_snapdrop_1
+    restart: unless-stopped
+    volumes:
+    - snapdrop-config:/config
+volumes:
+  snapdrop-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/snapdrop-config
+      o: bind
+      type: none

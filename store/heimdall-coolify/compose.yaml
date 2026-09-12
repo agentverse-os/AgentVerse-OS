@@ -1,0 +1,36 @@
+# heimdall-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  heimdall:
+    environment:
+    - SERVICE_URL_HEIMDALL=${SERVICE_URL_HEIMDALL}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: lscr.io/linuxserver/heimdall:latest
+    networks:
+      appnet:
+        aliases:
+        - heimdall-coolify_heimdall_1
+    restart: unless-stopped
+    volumes:
+    - heimdall-config:/config
+volumes:
+  heimdall-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/heimdall-config
+      o: bind
+      type: none

@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/open-webui
+description: User-friendly WebUI for LLMs
+endpoint:
+  port: 8080
+  service: open-webui
+env:
+  OPENWEBUI_OLLAMA_URL: ''
+  OPENWEBUI_OPENAI_KEY:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: open-webui
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: OPENWEBUI_OLLAMA_URL
+  hint: null
+  label: Ollama Api Url
+  options: null
+  required: false
+  type: text
+- env: OPENWEBUI_OPENAI_KEY
+  hint: null
+  label: Openai Api Key
+  options: null
+  required: false
+  type: password
+tags: []
+title: Open WebUI
+type: app
+upstream:
+  author: open-webui
+  categories:
+  - ai
+  source: https://github.com/open-webui/open-webui
+  tipi_version: 110
+  version: v0.11.1
+website: https://github.com/open-webui/open-webui

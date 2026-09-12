@@ -1,0 +1,44 @@
+# calibre-web-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  calibre-web:
+    environment:
+    - SERVICE_URL_CALIBRE_8083=${SERVICE_URL_CALIBRE_8083}
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-Etc/UTC}
+    - DOCKER_MODS=${DOCKER_MODS:-linuxserver/mods:universal-calibre}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8083
+      timeout: 20s
+    image: lscr.io/linuxserver/calibre-web:latest
+    networks:
+      appnet:
+        aliases:
+        - calibre-web-coolify_calibre-web_1
+    restart: unless-stopped
+    volumes:
+    - calibre_web_data:/config
+    - calibre_library:/books
+volumes:
+  calibre_library:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/calibre_library
+      o: bind
+      type: none
+  calibre_web_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/calibre_web_data
+      o: bind
+      type: none

@@ -1,0 +1,103 @@
+# nextcloud-with-postgres-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nextcloud:
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_NEXTCLOUD_80=${SERVICE_URL_NEXTCLOUD_80}
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-Europe/Paris}
+    - POSTGRES_DB=${POSTGRES_DB:-nextcloud}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_HOST=nextcloud-db
+    - REDIS_HOST=redis
+    - REDIS_PORT=6379
+    healthcheck:
+      interval: 30s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80/status.php
+      timeout: 10s
+    image: lscr.io/linuxserver/nextcloud:latest
+    networks:
+      appnet:
+        aliases:
+        - nextcloud-with-postgres-coolify_nextcloud_1
+    restart: unless-stopped
+    volumes:
+    - nextcloud-config:/config
+    - nextcloud-data:/data
+  nextcloud-db:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-nextcloud}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - nextcloud-with-postgres-coolify_nextcloud-db_1
+    restart: unless-stopped
+    volumes:
+    - nextcloud-postgresql-data:/var/lib/postgresql/data
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test:
+      - CMD
+      - redis-cli
+      - PING
+      timeout: 10s
+    image: redis:7.4-alpine
+    networks:
+      appnet:
+        aliases:
+        - nextcloud-with-postgres-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - nextcloud-redis-data:/data
+volumes:
+  nextcloud-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nextcloud-config
+      o: bind
+      type: none
+  nextcloud-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nextcloud-data
+      o: bind
+      type: none
+  nextcloud-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nextcloud-postgresql-data
+      o: bind
+      type: none
+  nextcloud-redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nextcloud-redis-data
+      o: bind
+      type: none

@@ -1,0 +1,50 @@
+# influxdb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  influxdb:
+    environment:
+    - SERVICE_URL_INFLUXDB_8086=${SERVICE_URL_INFLUXDB_8086}
+    - INFLUXDB_HTTP_BIND_ADDRESS=:8086
+    - INFLUXDB_INIT_MODE=setup
+    - INFLUXDB_INIT_USERNAME=$SERVICE_USER_INFLUXDB
+    - INFLUXDB_INIT_PASSWORD=$SERVICE_PASSWORD_INFLUXDB
+    - INFLUXDB_INIT_ORG=$SERVICE_ORG_INFLUXDB
+    - INFLUXDB_INIT_BUCKET=$SERVICE_BUCKET_INFLUXDB
+    - INFLUXDB_INIT_RETENTION=0
+    - INFLUXDB_INIT_ADMIN_TOKEN=$SERVICE_PASSWORD_INFLUXDB_TOKEN
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      test:
+      - CMD
+      - influx
+      - ping
+      - --host
+      - http://127.0.0.1:8086
+      timeout: 5s
+    image: influxdb:2.7-alpine
+    networks:
+      appnet:
+        aliases:
+        - influxdb-coolify_influxdb_1
+    restart: unless-stopped
+    volumes:
+    - influxdb-data:/var/lib/influxdb2
+    - influxdb-config:/etc/influxdb2
+volumes:
+  influxdb-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/influxdb-config
+      o: bind
+      type: none
+  influxdb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/influxdb-data
+      o: bind
+      type: none

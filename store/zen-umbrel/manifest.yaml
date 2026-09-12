@@ -1,0 +1,71 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/zen-umbrel
+description: A simple app for focused and private note-taking
+endpoint:
+  port: 8080
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/zen/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zen/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zen/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zen/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zen/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/zen/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: zen-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Zen
+type: app
+upstream:
+  author: Sheshbabu
+  categories:
+  - files
+  release_notes: |-
+    This release brings several exciting new features and improvements:
+
+    New Features:
+      - Search highlights to help you find content faster
+      - Table of contents for easier navigation through long notes
+      - Pinned notes feature to keep important notes at the top
+      - Templates feature for quickly creating notes with predefined structures
+      - Clear trash feature to permanently delete all trashed notes at once
+      - Semantic search for more intelligent content discovery
+      - Canvas support for visual note organization with drag-and-drop functionality
+      - Sticky notes for quick thoughts and reminders
+      - Image similarity search to find related images
+
+
+    Improvements:
+      - Enhanced search with image results displayed as a grid
+      - Better mobile view with list titles
+      - Sticky list toolbar for easier access
+      - Improved table of contents visibility and styling
+      - Better lightbox integration with close and similar images buttons
+      - View switcher preferences now saved locally
+  source: https://github.com/sheshbabu/zen
+  version: 1.5.0
+  website: https://www.sheshbabu.com/zen/
+website: https://www.sheshbabu.com/zen/

@@ -1,0 +1,57 @@
+# neon-ws-proxy-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  neon-proxy:
+    depends_on:
+    - postgres
+    environment:
+    - SERVICE_URL_NEONPROXY=${SERVICE_URL_NEONPROXY}
+    - SERVICE_URL_NEONPROMETHEUS_2112=${SERVICE_URL_NEONPROMETHEUS_2112}
+    - APPEND_PORT=postgres:5432
+    - ALLOW_ADDR_REGEX=.*
+    - LOG_TRAFFIC=false
+    - LOG_CONN_INFO=true
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test:
+      - CMD-SHELL
+      - nc -z 127.0.0.1 80
+      timeout: 2s
+    image: ghcr.io/neondatabase/wsproxy:latest
+    networks:
+      appnet:
+        aliases:
+        - neon-ws-proxy-coolify_neon-proxy_1
+    restart: unless-stopped
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-postgres}
+    - POSTGRES_HOST_AUTH_METHOD=password
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:17-alpine
+    networks:
+      appnet:
+        aliases:
+        - neon-ws-proxy-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+volumes:
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none

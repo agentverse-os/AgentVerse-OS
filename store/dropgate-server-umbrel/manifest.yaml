@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/dropgate-server-umbrel
+description: Self-hosted, privacy-first file sharing with hosted upload and P2P transfer
+endpoint:
+  port: 52443
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/dropgate-server/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dropgate-server/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dropgate-server/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dropgate-server/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dropgate-server/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/dropgate-server/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: dropgate-server-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Dropgate Server
+type: app
+upstream:
+  author: Diamond Digital Development
+  categories:
+  - files
+  release_notes: null
+  source: https://github.com/diamonddigitaldev/Dropgate
+  version: 3.0.13
+  website: https://diamonddigital.dev/projects/dropgate
+website: https://diamonddigital.dev/projects/dropgate

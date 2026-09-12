@@ -1,0 +1,82 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/librephotos
+description: Complete photo management service
+endpoint:
+  port: 80
+  service: librephotos
+env:
+  LIBREPHOTOS_DB_PASSWORD:
+    generate: token
+  LIBREPHOTOS_EMAIL: ''
+  LIBREPHOTOS_PASSWORD:
+    generate: password
+  LIBREPHOTOS_SECRET_KEY:
+    generate: token
+  LIBREPHOTOS_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: LIBREPHOTOS_PASSWORD
+  path: null
+  user: LIBREPHOTOS_EMAIL
+name: librephotos
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LIBREPHOTOS_EMAIL
+  hint: null
+  label: LibrePhotos admin email
+  options: null
+  required: true
+  type: email
+- env: LIBREPHOTOS_USERNAME
+  hint: null
+  label: LibrePhotos admin username
+  options: null
+  required: true
+  type: text
+- env: LIBREPHOTOS_PASSWORD
+  hint: null
+  label: LibrePhotos admin password
+  options: null
+  required: true
+  type: password
+- env: LIBREPHOTOS_DB_PASSWORD
+  hint: null
+  label: DB password
+  options: null
+  required: false
+  type: random
+- env: LIBREPHOTOS_SECRET_KEY
+  hint: null
+  label: Secret key
+  options: null
+  required: false
+  type: random
+tags: []
+title: LibrePhotos
+type: app
+upstream:
+  author: Niaz Faridani-Rad
+  categories:
+  - photography
+  source: https://github.com/LibrePhotos/librephotos
+  tipi_version: 18
+  version: 2023w48
+website: https://github.com/LibrePhotos/librephotos

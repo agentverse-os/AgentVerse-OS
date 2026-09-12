@@ -1,0 +1,64 @@
+# firefly-iii: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  firefly-iii:
+    depends_on:
+    - firefly-iii-db
+    environment:
+      APP_DEBUG: 'false'
+      APP_ENV: local
+      APP_KEY: ${APP_KEY}
+      APP_NAME: FireflyIII
+      APP_URL: http://localhost:${APP_PORT}
+      BROADCAST_DRIVER: log
+      CACHE_PREFIX: firefly
+      COOKIE_PATH: '"/"'
+      COOKIE_SAMESITE: lax
+      COOKIE_SECURE: 'false'
+      DB_CONNECTION: mysql
+      DB_DATABASE: firefly
+      DB_HOST: firefly-iii-db
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_PORT: '3306'
+      DB_USERNAME: firefly
+      FIREFLY_III_LAYOUT: v1
+      IS_HEROKU: 'false'
+      QUEUE_DRIVER: sync
+      SITE_OWNER: ${EMAIL}
+      STATIC_CRON_TOKEN: ${STATIC_CRON_TOKEN}
+      TRUSTED_PROXIES: '**'
+      TZ: ${TZ}
+    image: fireflyiii/core:version-6
+    networks:
+      appnet:
+        aliases:
+        - firefly-iii_firefly-iii_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/uplodad:/var/www/html/storage/upload
+  firefly-iii-cron:
+    command: sh -c "echo \"0 3 * * * wget -qO- http://${APP_DOMAIN}/api/v1/cron/${STATIC_CRON_TOKEN}\" | crontab - && crond -f -L /dev/stdout"
+    image: alpine
+    networks:
+      appnet:
+        aliases:
+        - firefly-iii_firefly-iii-cron_1
+    restart: unless-stopped
+  firefly-iii-db:
+    environment:
+      MYSQL_DATABASE: firefly
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: yes
+      MYSQL_USER: firefly
+    hostname: fireflyiii-db
+    image: mariadb
+    networks:
+      appnet:
+        aliases:
+        - firefly-iii_firefly-iii-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql

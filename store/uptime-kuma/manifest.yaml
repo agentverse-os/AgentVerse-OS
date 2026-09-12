@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/uptime-kuma
+description: A fancy self-hosted monitoring tool.
+endpoint:
+  port: 3001
+  service: uptime-kuma
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: uptime-kuma
+notes:
+- 'uptime-kuma: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Uptime Kuma
+type: app
+upstream:
+  author: louislam
+  categories:
+  - utilities
+  source: https://github.com/louislam/uptime-kuma
+  tipi_version: 8
+  version: '2'
+website: https://github.com/louislam/uptime-kuma

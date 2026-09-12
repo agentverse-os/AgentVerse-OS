@@ -1,0 +1,70 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pgbackweb-coolify
+description: Effortless PostgreSQL backups with a user-friendly web interface!
+endpoint:
+  port: 8085
+  service: pgbackweb
+env:
+  POSTGRES_DB: pgbackweb-db
+  SERVICE_PASSWORD_64_PGBACKWEB:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_PGBACKWEB_8085: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  TIME_ZONE: UTC
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pgbackweb-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: pgbackweb-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: TIME_ZONE
+  hint: 'по умолчанию: UTC'
+  label: time zone
+  options: null
+  required: false
+  type: text
+tags:
+- backup
+- postgresql
+- web-interface
+title: Pgbackweb
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://github.com/eduardolat/pgbackweb
+  tags:
+  - backup
+  - postgresql
+  - web-interface
+  template: pgbackweb.yaml
+website: https://github.com/eduardolat/pgbackweb

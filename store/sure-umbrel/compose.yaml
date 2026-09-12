@@ -1,0 +1,96 @@
+# sure-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      PGDATA: /data/pgdata
+      POSTGRES_DB: sure_production
+      POSTGRES_PASSWORD: sure_password
+      POSTGRES_USER: sure_user
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      test: pg_isready -U sure_user -h localhost -d sure_production
+      timeout: 5s
+    image: postgres:18.3-alpine@sha256:52098013b4b64a746626437d38afc03cabff6cdeb4d3d92e2342aa95f0ce56ea
+    networks:
+      appnet:
+        aliases:
+        - sure_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/data
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 5
+      start_period: 30s
+      test: redis-cli ping
+      timeout: 5s
+    image: redis:8.4.2@sha256:4b0ab81cf4d84e610215d0159dcc218d4ec6180f869a9bc83c33a1945d6f3e42
+    networks:
+      appnet:
+        aliases:
+        - sure_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  web:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_HOST: sure_db_1
+      DB_PORT: 5432
+      POSTGRES_DB: sure_production
+      POSTGRES_PASSWORD: sure_password
+      POSTGRES_USER: sure_user
+      RAILS_ASSUME_SSL: 'false'
+      RAILS_FORCE_SSL: 'false'
+      REDIS_URL: redis://sure_redis_1:6379/1
+      SECRET_KEY_BASE: $APP_SEED
+      SELF_HOSTED: 'true'
+    image: ghcr.io/we-promise/sure:0.7.4@sha256:391b2c52acfe538065a41cdd1c9755f90d95ba17a2c06e9b6438b12098df3f3a
+    networks:
+      appnet:
+        aliases:
+        - sure_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/rails:/rails/storage
+  worker:
+    command: bundle exec sidekiq
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_HOST: sure_db_1
+      DB_PORT: 5432
+      POSTGRES_DB: sure_production
+      POSTGRES_PASSWORD: sure_password
+      POSTGRES_USER: sure_user
+      RAILS_ASSUME_SSL: 'false'
+      RAILS_FORCE_SSL: 'false'
+      REDIS_URL: redis://sure_redis_1:6379/1
+      SECRET_KEY_BASE: $APP_SEED
+      SELF_HOSTED: 'true'
+    image: ghcr.io/we-promise/sure:0.7.4@sha256:391b2c52acfe538065a41cdd1c9755f90d95ba17a2c06e9b6438b12098df3f3a
+    networks:
+      appnet:
+        aliases:
+        - sure_worker_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/rails:/rails/storage

@@ -1,0 +1,45 @@
+# romm: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  romm:
+    depends_on:
+    - romm-db
+    environment:
+      DB_HOST: romm-db
+      DB_NAME: romm
+      DB_PASSWD: ${ROMM_MYSQL_PASSWORD}
+      DB_USER: tipi
+      IGDB_CLIENT_ID: ${ROMM_IGDB_CLIENT_ID}
+      IGDB_CLIENT_SECRET: ${ROMM_IGDB_CLIENT_SECRET}
+      MOBYGAMES_API_KEY: ${ROMM_MOBYGAMES_API_KEY}
+      ROMM_AUTH_SECRET_KEY: ${ROMM_AUTH_SECRET_KEY}
+      STEAMGRIDDB_API_KEY: ${ROMM_STEAMGRIDDB_API_KEY}
+    image: ghcr.io/rommapp/romm:5.2.0
+    networks:
+      appnet:
+        aliases:
+        - romm_romm_1
+    restart: unless-stopped
+    volumes:
+    - ${ROOT_FOLDER_HOST}/media/data/roms:/romm/library
+    - ${APP_DATA_DIR}/data/redis:/redis-data
+    - ${APP_DATA_DIR}/data/romm-resources:/romm/resources
+    - ${APP_DATA_DIR}/data/config:/romm/config
+    - ${APP_DATA_DIR}/data/assets:/romm/assets
+  romm-db:
+    environment:
+      MYSQL_DATABASE: romm
+      MYSQL_PASSWORD: ${ROMM_MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${ROMM_MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: tipi
+    image: lscr.io/linuxserver/mariadb:11.4.4
+    networks:
+      appnet:
+        aliases:
+        - romm_romm-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mysql/config:/config

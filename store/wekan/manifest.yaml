@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wekan
+description: Open-Source, customizable, and privacy-focused kanban
+endpoint:
+  port: 8080
+  service: wekan
+env:
+  MAIL_ADDRESS: ''
+  MAIL_PASSWORD:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wekan
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MAIL_ADDRESS
+  hint: null
+  label: Email Address
+  options: null
+  required: true
+  type: email
+- env: MAIL_PASSWORD
+  hint: null
+  label: Email Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Wekan
+type: app
+upstream:
+  author: Lauri Ojansivu
+  categories:
+  - development
+  source: https://github.com/wekan/wekan
+  tipi_version: 185
+  version: v11.16
+website: https://github.com/wekan/wekan

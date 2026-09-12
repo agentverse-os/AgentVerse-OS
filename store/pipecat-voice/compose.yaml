@@ -1,0 +1,142 @@
+# pipecat-voice: бот Pipecat (образ собирается на месте из python:3.12-slim), speaches (STT+TTS) и socat-мост для edge.
+# Сеть appnet создаёт cloudd (external). Бот — в сети хоста ради WebRTC (см. заметки манифеста), speaches отдаёт порт только на 127.0.0.1.
+services:
+  pipecat:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.12-slim
+        RUN pip install --no-cache-dir "pipecat-ai[openai,silero,webrtc,runner]==1.8.1" "pipecat-ai-prebuilt==1.0.6"
+        WORKDIR /app
+    image: cloudos/pipecat-voice:1.8.1
+    network_mode: host
+    restart: unless-stopped
+    command: ["/bin/sh", "-c", "if [ -f /edge-ca/caddy/pki/authorities/local/root.crt ]; then cat /edge-ca/caddy/pki/authorities/local/root.crt >> /etc/ssl/certs/ca-certificates.crt; fi; exec python /app/bot.py -t webrtc --host 0.0.0.0 --port 7860"]
+    environment:
+      SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL}
+      VOICE_LANGUAGE: ${VOICE_LANGUAGE}
+      STT_BASE_URL: http://127.0.0.1:18000/v1
+      STT_MODEL: ${STT_MODEL}
+      TTS_BASE_URL: http://127.0.0.1:18000/v1
+      TTS_MODEL: ${TTS_MODEL}
+      TTS_VOICE: ${TTS_VOICE}
+      TTS_SAMPLE_RATE: ${TTS_SAMPLE_RATE}
+      SYSTEM_PROMPT: ${SYSTEM_PROMPT}
+    configs:
+      - source: bot_py
+        target: /app/bot.py
+    volumes:
+      - edge_ca:/edge-ca:ro
+  speech:
+    image: ghcr.io/speaches-ai/speaches:0.9.0-rc.1-cpu
+    user: "0:0"
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18000:8000"
+    environment:
+      PRELOAD_MODELS: '["${STT_MODEL}", "${TTS_MODEL}"]'
+      STT_MODEL_TTL: "-1"
+      TTS_MODEL_TTL: "-1"
+    volumes:
+      - ${APP_DATA_DIR}/hf-cache:/home/ubuntu/.cache/huggingface/hub
+    networks: [appnet]
+  web:
+    image: alpine/socat:1.8.0.0
+    restart: unless-stopped
+    command: TCP-LISTEN:7860,fork,reuseaddr TCP:host.docker.internal:7860
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks: [appnet]
+configs:
+  bot_py:
+    content: |
+      # Pipecat Voice для Cloud OS: браузер (WebRTC, встроенный клиент Pipecat) → STT → LLM → TTS → браузер.
+      # Все сервисы OpenAI-совместимые: STT/TTS — speaches рядом, LLM — адрес из настроек приложения.
+      import os
+      from loguru import logger
+      from pipecat.audio.vad.silero import SileroVADAnalyzer
+      from pipecat.frames.frames import LLMRunFrame
+      from pipecat.pipeline.pipeline import Pipeline
+      from pipecat.pipeline.runner import PipelineRunner
+      from pipecat.pipeline.task import PipelineParams, PipelineTask
+      from pipecat.processors.aggregators.llm_context import LLMContext
+      from pipecat.processors.aggregators.llm_response_universal import LLMContextAggregatorPair, LLMUserAggregatorParams
+      from pipecat.runner.types import RunnerArguments
+      from pipecat.runner.utils import create_transport
+      from pipecat.services.openai.llm import OpenAILLMService
+      from pipecat.services.openai.stt import OpenAISTTService
+      from pipecat.services.openai.tts import OpenAITTSService
+      from pipecat.transcriptions.language import Language
+      from pipecat.transports.base_transport import BaseTransport, TransportParams
+
+      def env(k, d=""):
+          return os.getenv(k) or d
+
+      def ensure_models():
+          # speaches хранит модели локально и не предзагружает их: просим скачать STT и TTS (POST /v1/models/<id>), ждём, пока сервис поднимется
+          import json, time, urllib.request, urllib.error
+          for base, model in ((env("STT_BASE_URL", "http://127.0.0.1:18000/v1"), env("STT_MODEL", "Systran/faster-whisper-small")), (env("TTS_BASE_URL", "http://127.0.0.1:18000/v1"), env("TTS_MODEL", "speaches-ai/piper-ru_RU-irina-medium"))):
+              for attempt in range(90):
+                  try:
+                      with urllib.request.urlopen(base + "/models") as r:
+                          if any(m.get("id") == model for m in json.load(r).get("data", [])):
+                              break
+                      req = urllib.request.Request(base + "/models/" + model, method="POST")
+                      with urllib.request.urlopen(req, timeout=1800) as r:
+                          logger.info(f"модель {model}: {r.read(200).decode(errors='ignore')}")
+                      break
+                  except urllib.error.HTTPError as e:
+                      logger.warning(f"модель {model}: HTTP {e.code} {e.read(200).decode(errors='ignore')}")
+                      break
+                  except Exception as e:
+                      logger.info(f"жду speaches ({e.__class__.__name__}), попытка {attempt + 1}")
+                      time.sleep(5)
+
+      LANGS = {"ru": Language.RU, "en": Language.EN, "de": Language.DE, "fr": Language.FR, "es": Language.ES, "it": Language.IT, "pt": Language.PT, "uk": getattr(Language, "UK", Language.RU)}
+      LANG = LANGS.get(env("VOICE_LANGUAGE", "ru"), Language.RU)
+      GREETING = {"ru": "Поздоровайся одной фразой и предложи помощь.", "uk": "Привітайся одним реченням і запропонуй допомогу."}.get(env("VOICE_LANGUAGE", "ru"), "Say hello in one sentence and offer help.")
+
+      async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
+          stt = OpenAISTTService(api_key="none", base_url=env("STT_BASE_URL", "http://127.0.0.1:18000/v1"), model=env("STT_MODEL", "Systran/faster-whisper-small"), language=LANG)
+          tts = OpenAITTSService(api_key="none", base_url=env("TTS_BASE_URL", "http://127.0.0.1:18000/v1"), model=env("TTS_MODEL", "speaches-ai/piper-ru_RU-irina-medium"), voice=env("TTS_VOICE", "ru_RU-irina-medium"), sample_rate=int(env("TTS_SAMPLE_RATE", "22050")))
+          if not env("LLM_BASE_URL") or not env("LLM_API_KEY"):
+              logger.warning("LLM_BASE_URL / LLM_API_KEY не заданы: укажите их в настройках приложения Cloud OS")
+          llm = OpenAILLMService(api_key=env("LLM_API_KEY", "none"), base_url=env("LLM_BASE_URL") or None, model=env("LLM_MODEL", "gemini-2.5-flash"), settings=OpenAILLMService.Settings(system_instruction=env("SYSTEM_PROMPT", "Ты голосовой ассистент. Отвечай коротко.")))
+          context = LLMContext()
+          user_aggregator, assistant_aggregator = LLMContextAggregatorPair(context, user_params=LLMUserAggregatorParams(vad_analyzer=SileroVADAnalyzer()))
+          pipeline = Pipeline([transport.input(), stt, user_aggregator, llm, tts, transport.output(), assistant_aggregator])
+          task = PipelineTask(pipeline, params=PipelineParams(enable_metrics=True, enable_usage_metrics=True))
+
+          @transport.event_handler("on_client_connected")
+          async def on_client_connected(transport, client):
+              logger.info("клиент подключился")
+              context.add_message({"role": "user", "content": GREETING})
+              await task.queue_frames([LLMRunFrame()])
+
+          @transport.event_handler("on_client_disconnected")
+          async def on_client_disconnected(transport, client):
+              logger.info("клиент отключился")
+              await task.cancel()
+
+          runner = PipelineRunner(handle_sigint=runner_args.handle_sigint)
+          await runner.run(task)
+
+      async def bot(runner_args: RunnerArguments):
+          transport = await create_transport(runner_args, {"webrtc": lambda: TransportParams(audio_in_enabled=True, audio_out_enabled=True)})
+          await run_bot(transport, runner_args)
+
+      if __name__ == "__main__":
+          ensure_models()
+          from pipecat.runner.run import main
+          main()
+volumes:
+  edge_ca:
+    external: true
+    name: 03-edge_caddy-data
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}

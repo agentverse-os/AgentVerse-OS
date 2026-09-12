@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# Шим CLI tailscale для shell-тестов bootstrap/install.sh. Имитирует tailscaled через файлы в каталоге $TS_FAKE_DIR:
+#   state        BackendState: NeedsLogin (по умолчанию, если файла нет) | Running | Stopped | NoState
+#   https        если существует — CertDomains ["box.tail1234.ts.net"] (в tailnet включены HTTPS Certificates)
+#   magic        если существует — CurrentTailnet.MagicDNSEnabled true
+#   auth_after   секунды: «up» ждёт столько, переводит состояние в Running и выходит 0 (как будто пользователь
+#                подтвердил узел по ссылке); без файла «up» ждёт --timeout и выходит с кодом 1
+#   calls.log    журнал вызовов шима (по строке на вызов) — для проверок в тестах
+# Команды: status [--json] · up [--qr] [--auth-key=…] [--accept-dns=…] [--hostname=…] [--timeout D] · login … · version
+set -euo pipefail
+TS_FAKE_DIR="${TS_FAKE_DIR:-${TMPDIR:-/tmp}/ts-fake}"
+mkdir -p "$TS_FAKE_DIR"
+AUTH_URL="https://login.tailscale.com/a/test"
+DNS_NAME="box.tail1234.ts.net"
+IPV4="100.100.1.2"
+IPV6="fd7a:115c:a1e0::2"
+
+state()     { local s; s="$(cat "$TS_FAKE_DIR/state" 2>/dev/null || true)"; echo "${s:-NeedsLogin}"; }
+set_state() { echo "$1" > "$TS_FAKE_DIR/state"; }
+# длительность Go вида 15m | 90s | 2h | 20s | 0 → секунды (как to_secs в install.sh)
+to_secs()   { local v="${1:-0}"; case "$v" in *h) echo $(( ${v%h} * 3600 )) ;; *m) echo $(( ${v%m} * 60 )) ;; *s) echo "${v%s}" ;; *) echo "$v" ;; esac; }
+
+printf '%s\n' "$*" >> "$TS_FAKE_DIR/calls.log"
+cmd="${1:-}"; [[ $# -gt 0 ]] && shift
+
+case "$cmd" in
+  version)
+    echo "1.100.0"
+    echo "  tailscale commit: 0000000000000000000000000000000000000000 (fake)"
+    ;;
+
+  status)
+    st="$(state)"
+    auth=null; [[ "$st" == NeedsLogin ]] && auth="\"$AUTH_URL\""
+    if [[ "$st" == Running ]]; then
+      self="{\"ID\":\"nFAKE\",\"HostName\":\"box\",\"DNSName\":\"$DNS_NAME.\",\"TailscaleIPs\":[\"$IPV4\",\"$IPV6\"],\"Online\":true}"
+    else
+      self='{"ID":"","HostName":"box","DNSName":"","TailscaleIPs":null,"Online":false}'
+    fi
+    certs=null; [[ -e "$TS_FAKE_DIR/https" ]] && certs="[\"$DNS_NAME\"]"
+    magic=false; [[ -e "$TS_FAKE_DIR/magic" ]] && magic=true
+    if [[ " $* " == *" --json "* ]]; then
+      printf '{"Version":"1.100.0","BackendState":"%s","AuthURL":%s,"Self":%s,"CertDomains":%s,"CurrentTailnet":{"Name":"tail1234.ts.net","MagicDNSSuffix":"tail1234.ts.net","MagicDNSEnabled":%s},"Peer":{}}\n' \
+        "$st" "$auth" "$self" "$certs" "$magic"
+    else
+      case "$st" in
+        Running)    printf '%s  %s  box@  linux  -\n' "$IPV4" "${DNS_NAME%%.*}" ;;
+        NeedsLogin) echo "Logged out."; echo "Log in at: $AUTH_URL"; exit 1 ;;
+        Stopped)    echo "Tailscale is stopped."; exit 1 ;;
+        *)          echo "NoState"; exit 1 ;;
+      esac
+    fi
+    ;;
+
+  up)
+    timeout_s="" auth_key="" qr=0
+    while (( $# )); do
+      case "$1" in
+        --timeout)            timeout_s="$(to_secs "${2:-0}")"; shift ;;
+        --timeout=*)          timeout_s="$(to_secs "${1#*=}")" ;;
+        --auth-key|--authkey) auth_key="${2:-}"; shift ;;
+        --auth-key=*|--authkey=*) auth_key="${1#*=}" ;;
+        --qr)                 qr=1 ;;
+        *) ;;   # --accept-dns=…, --hostname=… и прочее принимаем молча
+      esac
+      shift
+    done
+    st="$(state)"
+    case "$st" in
+      Running) exit 0 ;;                       # уже подключён — ничего не делаем
+      Stopped) set_state Running; exit 0 ;;    # залогинен, но выключен — просто включаем
+    esac
+    if [[ -n "$auth_key" ]]; then set_state Running; echo "Success."; exit 0; fi
+    echo "To authenticate, visit: $AUTH_URL"
+    (( qr )) && printf '\n[QR-код ссылки — заглушка шима]\n\n'
+    if [[ -f "$TS_FAKE_DIR/auth_after" ]]; then
+      after="$(cat "$TS_FAKE_DIR/auth_after")"
+      if [[ -z "$timeout_s" || "$timeout_s" == 0 ]] || (( after <= timeout_s )); then
+        sleep "$after"; set_state Running; echo "Success."; exit 0
+      fi
+    fi
+    # без подтверждения: ждём --timeout (без таймаута — 5 с, чтобы тесты не висли) и падаем, как настоящий tailscale up
+    [[ -n "$timeout_s" && "$timeout_s" != 0 ]] || timeout_s=5
+    sleep "$timeout_s"
+    echo "timeout waiting for Tailscale service to enter a Running state; check health with \"tailscale status\"" >&2
+    exit 1
+    ;;
+
+  set)
+    exit 0 ;;
+  login)
+    echo "To authenticate, visit: $AUTH_URL"
+    exit 0
+    ;;
+
+  *)
+    echo "fake tailscale: команда «$cmd» не поддерживается шимом" >&2
+    exit 2
+    ;;
+esac

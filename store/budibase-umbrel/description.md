@@ -1,0 +1,13 @@
+Budibase is an open-source low-code platform that saves engineers 100s of hours building forms, portals, and approval apps, securely.
+
+🔨 Build and ship real software
+Unlike other platforms, with Budibase you build and ship real software. Budibase applications have performance baked in and can be designed responsively, providing users with a great experience. 
+
+🗄️ Load data or start from scratch
+Budibase pulls data from multiple sources, including MongoDB, CouchDB, PostgreSQL, MySQL, Airtable, S3, DynamoDB, or a REST API. And unlike other platforms, with Budibase you can start from scratch and create business apps with no data sources.
+
+🎨 Design and build apps with powerful pre-made components
+Budibase comes out of the box with beautifully designed, powerful components which you can use like building blocks to build your UI. We also expose many of your favourite CSS styling options so you can go that extra creative mile.
+
+⚙️ Automate processes, integrate with other tools and connect to webhooks
+Save time by automating manual processes and workflows. From connecting to webhooks to automating emails, simply tell Budibase what to do and let it work for you.

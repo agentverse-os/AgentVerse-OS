@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/synapse-umbrel
+description: Matrix homeserver
+endpoint:
+  port: 8008
+  service: server
+env:
+  APP_HIDDEN_SERVICE: ''
+  APP_SYNAPSE_PORT: '8008'
+  APP_SYNAPSE_TOR_HS_EXTRA_PORTS: ${APP_SYNAPSE_PORT}:synapse_server_1:${APP_SYNAPSE_PORT}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/synapse/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/synapse/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/synapse/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/synapse/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: synapse-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Synapse
+type: app
+upstream:
+  author: Element
+  categories:
+  - social
+  release_notes: |-
+    This update improves media thumbnail generation for MPO images and falls back to static thumbnails when animations cannot be decoded.
+    It also adds optional support for MSC4429 profile updates for legacy sync, fixes quarantined media replication when that stream is handled by a worker, and improves Docker log output when troubleshooting.
+    Full release notes can be found at https://github.com/element-hq/synapse/releases/tag/v1.159.0
+  source: https://github.com/element-hq/synapse
+  version: 1.159.0
+  website: https://element-hq.github.io/synapse/latest/
+website: https://element-hq.github.io/synapse/latest/

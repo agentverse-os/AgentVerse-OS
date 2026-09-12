@@ -1,0 +1,60 @@
+# Pipecat Voice — голосовой агент на фреймворке Pipecat (pipecat-ai): микрофон в браузере → STT → LLM → TTS → динамики.
+# Ручной манифест (в каталогах Runtipi/Coolify/Umbrel нет). STT и TTS локальные (speaches: faster-whisper + Piper/Kokoro),
+# LLM — любой OpenAI-совместимый адрес: LiteLLM или Ollama из Store, OpenAI, OpenRouter.
+schema: 1
+origin: manual
+name: pipecat-voice
+title: Pipecat Voice
+description: "A voice assistant in the browser: Pipecat with local STT (Whisper) and TTS (Piper voices), LLM through an OpenAI-compatible API"
+i18n:
+  ru: { description: "Голосовой ассистент в браузере: Pipecat + локальные STT (Whisper) и TTS (Piper, русские голоса), LLM через OpenAI-совместимый API" }
+  uk: { description: "Голосовий асистент у браузері: Pipecat + локальні STT (Whisper) і TTS (Piper, російські голоси), LLM через OpenAI-сумісний API" }
+  es: { description: "Asistente de voz en el navegador: Pipecat con STT local (Whisper) y TTS (voces Piper), LLM a través de una API compatible con OpenAI" }
+icon: 🎙️
+type: app
+compose: ./compose.yaml
+provides: []
+requires: []
+route: { mode: port, open: iframe }
+auth: own
+env:
+  LLM_BASE_URL: ""
+  LLM_API_KEY: ""
+  LLM_MODEL: gemini-2.5-flash
+  VOICE_LANGUAGE: ru
+  STT_MODEL: Systran/faster-whisper-small
+  TTS_MODEL: speaches-ai/piper-ru_RU-irina-medium
+  TTS_VOICE: irina
+  TTS_SAMPLE_RATE: "22050"
+  SYSTEM_PROMPT: "Ты голосовой ассистент Cloud OS. Отвечай коротко и разговорно, на языке собеседника."
+data: [tank/apps/pipecat-voice]
+health: null                                   # первый старт: сборка образа и загрузка моделей — ждём только running
+endpoint: { service: web, port: 7860 }         # web → socat → бот в сети хоста (WebRTC)
+hooks: {}
+settings:
+  - { env: LLM_BASE_URL, type: text, label: адрес LLM (OpenAI-совместимый), hint: "адрес OpenAI-совместимого API + /v1: LiteLLM или Ollama из Store (адрес приложения + /v1), OpenAI, OpenRouter", required: true, options: null }
+  - { env: LLM_API_KEY, type: password, label: ключ LLM, hint: "ключ провайдера или шлюза; для Ollama — любая строка", required: true, options: null }
+  - { env: LLM_MODEL, type: text, label: модель LLM, hint: "имя модели у провайдера: gemini-2.5-flash, claude-sonnet-4-5, gpt-5…", required: false, options: null }
+  - { env: VOICE_LANGUAGE, type: select, label: язык речи, hint: null, required: false, options: [ { label: русский, value: ru }, { label: English, value: en }, { label: Deutsch, value: de }, { label: Français, value: fr }, { label: Español, value: es }, { label: Italiano, value: it }, { label: Português, value: pt }, { label: Українська, value: uk } ] }
+  - { env: STT_MODEL, type: text, label: модель распознавания (faster-whisper), hint: "Systran/faster-whisper-small — быстро на CPU; deepdml/faster-whisper-large-v3-turbo-ct2 — точнее, тяжелее", required: false, options: null }
+  - { env: TTS_MODEL, type: text, label: модель синтеза, hint: "Piper: speaches-ai/piper-ru_RU-irina-medium, -denis-, -dmitri-, -ruslan-; английский Kokoro: speaches-ai/Kokoro-82M-v1.0-ONNX (голос af_heart, частота 24000)", required: false, options: null }
+  - { env: TTS_VOICE, type: text, label: голос, hint: "Piper: irina, denis, dmitri, ruslan (по модели); Kokoro: af_heart и другие — список в speaches /v1/audio/voices", required: false, options: null }
+  - { env: TTS_SAMPLE_RATE, type: number, label: частота TTS (Гц), hint: "Piper medium — 22050, Kokoro — 24000", required: false, options: null }
+  - { env: SYSTEM_PROMPT, type: text, label: системная инструкция, hint: null, required: false, options: null }
+login:
+  mode: none
+  note: "Веб-клиент без входа, доступ только из сети Cloud OS. При подключении разрешите браузеру микрофон."
+notes:
+  - "Контейнер бота работает в сети хоста (network_mode: host, порт 7860): WebRTC-медиа идёт напрямую браузер ↔ хост по UDP и через reverse proxy не проходит; edge достаёт бота через сервис web (socat)"
+  - "Первая установка: сборка образа Pipecat (2–5 минут); модели speaches (Whisper small ~500 MB, голос Piper ~60 MB) бот докачивает при старте в tank/apps/pipecat-voice/hf-cache, до этого распознавание отвечает 404"
+  - "Бот доверяет внутреннему CA edge Cloud OS (том 03-edge_caddy-data), поэтому адрес LLM может быть https://<хост>:<порт>/v1 другого приложения Cloud OS"
+gallery: []
+readme: ./description.md
+website: https://github.com/pipecat-ai/pipecat
+tags: [ai, voice, speech, stt, tts, whisper, piper, webrtc, agent]
+upstream:
+  source: https://github.com/pipecat-ai/pipecat
+  author: Daily (pipecat-ai)
+  version: "1.8.1"
+  categories: [ai]
+  website: https://docs.pipecat.ai

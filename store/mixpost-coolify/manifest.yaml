@@ -1,0 +1,78 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mixpost-coolify
+description: Mixpost is a robust and versatile social media management software, designed to streamline social media operations and enhance content marketing strategies.
+endpoint:
+  port: 80
+  service: mixpost
+env:
+  MYSQL_DATABASE: mixpost_db
+  SERVICE_BASE64_MIXPOST:
+    generate: hex64
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_MIXPOST: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+  SSL_EMAIL: user@example.com
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mixpost-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: mixpost_db'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: SSL_EMAIL
+  hint: 'по умолчанию: user@example.com'
+  label: ssl email
+  options: null
+  required: false
+  type: text
+tags:
+- social media
+- marketing
+- content
+- management
+- automation
+- self-hosted
+title: Mixpost
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://docs.mixpost.app/lite
+  tags:
+  - social media
+  - marketing
+  - content
+  - management
+  - automation
+  - self-hosted
+  template: mixpost.yaml
+website: https://docs.mixpost.app/lite

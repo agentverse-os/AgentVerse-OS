@@ -1,0 +1,54 @@
+# wikijs-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgres:
+    environment:
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-wiki-db}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    logging:
+      driver: none
+    networks:
+      appnet:
+        aliases:
+        - wikijs-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - wikijs-postgresql-data:/var/lib/postgresql/data
+  wikijs:
+    depends_on:
+    - postgres
+    environment:
+    - SERVICE_URL_WIKIJS_3000=${SERVICE_URL_WIKIJS_3000}
+    - DB_TYPE=postgres
+    - DB_HOST=postgres
+    - DB_PORT=5432
+    - DB_USER=${SERVICE_USER_POSTGRES}
+    - DB_PASS=${SERVICE_PASSWORD_POSTGRES}
+    - DB_NAME=${POSTGRESQL_DATABASE:-wiki-db}
+    healthcheck:
+      test: curl --fail http://localhost:3000 || exit 1
+    image: ghcr.io/requarks/wiki:2
+    networks:
+      appnet:
+        aliases:
+        - wikijs-coolify_wikijs_1
+    restart: unless-stopped
+volumes:
+  wikijs-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/wikijs-postgresql-data
+      o: bind
+      type: none

@@ -1,0 +1,134 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mindsdb-coolify
+description: MindsDB is the platform for building AI from enterprise data, enabling smarter organizations.
+endpoint:
+  port: 47334
+  service: mindsdb
+env:
+  FLASK_DEBUG: '1'
+  LANGFUSE_DEBUG: 'False'
+  LANGFUSE_HOST: ''
+  LANGFUSE_PUBLIC_KEY: ''
+  LANGFUSE_RELEASE: local
+  LANGFUSE_SAMPLE_RATE: '1.0'
+  LANGFUSE_SECRET_KEY: ''
+  LANGFUSE_TIMEOUT: '10'
+  OPENAI_API_KEY: ''
+  POSTGRES_DB: mindsdb-db
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_API_47335: https://${APP_DOMAIN}
+  SERVICE_URL_MINDSDB_47334: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mindsdb-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: FLASK_DEBUG
+  hint: 'по умолчанию: 1'
+  label: flask debug
+  options: null
+  required: false
+  type: text
+- env: OPENAI_API_KEY
+  hint: null
+  label: openai api key
+  options: null
+  required: false
+  type: password
+- env: LANGFUSE_HOST
+  hint: null
+  label: langfuse host
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_PUBLIC_KEY
+  hint: null
+  label: langfuse public key
+  options: null
+  required: false
+  type: password
+- env: LANGFUSE_SECRET_KEY
+  hint: null
+  label: langfuse secret key
+  options: null
+  required: false
+  type: password
+- env: LANGFUSE_RELEASE
+  hint: 'по умолчанию: local'
+  label: langfuse release
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_DEBUG
+  hint: 'по умолчанию: False'
+  label: langfuse debug
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_TIMEOUT
+  hint: 'по умолчанию: 10'
+  label: langfuse timeout
+  options: null
+  required: false
+  type: text
+- env: LANGFUSE_SAMPLE_RATE
+  hint: 'по умолчанию: 1.0'
+  label: langfuse sample rate
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: mindsdb-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- mysql
+- postgresdb
+- machine-learning
+- ai
+title: Mindsdb
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://docs.mindsdb.com/what-is-mindsdb
+  tags:
+  - mysql
+  - postgresdb
+  - machine-learning
+  - ai
+  template: mindsdb.yaml
+website: https://docs.mindsdb.com/what-is-mindsdb

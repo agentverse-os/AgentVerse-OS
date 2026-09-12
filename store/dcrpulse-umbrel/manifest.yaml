@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/dcrpulse-umbrel
+description: Full Decred node with watch-only wallet and database-free block explorer
+endpoint:
+  port: 8735
+  service: dashboard
+env:
+  APP_SEED:
+    generate: hex64
+  TOR_PROXY_IP: ''
+  TOR_PROXY_PORT: '9050'
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/dcrpulse/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/dcrpulse/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/dcrpulse/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/dcrpulse/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: dcrpulse-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Decred Pulse
+type: app
+upstream:
+  author: Decred
+  categories:
+  - crypto
+  release_notes: null
+  source: https://github.com/karamble/dcrpulse
+  version: 1.0.3
+  website: https://decred.org
+website: https://decred.org

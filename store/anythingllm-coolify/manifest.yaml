@@ -1,0 +1,153 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/anythingllm-coolify
+description: AnythingLLM is the easiest to use, all-in-one AI application that can do RAG, AI Agents, and much more with no code or infrastructure headaches.
+endpoint:
+  port: 3001
+  service: anything-llm
+env:
+  DISABLE_TELEMETRY: 'true'
+  GID: '1000'
+  PASSWORDLOWERCASE: '1'
+  PASSWORDMAXCHAR: '250'
+  PASSWORDMINCHAR: '6'
+  PASSWORDNUMERIC: '1'
+  PASSWORDREQUIREMENTS: '1'
+  PASSWORDSYMBOL: '1'
+  PASSWORDUPPERCASE: '1'
+  SERVER_PORT: '3001'
+  SERVICE_PASSWORD_AUTHTOKEN:
+    generate: password
+  SERVICE_PASSWORD_JWTSECRET:
+    generate: password
+  SERVICE_PASSWORD_SIGKEY:
+    generate: password
+  SERVICE_PASSWORD_SIGSALT:
+    generate: password
+  SERVICE_URL_ANYTHINGLLM_3001: https://${APP_DOMAIN}
+  UID: '1000'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: anythingllm-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DISABLE_TELEMETRY
+  hint: 'по умолчанию: true'
+  label: disable telemetry
+  options: null
+  required: false
+  type: text
+- env: PASSWORDLOWERCASE
+  hint: 'по умолчанию: 1'
+  label: passwordlowercase
+  options: null
+  required: false
+  type: password
+- env: PASSWORDMAXCHAR
+  hint: 'по умолчанию: 250'
+  label: passwordmaxchar
+  options: null
+  required: false
+  type: password
+- env: PASSWORDMINCHAR
+  hint: 'по умолчанию: 6'
+  label: passwordminchar
+  options: null
+  required: false
+  type: password
+- env: PASSWORDNUMERIC
+  hint: 'по умолчанию: 1'
+  label: passwordnumeric
+  options: null
+  required: false
+  type: password
+- env: PASSWORDREQUIREMENTS
+  hint: 'по умолчанию: 1'
+  label: passwordrequirements
+  options: null
+  required: false
+  type: password
+- env: PASSWORDSYMBOL
+  hint: 'по умолчанию: 1'
+  label: passwordsymbol
+  options: null
+  required: false
+  type: password
+- env: PASSWORDUPPERCASE
+  hint: 'по умолчанию: 1'
+  label: passworduppercase
+  options: null
+  required: false
+  type: password
+- env: SERVER_PORT
+  hint: 'по умолчанию: 3001'
+  label: server port
+  options: null
+  required: false
+  type: text
+- env: UID
+  hint: 'по умолчанию: 1000'
+  label: uid
+  options: null
+  required: false
+  type: text
+- env: GID
+  hint: 'по умолчанию: 1000'
+  label: gid
+  options: null
+  required: false
+  type: text
+tags:
+- lowcode
+- nocode
+- llm
+- openai
+- anthropic
+- machine-learning
+- rag
+- agents
+- chatbot
+- api
+- team
+- bot
+title: Anythingllm
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://docs.anythingllm.com/installation-docker/overview
+  tags:
+  - lowcode
+  - nocode
+  - llm
+  - openai
+  - anthropic
+  - machine-learning
+  - rag
+  - agents
+  - chatbot
+  - api
+  - team
+  - bot
+  template: anythingllm.yaml
+website: https://docs.anythingllm.com/installation-docker/overview

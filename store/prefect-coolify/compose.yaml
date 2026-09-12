@@ -1,0 +1,101 @@
+# prefect-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  agent:
+    depends_on:
+      prefect:
+        condition: service_healthy
+    entrypoint:
+    - /opt/prefect/entrypoint.sh
+    - prefect
+    - worker
+    - start
+    - --pool=${DEFAULT_POOL_NAME}
+    - --with-healthcheck
+    - --name=${DEFAULT_WORKER_NAME}
+    - --limit=${DEFAULT_POOL_LIMIT}
+    environment:
+    - PREFECT_API_URL=http://prefect:4200/api
+    - PREFECT_API_KEY=${SERVICE_PASSWORD_APIKEY}
+    - DEFAULT_POOL_NAME=${DEFAULT_POOL_NAME:-default}
+    - DEFAULT_POOL_LIMIT=${DEFAULT_POOL_LIMIT:-1}
+    - DEFAULT_WORKER_NAME=${DEFAULT_WORKER_NAME:-worker1}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - pwd
+      timeout: 5s
+    image: prefecthq/prefect:3-python3.12
+    networks:
+      appnet:
+        aliases:
+        - prefect-coolify_agent_1
+    restart: unless-stopped
+  postgresql:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_DB=${POSTGRES_DB:-prefect}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 5s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - prefect-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - pg-data:/var/lib/postgresql/data
+  prefect:
+    command:
+    - prefect
+    - server
+    - start
+    - --host
+    - 0.0.0.0
+    - --port
+    - '4200'
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_PREFECT_4200=${SERVICE_URL_PREFECT_4200}
+    - PREFECT_API_URL=${SERVICE_URL_PREFECT}/api
+    - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB:-prefect}
+    - PREFECT_API_KEY=${SERVICE_PASSWORD_APIKEY}
+    - PREFECT_EXPERIMENTAL_WARN=${PREFECT_EXPERIMENTAL_WARN:-false}
+    - PREFECT_EXPERIMENTAL_ENABLE_SCHEDULE_CONCURRENCY=${PREFECT_EXPERIMENTAL_ENABLE_SCHEDULE_CONCURRENCY:-false}
+    - PREFECT_RUNNER_SERVER_ENABLE=${PREFECT_RUNNER_SERVER_ENABLE:-false}
+    - PREFECT_DEFAULT_WORK_POOL_NAME=${DEFAULT_POOL_NAME:-default}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD
+      - python
+      - -c
+      - import requests as r;r.get('http://127.0.0.1:4200/api/health').raise_for_status()
+      timeout: 5s
+    image: prefecthq/prefect:3-latest
+    networks:
+      appnet:
+        aliases:
+        - prefect-coolify_prefect_1
+    restart: unless-stopped
+volumes:
+  pg-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pg-data
+      o: bind
+      type: none

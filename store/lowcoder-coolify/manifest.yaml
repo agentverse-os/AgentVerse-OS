@@ -1,0 +1,73 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/lowcoder-coolify
+description: Lowcoder (forked from OpenBlocks) is a self-hosted, open-source, low-code platform for building internal tools.
+endpoint:
+  port: 3000
+  service: lowcoder
+env:
+  LOWCODER_EMAIL_SIGNUP_ENABLED: 'true'
+  SERVICE_PASSWORD_ENCRYPTION:
+    generate: password
+  SERVICE_PASSWORD_SALT:
+    generate: password
+  SERVICE_URL_LOWCODER_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: lowcoder-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LOWCODER_EMAIL_SIGNUP_ENABLED
+  hint: 'по умолчанию: true'
+  label: lowcoder email signup enabled
+  options: null
+  required: false
+  type: text
+tags:
+- lowcoder
+- openblocks
+- low
+- code
+- platform
+- open
+- source
+- low
+- code
+title: Lowcoder
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.lowcoder.cloud/
+  tags:
+  - lowcoder
+  - openblocks
+  - low
+  - code
+  - platform
+  - open
+  - source
+  - low
+  - code
+  template: lowcoder.yaml
+website: https://docs.lowcoder.cloud/

@@ -1,0 +1,25 @@
+# libretranslate-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  main:
+    environment:
+    - LT_API_KEYS=true
+    - LT_API_KEYS_DB_PATH=/app/db/api_keys.db
+    - LT_UPDATE_MODELS=true
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - ./venv/bin/python scripts/healthcheck.py
+    image: libretranslate/libretranslate:v1.6.5@sha256:a3518195e4e810ba0d9dd251a851f24918059d757ef3c5cf8e0f881daf4242fc
+    networks:
+      appnet:
+        aliases:
+        - libretranslate_main_1
+    restart: on-failure
+    tty: true
+    volumes:
+    - ${APP_DATA_DIR}/data/api_keys:/app/db
+    - ${APP_DATA_DIR}/data/models:/home/libretranslate/.local:rw

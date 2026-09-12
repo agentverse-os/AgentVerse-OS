@@ -1,0 +1,97 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/miniflux-coolify
+description: Miniflux is a minimalist and opinionated feed reader.
+endpoint:
+  port: 8080
+  service: miniflux
+env:
+  CREATE_ADMIN: '1'
+  PORT: '8080'
+  POSTGRES_DB: miniflux-db
+  POSTGRES_USER: ''
+  RUN_MIGRATIONS: '1'
+  SERVICE_PASSWORD_64_ADMIN:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_MINIFLUX: https://${APP_DOMAIN}
+  SERVICE_USER_ADMIN:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_64_ADMIN
+  path: null
+  user: SERVICE_USER_ADMIN
+name: miniflux-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PORT
+  hint: 'по умолчанию: 8080'
+  label: port
+  options: null
+  required: false
+  type: text
+- env: RUN_MIGRATIONS
+  hint: 'по умолчанию: 1'
+  label: run migrations
+  options: null
+  required: false
+  type: text
+- env: CREATE_ADMIN
+  hint: 'по умолчанию: 1'
+  label: create admin
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: miniflux-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- miniflux
+- rss
+- feed
+- self
+- hosted
+title: Miniflux
+type: app
+upstream:
+  categories:
+  - RSS
+  source: https://miniflux.app/docs/index.html
+  tags:
+  - miniflux
+  - rss
+  - feed
+  - self
+  - hosted
+  template: miniflux.yaml
+website: https://miniflux.app/docs/index.html

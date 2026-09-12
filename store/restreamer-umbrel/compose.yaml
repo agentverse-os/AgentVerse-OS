@@ -1,0 +1,19 @@
+# restreamer-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    image: datarhei/restreamer:2.12.0@sha256:813acc9d41d2953b1e7fbb5b281f9a1f68d07fef4e1b30e34472b12d3db9426a
+    networks:
+      appnet:
+        aliases:
+        - restreamer_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/config:/core/config
+    - ${APP_DATA_DIR}/data:/core/data

@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/domain-locker-umbrel
+description: An all-in-one tool for keeping track of your domain name portfolio
+endpoint:
+  port: 3000
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: domain-locker-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Domain Locker
+type: app
+upstream:
+  author: Alicia Sykes
+  categories:
+  - networking
+  release_notes: |-
+    This release improves the self-hosted edition, including:
+      - Improved domain lookups
+      - Included domain names in webhook notification messages
+      - Added support for loading Docker secrets from environment variables
+      - Fixed internal loopback URL handling and other self-hosted bugs
+
+
+    Full release notes can be found at https://github.com/Lissy93/domain-locker/releases/tag/v0.2.0
+  source: https://github.com/Lissy93/domain-locker
+  version: 0.2.0
+  website: https://domain-locker.com/
+website: https://domain-locker.com/

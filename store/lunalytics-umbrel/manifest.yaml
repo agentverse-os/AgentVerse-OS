@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/lunalytics-umbrel
+description: A monitoring tool for teams
+endpoint:
+  port: 2308
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/lunalytics/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lunalytics/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lunalytics/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lunalytics/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lunalytics/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/lunalytics/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: lunalytics-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Lunalytics
+type: app
+upstream:
+  author: KSJaay
+  categories:
+  - networking
+  release_notes: |-
+    This update fixes session token consistency and status page display issues:
+      - Lowercases emails when generating session tokens
+      - Fixes the nerdy metric graph style
+      - Fixes Last updated timestamps on status pages
+      - Improves graph spacing on status pages
+
+
+    Full release notes can be found at https://github.com/KSJaay/Lunalytics/releases
+  source: https://github.com/KSJaay/Lunalytics
+  version: 0.10.23
+  website: https://lunalytics.xyz/
+website: https://lunalytics.xyz/

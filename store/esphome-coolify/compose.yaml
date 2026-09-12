@@ -1,0 +1,25 @@
+# esphome-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  esphome:
+    environment:
+    - SERVICE_URL_ESPHOME_6052=${SERVICE_URL_ESPHOME_6052}
+    - USERNAME=${SERVICE_USER_ADMIN}
+    - PASSWORD=${SERVICE_PASSWORD_ADMIN}
+    image: ghcr.io/esphome/esphome:2025.12.4
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    volumes:
+    - esp_config:/config
+    - /etc/localtime:/etc/localtime:ro
+volumes:
+  esp_config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/esp_config
+      o: bind
+      type: none

@@ -1,0 +1,20 @@
+# metabase: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  metabase:
+    environment:
+      JAVA_TIMEZONE: ${TZ}
+      MB_DB_FILE: /metabase-data/metabase.db
+      MGID: ${GID-1000}
+    image: metabase/metabase:v0.63.15
+    networks:
+      appnet:
+        aliases:
+        - metabase_metabase_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/metabase/data:/metabase-data
+    - ${APP_DATA_DIR}/data/metabase/plugins:/plugins

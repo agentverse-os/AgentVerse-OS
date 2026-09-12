@@ -1,0 +1,18 @@
+# openbooks: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  openbooks:
+    command: ./openbooks server --dir /books --port 80 --persist --name ${OPENBOOKS_IRC_USERNAME}
+    environment:
+      BASE_PATH: /openbooks/
+    image: evanbuss/openbooks:4.5.0
+    networks:
+      appnet:
+        aliases:
+        - openbooks_openbooks_1
+    restart: unless-stopped
+    volumes:
+    - ${ROOT_FOLDER_HOST}/media/data/books/:/books

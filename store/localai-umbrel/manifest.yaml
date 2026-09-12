@@ -1,0 +1,49 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/localai-umbrel
+description: Drop-in OpenAI replacement
+endpoint:
+  port: 8080
+  service: api
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/localai/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/localai/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/localai/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/localai/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/localai/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: localai-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LocalAI
+type: app
+upstream:
+  author: Ettore Di Giacinto
+  categories:
+  - ai
+  release_notes: Adds GPU support. LocalAI now detects NVIDIA, AMD, and Intel GPUs and offers the matching CUDA, ROCm, and SYCL backends in its Backends gallery. Install a GPU backend there to accelerate your models. Using an AMD or NVIDIA GPU requires umbrelOS 2.0 Beta or later.
+  source: https://github.com/mudler/LocalAI
+  version: v4.9.0-patch.1
+  website: https://localai.io/
+website: https://localai.io/

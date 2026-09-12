@@ -1,0 +1,153 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bookstack-coolify
+description: BookStack is a simple, self-hosted, easy-to-use platform for organising and storing information
+endpoint:
+  port: 80
+  service: bookstack
+env:
+  GITHUB_APP_ID: ''
+  GITHUB_APP_SECRET: ''
+  MAIL_DRIVER: smtp
+  MAIL_ENCRYPTION: tls
+  MAIL_FROM: ''
+  MAIL_FROM_NAME: BookStack
+  MAIL_HOST: ''
+  MAIL_PASSWORD: ''
+  MAIL_PORT: '587'
+  MAIL_USERNAME: ''
+  MYSQL_DATABASE: bookstackapp
+  QUEUE_CONNECTION: ''
+  SERVICE_PASSWORD_APPKEY:
+    generate: password
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_BOOKSTACK: https://${APP_DOMAIN}
+  SERVICE_URL_BOOKSTACK_80: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bookstack-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: bookstackapp'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: QUEUE_CONNECTION
+  hint: null
+  label: queue connection
+  options: null
+  required: false
+  type: text
+- env: GITHUB_APP_ID
+  hint: null
+  label: github app id
+  options: null
+  required: false
+  type: text
+- env: GITHUB_APP_SECRET
+  hint: null
+  label: github app secret
+  options: null
+  required: false
+  type: password
+- env: MAIL_DRIVER
+  hint: 'по умолчанию: smtp'
+  label: mail driver
+  options: null
+  required: false
+  type: text
+- env: MAIL_HOST
+  hint: null
+  label: mail host
+  options: null
+  required: false
+  type: text
+- env: MAIL_PORT
+  hint: 'по умолчанию: 587'
+  label: mail port
+  options: null
+  required: false
+  type: text
+- env: MAIL_ENCRYPTION
+  hint: 'по умолчанию: tls'
+  label: mail encryption
+  options: null
+  required: false
+  type: text
+- env: MAIL_USERNAME
+  hint: null
+  label: mail username
+  options: null
+  required: false
+  type: text
+- env: MAIL_PASSWORD
+  hint: null
+  label: mail password
+  options: null
+  required: false
+  type: password
+- env: MAIL_FROM
+  hint: null
+  label: mail from
+  options: null
+  required: false
+  type: text
+- env: MAIL_FROM_NAME
+  hint: 'по умолчанию: BookStack'
+  label: mail from name
+  options: null
+  required: false
+  type: text
+tags:
+- free-and-open-source
+- mfa
+- dark-light-themes
+- searchable
+- connected
+- simple-interface
+- diagramms
+- notes
+title: Bookstack
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://www.bookstackapp.com/docs/
+  tags:
+  - free-and-open-source
+  - mfa
+  - dark-light-themes
+  - searchable
+  - connected
+  - simple-interface
+  - diagramms
+  - notes
+  template: bookstack.yaml
+website: https://www.bookstackapp.com/docs/

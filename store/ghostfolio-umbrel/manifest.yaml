@@ -1,0 +1,63 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ghostfolio-umbrel
+description: Manage your wealth like a boss
+endpoint:
+  port: 3334
+  service: server
+env:
+  APP_GHOSTFOLIO_DB_DATABASE_NAME: ghostfolio
+  APP_GHOSTFOLIO_DB_PASSWORD: moneyprintergobrrr
+  APP_GHOSTFOLIO_DB_USERNAME: ghostfolio
+  APP_GHOSTFOLIO_REDIS_PASSWORD: moneyprintergobrrr
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/ghostfolio/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ghostfolio/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ghostfolio/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/ghostfolio/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ghostfolio-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Ghostfolio
+type: app
+upstream:
+  author: Ghostfolio
+  categories:
+  - finance
+  release_notes: |-
+    This release includes improvements and fixes:
+      - Added an experimental MCP tool to import activities into a portfolio
+      - Expanded shared portfolio access with a restricted view and manage permission
+      - Added account filtering to the experimental MCP accounts tool
+      - Fixed cash positions being included in allocation charts on portfolio and public pages
+      - Fixed restricted-view allocation percentages, holding calculations with missing historical market prices, timezone-specific holding chart points, and the British Virgin Islands country mapping
+
+
+    Full release notes can be found at https://github.com/ghostfolio/ghostfolio/releases/tag/3.65.0
+  source: https://github.com/ghostfolio/ghostfolio
+  version: 3.65.0
+  website: https://ghostfol.io/
+website: https://ghostfol.io/

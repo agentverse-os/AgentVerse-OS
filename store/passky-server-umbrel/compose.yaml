@@ -1,0 +1,64 @@
+# passky-server-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+      ACCOUNT_MAX: 100
+      ACCOUNT_MAX_PASSWORDS: 1000
+      ACCOUNT_PREMIUM: -1
+      ADMIN_PASSWORD: ${APP_PASSWORD}
+      ADMIN_USERNAME: admin
+      CF_TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
+      CF_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+      DATABASE_ENGINE: sqlite
+      DATABASE_FILE: passky
+      LIMITER_ADD_YUBIKEY: 10
+      LIMITER_CREATE_ACCOUNT: 10
+      LIMITER_DELETE_ACCOUNT: 10
+      LIMITER_DELETE_PASSWORD: 2
+      LIMITER_DELETE_PASSWORDS: 10
+      LIMITER_DISABLE_2FA: 10
+      LIMITER_EDIT_PASSWORD: 2
+      LIMITER_ENABLED: 'true'
+      LIMITER_ENABLE_2FA: 10
+      LIMITER_FORGOT_USERNAME: 60
+      LIMITER_GET_INFO: -1
+      LIMITER_GET_PASSWORDS: 2
+      LIMITER_GET_REPORT: -1
+      LIMITER_GET_STATS: -1
+      LIMITER_GET_TOKEN: 3
+      LIMITER_IMPORT_PASSWORDS: 10
+      LIMITER_REMOVE_YUBIKEY: 10
+      LIMITER_SAVE_PASSWORD: 2
+      LIMITER_UPGRADE_ACCOUNT: 10
+      MAIL_ENABLED: 'false'
+      MYSQL_CACHE_MODE: 0
+      MYSQL_DATABASE: passky
+      MYSQL_HOST: ''
+      MYSQL_PASSWORD: ''
+      MYSQL_PORT: 3306
+      MYSQL_SSL: 'false'
+      MYSQL_SSL_CA: /etc/ssl/certs/ca-certificates.crt
+      MYSQL_USER: passky
+      REDIS_HOST: 127.0.0.1
+      REDIS_LOCAL_HOST: 127.0.0.1
+      REDIS_LOCAL_PASSWORD: ''
+      REDIS_LOCAL_PORT: 6379
+      REDIS_PASSWORD: ''
+      REDIS_PORT: 6379
+      SERVER_CORES: 1
+      SERVER_LOCATION: US
+      YUBI_CLOUD: https://api.yubico.com/wsapi/2.0/verify
+      YUBI_ID: 67857
+    image: rabbitcompany/passky-server:8.1.8@sha256:e9bf7b9ecdf4904f1e3893b5968e98cbb61d4984bca1482081df2f59df05fca6
+    networks:
+      appnet:
+        aliases:
+        - passky-server_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/passky:/var/www/html/databases

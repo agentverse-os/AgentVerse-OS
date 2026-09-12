@@ -1,0 +1,68 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/hoarder
+description: Self-hostable bookmark-everything app
+endpoint:
+  port: 3000
+  service: hoarder
+env:
+  MEILI_MASTER_KEY:
+    generate: token
+  NEXTAUTH_SECRET:
+    generate: token
+  OPENAI_API_KEY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: hoarder
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NEXTAUTH_SECRET
+  hint: null
+  label: Nextauth Secret
+  options: null
+  required: false
+  type: random
+- env: MEILI_MASTER_KEY
+  hint: null
+  label: Meili master key
+  options: null
+  required: false
+  type: random
+- env: OPENAI_API_KEY
+  hint: null
+  label: OpenAI API Key
+  options: null
+  required: false
+  type: text
+tags: []
+title: Hoarder
+type: app
+upstream:
+  author: hoarder-app
+  categories:
+  - utilities
+  - ai
+  source: https://github.com/hoarder-app/hoarder
+  tipi_version: 88
+  version: 0.33.2
+website: https://github.com/hoarder-app/hoarder

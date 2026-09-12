@@ -1,0 +1,61 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/solidtime-umbrel
+description: A simple, secure, and private time tracking app
+endpoint:
+  port: 8000
+  service: app
+env:
+  APP_HIDDEN_SERVICE: ''
+  APP_SOLIDTIME_LOCAL_IPS: ${local_ips}
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  DEVICE_HOSTNAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/solidtime/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: umbrel@umbrel.local
+name: solidtime-umbrel
+notes:
+- 'app: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'queue: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'scheduler: env_file из каталога проигнорирован (значения — через настройки приложения)'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Solidtime
+type: app
+upstream:
+  author: Solidtime
+  categories:
+  - files
+  release_notes: |-
+    This release adds Date and Week grouping to reports, sorting for the tasks table, search in the projects overview, improved download handling, and fixes for timezone mismatch prompts.
+
+    It also adds reusable invoice recipients for On-Premise Business installations, with existing invoice recipients migrated automatically.
+
+    Full release notes can be found at https://github.com/solidtime-io/solidtime/releases/tag/v0.20.0
+  source: https://github.com/solidtime-io/solidtime
+  version: 0.20.0
+  website: https://www.solidtime.io/
+website: https://www.solidtime.io/

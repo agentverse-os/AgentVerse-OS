@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nginx-proxy-manager-umbrel
+description: Expose your services easily and securely
+endpoint:
+  port: 81
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/nginx-proxy-manager/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nginx-proxy-manager/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nginx-proxy-manager/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/nginx-proxy-manager/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nginx-proxy-manager-umbrel
+notes:
+- 'порт 40080:80 (web) не публикуется: доступ только через edge/gate'
+- 'порт 40443:443 (web) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Nginx Proxy Manager
+type: app
+upstream:
+  author: Jamie Curnow
+  categories:
+  - networking
+  release_notes: |-
+    This release reverts the base image to Lua 5.1.5 and fixes an issue that could occur when internal Nginx configuration files are mounted.
+
+    Full release notes can be found at https://github.com/NginxProxyManager/nginx-proxy-manager/releases/tag/v2.15.1
+  source: https://github.com/NginxProxyManager/nginx-proxy-manager
+  version: 2.15.1
+  website: https://nginxproxymanager.com/
+website: https://nginxproxymanager.com/

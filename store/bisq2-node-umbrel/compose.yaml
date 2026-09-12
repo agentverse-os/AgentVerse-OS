@@ -1,0 +1,23 @@
+# bisq2-node-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    image: ghcr.io/bisq-network/bisq2-api:2.1.12.0@sha256:beba2f2db5aefca0f4b8d49285b105cb0b29d0eb0ed0f8136712aace0e167906
+    mem_limit: 2g
+    networks:
+      appnet:
+        aliases:
+        - bisq2-node_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/data
+  web:
+    image: ghcr.io/bisq-network/bisq2-api-web-ui:2.1.12.0@sha256:d64c335cc21c69dc8d62f360e5d29ab974d0949f320ba1658cab0a4d5cc7f310
+    network_mode: service:server
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/data:ro

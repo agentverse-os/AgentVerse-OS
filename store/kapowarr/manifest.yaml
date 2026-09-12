@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kapowarr
+description: Kapowarr is a software to build and manage a comic book library, fitting in the *arr suite of software.
+endpoint:
+  port: 5656
+  service: kapowarr
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: kapowarr
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Kapowarr
+type: app
+upstream:
+  author: Casvt
+  categories:
+  - media
+  - utilities
+  source: https://github.com/Casvt/Kapowarr
+  tipi_version: 12
+  version: v1.3.1
+website: https://github.com/Casvt/Kapowarr

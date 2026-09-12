@@ -1,0 +1,70 @@
+# orangehrm-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mariadb:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-orangehrm-db}
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 20s
+    image: mariadb:11
+    networks:
+      appnet:
+        aliases:
+        - orangehrm-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - orangehrm_mariadb_data:/var/lib/mysql
+  orangehrm:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_ORANGEHRM_80=${SERVICE_URL_ORANGEHRM_80}
+    - ORANGEHRM_DATABASE_HOST=mariadb
+    - ORANGEHRM_DATABASE_USER=${SERVICE_USER_MYSQL}
+    - ORANGEHRM_DATABASE_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - ORANGEHRM_DATABASE_NAME=${MYSQL_DATABASE:-orangehrm-db}
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: orangehrm/orangehrm:latest
+    networks:
+      appnet:
+        aliases:
+        - orangehrm-coolify_orangehrm_1
+    platform: linux/amd64
+    restart: unless-stopped
+    volumes:
+    - orangehrm-data:/orangehrm
+volumes:
+  orangehrm-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/orangehrm-data
+      o: bind
+      type: none
+  orangehrm_mariadb_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/orangehrm_mariadb_data
+      o: bind
+      type: none

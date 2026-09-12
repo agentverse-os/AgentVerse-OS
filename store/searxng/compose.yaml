@@ -1,0 +1,18 @@
+# searxng: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  searxng:
+    environment:
+      BASE_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}/
+      SEARXNG_SECRET: ${SEARXNG_SECRET_KEY}
+    image: searxng/searxng:latest
+    networks:
+      appnet:
+        aliases:
+        - searxng_searxng_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/etc/searxng

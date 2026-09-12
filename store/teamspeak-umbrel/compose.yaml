@@ -1,0 +1,30 @@
+# teamspeak-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+      TS3SERVER_LICENSE: accept
+      TS3SERVER_SERVERADMIN_PASSWORD: $APP_PASSWORD
+    image: teamspeak:3.13.7@sha256:b5bdec55bc87b992c5658e739f3ce465644efa6d997633110b12be3dc3a10796
+    networks:
+      appnet:
+        aliases:
+        - teamspeak_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/var/ts3server
+  ui:
+    environment:
+      JWT_SECRET: $APP_SEED
+    image: joni1802/ts3-manager:v2.2.1@sha256:d69890c323e8715cef0f625036c7c51ec7e7da321438897633fff5df83da1e39
+    networks:
+      appnet:
+        aliases:
+        - teamspeak_ui_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 1000:1000

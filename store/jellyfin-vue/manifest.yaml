@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/jellyfin-vue
+description: A modern web client for Jellyfin based on Vue
+endpoint:
+  port: 80
+  service: jellyfin-vue
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: jellyfin-vue
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Jellyfin Vue (Beta)
+type: app
+upstream:
+  author: Jellyfin
+  categories:
+  - media
+  source: https://github.com/jellyfin/jellyfin-vue
+  tipi_version: 6
+  version: unstable.2024-10-14.a47a7d5
+website: https://github.com/jellyfin/jellyfin-vue

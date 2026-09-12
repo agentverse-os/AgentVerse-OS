@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/node-red-standalone-umbrel
+description: Wire together the Internet of Things
+endpoint:
+  port: 1881
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/node-red-standalone/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/node-red-standalone/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/node-red-standalone/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/node-red-standalone/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: node-red-standalone-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Node-RED
+type: app
+upstream:
+  author: OpenJS Foundation
+  categories:
+  - automation
+  release_notes: |-
+    This maintenance release reverts a bcrypt dependency update to restore compatibility on certain Raspberry Pi architectures and operating systems.
+    Full release notes can be found at https://github.com/node-red/node-red/releases/tag/5.0.6
+  source: https://github.com/node-red/node-red
+  version: 5.0.6
+  website: https://nodered.org
+website: https://nodered.org

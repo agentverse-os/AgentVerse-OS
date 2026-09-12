@@ -1,0 +1,59 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/typesense-coolify
+description: Cutting-edge, in-memory search engine for mere mortals. Knowledge of rocket science optional.
+endpoint:
+  port: 8108
+  service: typesense
+env:
+  SERVICE_URL_TYPESENSE_8108: https://${APP_DOMAIN}
+  TYPESENSE_ENABLE_CORS: 'true'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: typesense-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TYPESENSE_ENABLE_CORS
+  hint: 'по умолчанию: true'
+  label: typesense enable cors
+  options: null
+  required: false
+  type: text
+tags:
+- search
+- search-engine
+- search-api
+- elasticsearch-alternative
+title: Typesense
+type: app
+upstream:
+  categories:
+  - search
+  source: https://typesense.org/docs
+  tags:
+  - search
+  - search-engine
+  - search-api
+  - elasticsearch-alternative
+  template: typesense.yaml
+website: https://typesense.org/docs

@@ -1,0 +1,12 @@
+# Сеть создаёт cloudd и помечает external (ADR-005, решение 3); порты наружу не публикуются.
+services:
+  whoami:
+    image: traefik/whoami:v1.11
+    restart: unless-stopped
+    environment:
+      WHOAMI_NAME: ${APP_NAME}
+    networks: [appnet]
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}

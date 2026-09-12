@@ -1,0 +1,79 @@
+# beszel-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  beszel:
+    environment:
+    - SERVICE_URL_BESZEL_8090=${SERVICE_URL_BESZEL_8090}
+    - CONTAINER_DETAILS=${CONTAINER_DETAILS:-true}
+    - SHARE_ALL_SYSTEMS=${SHARE_ALL_SYSTEMS:-false}
+    healthcheck:
+      interval: 30s
+      retries: 10
+      start_period: 5s
+      test:
+      - CMD
+      - /beszel
+      - health
+      - --url
+      - http://localhost:8090
+      timeout: 20s
+    image: henrygd/beszel:0.18.7
+    networks:
+      appnet:
+        aliases:
+        - beszel-coolify_beszel_1
+    restart: unless-stopped
+    volumes:
+    - beszel_data:/beszel_data
+    - beszel_socket:/beszel_socket
+  beszel-agent:
+    environment:
+    - LISTEN=/beszel_socket/beszel.sock
+    - HUB_URL=$SERVICE_URL_BESZEL
+    - TOKEN=${TOKEN}
+    - KEY=${KEY}
+    - DISABLE_SSH=${DISABLE_SSH:-false}
+    - LOG_LEVEL=${LOG_LEVEL:-warn}
+    - SKIP_GPU=${SKIP_GPU:-false}
+    - SYSTEM_NAME=${SYSTEM_NAME}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 60s
+      retries: 10
+      start_period: 5s
+      test:
+      - CMD
+      - /agent
+      - health
+      timeout: 20s
+    image: henrygd/beszel-agent:0.18.7
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+    - beszel_agent_data:/var/lib/beszel-agent
+    - beszel_socket:/beszel_socket
+volumes:
+  beszel_agent_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/beszel_agent_data
+      o: bind
+      type: none
+  beszel_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/beszel_data
+      o: bind
+      type: none
+  beszel_socket:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/beszel_socket
+      o: bind
+      type: none

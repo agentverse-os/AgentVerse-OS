@@ -1,0 +1,72 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nocobase-coolify
+description: NocoBase is the most extensible AI-powered no-code/low-code platform.
+endpoint:
+  port: 13000
+  service: nocobase
+env:
+  POSTGRES_DB: nocobase-db
+  POSTGRES_USER: ''
+  SERVICE_BASE64_64_APPKEY:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_NOCOBASE_13000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nocobase-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: nocobase-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- nocode
+- lowcode
+- database
+- builder
+title: Nocobase
+type: app
+upstream:
+  categories:
+  - development
+  source: https://docs.nocobase.com/
+  tags:
+  - nocode
+  - lowcode
+  - database
+  - builder
+  template: nocobase.yaml
+website: https://docs.nocobase.com/

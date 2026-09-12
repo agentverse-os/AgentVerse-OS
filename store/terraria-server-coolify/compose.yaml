@@ -1,0 +1,34 @@
+# terraria-server-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  terraria-server:
+    environment:
+    - WORLD=${WORLD:-/root/.local/share/Terraria/Worlds/world1.wld}
+    - AUTOCREATE=${AUTOCREATE:-2}
+    - WORLDNAME=${WORLDNAME:-world1}
+    - DIFFICULTY=${DIFFICULTY:-1}
+    - MAXPLAYERS=${MAXPLAYERS:-8}
+    - PASSWORD=${PASSWORD:-mypassword}
+    - MOTD=${MOTD:-Welcome to the server!}
+    - LANGUAGE=${LANGUAGE:-en/US}
+    - SECURE=${SECURE:-1}
+    image: hexlo/terraria-server-docker:1.4.4.9
+    networks:
+      appnet:
+        aliases:
+        - terraria-server-coolify_terraria-server_1
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+    - terraria-server:/root/.local/share/Terraria/Worlds
+volumes:
+  terraria-server:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/terraria-server
+      o: bind
+      type: none

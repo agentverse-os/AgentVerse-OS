@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/llama-gpt-umbrel
+description: Self-hosted, offline ChatGPT-like chatbot powered by Llama 2
+endpoint:
+  port: 3000
+  service: llama-gpt-ui
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/llama-gpt/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/llama-gpt/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/llama-gpt/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/llama-gpt/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: llama-gpt-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LlamaGPT
+type: app
+upstream:
+  author: Umbrel
+  categories:
+  - ai
+  release_notes: null
+  source: https://github.com/getumbrel/llama-gpt
+  version: 1.0.0
+  website: https://umbrel.com
+website: https://umbrel.com

@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kokoro-umbrel
+description: An intelligent, high-quality TTS solution
+endpoint:
+  port: 8880
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/kokoro/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kokoro/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kokoro/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/kokoro/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: kokoro-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Kokoro
+type: app
+upstream:
+  author: Hexgrad
+  categories:
+  - ai
+  release_notes: |-
+    This release improves speech generation and API safety:
+      - Speeds up streaming responses with lazy phonemization for faster time to first audio
+      - Adds validation limits for pause duration, input length, volume multiplier, and language codes
+      - Fixes the voice-combine endpoint so it accepts weighted voice syntax
+
+
+    Full release notes are available at https://github.com/remsky/Kokoro-FastAPI/releases/tag/v0.8.1
+  source: https://github.com/remsky/Kokoro-FastAPI
+  version: 0.8.1
+  website: https://huggingface.co/hexgrad/Kokoro-82M
+website: https://huggingface.co/hexgrad/Kokoro-82M

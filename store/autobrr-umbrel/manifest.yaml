@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/autobrr-umbrel
+description: Modern, easy to use download automation for torrents and usenet
+endpoint:
+  port: 7474
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/autobrr/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/autobrr/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/autobrr/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/autobrr/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: autobrr-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: autobrr
+type: app
+upstream:
+  author: autobrr
+  categories:
+  - media
+  release_notes: |-
+    This release refines dashboard statistics customization, adds configurable feed cache TTLs, rolling-window download limits, release RawVars macros, and new or updated indexer definitions for ItaTorrents, Simurg, and deprecated indexers.
+
+    It also fixes retry metadata preservation, Arr download-client error redaction and rejection reporting, filter updates with deprecated indexers, IRC bouncer error logging, per-filter notification mute handling, and copy-to-clipboard in the web UI.
+
+    Full release notes are available at https://github.com/autobrr/autobrr/releases/tag/v1.85.0
+  source: https://github.com/autobrr/autobrr
+  version: 1.85.0
+  website: https://autobrr.com/
+website: https://autobrr.com/

@@ -1,0 +1,74 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/snort-umbrel
+description: Fast Nostr UI
+endpoint:
+  port: 8080
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/snort/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/snort/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/snort/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/snort/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: snort-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Snort
+type: app
+upstream:
+  author: Snort
+  categories:
+  - social
+  release_notes: |-
+    # Highlights
+    - **Security Hardening**: Comprehensive audit fixes including Schnorr signature verification, NIP-46 relay message forgery protection, PIN encryption improvements, and NIP-26 delegation trust removal
+    - **Performance**: Batched Schnorr verification in WASM, lazy-loaded routes, pre-compiled translations, worker-relay batch optimizations, and eliminated double verification per event
+    - **Stability**: Fixed multiple React render loops, hook dependency arrays, stale closures, and lifecycle/memory leaks across the app
+
+    # Added
+    - Comprehensive request processing path tests
+    - Priority profile loader with batch loading, priority tiers, and chunking
+    - DVM kind:7000 payment-required invoice display
+    - Default relays fallback when pool is empty
+    - Zapstore manifest migration (nap.yaml → zapstore.yaml)
+
+    # Fixed
+    - Real Schnorr signature verification in isValid
+    - PIN encryption security issues
+    - NIP-46 hardened against forged relay messages and secret leakage
+    - Removed unverified NIP-26 delegation trust in getRootPubKey
+    - Wrapped all dangerous JSON.parse calls in try/catch
+    - Added timeouts to all hanging promises
+    - Added lifecycle management and fixed timer/memory leaks
+    - Render loops in NoteReaction, profile page pinned notes, notifications, and NoteContext
+    - React hook dependency arrays and stale closures across components
+    - NoteStore lazy snapshot and OutboxModel input mutation
+    - Queue traces for connecting relays with query system edge-case tests
+
+    https://github.com/v0l/snort/compare/v0.4.0...v0.5.0
+  source: https://git.v0l.io/Kieran/snort
+  version: v0.5.3
+  website: https://snort.social
+website: https://snort.social

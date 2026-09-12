@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/prowlarr
+description: A torrent/usenet indexer manager/proxy
+endpoint:
+  port: 9696
+  service: prowlarr
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: prowlarr
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Prowlarr
+type: app
+upstream:
+  author: Prowlarr
+  categories:
+  - media
+  - utilities
+  source: https://github.com/Prowlarr/Prowlarr/
+  tipi_version: 37
+  version: 2.5.2
+website: https://github.com/Prowlarr/Prowlarr/

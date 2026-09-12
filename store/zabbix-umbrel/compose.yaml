@@ -1,0 +1,64 @@
+# zabbix-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  zabbix-agent:
+    environment:
+      ZBX_HOSTNAME: zabbix-agent
+      ZBX_SERVER_HOST: zabbix-server
+    hostname: zabbix-agent
+    image: zabbix/zabbix-agent2:7.4.14-alpine@sha256:4d9859e607425bd7b468fcc8b809606fe5b2ad7d158b856a971da83eff263af8
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - zabbix_zabbix-agent_1
+    restart: on-failure
+  zabbix-database:
+    environment:
+      POSTGRES_DB: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_USER: zabbix
+    hostname: zabbix-database
+    image: postgres:13.18-alpine3.20@sha256:77815c1f18ae761b0e503503a494475a03149d7ce544934ccecdbafdb3956c94
+    networks:
+      appnet:
+        aliases:
+        - zabbix_zabbix-database_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  zabbix-frontend:
+    depends_on:
+    - zabbix-server
+    - zabbix-database
+    environment:
+      DB_SERVER_HOST: zabbix-database
+      PHP_TZ: UTC
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_USER: zabbix
+      ZBX_SERVER_HOST: zabbix-server
+    hostname: zabbix-frontend
+    image: zabbix/zabbix-web-nginx-pgsql:7.4.14-alpine@sha256:81dbfe929984965fc1368da314d0972151d1fa1a247c0f5cf42e35fd0d86c82f
+    networks:
+      appnet:
+        aliases:
+        - zabbix_zabbix-frontend_1
+    restart: on-failure
+  zabbix-server:
+    depends_on:
+    - zabbix-database
+    environment:
+      DB_SERVER_HOST: zabbix-database
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_USER: zabbix
+    hostname: zabbix-server
+    image: zabbix/zabbix-server-pgsql:7.4.14-alpine@sha256:8037dbf8a4ea23561472eed7cd463f285c4a7443d10a823286eb07319451a66b
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - zabbix_zabbix-server_1
+    restart: on-failure

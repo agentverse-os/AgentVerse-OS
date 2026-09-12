@@ -1,0 +1,58 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/slash-coolify
+description: An open source, self-hosted links shortener and sharing platform.
+endpoint:
+  port: 5231
+  service: slash
+env:
+  SERVICE_URL_SLASH_5231: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: slash-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- links
+- shortener
+- sharing
+- url
+- short
+- link
+- sharing
+title: Slash
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/yourselfhosted/slash
+  tags:
+  - links
+  - shortener
+  - sharing
+  - url
+  - short
+  - link
+  - sharing
+  template: slash.yaml
+website: https://github.com/yourselfhosted/slash

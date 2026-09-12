@@ -1,0 +1,16 @@
+[Unit]
+Description=Cloud OS core (cloudd)
+After=network-online.target docker.service incus.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cloudd serve --reconcile
+Restart=always
+RestartSec=3
+EnvironmentFile=/etc/cloudos/cloudd.env
+Environment=RUST_LOG=cloudd=info,tower_http=warn
+
+[Install]
+WantedBy=multi-user.target

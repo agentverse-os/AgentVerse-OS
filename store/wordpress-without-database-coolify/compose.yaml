@@ -1,0 +1,33 @@
+# wordpress-without-database-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  wordpress:
+    environment:
+    - SERVICE_URL_WORDPRESS=${SERVICE_URL_WORDPRESS}
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: wordpress:latest
+    networks:
+      appnet:
+        aliases:
+        - wordpress-without-database-coolify_wordpress_1
+    restart: unless-stopped
+    volumes:
+    - wordpress-files:/var/www/html
+volumes:
+  wordpress-files:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/wordpress-files
+      o: bind
+      type: none

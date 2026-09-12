@@ -1,0 +1,21 @@
+# cloudflare-ddns-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cloudflare-ddns:
+    cap_drop:
+    - all
+    environment:
+    - CLOUDFLARE_API_TOKEN=
+    - DOMAINS=
+    - PROXIED=${PROXIED:-false}
+    - IP6_PROVIDER=${IP6_PROVIDER:-none}
+    image: favonia/cloudflare-ddns:1.16.2
+    network_mode: host
+    read_only: true
+    restart: unless-stopped
+    security_opt:
+    - no-new-privileges:true
+    user: 1000:1000

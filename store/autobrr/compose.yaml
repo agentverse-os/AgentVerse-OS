@@ -1,0 +1,18 @@
+# autobrr: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  autobrr:
+    environment:
+    - TZ=${TZ}
+    image: ghcr.io/autobrr/autobrr:v1.84.0
+    networks:
+      appnet:
+        aliases:
+        - autobrr_autobrr_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/autobrr:/config

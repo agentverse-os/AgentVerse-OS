@@ -1,0 +1,71 @@
+# tolgee-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-tolgee}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - tolgee-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - tolgee-postgresql-data:/var/lib/postgresql/data
+  tolgee:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_TOLGEE_8080=${SERVICE_URL_TOLGEE_8080}
+    - TOLGEE_AUTHENTICATION_ENABLED=true
+    - TOLGEE_AUTHENTICATION_INITIAL_PASSWORD=$SERVICE_PASSWORD_TOLGEE
+    - TOLGEE_AUTHENTICATION_INITIAL_USERNAME=admin
+    - TOLGEE_AUTHENTICATION_JWT_SECRET=$SERVICE_PASSWORD_JWT
+    - TOLGEE_POSTGRES_AUTOSTART_ENABLED=false
+    - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/${POSTGRES_DB:-tolgee}
+    - SPRING_DATASOURCE_USERNAME=${SERVICE_USER_POSTGRESQL}
+    - SPRING_DATASOURCE_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:8080
+      timeout: 20s
+    image: tolgee/tolgee
+    networks:
+      appnet:
+        aliases:
+        - tolgee-coolify_tolgee_1
+    restart: unless-stopped
+    volumes:
+    - tolgee-data:/data
+volumes:
+  tolgee-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/tolgee-data
+      o: bind
+      type: none
+  tolgee-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/tolgee-postgresql-data
+      o: bind
+      type: none

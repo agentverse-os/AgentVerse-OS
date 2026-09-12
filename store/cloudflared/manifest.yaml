@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cloudflared
+description: Cloudflare Tunnels in a Web UI
+endpoint:
+  port: 14333
+  service: cloudflared
+env:
+  BASIC_AUTH_PASSWORD:
+    generate: password
+  BASIC_AUTH_USER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: BASIC_AUTH_PASSWORD
+  path: null
+  user: BASIC_AUTH_USER
+name: cloudflared
+notes:
+- 'cloudflared: network_mode=host из каталога'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: BASIC_AUTH_USER
+  hint: null
+  label: Basic auth username
+  options: null
+  required: false
+  type: text
+- env: BASIC_AUTH_PASSWORD
+  hint: null
+  label: Basic auth password
+  options: null
+  required: false
+  type: password
+tags: []
+title: Cloudflared
+type: app
+upstream:
+  author: WisdomSky
+  categories:
+  - utilities
+  source: https://github.com/WisdomSky/Cloudflared-web
+  tipi_version: 62
+  version: 2026.8.2
+website: https://github.com/WisdomSky/Cloudflared-web

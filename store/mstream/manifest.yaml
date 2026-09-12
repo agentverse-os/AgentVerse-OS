@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mstream
+description: The easiest music streaming server available
+endpoint:
+  port: 3000
+  service: mstream
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mstream
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: mStream Music
+type: app
+upstream:
+  author: IrosTheBeggar
+  categories:
+  - music
+  - media
+  source: https://github.com/IrosTheBeggar/mStream
+  tipi_version: 5
+  version: v5.12.2-ls190
+website: https://github.com/IrosTheBeggar/mStream

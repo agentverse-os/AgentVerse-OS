@@ -1,0 +1,18 @@
+# ersatztv-legacy-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: ghcr.io/ersatztv/legacy:v26.8.1@sha256:c42a0b0520668e995f5da6f42a3db939f7f0e1b3372bfc1046d650389d650bca
+    networks:
+      appnet:
+        aliases:
+        - ersatztv-legacy_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${APP_DATA_DIR}/data/transcode:/transcode
+    - ${UMBREL_ROOT}/data/storage/downloads:/media:ro

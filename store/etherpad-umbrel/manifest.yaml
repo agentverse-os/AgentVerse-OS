@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/etherpad-umbrel
+description: An intuitive tool for real-time collaborative writing
+endpoint:
+  port: 9001
+  service: app
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/etherpad/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/etherpad/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/etherpad/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/etherpad/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: etherpad-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Etherpad
+type: app
+upstream:
+  author: The Etherpad Foundation
+  categories:
+  - files
+  release_notes: |-
+    This security release fixes a critical unauthenticated arbitrary-file-read vulnerability in Etherpad's `/static/*` handler, plus additional privately reported issues around OpenID Connect cookies/CORS, session fixation, cross-pad writes, and pad ID validation.
+
+    It also migrates the server build to TypeScript 7, fixes PageDown/PageUp navigation across consecutive long wrapped lines, and makes the Docker `plugin_packages` volume mountpoint writable.
+
+    Full release notes can be found at https://github.com/ether/etherpad/releases/tag/v3.3.3
+  source: https://github.com/ether/etherpad
+  version: 3.3.3
+  website: https://etherpad.org/
+website: https://etherpad.org/

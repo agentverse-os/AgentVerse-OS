@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/2fauth
+description: Manage your Two-Factor Authentication codes.
+endpoint:
+  port: 8000
+  service: 2fauth
+env:
+  TWOFAUTH_APP_KEY:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: 2fauth
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TWOFAUTH_APP_KEY
+  hint: null
+  label: TWOFAUTH_APP_KEY
+  options: null
+  required: false
+  type: random
+tags: []
+title: 2FAuth
+type: app
+upstream:
+  author: Bubka
+  categories:
+  - security
+  source: https://github.com/Bubka/2FAuth
+  tipi_version: 39
+  version: 8.0.2
+website: https://github.com/Bubka/2FAuth

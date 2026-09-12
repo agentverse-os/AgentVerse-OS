@@ -1,0 +1,39 @@
+# invio-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  backend:
+    environment:
+      ADMIN_PASS: ${APP_PASSWORD}
+      ADMIN_USER: admin
+      DATABASE_PATH: /app/data/invio.db
+      ENABLE_HSTS: 'true'
+      JWT_SECRET: ${APP_SEED}
+      SECURE_HEADERS_DISABLED: 'false'
+      SESSION_TTL_SECONDS: 43200
+    image: ghcr.io/kittendevv/invio-backend:v2.2.0@sha256:402c3b2255021834fefeeaaae32cd0f68563a2205dbd6b99914a42cf89e699b5
+    networks:
+      appnet:
+        aliases:
+        - invio_backend_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data
+  frontend:
+    depends_on:
+    - backend
+    environment:
+      BACKEND_URL: http://invio_backend_1:3000
+      COOKIE_SECURE: 'false'
+      ENABLE_HSTS: 'false'
+      FRONTEND_SECURE_HEADERS_DISABLED: 'false'
+      ORIGIN: http://${DEVICE_DOMAIN_NAME}:8003
+      PORT: 8000
+    image: ghcr.io/kittendevv/invio-frontend:v2.2.0@sha256:b2a48dc3bfa04771a2b658905268dfc766958c72be6f783f141e313c189c61b8
+    networks:
+      appnet:
+        aliases:
+        - invio_frontend_1
+    restart: on-failure

@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/grampsweb
+description: Web app for collaborative genealogy.
+endpoint:
+  port: 5000
+  service: grampsweb
+env:
+  GRAMPSWEB_TREE: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: grampsweb
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GRAMPSWEB_TREE
+  hint: Your family tree name
+  label: Gramps tree name
+  options: null
+  required: true
+  type: text
+tags: []
+title: Gramps Web
+type: app
+upstream:
+  author: gramps-project
+  categories:
+  - data
+  - social
+  source: https://github.com/gramps-project/gramps-web
+  tipi_version: 70
+  version: 26.8.1
+website: https://github.com/gramps-project/gramps-web

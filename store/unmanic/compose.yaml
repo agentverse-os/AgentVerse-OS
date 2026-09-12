@@ -1,0 +1,21 @@
+# unmanic: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  unmanic:
+    environment:
+      PGID: ${TIPI_GID}
+      PUID: ${TIPI_UID}
+    image: josh5/unmanic:staging
+    networks:
+      appnet:
+        aliases:
+        - unmanic_unmanic_1
+    privileged: true
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${ROOT_FOLDER_HOST}/media/data:/library
+    - ${APP_DATA_DIR}/data/temp:/tmp/unmanic

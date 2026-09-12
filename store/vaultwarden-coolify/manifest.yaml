@@ -1,0 +1,85 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/vaultwarden-coolify
+description: Vaultwarden is a password manager that allows you to securely store and manage your passwords.
+endpoint:
+  port: 80
+  service: vaultwarden
+env:
+  PUSH_ENABLED: 'false'
+  PUSH_SERVICE_ID: ''
+  PUSH_SERVICE_KEY: ''
+  SERVICE_PASSWORD_64_ADMIN:
+    generate: hex64
+  SERVICE_URL_VAULTWARDEN: https://${APP_DOMAIN}
+  SIGNUP_ALLOWED: 'true'
+  VAULTWARDEN_DB_URL: data/db.sqlite3
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: vaultwarden-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: VAULTWARDEN_DB_URL
+  hint: 'по умолчанию: data/db.sqlite3'
+  label: vaultwarden db url
+  options: null
+  required: false
+  type: text
+- env: SIGNUP_ALLOWED
+  hint: 'по умолчанию: true'
+  label: signup allowed
+  options: null
+  required: false
+  type: text
+- env: PUSH_ENABLED
+  hint: 'по умолчанию: false'
+  label: push enabled
+  options: null
+  required: false
+  type: text
+- env: PUSH_SERVICE_ID
+  hint: null
+  label: push service id
+  options: null
+  required: false
+  type: text
+- env: PUSH_SERVICE_KEY
+  hint: null
+  label: push service key
+  options: null
+  required: false
+  type: password
+tags:
+- password manager
+- security
+title: Vaultwarden
+type: app
+upstream:
+  categories:
+  - auth
+  source: https://github.com/dani-garcia/vaultwarden
+  tags:
+  - password manager
+  - security
+  template: vaultwarden.yaml
+website: https://github.com/dani-garcia/vaultwarden

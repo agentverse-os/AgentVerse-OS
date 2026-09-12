@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/matter-server-umbrel
+description: A Matter Controller Server over WebSockets
+endpoint:
+  port: 5580
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/matter-server/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/matter-server/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/matter-server/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/matter-server/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: matter-server-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Matter Server
+type: app
+upstream:
+  author: Home Assistant
+  categories:
+  - automation
+  release_notes: |-
+    This release includes several improvements and bug fixes.
+
+    Key updates:
+      - Dashboard now includes fallback for unknown endpoint device types
+      - Fixed motion sensitivity and attribute type handling
+      - Added low power mode support for Heiman devices
+      - Added siren and mute functionality for Heiman smoke alarms
+      - Improved handling of non-string label data
+      - Documentation updates for Docker image references
+
+
+    Full release notes are available at https://github.com/home-assistant-libs/python-matter-server/releases
+  source: https://github.com/matter-js/python-matter-server
+  version: 8.1.2
+  website: https://home-assistant.io
+website: https://home-assistant.io

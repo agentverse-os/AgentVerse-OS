@@ -1,0 +1,22 @@
+# neko-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      NEKO_DESKTOP_SCREEN: 1920x1080@30
+      NEKO_MEMBER_MULTIUSER_ADMIN_PASSWORD: $APP_PASSWORD
+      NEKO_MEMBER_MULTIUSER_USER_PASSWORD: neko
+      NEKO_WEBRTC_EPR: 52000-52100
+      NEKO_WEBRTC_ICELITE: 0
+      PGID: 1000
+      PUID: 1000
+    image: ghcr.io/m1k1o/neko/firefox:3.1.5@sha256:5596a0571437a96937426a7060b144912414028293c854412382e8449842a60e
+    networks:
+      appnet:
+        aliases:
+        - neko_web_1
+    restart: on-failure
+    shm_size: 2gb

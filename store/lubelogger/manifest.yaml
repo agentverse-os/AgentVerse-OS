@@ -1,0 +1,198 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/lubelogger
+description: Vehicle Maintenance and Fuel Mileage Tracker.
+endpoint:
+  port: 8080
+  service: lubelogger
+env:
+  LUBELOGGER_ALLOWED_FILE_EXTENSIONS: pdf
+  LUBELOGGER_CUSTOM_LOGO_URL: ''
+  LUBELOGGER_EMAIL_FROM: ''
+  LUBELOGGER_EMAIL_PASSWORD: ''
+  LUBELOGGER_EMAIL_PORT: '587'
+  LUBELOGGER_EMAIL_SERVER: ''
+  LUBELOGGER_EMAIL_USERNAME: ''
+  LUBELOGGER_EMAIL_USE_SSL: ''
+  LUBELOGGER_ENABLE_AUTH: 'false'
+  LUBELOGGER_LOCALE: en_US.UTF-8
+  LUBELOGGER_MOTD: ''
+  LUBELOGGER_OPENID_AUTH_URL: ''
+  LUBELOGGER_OPENID_CLIENT_ID: ''
+  LUBELOGGER_OPENID_CLIENT_SECRET: ''
+  LUBELOGGER_OPENID_NAME: ''
+  LUBELOGGER_OPENID_REDIRECT_URL: ''
+  LUBELOGGER_OPENID_SCOPE: ''
+  LUBELOGGER_OPENID_TOKEN_URL: ''
+  LUBELOGGER_OPENID_VALIDATE_STATE: 'false'
+  LUBELOGGER_PASSWORD_HASH: ''
+  LUBELOGGER_USERNAME_HASH: ''
+  LUBELOGGER_WEBHOOK_URL: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: lubelogger
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LUBELOGGER_LOCALE
+  hint: Affect how numbers, currencies, and dates are formatted.
+  label: Locale and Language Settings
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_ALLOWED_FILE_EXTENSIONS
+  hint: Allowed file extensions for document uploads, use '*' to allow all file types.
+  label: Allowed File Extensions
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_CUSTOM_LOGO_URL
+  hint: Custom Logo URL.
+  label: Custom Logo URL
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_MOTD
+  hint: Message of The Day displayed in Login page if configured.
+  label: Message of the Day
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_WEBHOOK_URL
+  hint: WebHook URL
+  label: WebHook URL
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_EMAIL_SERVER
+  hint: Email SMTP settings used only for configuring multiple users(to send their registration token and forgot password tokens).
+  label: Email > Server
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_EMAIL_FROM
+  hint: null
+  label: Email > From
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_EMAIL_USE_SSL
+  hint: null
+  label: Email > Use SSL ?
+  options: null
+  required: false
+  type: boolean
+- env: LUBELOGGER_EMAIL_PORT
+  hint: null
+  label: Email > Port
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_EMAIL_USERNAME
+  hint: null
+  label: Email > Username
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_EMAIL_PASSWORD
+  hint: null
+  label: Email > Password
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_ENABLE_AUTH
+  hint: Allows users to configure whether if authentication is enabled via environment variable.
+  label: Auth > Enable ?
+  options: null
+  required: false
+  type: boolean
+- env: LUBELOGGER_USERNAME_HASH
+  hint: SHA256 Hash of the root username.
+  label: Auth > Username Hash
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_PASSWORD_HASH
+  hint: SHA256 Hash of the root password.
+  label: Auth > Password Hash
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_OPENID_NAME
+  hint: Name of the OpenID Connect Provider
+  label: Auth > OpenID > Name
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_OPENID_CLIENT_ID
+  hint: Client Id to Authenticate with the Provider
+  label: Auth > OpenID > Client ID
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_OPENID_CLIENT_SECRET
+  hint: Client Secret to Authenticate with the Provider
+  label: Auth > OpenID > Client Secret
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_OPENID_AUTH_URL
+  hint: Authorization URL to the Provider's Login Page
+  label: Auth > OpenID > Authorization URL
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_OPENID_TOKEN_URL
+  hint: URL to retrieve user JWT from the Provider
+  label: Auth > OpenID > Token URL
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_OPENID_REDIRECT_URL
+  hint: https://<yourlubeloggerdomain.com>/Login/RemoteAuth(must be HTTPS)
+  label: Auth > OpenID > Redirect URL
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_OPENID_SCOPE
+  hint: The scope for retrieving the user's email claim(usually it's just 'email')
+  label: Auth > OpenID > Scope
+  options: null
+  required: false
+  type: text
+- env: LUBELOGGER_OPENID_VALIDATE_STATE
+  hint: 'true/false(default: false) - whether LubeLogger should validate state.'
+  label: Auth > OpenID > Validate State
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: LubeLogger
+type: app
+upstream:
+  author: hargata
+  categories:
+  - utilities
+  source: https://github.com/hargata/lubelog
+  tipi_version: 54
+  version: v1.7.1
+website: https://github.com/hargata/lubelog

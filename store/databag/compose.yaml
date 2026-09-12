@@ -1,0 +1,15 @@
+# databag: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  databag:
+    image: balzack/databag:latest
+    networks:
+      appnet:
+        aliases:
+        - databag_databag_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/databag:/var/lib/databag

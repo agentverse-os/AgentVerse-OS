@@ -1,0 +1,54 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/leafwiki-umbrel
+description: A real wiki app without the heavy stack
+endpoint:
+  port: 8080
+  service: web
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/leafwiki/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/leafwiki/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/leafwiki/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/leafwiki/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: leafwiki-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LeafWiki
+type: app
+upstream:
+  author: perber
+  categories:
+  - files
+  release_notes: |-
+    This update adds Markdown highlighting, collapsible blocks, optional code block line numbers, and a copy button for inline code.
+    It also improves section sorting, sidebar navigation, and hotkeys, fixes authentication, two-factor authentication, and restore-related issues, includes API keys in backup and restore, and improves SQLite concurrency and import/restore size limits.
+  source: https://github.com/perber/leafwiki
+  version: 0.12.1
+  website: https://leafwiki.com/
+website: https://leafwiki.com/

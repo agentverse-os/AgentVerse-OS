@@ -1,0 +1,105 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rybbit-coolify
+description: Open-source, privacy-first web analytics.
+endpoint:
+  port: 3002
+  service: rybbit
+env:
+  CLICKHOUSE_DB: analytics
+  CLICKHOUSE_USER: default
+  DISABLE_SIGNUP: 'false'
+  DISABLE_TELEMETRY: 'true'
+  POSTGRES_DB: analytics
+  POSTGRES_USER: frog
+  SERVICE_BASE64_64_BACKEND:
+    generate: hex64
+  SERVICE_PASSWORD_CLICKHOUSE:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_RYBBIT: https://${APP_DOMAIN}
+  SERVICE_URL_RYBBIT_3002: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: rybbit-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DISABLE_SIGNUP
+  hint: 'по умолчанию: false'
+  label: disable signup
+  options: null
+  required: false
+  type: text
+- env: DISABLE_TELEMETRY
+  hint: 'по умолчанию: true'
+  label: disable telemetry
+  options: null
+  required: false
+  type: text
+- env: CLICKHOUSE_USER
+  hint: 'по умолчанию: default'
+  label: clickhouse user
+  options: null
+  required: false
+  type: text
+- env: CLICKHOUSE_DB
+  hint: 'по умолчанию: analytics'
+  label: clickhouse db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: analytics'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: 'по умолчанию: frog'
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- analytics
+- web
+- privacy
+- self-hosted
+- clickhouse
+- postgres
+title: Rybbit
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://rybbit.io/docs
+  tags:
+  - analytics
+  - web
+  - privacy
+  - self-hosted
+  - clickhouse
+  - postgres
+  template: rybbit.yaml
+website: https://rybbit.io/docs

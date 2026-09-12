@@ -1,0 +1,16 @@
+# pingvin-share: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  pingvin-share:
+    image: stonith404/pingvin-share:v1.13.0
+    networks:
+      appnet:
+        aliases:
+        - pingvin-share_pingvin-share_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/opt/app/backend/data
+    - ${APP_DATA_DIR}/data/images:/opt/app/frontend/public/img

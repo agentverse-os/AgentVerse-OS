@@ -1,0 +1,40 @@
+# wireguard-easy-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  wg-easy:
+    cap_add:
+    - NET_ADMIN
+    - SYS_MODULE
+    entrypoint:
+    - /bin/bash
+    - -c
+    - |
+      eval "wgpw '${SERVICE_PASSWORD_ADMIN}' > /pass-hash"
+      eval "$(cat /pass-hash) dumb-init node server.js"
+    environment:
+    - SERVICE_URL_WIREGUARDEASY_51821=${SERVICE_URL_WIREGUARDEASY_51821}
+    - WG_HOST=${SERVICE_FQDN_WIREGUARDEASY}
+    - LANG=${LANG:-en}
+    - WG_PORT=51820
+    - _PASSWORD=${SERVICE_PASSWORD_ADMIN}
+    image: ghcr.io/wg-easy/wg-easy:latest
+    networks:
+      appnet:
+        aliases:
+        - wireguard-easy-coolify_wg-easy_1
+    restart: unless-stopped
+    sysctls:
+    - net.ipv4.conf.all.src_valid_mark=1
+    - net.ipv4.ip_forward=1
+    volumes:
+    - wg-easy:/etc/wireguard
+volumes:
+  wg-easy:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/wg-easy
+      o: bind
+      type: none

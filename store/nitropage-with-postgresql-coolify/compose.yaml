@@ -1,0 +1,65 @@
+# nitropage-with-postgresql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nitropage:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_NITROPAGE_3000=${SERVICE_URL_NITROPAGE_3000}
+    - NP_AUTH_SALT=${SERVICE_BASE64_SALT}
+    - NP_AUTH_PASSWORD=${SERVICE_PASSWORD_64_SESSION}
+    - DATABASE_URL=postgresql://${SERVICE_USER_POSTGRESQL}:${SERVICE_PASSWORD_POSTGRESQL}@postgresql:5432/${POSTGRESQL_DATABASE:-nitropage}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000/admin
+      timeout: 10s
+    image: nitropage/nitropage
+    networks:
+      appnet:
+        aliases:
+        - nitropage-with-postgresql-coolify_nitropage_1
+    restart: unless-stopped
+    volumes:
+    - nitropage-data:/app/.data
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-nitropage}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - nitropage-with-postgresql-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - nitropage-postgresql-data:/var/lib/postgresql/data
+volumes:
+  nitropage-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nitropage-data
+      o: bind
+      type: none
+  nitropage-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/nitropage-postgresql-data
+      o: bind
+      type: none

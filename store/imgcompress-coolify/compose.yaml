@@ -1,0 +1,26 @@
+# imgcompress-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  imgcompress:
+    environment:
+    - SERVICE_URL_IMGCOMPRESS_5000=${SERVICE_URL_IMGCOMPRESS_5000}
+    - DISABLE_LOGO=${DISABLE_LOGO:-false}
+    - DISABLE_STORAGE_MANAGEMENT=${DISABLE_STORAGE_MANAGEMENT:-false}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:5000
+      timeout: 10s
+    image: karimz1/imgcompress:0.6.0
+    networks:
+      appnet:
+        aliases:
+        - imgcompress-coolify_imgcompress_1
+    restart: unless-stopped

@@ -1,0 +1,127 @@
+# alexandrie-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  backend:
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rustfs:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_BACKEND_8201=${SERVICE_URL_BACKEND_8201}
+    - BACKEND_PORT=8201
+    - GIN_MODE=release
+    - JWT_SECRET=${SERVICE_PASSWORD_JWT}
+    - COOKIE_DOMAIN=${SERVICE_URL_FRONTEND}
+    - FRONTEND_URL=${SERVICE_URL_FRONTEND}
+    - ALLOW_UNSECURE=${ALLOW_UNSECURE:-false}
+    - DATABASE_HOST=mysql
+    - DATABASE_PORT=3306
+    - DATABASE_NAME=${MYSQL_DATABASE:-alexandrie-db}
+    - DATABASE_USER=${SERVICE_USER_MYSQL}
+    - DATABASE_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - MINIO_ENDPOINT=rustfs:9000
+    - MINIO_PUBLIC_URL=${SERVICE_URL_RUSTFS}
+    - MINIO_SECURE=${MINIO_SECURE:-false}
+    - MINIO_ACCESSKEY=${SERVICE_USER_RUSTFS}
+    - MINIO_SECRETKEY=${SERVICE_PASSWORD_RUSTFS}
+    - MINIO_BUCKET=${MINIO_BUCKET:-alexandrie}
+    - SMTP_HOST=${SMTP_HOST:-}
+    - SMTP_MAIL=${SMTP_MAIL:-}
+    - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+    image: ghcr.io/smaug6739/alexandrie-backend:v8.10.0
+    networks:
+      appnet:
+        aliases:
+        - alexandrie-coolify_backend_1
+    restart: unless-stopped
+  frontend:
+    depends_on:
+    - backend
+    environment:
+    - SERVICE_URL_FRONTEND_8200=${SERVICE_URL_FRONTEND_8200}
+    - PORT=8200
+    - NUXT_PUBLIC_CONFIG_DISABLE_SIGNUP_PAGE=${CONFIG_DISABLE_SIGNUP:-false}
+    - NUXT_PUBLIC_CONFIG_DISABLE_LANDING_PAGE=${CONFIG_DISABLE_LANDING:-false}
+    - NUXT_PUBLIC_BASE_API=${SERVICE_URL_BACKEND}
+    - NUXT_PUBLIC_BASE_CDN=${SERVICE_URL_RUSTFS}
+    - NUXT_PUBLIC_CDN_ENDPOINT=${CDN_ENDPOINT:-/alexandrie/}
+    - NUXT_PUBLIC_BASE_URL=${SERVICE_URL_FRONTEND}
+    image: ghcr.io/smaug6739/alexandrie-frontend:v8.10.0
+    networks:
+      appnet:
+        aliases:
+        - alexandrie-coolify_frontend_1
+    restart: unless-stopped
+  mysql:
+    environment:
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-alexandrie-db}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - localhost
+      - -u
+      - root
+      - -p${SERVICE_PASSWORD_MYSQLROOT}
+      timeout: 5s
+    image: mysql:8.0
+    networks:
+      appnet:
+        aliases:
+        - alexandrie-coolify_mysql_1
+    restart: unless-stopped
+    volumes:
+    - mysql-data:/var/lib/mysql
+  rustfs:
+    environment:
+    - SERVICE_URL_RUSTFS_9000=${SERVICE_URL_RUSTFS_9000}
+    - RUSTFS_ACCESS_KEY=${SERVICE_USER_RUSTFS}
+    - RUSTFS_SECRET_KEY=${SERVICE_PASSWORD_RUSTFS}
+    - RUSTFS_CONSOLE_ENABLE=${RUSTFS_CONSOLE_ENABLE:-false}
+    - RUSTFS_LOG_LEVEL=${RUSTFS_LOG_LEVEL:-info}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - nc -z localhost 9000 || exit 1
+      timeout: 5s
+    image: rustfs/rustfs:1.0.0-beta.8
+    networks:
+      appnet:
+        aliases:
+        - alexandrie-coolify_rustfs_1
+    restart: unless-stopped
+    volumes:
+    - rustfs-data:/data
+    - rustfs-logs:/logs
+volumes:
+  mysql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mysql-data
+      o: bind
+      type: none
+  rustfs-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/rustfs-data
+      o: bind
+      type: none
+  rustfs-logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/rustfs-logs
+      o: bind
+      type: none

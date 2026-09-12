@@ -1,0 +1,88 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ghost
+description: Ghost - Turn your audience into a business.
+endpoint:
+  port: 2368
+  service: ghost
+env:
+  GHOST_DATABASE_PASSWORD:
+    generate: token
+  GHOST_MAIL_HOST: ''
+  GHOST_MAIL_PASSWORD: ''
+  GHOST_MAIL_PORT: ''
+  GHOST_MAIL_SERVICE: ''
+  GHOST_MAIL_USER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ghost
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GHOST_DATABASE_PASSWORD
+  hint: null
+  label: Ghost Database password
+  options: null
+  required: false
+  type: random
+- env: GHOST_MAIL_SERVICE
+  hint: The name of your mail service (ie. Google)
+  label: Mail Service name
+  options: null
+  required: false
+  type: text
+- env: GHOST_MAIL_HOST
+  hint: Your SMTP Server
+  label: SMTP Host
+  options: null
+  required: false
+  type: text
+- env: GHOST_MAIL_PORT
+  hint: Your SMTP Port
+  label: SMTP Port
+  options: null
+  required: false
+  type: text
+- env: GHOST_MAIL_USER
+  hint: Your SMTP Server User/Username
+  label: SMTP Username
+  options: null
+  required: false
+  type: text
+- env: GHOST_MAIL_PASSWORD
+  hint: Your SMTP Server Password
+  label: SMTP Password
+  options: null
+  required: false
+  type: text
+tags: []
+title: Ghost Production
+type: app
+upstream:
+  author: TryGhost
+  categories:
+  - social
+  - media
+  source: https://github.com/TryGhost/Ghost
+  tipi_version: 173
+  version: 5.130.6
+website: https://github.com/TryGhost/Ghost

@@ -1,0 +1,48 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/myspeed-umbrel
+description: Speed test analysis software that shows your internet speed for up to 30 days
+endpoint:
+  port: 5216
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/myspeed/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/myspeed/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/myspeed/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/myspeed/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: myspeed-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: MySpeed
+type: app
+upstream:
+  author: Mathias Wagner
+  categories:
+  - networking
+  release_notes: null
+  source: https://github.com/gnmyt/myspeed
+  version: 1.0.9
+  website: https://myspeed.dev
+website: https://myspeed.dev

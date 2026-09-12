@@ -1,0 +1,82 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mongo-express
+description: Web-based MongoDB admin interface, written with Node.js and Express
+endpoint:
+  port: 8081
+  service: mongo-express
+env:
+  ME_CONFIG_BASICAUTH_PASSWORD:
+    generate: password
+  ME_CONFIG_BASICAUTH_USERNAME: ''
+  ME_CONFIG_MONGODB_ADMINPASSWORD:
+    generate: password
+  ME_CONFIG_MONGODB_ADMINUSERNAME: ''
+  ME_CONFIG_MONGODB_SERVERIP: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: ME_CONFIG_BASICAUTH_PASSWORD
+  path: null
+  user: ME_CONFIG_BASICAUTH_USERNAME
+name: mongo-express
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ME_CONFIG_MONGODB_SERVERIP
+  hint: null
+  label: MongoDB Server IP Address
+  options: null
+  required: true
+  type: text
+- env: ME_CONFIG_MONGODB_ADMINUSERNAME
+  hint: null
+  label: MongoDB Admin Username
+  options: null
+  required: true
+  type: text
+- env: ME_CONFIG_MONGODB_ADMINPASSWORD
+  hint: null
+  label: MongoDB Admin Password
+  options: null
+  required: true
+  type: password
+- env: ME_CONFIG_BASICAUTH_USERNAME
+  hint: null
+  label: Mongo Express Web Username
+  options: null
+  required: true
+  type: text
+- env: ME_CONFIG_BASICAUTH_PASSWORD
+  hint: null
+  label: Mongo Express Web Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Mongo Express
+type: app
+upstream:
+  author: MongoDB
+  categories:
+  - development
+  - data
+  source: https://github.com/mongo-express/mongo-express
+  tipi_version: 8
+  version: 1.0.2
+website: https://github.com/mongo-express/mongo-express

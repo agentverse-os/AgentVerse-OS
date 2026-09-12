@@ -1,0 +1,108 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rustfs-coolify
+description: RustFS is a high-performance distributed storage system built with Rust, compatible with Amazon S3 APIs.
+endpoint:
+  port: 80
+  service: rustfs
+env:
+  RUSTFS_ADDRESS: 0.0.0.0:9000
+  RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+  RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: '*'
+  RUSTFS_CONSOLE_ENABLE: 'true'
+  RUSTFS_CORS_ALLOWED_ORIGINS: '*'
+  RUSTFS_EXTERNAL_ADDRESS: ''
+  RUSTFS_SERVER_DOMAINS: ''
+  SERVICE_PASSWORD_RUSTFS:
+    generate: password
+  SERVICE_USER_RUSTFS:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: rustfs-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: RUSTFS_ADDRESS
+  hint: 'по умолчанию: 0.0.0.0:9000'
+  label: rustfs address
+  options: null
+  required: false
+  type: text
+- env: RUSTFS_CONSOLE_ADDRESS
+  hint: 'по умолчанию: 0.0.0.0:9001'
+  label: rustfs console address
+  options: null
+  required: false
+  type: text
+- env: RUSTFS_CORS_ALLOWED_ORIGINS
+  hint: 'по умолчанию: *'
+  label: rustfs cors allowed origins
+  options: null
+  required: false
+  type: text
+- env: RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS
+  hint: 'по умолчанию: *'
+  label: rustfs console cors allowed origins
+  options: null
+  required: false
+  type: text
+- env: RUSTFS_CONSOLE_ENABLE
+  hint: 'по умолчанию: true'
+  label: rustfs console enable
+  options: null
+  required: false
+  type: text
+- env: RUSTFS_SERVER_DOMAINS
+  hint: null
+  label: rustfs server domains
+  options: null
+  required: false
+  type: text
+- env: RUSTFS_EXTERNAL_ADDRESS
+  hint: null
+  label: rustfs external address
+  options: null
+  required: false
+  type: text
+tags:
+- object
+- storage
+- server
+- s3
+- api
+- rust
+title: Rustfs
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://docs.rustfs.com/installation/docker/
+  tags:
+  - object
+  - storage
+  - server
+  - s3
+  - api
+  - rust
+  template: rustfs.yaml
+website: https://docs.rustfs.com/installation/docker/

@@ -1,0 +1,80 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sonarqube-coolify
+description: SonarQube is a self-managed, automatic code review tool that systematically helps you deliver Clean Code
+endpoint:
+  port: 9000
+  service: sonarqube
+env:
+  POSTGRES_DB: sonar
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_SONARQUBE_9000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: sonarqube-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: sonar'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- sonarqube
+- code-review
+- clean-code
+- quality
+- code-quality
+- code-analysis
+- code-smells
+- code-coverage
+- code-security
+title: Sonarqube
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://hub.docker.com/_/sonarqube/
+  tags:
+  - sonarqube
+  - code-review
+  - clean-code
+  - quality
+  - code-quality
+  - code-analysis
+  - code-smells
+  - code-coverage
+  - code-security
+  template: sonarqube.yaml
+website: https://hub.docker.com/_/sonarqube/

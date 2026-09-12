@@ -1,0 +1,40 @@
+# redis-insight-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  redisinsight:
+    environment:
+    - SERVICE_URL_REDISINSIGHT_5540=${SERVICE_URL_REDISINSIGHT_5540}
+    - RI_APP_HOST=0.0.0.0
+    - RI_APP_PORT=5540
+    - RI_ENCRYPTION_KEY=${SERVICE_PASSWORD_RI_ENCRYPTION_KEY}
+    - RI_LOG_LEVEL=${RI_LOG_LEVEL:-info}
+    - RI_FILES_LOGGER=${RI_FILES_LOGGER:-true}
+    - RI_STDOUT_LOGGER=${RI_STDOUT_LOGGER:-true}
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - http://0.0.0.0:5540/api/health
+      timeout: 10s
+    image: redis/redisinsight:2.70
+    networks:
+      appnet:
+        aliases:
+        - redis-insight-coolify_redisinsight_1
+    restart: unless-stopped
+    volumes:
+    - redis_insight_data:/data
+volumes:
+  redis_insight_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis_insight_data
+      o: bind
+      type: none

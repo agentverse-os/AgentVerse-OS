@@ -1,0 +1,91 @@
+# owncloud-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mariadb:
+    command:
+    - --max-allowed-packet=128M
+    - --innodb-log-file-size=64M
+    environment:
+    - MYSQL_ROOT_PASSWORD=owncloud
+    - MYSQL_USER=owncloud
+    - MYSQL_PASSWORD=owncloud
+    - MYSQL_DATABASE=owncloud
+    - MARIADB_AUTO_UPGRADE=1
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -u
+      - root
+      - --password=owncloud
+      timeout: 5s
+    image: mariadb:10.11@sha256:24bb6e3d8e46f4581ddcc2b2c22fd78c99c77ac4e3fb7c9aba3a5c4c4d934ca2
+    networks:
+      appnet:
+        aliases:
+        - owncloud_mariadb_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql
+  redis:
+    command:
+    - --databases
+    - '1'
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 5s
+    image: redis:6-alpine@sha256:7fe72c486b910f6b1a9769c937dad5d63648ddee82e056f47417542dd40825bb
+    networks:
+      appnet:
+        aliases:
+        - owncloud_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  server:
+    depends_on:
+    - mariadb
+    - redis
+    environment:
+    - OWNCLOUD_DOMAIN=${DEVICE_DOMAIN_NAME}:8080
+    - OWNCLOUD_TRUSTED_DOMAINS=${DEVICE_DOMAIN_NAME},${DEVICE_HOSTNAME},${APP_OWNCLOUD_LOCAL_IPS}
+    - OWNCLOUD_DB_TYPE=mysql
+    - OWNCLOUD_DB_NAME=owncloud
+    - OWNCLOUD_DB_USERNAME=owncloud
+    - OWNCLOUD_DB_PASSWORD=owncloud
+    - OWNCLOUD_DB_HOST=owncloud_mariadb_1
+    - OWNCLOUD_ADMIN_USERNAME=admin
+    - OWNCLOUD_ADMIN_PASSWORD=${APP_PASSWORD}
+    - OWNCLOUD_MYSQL_UTF8MB4=true
+    - OWNCLOUD_REDIS_ENABLED=true
+    - OWNCLOUD_REDIS_HOST=owncloud_redis_1
+    - OWNCLOUD_LOG_LEVEL=2
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+      - CMD
+      - /usr/bin/healthcheck
+      timeout: 10s
+    image: owncloud/server:11.0.0@sha256:f6823fe815a6e3f78239e5d1db840081b095e3153f0dbec724ba154079e479a6
+    networks:
+      appnet:
+        aliases:
+        - owncloud_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/app:/mnt/data
+    - ${APP_DATA_DIR}/data/config:/var/www/html/config

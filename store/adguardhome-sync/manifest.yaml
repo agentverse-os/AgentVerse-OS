@@ -1,0 +1,66 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/adguardhome-sync
+description: Synchronize AdGuard Home config to replicas
+endpoint:
+  port: 8080
+  service: adguardhome-sync
+env:
+  ADGUARDHOME_SYNC_CRON: ''
+  ADGUARDHOME_SYNC_ORIGIN_URL: ''
+  ADGUARDHOME_SYNC_REPLICA_URL: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: adguardhome-sync
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ADGUARDHOME_SYNC_CRON
+  hint: Cron schedule to run the sync
+  label: Cron Schedule
+  options: null
+  required: true
+  type: text
+- env: ADGUARDHOME_SYNC_ORIGIN_URL
+  hint: URL of the Origin AdGuard Home instance
+  label: AdGuard Home Origin URL
+  options: null
+  required: true
+  type: url
+- env: ADGUARDHOME_SYNC_REPLICA_URL
+  hint: URL of the Replica AdGuard Home instance
+  label: AdGuard Home Replica URL
+  options: null
+  required: true
+  type: url
+tags: []
+title: Adguard Home Sync
+type: app
+upstream:
+  author: bakito
+  categories:
+  - network
+  - utilities
+  source: https://github.com/bakito/adguardhome-sync
+  tipi_version: 23
+  version: v0.9.2
+website: https://github.com/bakito/adguardhome-sync

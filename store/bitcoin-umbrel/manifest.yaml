@@ -1,0 +1,111 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bitcoin-umbrel
+description: Run your personal node powered by Bitcoin Core
+endpoint:
+  port: 3000
+  service: app
+env:
+  APP_BITCOIN_DATA_DIR: ${APP_DATA_DIR}/data/bitcoin
+  APP_BITCOIN_I2P_DAEMON_IP: 10.21.22.11
+  APP_BITCOIN_IPC_ENABLED: 'false'
+  APP_BITCOIN_IPC_SOCKET_RELATIVE_PATH: node.sock
+  APP_BITCOIN_NETWORK: mainnet
+  APP_BITCOIN_NETWORK_ELECTRS: $APP_BITCOIN_NETWORK
+  APP_BITCOIN_NODE_IP: 10.21.21.8
+  APP_BITCOIN_P2P_HIDDEN_SERVICE: ''
+  APP_BITCOIN_P2P_PORT: '8333'
+  APP_BITCOIN_P2P_WHITEBIND_PORT: '8335'
+  APP_BITCOIN_RPC_HIDDEN_SERVICE: ''
+  APP_BITCOIN_RPC_PASS: ''
+  APP_BITCOIN_RPC_PORT: '8332'
+  APP_BITCOIN_RPC_USER: ''
+  APP_BITCOIN_TOR_PORT: '8334'
+  APP_BITCOIN_TOR_PROXY_IP: 10.21.22.10
+  APP_BITCOIN_ZMQ_HASHBLOCK_PORT: '28334'
+  APP_BITCOIN_ZMQ_HASHTX_PORT: '28336'
+  APP_BITCOIN_ZMQ_RAWBLOCK_PORT: '28332'
+  APP_BITCOIN_ZMQ_RAWTX_PORT: '28333'
+  APP_BITCOIN_ZMQ_SEQUENCE_PORT: '28335'
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  NETWORK_IP: ''
+  TOR_DATA_DIR: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bitcoin/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bitcoin-umbrel
+notes:
+- 'порт ${APP_BITCOIN_P2P_PORT}:${APP_BITCOIN_P2P_PORT} (app) не публикуется: доступ только через edge/gate'
+- 'порт ${APP_BITCOIN_RPC_PORT}:${APP_BITCOIN_RPC_PORT} (app) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_BITCOIN_P2P_HIDDEN_SERVICE
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bitcoin p2p hidden service
+  options: null
+  required: false
+  type: text
+- env: APP_BITCOIN_RPC_HIDDEN_SERVICE
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bitcoin rpc hidden service
+  options: null
+  required: false
+  type: text
+- env: APP_BITCOIN_RPC_PASS
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bitcoin rpc pass
+  options: null
+  required: false
+  type: text
+- env: APP_BITCOIN_RPC_USER
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app bitcoin rpc user
+  options: null
+  required: false
+  type: text
+- env: TOR_DATA_DIR
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: tor data dir
+  options: null
+  required: false
+  type: text
+tags: []
+title: Bitcoin Node
+type: app
+upstream:
+  author: Umbrel
+  categories:
+  - bitcoin
+  release_notes: |-
+    This update adds Bitcoin Core v31.1, v30.3, and v29.4, plus new settings on supported versions for private transaction broadcasting, improved clearnet peer diversity, and the transaction output spender index.
+
+    It also includes security and reliability improvements across the app.
+
+    Bitcoin Core v30.0 is no longer offered as a new selection due to an upstream wallet migration issue. Nodes already pinned to v30.0 will remain on it until you choose another version in Settings.
+  source: https://github.com/getumbrel/umbrel-bitcoin
+  version: 1.4.0
+  website: https://umbrel.com
+website: https://umbrel.com

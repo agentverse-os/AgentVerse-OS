@@ -1,0 +1,65 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nexus-coolify
+description: 'Open source Universal Repository Manager (x86_64 version, official), default credentials: admin/admin123'
+endpoint:
+  port: 8081
+  service: nexus
+env:
+  NEXUS_SECURITY_RANDOMPASSWORD: 'false'
+  SERVICE_URL_NEXUS_8081: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nexus-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NEXUS_SECURITY_RANDOMPASSWORD
+  hint: 'по умолчанию: false'
+  label: nexus security randompassword
+  options: null
+  required: false
+  type: password
+tags:
+- repository
+- manager
+- open source
+- docker
+- docker
+- registry
+- container
+title: Nexus
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://help.sonatype.com/en/sonatype-nexus-repository.html
+  tags:
+  - repository
+  - manager
+  - open source
+  - docker
+  - docker
+  - registry
+  - container
+  template: nexus.yaml
+website: https://help.sonatype.com/en/sonatype-nexus-repository.html

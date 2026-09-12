@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/homebox-umbrel
+description: An inventory and organization system built for the home user
+endpoint:
+  port: 7745
+  service: web
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/homebox/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homebox/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homebox/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/homebox/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: homebox-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: HomeBox
+type: app
+upstream:
+  author: SysAdmins Media
+  categories:
+  - files
+  release_notes: |-
+    HomeBox 0.26.2 is a follow-up to the recent 0.26 major update. If you're updating from a pre-0.26 version, back up your HomeBox database and files first because 0.26 introduced a significant database rework for the new entity model.
+
+    If you're already on 0.26.1, this update fixes various bugs introduced in the new 0.26 release line.
+
+    Developer note: integrations using the old /v1/items* or /v1/locations* API endpoints must migrate to /v1/entities*.
+
+    Full release notes can be found at https://github.com/sysadminsmedia/homebox/releases/tag/v0.26.2
+  source: https://github.com/sysadminsmedia/homebox
+  version: 0.26.2
+  website: https://homebox.software
+website: https://homebox.software

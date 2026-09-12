@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/beszel
+description: Lightweight server monitoring.
+endpoint:
+  port: 8090
+  service: beszel
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: beszel
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Beszel
+type: app
+upstream:
+  author: henrygd
+  categories:
+  - utilities
+  source: https://github.com/henrygd/beszel
+  tipi_version: 55
+  version: 0.18.8
+website: https://github.com/henrygd/beszel

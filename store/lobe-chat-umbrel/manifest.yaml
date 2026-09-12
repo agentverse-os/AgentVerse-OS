@@ -1,0 +1,66 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/lobe-chat-umbrel
+description: Your self-hosted AI workspace for chat, agents, and knowledge
+endpoint:
+  port: 3210
+  service: app
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/lobe-chat/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lobe-chat/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lobe-chat/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/lobe-chat/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: lobe-chat-umbrel
+notes:
+- 'app: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'порт 7458:9000 (rustfs) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Lobe Hub
+type: app
+upstream:
+  author: LobeHub
+  categories:
+  - ai
+  release_notes: |-
+    This update runs an automatic Lobe Hub database migration on startup. Leave Lobe Hub running until it finishes.
+
+    This weekly patch expands agent, workspace, provider, and artifact workflows. Key changes:
+      - Added more provider-backed heterogeneous Agent options, including Claude Code and Codex deployment-backed models plus Kimi Code and Pi provider paths
+      - Improved Goals, Tasks, Acceptance, and long-running Agent recovery/intervention flows
+      - Added public Artifact, Workbench, and Workspace collaboration improvements, including per-member Resource grants and transfer requests
+      - Improved Home, global font settings, model availability, settings search, desktop, and workspace UI behavior
+      - Tightened security and reliability around scoped Resource checks, operation authorization, context compression, provider retries, and tool-approval settings
+
+
+    Full release notes are available at https://github.com/lobehub/lobehub/releases/tag/v2.2.15
+  source: https://github.com/lobehub/lobehub
+  version: 2.2.15
+  website: https://lobehub.com/
+website: https://lobehub.com/

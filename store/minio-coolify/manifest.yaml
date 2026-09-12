@@ -1,0 +1,57 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/minio-coolify
+description: MinIO is a high performance object storage server compatible with Amazon S3 APIs.
+endpoint:
+  port: 80
+  service: minio
+env:
+  SERVICE_PASSWORD_MINIO:
+    generate: password
+  SERVICE_USER_MINIO:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_MINIO
+  path: null
+  user: SERVICE_USER_MINIO
+name: minio-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- object
+- storage
+- server
+- s3
+- api
+title: Minio
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://min.io/docs/minio/container/index.html
+  tags:
+  - object
+  - storage
+  - server
+  - s3
+  - api
+  template: minio.yaml
+website: https://min.io/docs/minio/container/index.html

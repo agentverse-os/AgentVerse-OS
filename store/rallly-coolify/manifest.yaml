@@ -1,0 +1,124 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rallly-coolify
+description: Rallly is an open-source scheduling and collaboration tool designed to make organizing events and meetings easier.
+endpoint:
+  port: 3000
+  service: rallly
+env:
+  ALLOWED_EMAILS: ''
+  POSTGRES_DB: rallly
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_64_RALLLY:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_RALLLY: https://${APP_DOMAIN}
+  SERVICE_URL_RALLLY_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SMTP_HOST: ''
+  SMTP_PORT: ''
+  SMTP_PWD: ''
+  SMTP_SECURE: 'false'
+  SMTP_USER: ''
+  SUPPORT_EMAIL: support@example.com
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: rallly-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: rallly'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: ALLOWED_EMAILS
+  hint: null
+  label: allowed emails
+  options: null
+  required: false
+  type: text
+- env: SUPPORT_EMAIL
+  hint: 'по умолчанию: support@example.com'
+  label: support email
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST
+  hint: null
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: null
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_SECURE
+  hint: 'по умолчанию: false'
+  label: smtp secure
+  options: null
+  required: false
+  type: text
+- env: SMTP_USER
+  hint: null
+  label: smtp user
+  options: null
+  required: false
+  type: text
+- env: SMTP_PWD
+  hint: null
+  label: smtp pwd
+  options: null
+  required: false
+  type: text
+tags:
+- scheduling
+- rallly
+- events
+- meeting
+- doodle
+title: Rallly
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://support.rallly.co/self-hosting/introduction
+  tags:
+  - scheduling
+  - rallly
+  - events
+  - meeting
+  - doodle
+  template: rallly.yaml
+website: https://support.rallly.co/self-hosting/introduction

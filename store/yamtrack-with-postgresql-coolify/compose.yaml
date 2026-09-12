@@ -1,0 +1,91 @@
+# yamtrack-with-postgresql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-yamtrack-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - yamtrack-with-postgresql-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - yamtrack_postgres_data:/var/lib/postgresql/data
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 20s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - yamtrack-with-postgresql-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - yamtrack_redis_data:/data
+  yamtrack:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_YAMTRACK_8000=${SERVICE_URL_YAMTRACK_8000}
+    - URLS=${SERVICE_URL_YAMTRACK}
+    - TZ=${TZ:-Europe/Berlin}
+    - SECRET=${SERVICE_PASSWORD_SECRET}
+    - REGISTRATION=${REGISTRATION_ENABLED:-true}
+    - REDIS_URL=redis://redis:6379
+    - DB_HOST=postgres
+    - DB_NAME=${POSTGRESQL_DATABASE:-yamtrack-db}
+    - DB_USER=${SERVICE_USER_POSTGRESQL}
+    - DB_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - DB_PORT=5432
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=1
+      - --spider
+      - http://127.0.0.1:8000/health/
+      timeout: 20s
+    image: ghcr.io/fuzzygrim/yamtrack
+    networks:
+      appnet:
+        aliases:
+        - yamtrack-with-postgresql-coolify_yamtrack_1
+    restart: unless-stopped
+volumes:
+  yamtrack_postgres_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/yamtrack_postgres_data
+      o: bind
+      type: none
+  yamtrack_redis_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/yamtrack_redis_data
+      o: bind
+      type: none

@@ -1,0 +1,35 @@
+# typesense-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  typesense:
+    environment:
+    - SERVICE_URL_TYPESENSE_8108=${SERVICE_URL_TYPESENSE_8108}
+    - TYPESENSE_ENABLE_CORS=${TYPESENSE_ENABLE_CORS:-true}
+    - TYPESENSE_DATA_DIR=/data
+    - TYPESENSE_API_KEY=
+    healthcheck:
+      retries: 5
+      test:
+      - CMD
+      - bash
+      - -c
+      - 'exec 3<>/dev/tcp/localhost/8108 && printf ''GET /health HTTP/1.1\r\nConnection: close\r\n\r\n'' >&3 && head -n1 <&3 | grep ''200'' && exec 3>&-'
+      timeout: 7s
+    image: typesense/typesense:28.0
+    networks:
+      appnet:
+        aliases:
+        - typesense-coolify_typesense_1
+    restart: unless-stopped
+    volumes:
+    - typesense_data:/data
+volumes:
+  typesense_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/typesense_data
+      o: bind
+      type: none

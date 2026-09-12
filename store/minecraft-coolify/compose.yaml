@@ -1,0 +1,57 @@
+# minecraft-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mc:
+    environment:
+    - EULA=true
+    - VERSION=${MINECRAFT_VERSION:-latest}
+    - TYPE=${MINECRAFT_TYPE:-VANILLA}
+    - SERVER_NAME=${MINECRAFT_SERVER_NAME:-Minecraft Server}
+    - MOTD=${MINECRAFT_MOTD:-Minecraft Server powered by §aCoolify§r}
+    - DIFFICULTY=${MINECRAFT_DIFFICULTY:-normal}
+    - MAX_PLAYERS=${MINECRAFT_MAX_PLAYERS:-10}
+    - MAX_WORLD_SIZE=${MINECRAFT_MAX_WORLD_SIZE:-10000}
+    - VIEW_DISTANCE=${MINECRAFT_VIEW_DISTANCE:-10}
+    - MAX_BUILD_HEIGHT=${MINECRAFT_MAX_BUILD_HEIGHT:-256}
+    - MAX_TICK_TIME=${MINECRAFT_MAX_TICK_TIME:-60000}
+    - ALLOW_NETHER=${MINECRAFT_ALLOW_NETHER:-true}
+    - ANNOUNCE_PLAYER_ACHIEVEMENTS=${MINECRAFT_ANNOUNCE_PLAYER_ACHIEVEMENTS:-true}
+    - GENERATE_STRUCTURES=${MINECRAFT_GENERATE_STRUCTURES:-true}
+    - PVP=${MINECRAFT_PVP:-true}
+    - MODE=${MINECRAFT_GAME_MODE:-survival}
+    - FORCE_GAMEMODE=${MINECRAFT_FORCE_GAMEMODE:-false}
+    - HARDCORE=${MINECRAFT_HARDCORE:-false}
+    - ENABLE_COMMAND_BLOCK=${MINECRAFT_ENABLE_COMMAND_BLOCK:-false}
+    - SPAWN_ANIMALS=${MINECRAFT_SPAWN_ANIMALS:-true}
+    - SPAWN_MONSTERS=${MINECRAFT_SPAWN_MONSTERS:-true}
+    - SPAWN_NPCS=${MINECRAFT_SPAWN_NPCS:-true}
+    - SNOOPER_ENABLED=${MINECRAFT_SNOOPER_ENABLED:-false}
+    - ONLINE_MODE=${MINECRAFT_ONLINE_MODE:-true}
+    - PLAYER_IDLE_TIMEOUT=${MINECRAFT_PLAYER_IDLE_TIMEOUT:-0}
+    - INIT_MEMORY=${MINECRAFT_INIT_MEMORY:-256M}
+    - MAX_MEMORY=${MINECRAFT_MAX_MEMORY:-1G}
+    - GUI=${MINECRAFT_GUI:-false}
+    - ENABLE_AUTOPAUSE=${MINECRAFT_ENABLE_AUTOPAUSE:-false}
+    - RCON_PASSWORD=${SERVICE_PASSWORD_RCON}
+    - PORT=${PORT:-25565}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - /usr/local/bin/mc-monitor
+      - status
+      - --host
+      - localhost
+      timeout: 10s
+    image: itzg/minecraft-server
+    networks:
+      appnet:
+        aliases:
+        - minecraft-coolify_mc_1
+    restart: unless-stopped
+    volumes:
+    - ./minecraft-data:/data

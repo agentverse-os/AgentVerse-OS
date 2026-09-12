@@ -1,0 +1,557 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/supabase-coolify
+description: The open source Firebase alternative.
+endpoint:
+  port: 8000
+  service: supabase-kong
+env:
+  ADDITIONAL_REDIRECT_URLS: ''
+  ANON_KEY_ASYMMETRIC: ''
+  API_EXTERNAL_URL: http://supabase-kong:8000
+  DISABLE_SIGNUP: 'false'
+  ENABLE_ANONYMOUS_USERS: 'false'
+  ENABLE_EMAIL_AUTOCONFIRM: 'false'
+  ENABLE_EMAIL_SIGNUP: 'true'
+  ENABLE_PHONE_AUTOCONFIRM: 'true'
+  ENABLE_PHONE_SIGNUP: 'true'
+  FUNCTIONS_VERIFY_JWT: 'false'
+  GOOGLE_PROJECT_ID: ''
+  GOOGLE_PROJECT_NUMBER: ''
+  GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: ''
+  GOTRUE_EXTERNAL_GITHUB_ENABLED: ''
+  GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ''
+  GOTRUE_EXTERNAL_GITHUB_SECRET: ''
+  GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ''
+  GOTRUE_EXTERNAL_GOOGLE_ENABLED: ''
+  GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ''
+  GOTRUE_EXTERNAL_GOOGLE_SECRET: ''
+  GOTRUE_SITE_URL: ${SERVICE_URL_SUPABASEKONG
+  IMGPROXY_AUTO_WEBP: 'true'
+  JWT_EXPIRY: '3600'
+  KONG_STORAGE_CONNECT_TIMEOUT: '60'
+  KONG_STORAGE_READ_TIMEOUT: '3600'
+  KONG_STORAGE_REQUEST_BUFFERING: 'false'
+  KONG_STORAGE_RESPONSE_BUFFERING: 'false'
+  KONG_STORAGE_WRITE_TIMEOUT: '3600'
+  LOGFLARE_PUBLIC_ACCESS_TOKEN: LOGFLARE_PUBLIC_ACCESS_TOKEN is required
+  MAILER_SUBJECTS_CONFIRMATION: ''
+  MAILER_SUBJECTS_EMAIL_CHANGE: ''
+  MAILER_SUBJECTS_INVITE: ''
+  MAILER_SUBJECTS_MAGIC_LINK: ''
+  MAILER_SUBJECTS_RECOVERY: ''
+  MAILER_TEMPLATES_CONFIRMATION: ''
+  MAILER_TEMPLATES_EMAIL_CHANGE: ''
+  MAILER_TEMPLATES_INVITE: ''
+  MAILER_TEMPLATES_MAGIC_LINK: ''
+  MAILER_TEMPLATES_RECOVERY: ''
+  MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+  MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+  MAILER_URLPATHS_INVITE: /auth/v1/verify
+  MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+  MINIO_ROOT_PASSWORD: ''
+  MINIO_ROOT_USER: ''
+  OPENAI_API_KEY: ''
+  PGRST_DB_EXTRA_SEARCH_PATH: public
+  PGRST_DB_MAX_ROWS: '1000'
+  PGRST_DB_SCHEMAS: public,storage,graphql_public
+  POOLER_DB_POOL_SIZE: '5'
+  POOLER_DEFAULT_POOL_SIZE: '20'
+  POOLER_MAX_CLIENT_CONN: '100'
+  POOLER_TENANT_ID: dev_tenant
+  POSTGRES_DB: postgres
+  POSTGRES_HOST: supabase-db
+  POSTGRES_HOSTNAME: supabase-db
+  POSTGRES_PORT: '5432'
+  SECRET_PASSWORD_REALTIME: ''
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_JWT:
+    generate: password
+  SERVICE_PASSWORD_LOGFLARE:
+    generate: password
+  SERVICE_PASSWORD_LOGFLAREPRIVATE:
+    generate: password
+  SERVICE_PASSWORD_MINIO:
+    generate: password
+  SERVICE_PASSWORD_PGMETACRYPTO:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_SUPAVISORSECRET:
+    generate: password
+  SERVICE_PASSWORD_VAULTENC:
+    generate: password
+  SERVICE_URL_SUPABASEKONG: https://${APP_DOMAIN}
+  SERVICE_URL_SUPABASEKONG_8000: https://${APP_DOMAIN}
+  SERVICE_USER_ADMIN:
+    generate: password
+  SERVICE_USER_MINIO:
+    generate: password
+  SMTP_ADMIN_EMAIL: ''
+  SMTP_HOST: ''
+  SMTP_PASS: ''
+  SMTP_PORT: '587'
+  SMTP_SENDER_NAME: ''
+  SMTP_USER: ''
+  STORAGE_TENANT_ID: storage-single-tenant
+  STUDIO_DEFAULT_ORGANIZATION: Default Organization
+  STUDIO_DEFAULT_PROJECT: Default Project
+  SUPABASE_PUBLISHABLE_KEY: ''
+  SUPABASE_SECRET_KEY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: SERVICE_USER_ADMIN
+name: supabase-coolify
+notes:
+- 'supabase-vector: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SUPABASE_PUBLISHABLE_KEY
+  hint: null
+  label: supabase publishable key
+  options: null
+  required: false
+  type: password
+- env: SUPABASE_SECRET_KEY
+  hint: null
+  label: supabase secret key
+  options: null
+  required: false
+  type: password
+- env: ANON_KEY_ASYMMETRIC
+  hint: null
+  label: anon key asymmetric
+  options: null
+  required: false
+  type: password
+- env: KONG_STORAGE_CONNECT_TIMEOUT
+  hint: 'по умолчанию: 60'
+  label: kong storage connect timeout
+  options: null
+  required: false
+  type: text
+- env: KONG_STORAGE_WRITE_TIMEOUT
+  hint: 'по умолчанию: 3600'
+  label: kong storage write timeout
+  options: null
+  required: false
+  type: text
+- env: KONG_STORAGE_READ_TIMEOUT
+  hint: 'по умолчанию: 3600'
+  label: kong storage read timeout
+  options: null
+  required: false
+  type: text
+- env: KONG_STORAGE_REQUEST_BUFFERING
+  hint: 'по умолчанию: false'
+  label: kong storage request buffering
+  options: null
+  required: false
+  type: text
+- env: KONG_STORAGE_RESPONSE_BUFFERING
+  hint: 'по умолчанию: false'
+  label: kong storage response buffering
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_HOST
+  hint: 'по умолчанию: supabase-db'
+  label: postgres host
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_PORT
+  hint: 'по умолчанию: 5432'
+  label: postgres port
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: postgres'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: PGRST_DB_SCHEMAS
+  hint: 'по умолчанию: public,storage,graphql_public'
+  label: pgrst db schemas
+  options: null
+  required: false
+  type: text
+- env: PGRST_DB_MAX_ROWS
+  hint: 'по умолчанию: 1000'
+  label: pgrst db max rows
+  options: null
+  required: false
+  type: text
+- env: PGRST_DB_EXTRA_SEARCH_PATH
+  hint: 'по умолчанию: public'
+  label: pgrst db extra search path
+  options: null
+  required: false
+  type: text
+- env: STUDIO_DEFAULT_ORGANIZATION
+  hint: 'по умолчанию: Default Organization'
+  label: studio default organization
+  options: null
+  required: false
+  type: text
+- env: STUDIO_DEFAULT_PROJECT
+  hint: 'по умолчанию: Default Project'
+  label: studio default project
+  options: null
+  required: false
+  type: text
+- env: OPENAI_API_KEY
+  hint: null
+  label: openai api key
+  options: null
+  required: false
+  type: password
+- env: JWT_EXPIRY
+  hint: 'по умолчанию: 3600'
+  label: jwt expiry
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_HOSTNAME
+  hint: 'по умолчанию: supabase-db'
+  label: postgres hostname
+  options: null
+  required: false
+  type: text
+- env: GOOGLE_PROJECT_ID
+  hint: null
+  label: google project id
+  options: null
+  required: false
+  type: text
+- env: GOOGLE_PROJECT_NUMBER
+  hint: null
+  label: google project number
+  options: null
+  required: false
+  type: text
+- env: LOGFLARE_PUBLIC_ACCESS_TOKEN
+  hint: 'по умолчанию: LOGFLARE_PUBLIC_ACCESS_TOKEN is required'
+  label: logflare public access token
+  options: null
+  required: false
+  type: password
+- env: API_EXTERNAL_URL
+  hint: 'по умолчанию: http://supabase-kong:8000'
+  label: api external url
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_SITE_URL
+  hint: 'по умолчанию: ${SERVICE_URL_SUPABASEKONG'
+  label: gotrue site url
+  options: null
+  required: false
+  type: text
+- env: ADDITIONAL_REDIRECT_URLS
+  hint: null
+  label: additional redirect urls
+  options: null
+  required: false
+  type: text
+- env: DISABLE_SIGNUP
+  hint: 'по умолчанию: false'
+  label: disable signup
+  options: null
+  required: false
+  type: text
+- env: ENABLE_EMAIL_SIGNUP
+  hint: 'по умолчанию: true'
+  label: enable email signup
+  options: null
+  required: false
+  type: text
+- env: ENABLE_ANONYMOUS_USERS
+  hint: 'по умолчанию: false'
+  label: enable anonymous users
+  options: null
+  required: false
+  type: text
+- env: ENABLE_EMAIL_AUTOCONFIRM
+  hint: 'по умолчанию: false'
+  label: enable email autoconfirm
+  options: null
+  required: false
+  type: text
+- env: SMTP_ADMIN_EMAIL
+  hint: null
+  label: smtp admin email
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST
+  hint: null
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: 'по умолчанию: 587'
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_USER
+  hint: null
+  label: smtp user
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASS
+  hint: null
+  label: smtp pass
+  options: null
+  required: false
+  type: text
+- env: SMTP_SENDER_NAME
+  hint: null
+  label: smtp sender name
+  options: null
+  required: false
+  type: text
+- env: MAILER_URLPATHS_INVITE
+  hint: 'по умолчанию: /auth/v1/verify'
+  label: mailer urlpaths invite
+  options: null
+  required: false
+  type: text
+- env: MAILER_URLPATHS_CONFIRMATION
+  hint: 'по умолчанию: /auth/v1/verify'
+  label: mailer urlpaths confirmation
+  options: null
+  required: false
+  type: text
+- env: MAILER_URLPATHS_RECOVERY
+  hint: 'по умолчанию: /auth/v1/verify'
+  label: mailer urlpaths recovery
+  options: null
+  required: false
+  type: text
+- env: MAILER_URLPATHS_EMAIL_CHANGE
+  hint: 'по умолчанию: /auth/v1/verify'
+  label: mailer urlpaths email change
+  options: null
+  required: false
+  type: text
+- env: MAILER_TEMPLATES_INVITE
+  hint: null
+  label: mailer templates invite
+  options: null
+  required: false
+  type: text
+- env: MAILER_TEMPLATES_CONFIRMATION
+  hint: null
+  label: mailer templates confirmation
+  options: null
+  required: false
+  type: text
+- env: MAILER_TEMPLATES_RECOVERY
+  hint: null
+  label: mailer templates recovery
+  options: null
+  required: false
+  type: text
+- env: MAILER_TEMPLATES_MAGIC_LINK
+  hint: null
+  label: mailer templates magic link
+  options: null
+  required: false
+  type: text
+- env: MAILER_TEMPLATES_EMAIL_CHANGE
+  hint: null
+  label: mailer templates email change
+  options: null
+  required: false
+  type: text
+- env: MAILER_SUBJECTS_CONFIRMATION
+  hint: null
+  label: mailer subjects confirmation
+  options: null
+  required: false
+  type: text
+- env: MAILER_SUBJECTS_RECOVERY
+  hint: null
+  label: mailer subjects recovery
+  options: null
+  required: false
+  type: text
+- env: MAILER_SUBJECTS_MAGIC_LINK
+  hint: null
+  label: mailer subjects magic link
+  options: null
+  required: false
+  type: text
+- env: MAILER_SUBJECTS_EMAIL_CHANGE
+  hint: null
+  label: mailer subjects email change
+  options: null
+  required: false
+  type: text
+- env: MAILER_SUBJECTS_INVITE
+  hint: null
+  label: mailer subjects invite
+  options: null
+  required: false
+  type: text
+- env: ENABLE_PHONE_SIGNUP
+  hint: 'по умолчанию: true'
+  label: enable phone signup
+  options: null
+  required: false
+  type: text
+- env: ENABLE_PHONE_AUTOCONFIRM
+  hint: 'по умолчанию: true'
+  label: enable phone autoconfirm
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_EXTERNAL_GITHUB_CLIENT_ID
+  hint: null
+  label: gotrue external github client id
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_EXTERNAL_GITHUB_ENABLED
+  hint: null
+  label: gotrue external github enabled
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI
+  hint: null
+  label: gotrue external github redirect uri
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_EXTERNAL_GITHUB_SECRET
+  hint: null
+  label: gotrue external github secret
+  options: null
+  required: false
+  type: password
+- env: GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID
+  hint: null
+  label: gotrue external google client id
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_EXTERNAL_GOOGLE_ENABLED
+  hint: null
+  label: gotrue external google enabled
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI
+  hint: null
+  label: gotrue external google redirect uri
+  options: null
+  required: false
+  type: text
+- env: GOTRUE_EXTERNAL_GOOGLE_SECRET
+  hint: null
+  label: gotrue external google secret
+  options: null
+  required: false
+  type: password
+- env: SECRET_PASSWORD_REALTIME
+  hint: null
+  label: secret password realtime
+  options: null
+  required: false
+  type: password
+- env: MINIO_ROOT_USER
+  hint: null
+  label: minio root user
+  options: null
+  required: false
+  type: text
+- env: MINIO_ROOT_PASSWORD
+  hint: null
+  label: minio root password
+  options: null
+  required: false
+  type: password
+- env: STORAGE_TENANT_ID
+  hint: 'по умолчанию: storage-single-tenant'
+  label: storage tenant id
+  options: null
+  required: false
+  type: text
+- env: IMGPROXY_AUTO_WEBP
+  hint: 'по умолчанию: true'
+  label: imgproxy auto webp
+  options: null
+  required: false
+  type: text
+- env: FUNCTIONS_VERIFY_JWT
+  hint: 'по умолчанию: false'
+  label: functions verify jwt
+  options: null
+  required: false
+  type: text
+- env: POOLER_TENANT_ID
+  hint: 'по умолчанию: dev_tenant'
+  label: pooler tenant id
+  options: null
+  required: false
+  type: text
+- env: POOLER_DEFAULT_POOL_SIZE
+  hint: 'по умолчанию: 20'
+  label: pooler default pool size
+  options: null
+  required: false
+  type: text
+- env: POOLER_MAX_CLIENT_CONN
+  hint: 'по умолчанию: 100'
+  label: pooler max client conn
+  options: null
+  required: false
+  type: text
+- env: POOLER_DB_POOL_SIZE
+  hint: 'по умолчанию: 5'
+  label: pooler db pool size
+  options: null
+  required: false
+  type: text
+tags:
+- firebase
+- alternative
+- open-source
+title: Supabase
+type: app
+upstream:
+  categories:
+  - backend
+  source: https://supabase.io
+  tags:
+  - firebase
+  - alternative
+  - open-source
+  template: supabase.yaml
+website: https://supabase.io

@@ -1,0 +1,37 @@
+# sonarr-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  sonarr:
+    environment:
+    - SERVICE_URL_SONARR_8989=${SERVICE_URL_SONARR_8989}
+    - _APP_URL=$SERVICE_URL_SONARR
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-America/Toronto}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8989/ping
+      timeout: 10s
+    image: lscr.io/linuxserver/sonarr:latest
+    networks:
+      appnet:
+        aliases:
+        - sonarr-coolify_sonarr_1
+    restart: unless-stopped
+    volumes:
+    - sonarr-config:/config
+volumes:
+  sonarr-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sonarr-config
+      o: bind
+      type: none

@@ -1,0 +1,15 @@
+# stalwart-mail: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  stalwart-mail:
+    image: ghcr.io/stalwartlabs/stalwart:v0.16.19
+    networks:
+      appnet:
+        aliases:
+        - stalwart-mail_stalwart-mail_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/opt/stalwart-mail

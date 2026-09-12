@@ -1,0 +1,58 @@
+# martin-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  martin:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_MARTIN_3000=${SERVICE_URL_MARTIN_3000}
+    - HOST=${SERVICE_URL_MARTIN}
+    - DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB:-martin-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:3000
+      timeout: 20s
+    image: ghcr.io/maplibre/martin:v0.13.0
+    networks:
+      appnet:
+        aliases:
+        - martin-coolify_martin_1
+    restart: unless-stopped
+  postgresql:
+    environment:
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - POSTGRES_DB=${POSTGRES_DB:-martin-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgis/postgis:16-3.4-alpine
+    networks:
+      appnet:
+        aliases:
+        - martin-coolify_postgresql_1
+    platform: linux/amd64
+    restart: unless-stopped
+    volumes:
+    - martin-postgresql-data:/var/lib/postgresql/data
+volumes:
+  martin-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/martin-postgresql-data
+      o: bind
+      type: none

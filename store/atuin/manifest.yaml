@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/atuin
+description: Magical Shell History
+endpoint:
+  port: 8888
+  service: atuin
+env:
+  ATUIN_ALLOW_REGISTRATION: 'true'
+  ATUIN_DB_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: atuin
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ATUIN_DB_PASSWORD
+  hint: null
+  label: Atuin DB Password
+  options: null
+  required: false
+  type: random
+- env: ATUIN_ALLOW_REGISTRATION
+  hint: Set it to true intially to create the first user
+  label: Allow User Registrastion
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: Atuin Server
+type: app
+upstream:
+  author: atuinsh
+  categories:
+  - utilities
+  - development
+  source: https://github.com/atuinsh/atuin
+  tipi_version: 38
+  version: 18.20.1
+website: https://github.com/atuinsh/atuin

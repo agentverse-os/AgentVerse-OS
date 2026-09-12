@@ -1,0 +1,20 @@
+# ollama-amd: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  ollama-amd:
+    devices:
+    - /dev/kfd
+    - /dev/dri
+    environment:
+      PORT: '11434'
+    image: ollama/ollama:0.32.15-rocm
+    networks:
+      appnet:
+        aliases:
+        - ollama-amd_ollama-amd_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/.ollama:/root/.ollama

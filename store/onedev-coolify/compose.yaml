@@ -1,0 +1,72 @@
+# onedev-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  onedev:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_ONEDEV_6610=${SERVICE_URL_ONEDEV_6610}
+    - hibernate_dialect=io.onedev.server.persistence.PostgreSQLDialect
+    - hibernate_connection_driver_class=org.postgresql.Driver
+    - hibernate_connection_url=jdbc:postgresql://postgres:5432/${POSTGRESQL_DATABASE:-onedev}
+    - hibernate_connection_username=${SERVICE_USER_DATABASE}
+    - hibernate_connection_password=${SERVICE_PASSWORD_64_DATABASE}
+    - initial_user=${SERVICE_USER_ONEDEV}
+    - initial_password=${SERVICE_PASSWORD_ONEDEV}
+    - initial_email=${ONEDEV_EMAIL:-mail@example.com}
+    - initial_server_url=${SERVICE_URL_ONEDEV}
+    - initial_ssh_root_url=${SSH_ROOT_URL:-ssh://changeme:22}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      test:
+      - CMD
+      - 'true'
+    image: 1dev/server:latest
+    networks:
+      appnet:
+        aliases:
+        - onedev-coolify_onedev_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes:
+    - onedev-data:/opt/onedev
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_DATABASE}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_64_DATABASE}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-onedev}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - onedev-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - onedev-postgresql-data:/var/lib/postgresql/data
+volumes:
+  onedev-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/onedev-data
+      o: bind
+      type: none
+  onedev-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/onedev-postgresql-data
+      o: bind
+      type: none

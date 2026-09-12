@@ -1,0 +1,61 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pingvinshare-coolify
+description: A self-hosted file sharing platform that combines lightness and beauty, perfect for seamless and efficient file sharing.
+endpoint:
+  port: 3000
+  service: pingvinshare
+env:
+  SERVICE_URL_PINGVINSHARE_3000: https://${APP_DOMAIN}
+  TRUST_PROXY: 'true'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pingvinshare-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TRUST_PROXY
+  hint: 'по умолчанию: true'
+  label: trust proxy
+  options: null
+  required: false
+  type: text
+tags:
+- self-hosted
+- file-sharing
+- files
+- cloud
+- sharing
+title: Pingvinshare
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://github.com/stonith404/pingvin-share
+  tags:
+  - self-hosted
+  - file-sharing
+  - files
+  - cloud
+  - sharing
+  template: pingvinshare.yaml
+website: https://github.com/stonith404/pingvin-share

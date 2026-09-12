@@ -1,0 +1,89 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/sure-coolify
+description: An all-in-one personal finance platform.
+endpoint:
+  port: 3000
+  service: postgresql
+env:
+  ONBOARDING_STATE: open
+  POSTGRESQL_DATABASE: sure
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_BASE64_BASE:
+    generate: hex64
+  SERVICE_FQDN_SURE: ${APP_DOMAIN}
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_SURE_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_POSTGRESQL
+  path: null
+  user: SERVICE_USER_POSTGRESQL
+name: sure-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: sure'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: ONBOARDING_STATE
+  hint: 'по умолчанию: open'
+  label: onboarding state
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- budgeting
+- budget
+- money
+- expenses
+- income
+title: Sure
+type: app
+upstream:
+  categories:
+  - finance
+  source: https://github.com/we-promise/sure
+  tags:
+  - budgeting
+  - budget
+  - money
+  - expenses
+  - income
+  template: sure.yaml
+website: https://github.com/we-promise/sure

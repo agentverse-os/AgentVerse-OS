@@ -1,0 +1,53 @@
+# plausible-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  plausible:
+    command: sh -c "sleep 10 && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
+    depends_on:
+    - plausible_db
+    - plausible_events_db
+    environment:
+    - BASE_URL=http://${DEVICE_DOMAIN_NAME}:9093
+    - SECRET_KEY_BASE=${APP_SEED}
+    - TOTP_VAULT_KEY=${APP_PLAUSIBLE_VAULT_KEY}
+    image: ghcr.io/plausible/community-edition:v3.2.1@sha256:33e60bfb40f2df5da00f8753b76fad04f67dba3abe6d73eb516e440e3fb62985
+    networks:
+      appnet:
+        aliases:
+        - plausible_plausible_1
+    restart: on-failure
+    user: 1000:1000
+  plausible_db:
+    environment:
+    - POSTGRES_PASSWORD=postgres
+    image: postgres:16-alpine@sha256:492898505cb45f9835acc327e98711eaa9298ed804e0bb36f29e08394229550d
+    networks:
+      appnet:
+        aliases:
+        - plausible_plausible_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/db-data:/var/lib/postgresql/data
+  plausible_events_db:
+    environment:
+    - CLICKHOUSE_SKIP_USER_SETUP=1
+    image: clickhouse/clickhouse-server:24.12-alpine@sha256:cd450891db46cc6ffe313ca2b0fb7dbfb897a6873ca74a724cbe050a2cf62621
+    networks:
+      appnet:
+        aliases:
+        - plausible_plausible_events_db_1
+    restart: on-failure
+    ulimits:
+      nofile:
+        hard: 262144
+        soft: 262144
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/event-data:/var/lib/clickhouse
+    - ${APP_DATA_DIR}/event-logs:/var/log/clickhouse-server
+    - ${APP_DATA_DIR}/clickhouse/clickhouse-config.xml:/etc/clickhouse-server/config.d/logging.xml:ro
+    - ${APP_DATA_DIR}/clickhouse/clickhouse-user-config.xml:/etc/clickhouse-server/users.d/logging.xml:ro

@@ -1,0 +1,17 @@
+# vert-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      PUB_ENV: production
+      PUB_HOSTNAME: http://${DEVICE_DOMAIN_NAME}:3884
+      PUB_VERTD_URL: http://${DEVICE_DOMAIN_NAME}:3884
+    image: ghcr.io/vert-sh/vert:sha-e1c83ba@sha256:6492f2a88e977e7ce82fd26f49028a17575fee8cac38604f585bc5773298cbc8
+    networks:
+      appnet:
+        aliases:
+        - vert_web_1
+    restart: on-failure

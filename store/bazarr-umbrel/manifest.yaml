@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bazarr-umbrel
+description: Manage and download subtitles for Sonarr and Radarr
+endpoint:
+  port: 6767
+  service: server
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bazarr/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bazarr/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bazarr/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bazarr/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bazarr-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Bazarr
+type: app
+upstream:
+  author: morpheus65535
+  categories:
+  - media
+  release_notes: |-
+    Key improvements in this release include:
+      - Improved post-processing path safety and platform handling to avoid command injection issues
+      - Added SSL verification controls and new subtitle providers including Bayflix and Vladoon
+      - Improved SubDL, LegendasNet, Gestdown, RegieLive.ro, and other provider error handling
+      - Improved audio and subtitle language detection, including embedded Chinese subtitles
+      - Improved Sonarr/Radarr sync performance and existing-subtitle database handling
+      - Removed the offline Podnapisi provider
+
+
+    Full release notes are found at https://github.com/morpheus65535/bazarr/releases/tag/v1.6.0
+  source: https://github.com/morpheus65535/bazarr
+  version: 1.6.0
+  website: https://www.bazarr.media/
+website: https://www.bazarr.media/

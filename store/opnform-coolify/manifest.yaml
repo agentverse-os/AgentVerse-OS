@@ -1,0 +1,284 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/opnform-coolify
+description: OpnForm is an open-source form builder that lets you create beautiful forms and share them anywhere. It's super fast, you don't need to know how to code
+endpoint:
+  port: 80
+  service: nginx
+env:
+  AWS_ACCESS_KEY_ID: ''
+  AWS_BUCKET: ''
+  AWS_DEFAULT_REGION: us-east-1
+  AWS_SECRET_ACCESS_KEY: ''
+  FILESYSTEM_DRIVER: local
+  H_CAPTCHA_SECRET_KEY: ''
+  H_CAPTCHA_SITE_KEY: ''
+  JWT_SKIP_IP_UA_VALIDATION: 'false'
+  JWT_TTL: '1440'
+  LOG_LEVEL: debug
+  MAIL_ENCRYPTION: ''
+  MAIL_FROM_ADDRESS: your@email.com
+  MAIL_FROM_NAME: OpnForm
+  MAIL_HOST: ''
+  MAIL_MAILER: log
+  MAIL_PASSWORD: ''
+  MAIL_PORT: ''
+  MAIL_USERNAME: your@email.com
+  NUXT_PUBLIC_LICENSE_API_ENDPOINT: https://api.opnform.com
+  OPEN_AI_API_KEY: ''
+  POSTGRESQL_DATABASE: opnform
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  PUBLIC_UPLOADS_RATE_LIMIT_PER_HOUR: '300'
+  PUBLIC_UPLOADS_RATE_LIMIT_PER_MINUTE: '30'
+  RE_CAPTCHA_SECRET_KEY: ''
+  RE_CAPTCHA_SITE_KEY: ''
+  SERVICE_BASE64_APIKEY:
+    generate: hex64
+  SERVICE_PASSWORD_64_REDIS:
+    generate: hex64
+  SERVICE_PASSWORD_FRONTAPISECRET:
+    generate: password
+  SERVICE_PASSWORD_JWTSECRET:
+    generate: password
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_NGINX: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+  SHOW_OFFICIAL_TEMPLATES: 'true'
+  TELEGRAM_BOT_ID: ''
+  TELEGRAM_BOT_TOKEN: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: opnform-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LOG_LEVEL
+  hint: 'по умолчанию: debug'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: FILESYSTEM_DRIVER
+  hint: 'по умолчанию: local'
+  label: filesystem driver
+  options: null
+  required: false
+  type: text
+- env: MAIL_MAILER
+  hint: 'по умолчанию: log'
+  label: mail mailer
+  options: null
+  required: false
+  type: text
+- env: MAIL_HOST
+  hint: null
+  label: mail host
+  options: null
+  required: false
+  type: text
+- env: MAIL_PORT
+  hint: null
+  label: mail port
+  options: null
+  required: false
+  type: text
+- env: MAIL_USERNAME
+  hint: 'по умолчанию: your@email.com'
+  label: mail username
+  options: null
+  required: false
+  type: text
+- env: MAIL_PASSWORD
+  hint: null
+  label: mail password
+  options: null
+  required: false
+  type: password
+- env: MAIL_ENCRYPTION
+  hint: null
+  label: mail encryption
+  options: null
+  required: false
+  type: text
+- env: MAIL_FROM_ADDRESS
+  hint: 'по умолчанию: your@email.com'
+  label: mail from address
+  options: null
+  required: false
+  type: text
+- env: MAIL_FROM_NAME
+  hint: 'по умолчанию: OpnForm'
+  label: mail from name
+  options: null
+  required: false
+  type: text
+- env: AWS_ACCESS_KEY_ID
+  hint: null
+  label: aws access key id
+  options: null
+  required: false
+  type: password
+- env: AWS_SECRET_ACCESS_KEY
+  hint: null
+  label: aws secret access key
+  options: null
+  required: false
+  type: password
+- env: AWS_DEFAULT_REGION
+  hint: 'по умолчанию: us-east-1'
+  label: aws default region
+  options: null
+  required: false
+  type: text
+- env: AWS_BUCKET
+  hint: null
+  label: aws bucket
+  options: null
+  required: false
+  type: text
+- env: OPEN_AI_API_KEY
+  hint: null
+  label: open ai api key
+  options: null
+  required: false
+  type: password
+- env: TELEGRAM_BOT_ID
+  hint: null
+  label: telegram bot id
+  options: null
+  required: false
+  type: text
+- env: TELEGRAM_BOT_TOKEN
+  hint: null
+  label: telegram bot token
+  options: null
+  required: false
+  type: password
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: opnform'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: PUBLIC_UPLOADS_RATE_LIMIT_PER_MINUTE
+  hint: 'по умолчанию: 30'
+  label: public uploads rate limit per minute
+  options: null
+  required: false
+  type: text
+- env: PUBLIC_UPLOADS_RATE_LIMIT_PER_HOUR
+  hint: 'по умолчанию: 300'
+  label: public uploads rate limit per hour
+  options: null
+  required: false
+  type: text
+- env: JWT_TTL
+  hint: 'по умолчанию: 1440'
+  label: jwt ttl
+  options: null
+  required: false
+  type: text
+- env: JWT_SKIP_IP_UA_VALIDATION
+  hint: 'по умолчанию: false'
+  label: jwt skip ip ua validation
+  options: null
+  required: false
+  type: text
+- env: H_CAPTCHA_SITE_KEY
+  hint: null
+  label: h captcha site key
+  options: null
+  required: false
+  type: password
+- env: H_CAPTCHA_SECRET_KEY
+  hint: null
+  label: h captcha secret key
+  options: null
+  required: false
+  type: password
+- env: RE_CAPTCHA_SITE_KEY
+  hint: null
+  label: re captcha site key
+  options: null
+  required: false
+  type: password
+- env: RE_CAPTCHA_SECRET_KEY
+  hint: null
+  label: re captcha secret key
+  options: null
+  required: false
+  type: password
+- env: SHOW_OFFICIAL_TEMPLATES
+  hint: 'по умолчанию: true'
+  label: show official templates
+  options: null
+  required: false
+  type: text
+- env: NUXT_PUBLIC_LICENSE_API_ENDPOINT
+  hint: 'по умолчанию: https://api.opnform.com'
+  label: nuxt public license api endpoint
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- opnform
+- form
+- survey
+- cloud
+- open-source
+- self-hosted
+- docker
+- no-code
+- embeddable
+title: Opnform
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.opnform.com/introduction
+  tags:
+  - opnform
+  - form
+  - survey
+  - cloud
+  - open-source
+  - self-hosted
+  - docker
+  - no-code
+  - embeddable
+  template: opnform.yaml
+website: https://docs.opnform.com/introduction

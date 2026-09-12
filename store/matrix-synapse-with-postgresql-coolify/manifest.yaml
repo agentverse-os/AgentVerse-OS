@@ -1,0 +1,106 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/matrix-synapse-with-postgresql-coolify
+description: Chat securely with your family, friends, community, or build great apps with Matrix!
+endpoint:
+  port: 8008
+  service: synapse
+env:
+  ENABLE_REGISTRATION: 'false'
+  POSTGRES_DB: synapse-db
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_SYNAPSE: https://${APP_DOMAIN}
+  SERVICE_URL_SYNAPSE_8008: https://${APP_DOMAIN}
+  SERVICE_USER_ADMIN:
+    generate: password
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+  SYNAPSE_REPORT_STATS: no
+  SYNAPSE_SERVER_NAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: SERVICE_USER_ADMIN
+name: matrix-synapse-with-postgresql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SYNAPSE_REPORT_STATS
+  hint: 'по умолчанию: no'
+  label: synapse report stats
+  options: null
+  required: false
+  type: text
+- env: ENABLE_REGISTRATION
+  hint: 'по умолчанию: false'
+  label: enable registration
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: synapse-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: SYNAPSE_SERVER_NAME
+  hint: null
+  label: synapse server name
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- chat
+- slack
+- discord
+- voip
+- video
+- call
+- matrix
+- synapse
+- postgresql
+title: Matrix Synapse With Postgresql
+type: app
+upstream:
+  categories:
+  - messaging
+  source: https://element-hq.github.io/synapse/latest/welcome_and_overview.html
+  tags:
+  - chat
+  - slack
+  - discord
+  - voip
+  - video
+  - call
+  - matrix
+  - synapse
+  - postgresql
+  template: matrix-synapse-with-postgresql.yaml
+website: https://element-hq.github.io/synapse/latest/welcome_and_overview.html

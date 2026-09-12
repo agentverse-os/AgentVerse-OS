@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tandoor
+description: Recipe collection manager.
+endpoint:
+  port: 80
+  service: tandoor
+env:
+  TANDOOR_POSTGRESS_PASSWORD:
+    generate: token
+  TANDOOR_SECRET_KEY:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: tandoor
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TANDOOR_SECRET_KEY
+  hint: null
+  label: Tandoor Secret Key
+  options: null
+  required: false
+  type: random
+- env: TANDOOR_POSTGRESS_PASSWORD
+  hint: null
+  label: Postgress Password
+  options: null
+  required: false
+  type: random
+tags: []
+title: Tandoor
+type: app
+upstream:
+  author: Tandoor Recipes
+  categories:
+  - data
+  source: https://github.com/TandoorRecipes/recipes
+  tipi_version: 76
+  version: 2.6.13
+website: https://github.com/TandoorRecipes/recipes

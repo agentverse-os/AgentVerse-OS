@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nostr-vpn-umbrel
+description: Admin-approved mesh VPN over Nostr
+endpoint:
+  port: 38080
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/nostr-vpn/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/nostr-vpn/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/nostr-vpn/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/nostr-vpn/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: nostr-vpn-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Nostr VPN
+type: app
+upstream:
+  author: mmalmi and contributors
+  categories:
+  - networking
+  release_notes: |-
+    This release improves paid-exit reliability across platforms:
+      - Strengthens Selling Internet settings and release coverage across supported paid-exit platforms.
+      - Improves paid-route activation, health checks, DNS safety, and recovery from interrupted or rotated Cashu channels.
+  source: https://github.com/mmalmi/nostr-vpn
+  version: v4.1.9
+  website: https://github.com/mmalmi/nostr-vpn
+website: https://github.com/mmalmi/nostr-vpn

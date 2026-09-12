@@ -1,0 +1,7 @@
+⚙️ It-Tools is an open-source project hosted on GitHub that provides a collection of practical online tools for developers and IT professionals. The tools are designed to be easy to use, offering a great user experience. The project includes various features that simplify common tasks, such as URL decoding, QR code generation, JSON formatting, and XML formatting.
+
+A key feature of the project is the ability to self-host the application. Users can run the tools on their own servers using Docker, which is especially useful for developers who want an independent environment. The Docker installation process is simple, requiring only a straightforward command to run the application in the background.
+
+It-Tools is actively developed and maintained, with regular updates and contributions from the community. It is licensed under the GNU GPLv3, allowing users to freely use, modify, and share the project. The GitHub repository has garnered a large and active community that discusses the tools' usefulness and potential improvements. The project is particularly appreciated in offline environments since it can be self-hosted. Additionally, there have been suggestions to add more features, such as Helm charts for Kubernetes deployments.
+
+The collection offers developers a fast and efficient way to perform common tasks directly in their browser without needing external tools or services. The self-hosting option makes it particularly appealing for users who want complete control over their tools and data.

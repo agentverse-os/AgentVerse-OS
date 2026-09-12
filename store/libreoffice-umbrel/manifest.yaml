@@ -1,0 +1,62 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/libreoffice-umbrel
+description: Do more - easier, quicker, smarter
+endpoint:
+  port: 3000
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: libreoffice-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LibreOffice
+type: app
+upstream:
+  author: The Document Foundation
+  categories:
+  - files
+  release_notes: |-
+    Key highlights in this release include:
+      - New page number wizard in Writer's Insert menu for easy one-step insertion of page numbers in headers/footers
+      - Improved paragraph style dropdown in Writer's Formatting toolbar
+      - Enhanced citation handling and bibliography features in Writer
+      - New Accessibility sidebar in Writer for easier document accessibility checks
+      - Improved table editing and change tracking in Writer
+      - New drawing styles for shapes and comments in Calc
+      - Enhanced number format support and sheet management in Calc
+      - Improved spell checking and proofreading options
+      - and much much more!
+
+
+    A full list of new features and improvements can be found at https://wiki.documentfoundation.org/ReleaseNotes/7.6.
+  source: https://www.libreoffice.org/about-us/source-code/
+  version: 7.6.7
+  website: https://www.libreoffice.org/
+website: https://www.libreoffice.org/

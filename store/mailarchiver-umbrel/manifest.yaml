@@ -1,0 +1,68 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mailarchiver-umbrel
+description: A comprehensive solution for archiving, searching, and exporting emails
+endpoint:
+  port: 5000
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/mailarchiver/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mailarchiver/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mailarchiver/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/mailarchiver/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: secure123!
+  path: null
+  user: admin
+name: mailarchiver-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Mail Archiver
+type: app
+upstream:
+  author: s1t5
+  categories:
+  - files
+  release_notes: |-
+    ⚠️ Important: If you're updating from a pre-2606.1 version, create a backup before upgrading; the recent attachment deduplication migration may temporarily increase storage usage.
+
+    New features:
+      - Added date-windowed account offload into another mailbox with duplicate
+        detection, dry-run reporting, and resumable locking.
+      - Added a read-only stats API endpoint for aggregate archive statistics with
+        account-scoped results for restricted API keys.
+
+
+    Improvements and fixes:
+      - Improved nested archive folder rendering, IMAP folder discovery, and
+        clickable Archive rows.
+      - Reduced offload memory usage and tightened ownership/scoping for job
+        cancellation, stats, and self-manager access.
+      - Fixed import, export, restore, retention, Message-ID, M365/Graph, and
+        Outlook folder-discovery edge cases, including better handling of
+        malformed or headerless messages.
+
+
+    Full release notes can be found at https://github.com/s1t5/mail-archiver/releases/tag/2608.1
+  source: https://github.com/s1t5/mail-archiver
+  version: '2608.1'
+  website: https://mail-archiver.org
+website: https://mail-archiver.org

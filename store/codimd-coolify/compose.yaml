@@ -1,0 +1,67 @@
+# codimd-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  codimd:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_CODIMD_3000=${SERVICE_URL_CODIMD_3000}
+    - CMD_DOMAIN=${SERVICE_FQDN_CODIMD}
+    - CMD_PROTOCOL_USESSL=${CMD_PROTOCOL_USESSL:-true}
+    - CMD_SESSION_SECRET=${SERVICE_PASSWORD_SESSIONSECRET}
+    - CMD_USECDN=${CMD_USECDN:-false}
+    - CMD_DB_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/${POSTGRES_DB:-codimd-db}
+    - CMD_EMAIL=${CMD_EMAIL:-true}
+    - CMD_ALLOW_EMAIL_REGISTER=${CMD_ALLOW_EMAIL_REGISTER:-true}
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - curl -f http://localhost:3000/ || exit 1
+      timeout: 20s
+    image: nabo.codimd.dev/hackmdio/hackmd:latest
+    networks:
+      appnet:
+        aliases:
+        - codimd-coolify_codimd_1
+    restart: unless-stopped
+    volumes:
+    - uploads_data:/home/hackmd/app/public/uploads
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-codimd-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - codimd-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - codimd_postgres_data:/var/lib/postgresql/data
+volumes:
+  codimd_postgres_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/codimd_postgres_data
+      o: bind
+      type: none
+  uploads_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/uploads_data
+      o: bind
+      type: none

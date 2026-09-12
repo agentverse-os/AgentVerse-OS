@@ -1,0 +1,19 @@
+# pi-hole-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    cap_add:
+    - NET_ADMIN
+    environment:
+    - FTLCONF_webserver_api_password=${APP_PASSWORD}
+    - FTLCONF_webserver_port=8082,[::]:8082
+    - FTLCONF_dns_listeningMode=all
+    image: pihole/pihole:2026.07.2@sha256:f7d1be836e3bc608b56d82fc9904f5a831cdfbc0dc9c6d58f94e4c985c70038b
+    network_mode: host
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/pihole:/etc/pihole/
+    - ${APP_DATA_DIR}/data/dnsmasq:/etc/dnsmasq.d/

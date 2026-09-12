@@ -1,0 +1,19 @@
+# searxng-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      SEARXNG_LIMITER: 'false'
+      SEARXNG_SECRET: ${APP_SEED}
+    image: ghcr.io/searxng/searxng:2026.9.2-eca1af4be@sha256:85b4307d233f232f0c88259b178ef3e24ec5b9396b5576471931c276f4a7fbf9
+    networks:
+      appnet:
+        aliases:
+        - searxng_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/etc/searxng
+    - ${APP_DATA_DIR}/data/cache:/var/cache/searxng

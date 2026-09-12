@@ -1,0 +1,154 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/penpot-coolify
+description: Penpot is the first Open Source design and prototyping platform for product teams.
+endpoint:
+  port: 8080
+  service: mailpit
+env:
+  PENPOT_BACKEND_FLAGS: enable-login-with-password enable-smtp
+  PENPOT_FRONTEND_FLAGS: enable-login-with-password
+  PENPOT_SMTP_DEFAULT_FROM: no-reply@example.com
+  PENPOT_SMTP_DEFAULT_REPLY_TO: no-reply@example.com
+  PENPOT_SMTP_HOST: mailpit
+  PENPOT_SMTP_PASSWORD: penpot
+  PENPOT_SMTP_PORT: '1025'
+  PENPOT_SMTP_SSL: 'false'
+  PENPOT_SMTP_TLS: 'false'
+  PENPOT_SMTP_USERNAME: penpot
+  PENPOT_TELEMETRY_ENABLED: 'false'
+  POSTGRES_DB: penpot
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_REALBASE64_64_PENPOT:
+    generate: hex64
+  SERVICE_URL_FRONTEND_8080: https://${APP_DOMAIN}
+  SERVICE_URL_MAILPIT_8025: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: penpot-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PENPOT_FRONTEND_FLAGS
+  hint: 'по умолчанию: enable-login-with-password'
+  label: penpot frontend flags
+  options: null
+  required: false
+  type: text
+- env: PENPOT_BACKEND_FLAGS
+  hint: 'по умолчанию: enable-login-with-password enable-smtp'
+  label: penpot backend flags
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: penpot'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: PENPOT_TELEMETRY_ENABLED
+  hint: 'по умолчанию: false'
+  label: penpot telemetry enabled
+  options: null
+  required: false
+  type: text
+- env: PENPOT_SMTP_DEFAULT_FROM
+  hint: 'по умолчанию: no-reply@example.com'
+  label: penpot smtp default from
+  options: null
+  required: false
+  type: text
+- env: PENPOT_SMTP_DEFAULT_REPLY_TO
+  hint: 'по умолчанию: no-reply@example.com'
+  label: penpot smtp default reply to
+  options: null
+  required: false
+  type: text
+- env: PENPOT_SMTP_HOST
+  hint: 'по умолчанию: mailpit'
+  label: penpot smtp host
+  options: null
+  required: false
+  type: text
+- env: PENPOT_SMTP_PORT
+  hint: 'по умолчанию: 1025'
+  label: penpot smtp port
+  options: null
+  required: false
+  type: text
+- env: PENPOT_SMTP_USERNAME
+  hint: 'по умолчанию: penpot'
+  label: penpot smtp username
+  options: null
+  required: false
+  type: text
+- env: PENPOT_SMTP_PASSWORD
+  hint: 'по умолчанию: penpot'
+  label: penpot smtp password
+  options: null
+  required: false
+  type: password
+- env: PENPOT_SMTP_TLS
+  hint: 'по умолчанию: false'
+  label: penpot smtp tls
+  options: null
+  required: false
+  type: text
+- env: PENPOT_SMTP_SSL
+  hint: 'по умолчанию: false'
+  label: penpot smtp ssl
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- penpot
+- design
+- prototyping
+- figma
+- open
+- source
+title: Penpot
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://help.penpot.app/technical-guide/getting-started/#install-with-docker
+  tags:
+  - penpot
+  - design
+  - prototyping
+  - figma
+  - open
+  - source
+  template: penpot.yaml
+website: https://help.penpot.app/technical-guide/getting-started/#install-with-docker

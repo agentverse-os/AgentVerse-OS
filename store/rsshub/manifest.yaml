@@ -1,0 +1,53 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/rsshub
+description: Everything is RSSible with RSSHub
+endpoint:
+  port: 1200
+  service: rsshub
+env:
+  ACCESS_KEY:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: rsshub
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ACCESS_KEY
+  hint: null
+  label: Access Key
+  options: null
+  required: false
+  type: password
+tags: []
+title: RSSHub
+type: app
+upstream:
+  author: https://github.com/DIYgod
+  categories:
+  - utilities
+  - media
+  source: https://github.com/DIYgod/RSSHub
+  tipi_version: 8
+  version: 2026-04-17
+website: https://github.com/DIYgod/RSSHub

@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gotify
+description: Gotify, a simple server for sending and receiving notification messages.
+endpoint:
+  port: 80
+  service: gotify
+env:
+  GOTIFY_DEFAULTUSER_NAME: ''
+  GOTIFY_DEFAULTUSER_PASS:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: GOTIFY_DEFAULTUSER_PASS
+  path: null
+  user: GOTIFY_DEFAULTUSER_NAME
+name: gotify
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GOTIFY_DEFAULTUSER_NAME
+  hint: null
+  label: Gotify username
+  options: null
+  required: true
+  type: text
+- env: GOTIFY_DEFAULTUSER_PASS
+  hint: null
+  label: Gotify password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Gotify
+type: app
+upstream:
+  author: gotigy
+  categories:
+  - utilities
+  source: https://github.com/gotify/server
+  tipi_version: 20
+  version: 3.0.0
+website: https://github.com/gotify/server

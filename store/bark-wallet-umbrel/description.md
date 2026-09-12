@@ -1,0 +1,12 @@
+Send and receive bitcoin across Lightning, Ark, and on-chain from a single, simple wallet. Bark Wallet is self-custodial with no channels to open or liquidity to manage. Just install the wallet and start making payments.
+
+Powered by Bark, Second's implementation of the Ark protocol. Bitcoin is held in your Ark balance and can be spent instantly across any of the supported protocols.
+
+- **Pays to anything:** LNURL, BOLT 11, BOLT 12, BIP 321, you name it.
+- **Low fees:** Competitive Lightning fees, and Ark payments are free.
+- **Micropayments:** Send as little as a single sat over Ark for free, or via Lightning with standard routing fees.
+- **Branta-verified recipients:** Confirm payment details against Branta whenever recipients have it set up.
+- **Automatic refreshes:** Ark balances need periodic refreshes; Bark Wallet handles them in the background.
+- **Always in control:** Trigger an emergency exit at any time to move your balance on-chain, even if the Ark server is offline.
+
+Proudly open source, built as a reference implementation for developers. Fork the code and ship your own.

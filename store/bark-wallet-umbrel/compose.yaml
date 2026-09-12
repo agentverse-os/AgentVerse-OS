@@ -1,0 +1,50 @@
+# bark-wallet-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  api:
+    depends_on:
+    - barkd
+    environment:
+      ARK_SERVER: https://ark.second.tech
+      BARKD_URL: http://barkd:4000
+      BARK_NETWORK: mainnet
+      CHAIN_SOURCE: https://mempool.second.tech/api
+      PORT: 4001
+      WALLET_DATA_PATH: /Apps/bark-wallet/data/wallet/.bark/
+      WALLET_DIR: /wallet-data/.bark
+    image: secondark/bark-web-api:0.8.0@sha256:2ccf75c99873e99182d61f64cd2d9ff03fb376812bbc9a9e43abd10d9afc38ab
+    networks:
+      appnet:
+        aliases:
+        - bark-wallet_api_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/wallet:/wallet-data:ro
+  barkd:
+    command: |
+      sh -c "mkdir -p /data/.bark && chown -R 1000:1000 /data && exec setpriv --reuid 1000 --regid 1000 --clear-groups /usr/local/bin/barkd --port 4000 --host 0.0.0.0 --datadir /data/.bark --expose-mnemonic"
+    image: secondark/bark:0.6.2@sha256:30a91f2c31a16ec7d1a4d7744989ff2113fd003febb75aedfe2449db9133e671
+    networks:
+      appnet:
+        aliases:
+        - bark-wallet_barkd_1
+    restart: on-failure
+    stop_grace_period: 1m
+    user: 0:0
+    volumes:
+    - ${APP_DATA_DIR}/data/wallet:/data
+  web:
+    depends_on:
+    - api
+    - barkd
+    image: secondark/bark-web:0.8.0@sha256:c7ee6f6f92bc0e67d98dc0336ec85d4a3ac96e323cd8fb758175747532e1bcae
+    networks:
+      appnet:
+        aliases:
+        - bark-wallet_web_1
+    restart: on-failure
+    stop_grace_period: 1m

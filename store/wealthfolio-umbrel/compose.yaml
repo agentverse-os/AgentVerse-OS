@@ -1,0 +1,42 @@
+# wealthfolio-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+      WF_AUTH_PASSWORD_HASH: ''
+      WF_AUTH_REQUIRED: 'false'
+      WF_AUTH_TOKEN_TTL_MINUTES: '60'
+      WF_CORS_ALLOW_ORIGINS: ''
+      WF_DB_PATH: /data/wealthfolio.db
+      WF_LISTEN_ADDR: 0.0.0.0:8088
+      WF_REQUEST_TIMEOUT_MS: '30000'
+      WF_SECRET_KEY: ${APP_WEALTHFOLIO_SECRET_KEY}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 15s
+      test:
+      - CMD
+      - wget
+      - --quiet
+      - --tries=1
+      - --spider
+      - http://127.0.0.1:8088/api/v1/healthz
+      timeout: 10s
+    image: wealthfolio/wealthfolio:3.7.0@sha256:de137d64acf712c5c71093b27ecc98ccc1dbbbf00befdb684bed531cdb40069a
+    networks:
+      appnet:
+        aliases:
+        - wealthfolio_server_1
+    read_only: true
+    restart: on-failure
+    security_opt:
+    - no-new-privileges:true
+    tmpfs:
+    - /tmp:size=64M
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

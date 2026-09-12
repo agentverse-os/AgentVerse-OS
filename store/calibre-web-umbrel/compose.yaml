@@ -1,0 +1,20 @@
+# calibre-web-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    image: linuxserver/calibre-web:0.6.27@sha256:868b56271e4fdd37f4b5d2fe925e62ffd74f89e0e290082e76be6b1f21b77bd8
+    networks:
+      appnet:
+        aliases:
+        - calibre-web_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${APP_DATA_DIR}/data/books:/books

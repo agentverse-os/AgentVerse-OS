@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/uptime-kuma-umbrel
+description: Self-hosted uptime monitoring tool
+endpoint:
+  port: 3001
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/uptime-kuma/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/uptime-kuma/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/uptime-kuma/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/uptime-kuma/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: uptime-kuma-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Uptime Kuma
+type: app
+upstream:
+  author: Louis Lam
+  categories:
+  - networking
+  release_notes: |-
+    New features:
+      - Added new SMS Gateway, ClickUp, TurboSMTP, BearSMS, Pinglet, Milky, and OpenWA notification providers
+
+
+    Bug fixes:
+      - Fixed SQLite validation for the analytics type setting
+      - Fixed RADIUS monitors so Access-Challenge responses are treated as successful
+      - Fixed the 2.5.x release version metadata
+
+
+    Full release notes can be found at https://github.com/louislam/uptime-kuma/releases/tag/2.5.3
+  source: https://github.com/louislam/uptime-kuma
+  version: 2.5.3
+  website: https://uptime.kuma.pet
+website: https://uptime.kuma.pet

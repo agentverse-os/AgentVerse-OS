@@ -1,0 +1,27 @@
+# mealie-1: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mealie-1:
+    deploy:
+      resources:
+        limits:
+          memory: 1000M
+    environment:
+      ALLOW_SIGNUP: ${MEALIE_ALLOW_SIGNUP}
+      BASE_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      MAX_WORKERS: '1'
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+      WEB_CONCURRENCY: '1'
+    image: ghcr.io/mealie-recipes/mealie:v3.24.0
+    networks:
+      appnet:
+        aliases:
+        - mealie-1_mealie-1_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data

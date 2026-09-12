@@ -1,0 +1,56 @@
+# shlink-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  shlink:
+    environment:
+    - SERVICE_URL_SHLINK_8080=${SERVICE_URL_SHLINK_8080}
+    - DEFAULT_DOMAIN=${SERVICE_FQDN_SHLINK}
+    - IS_HTTPS_ENABLED=false
+    - INITIAL_API_KEY=${SERVICE_BASE64_SHLINKAPIKEY}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8080/rest/v3/health
+      timeout: 10s
+    image: shlinkio/shlink:stable
+    networks:
+      appnet:
+        aliases:
+        - shlink-coolify_shlink_1
+    restart: unless-stopped
+    volumes:
+    - shlink-data:/etc/shlink/data
+  shlink-web:
+    environment:
+    - SERVICE_URL_SHLINKWEB_8080=${SERVICE_URL_SHLINKWEB_8080}
+    - SHLINK_SERVER_API_KEY=${SERVICE_BASE64_SHLINKAPIKEY}
+    - SHLINK_SERVER_URL=${SERVICE_URL_SHLINK}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8080
+      timeout: 10s
+    image: shlinkio/shlink-web-client
+    networks:
+      appnet:
+        aliases:
+        - shlink-coolify_shlink-web_1
+    restart: unless-stopped
+volumes:
+  shlink-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/shlink-data
+      o: bind
+      type: none

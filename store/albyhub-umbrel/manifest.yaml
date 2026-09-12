@@ -1,0 +1,65 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/albyhub-umbrel
+description: Self-custodial Lightning wallet with integrated node and app connections
+endpoint:
+  port: 8080
+  service: server
+env:
+  APP_ALBYHUB_LND_ADDRESS: 10.21.21.9:10009
+  APP_ALBYHUB_LND_CERT_FILE: /lnd/tls.cert
+  APP_ALBYHUB_LND_MACAROON_FILE: /lnd/data/chain/bitcoin/mainnet/admin.macaroon
+  APP_ALBYHUB_LN_BACKEND: LND
+  APP_SEED:
+    generate: hex64
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/albyhub/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: albyhub-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Alby Hub ✨
+type: app
+upstream:
+  author: Alby
+  categories:
+  - bitcoin
+  release_notes: |-
+    Key changes in this release:
+      - Refreshed payment QR codes and payment status screens
+      - Added transaction filtering
+      - Added invoice receiving for connected apps
+      - Improved wallet migrations, including PostgreSQL to SQLite
+      - Improved card naming and fixed security, reliability, and usability issues
+
+
+    Full release notes are found at https://github.com/getAlby/hub/releases
+  source: https://github.com/getAlby/hub
+  version: 1.24.0
+  website: https://albyhub.com
+website: https://albyhub.com

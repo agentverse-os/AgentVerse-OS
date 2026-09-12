@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wordpress-umbrel
+description: The open source publishing platform of choice for millions of websites worldwide
+endpoint:
+  port: 80
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/wordpress/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wordpress/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wordpress/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/wordpress/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wordpress-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: WordPress
+type: app
+upstream:
+  author: WordPress
+  categories:
+  - social
+  release_notes: |-
+    ⚠️ To fully update your WordPress instance, you need to go to the admin interface and update from there as well.
+
+    WordPress 7.1 "Mary Lou" adds responsive style controls, a persistent admin bar across editors, and a redesigned media editor with crop, flip, rotation, and metadata tools.
+
+    It also adds richer inline notes with mentions, new Playlist and Tabs blocks, expanded icon and automation APIs, browser-side image processing, AVIF/HEIC/HDR image support, and accessibility and performance improvements.
+
+    Full release notes can be found at https://wordpress.org/documentation/wordpress-version/version-7-1/
+  source: https://github.com/WordPress/WordPress
+  version: '7.1'
+  website: https://wordpress.org/
+website: https://wordpress.org/

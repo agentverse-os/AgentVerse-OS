@@ -1,0 +1,24 @@
+# trailbase-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  trailbase:
+    environment:
+    - SERVICE_URL_TRAILBASE_4000=${SERVICE_URL_TRAILBASE_4000}
+    image: trailbase/trailbase:0.22.6
+    networks:
+      appnet:
+        aliases:
+        - trailbase-coolify_trailbase_1
+    restart: unless-stopped
+    volumes:
+    - trailbase-data:/app/traildepot
+volumes:
+  trailbase-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/trailbase-data
+      o: bind
+      type: none

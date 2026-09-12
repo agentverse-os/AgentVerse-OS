@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/searxng-umbrel
+description: A free internet metasearch engine
+endpoint:
+  port: 8080
+  service: web
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/searxng/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/searxng/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/searxng/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/searxng/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/searxng/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/searxng/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: searxng-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: SearXNG
+type: app
+upstream:
+  author: SearXNG
+  categories:
+  - networking
+  release_notes: This release updates SearXNG's bundled Wikidata and external bang search data, improves DuckDuckGo Weather location handling, updates ClearURLs metadata, refreshes the simple web client dependencies, and removes the Heexy engine because it is blocked by Cloudflare CAPTCHA.
+  source: https://github.com/searxng/searxng
+  version: 2026.9.2
+  website: https://docs.searxng.org/
+website: https://docs.searxng.org/

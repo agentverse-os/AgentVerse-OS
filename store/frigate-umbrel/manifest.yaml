@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/frigate-umbrel
+description: A complete and local NVR
+endpoint:
+  port: 8971
+  service: web
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/frigate/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/frigate/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/frigate/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/frigate/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: frigate-umbrel
+notes:
+- 'порт 8554:8554 (web) не публикуется: доступ только через edge/gate'
+- 'порт 8555:8555/tcp (web) не публикуется: доступ только через edge/gate'
+- 'порт 8555:8555/udp (web) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Frigate
+type: app
+upstream:
+  author: Blake Blackshear
+  categories:
+  - automation
+  release_notes: |-
+    This maintenance release includes important security fixes, especially for publicly exposed instances and viewer-role camera access.
+
+    It also adds optional recording segment chapters to MP4 export metadata and improves live preview performance.
+
+    Full release notes can be found at https://github.com/blakeblackshear/frigate/releases/tag/v0.17.2
+  source: https://github.com/blakeblackshear/frigate
+  version: 0.17.2
+  website: https://frigate.video/
+website: https://frigate.video/

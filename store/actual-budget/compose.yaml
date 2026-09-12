@@ -1,0 +1,15 @@
+# actual-budget: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  actual-budget:
+    image: actualbudget/actual-server:26.8.1
+    networks:
+      appnet:
+        aliases:
+        - actual-budget_actual-budget_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

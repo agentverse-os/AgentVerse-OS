@@ -1,0 +1,14 @@
+# mqttx-web-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    image: emqx/mqttx-web:v1.13.0@sha256:64525ad96286280f85f9f1a3f74a98475d1bbfe7a8ee278f93fa6991e6090c9c
+    networks:
+      appnet:
+        aliases:
+        - mqttx-web_app_1
+    restart: on-failure
+    user: 1000:1000

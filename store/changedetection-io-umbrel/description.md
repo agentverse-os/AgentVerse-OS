@@ -1,0 +1,3 @@
+Never miss an important change on the web again. changedetection.io watches websites, pages, JSON APIs, and PDFs for you and sends an alert the moment something changes.
+
+Track price drops and restocks on product pages, monitor release notes and changelogs, watch status pages for outages, follow legal or policy document updates, or keep an eye on any page that matters to you. Set a check interval, define what to watch for, and let it run quietly in the background.

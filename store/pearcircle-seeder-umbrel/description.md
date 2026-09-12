@@ -1,0 +1,7 @@
+Run a blind seeder for your PearCircle circles on your Umbrel so their history stays in sync even when every phone is offline.
+
+PearCircle is a peer-to-peer location-sharing app with no accounts, tracking, or subscriptions. The locations shared in a circle live only on its members' devices, and no company holds a copy. Devices connect directly when possible and can use an optional PeerLoom relay when a network blocks peer-to-peer traffic. The relay forwards encrypted data it cannot read and stores nothing. This app runs the PearCircle seed-mode worklet as an always-on background service that replicates each enrolled circle's encrypted blocks, so members stay caught up regardless of who's online.
+
+It is a "blind" seeder: the blocks it stores and serves stay encrypted, so your Umbrel keeps a circle's data available without ever being able to read the locations, places, or members inside it. Circle members stay in control — they admit the seeder when it enrolls and can revoke it at any time, and each circle has its own retention window (forever, 30 days, 7 days, or 24 hours).
+
+To enroll a circle: open the seeder dashboard, then in the PearCircle phone app mint a seed invite for the circle and paste it in.

@@ -1,0 +1,19 @@
+# write-freely: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  write-freely:
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: ${TZ}
+    image: nephatrine/write-freely:0.16
+    networks:
+      appnet:
+        aliases:
+        - write-freely_write-freely_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/mnt/config

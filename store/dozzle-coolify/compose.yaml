@@ -1,0 +1,30 @@
+# dozzle-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  dozzle:
+    environment:
+    - SERVICE_URL_DOZZLE_8080=${SERVICE_URL_DOZZLE_8080}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 3s
+      retries: 5
+      start_period: 30s
+      test:
+      - CMD
+      - /dozzle
+      - healthcheck
+      timeout: 30s
+    image: amir20/dozzle:latest
+    networks:
+      appnet:
+        aliases:
+        - dozzle-coolify_dozzle_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes: []

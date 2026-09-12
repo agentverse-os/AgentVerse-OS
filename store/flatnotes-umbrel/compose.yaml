@@ -1,0 +1,23 @@
+# flatnotes-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+      FLATNOTES_AUTH_TYPE: password
+      FLATNOTES_PASSWORD: ${APP_PASSWORD}
+      FLATNOTES_SECRET_KEY: ${APP_SEED}
+      FLATNOTES_USERNAME: admin
+      PGID: 1000
+      PUID: 1000
+    image: dullage/flatnotes:v5.5.5@sha256:ca4b40ee7491aabf6b52bbb20ab140145cb96981d4b3fe96ab1e797ac6cd93e5
+    networks:
+      appnet:
+        aliases:
+        - flatnotes_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

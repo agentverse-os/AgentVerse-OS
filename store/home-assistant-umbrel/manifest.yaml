@@ -1,0 +1,61 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/home-assistant-umbrel
+description: Home automation that puts local control & privacy first
+endpoint:
+  port: 8123
+  service: server
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/home-assistant/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/home-assistant/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/home-assistant/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/home-assistant/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: home-assistant-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Home Assistant
+type: app
+upstream:
+  author: Home Assistant
+  categories:
+  - automation
+  release_notes: |-
+    This release modernizes Modbus, adds smarter security and activity views, and improves dashboards, Matter visibility, chart accessibility, and Home Assistant Cloud setup.
+
+    Key highlights:
+      - Added shared Modbus connections for integrations such as Fronius, Sofar Inverter Modbus, and Flexit
+      - Added active alerts and favorites to the Security dashboard
+      - Added a shared Sources pane for History and Activity, plus Activity details that explain why something changed
+      - Added a Matter network map and new tile card controls for light effects, vacuum fan speed, and climate humidity
+      - Improved chart accessibility, serial/MQTT panels, network storage usage reporting, and Home Assistant Cloud signup and voice processing
+      - Added 13 new integrations and expanded UI-based setup for more existing integrations
+
+
+    Full release notes: https://www.home-assistant.io/blog/2026/09/02/release-20269/
+  source: https://github.com/home-assistant/core
+  version: 2026.9.0
+  website: https://home-assistant.io
+website: https://home-assistant.io

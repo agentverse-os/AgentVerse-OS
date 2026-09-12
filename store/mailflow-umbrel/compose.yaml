@@ -1,0 +1,107 @@
+# mailflow-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  backend:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_URL: http://${DEVICE_DOMAIN_NAME}:3395
+      DB_HOST: mailflow_postgres_1
+      DB_NAME: mailflow
+      DB_PASSWORD: mailflow
+      DB_PORT: 5432
+      DB_USER: mailflow
+      ENCRYPTION_KEY: ${APP_SEED}
+      FRONTEND_URL: http://${DEVICE_DOMAIN_NAME}:3395
+      GOOGLE_CLIENT_ID: ''
+      GOOGLE_CLIENT_SECRET: ''
+      IMAP_MAX_PERSISTENT_PER_HOST: ''
+      NODE_ENV: production
+      PORT: 3000
+      REDIS_URL: redis://mailflow_redis_1:6379
+      SESSION_SECRET: ${APP_SEED}
+      VAPID_PRIVATE_KEY: ''
+      VAPID_PUBLIC_KEY: ''
+      VAPID_SUBJECT: ''
+    healthcheck:
+      interval: 15s
+      retries: 3
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - wget -qO- http://localhost:3000/api/health || exit 1
+      timeout: 5s
+    image: ghcr.io/maathimself/mailflow-backend:3.3.0@sha256:6aadb04ce8efcbaf404704eec84c280095f8fcf880da0bb6d32ff606102ad157
+    networks:
+      appnet:
+        aliases:
+        - mailflow_backend_1
+    restart: on-failure
+    stop_grace_period: 1m
+  frontend:
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      interval: 15s
+      retries: 3
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - wget -qO/dev/null http://127.0.0.1:80/ || exit 1
+      timeout: 5s
+    image: ghcr.io/maathimself/mailflow-frontend:3.3.0@sha256:141ad791641380e3d2a21b23f54aef23a4d48d0185959464596b9cfbab4c3e8e
+    networks:
+      appnet:
+        aliases:
+        - mailflow_frontend_1
+    restart: on-failure
+    stop_grace_period: 1m
+  postgres:
+    environment:
+      POSTGRES_DB: mailflow
+      POSTGRES_PASSWORD: mailflow
+      POSTGRES_USER: mailflow
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - pg_isready -U mailflow -d mailflow
+      timeout: 5s
+    image: postgres:16-alpine@sha256:16bc17c64a573ef34162af9298258d1aec548232985b33ed7b1eac33ba35c229
+    networks:
+      appnet:
+        aliases:
+        - mailflow_postgres_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  redis:
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 3s
+    image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
+    networks:
+      appnet:
+        aliases:
+        - mailflow_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

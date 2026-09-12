@@ -1,0 +1,53 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/watchyourlan
+description: Lightweight network IP scanner
+endpoint:
+  port: 8840
+  service: watchyourlan
+env:
+  WATCHYOURLAN_IFACES: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: watchyourlan
+notes:
+- 'watchyourlan: network_mode=host из каталога'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: WATCHYOURLAN_IFACES
+  hint: Space separated list of network interfaces to scan
+  label: Network interfaces
+  options: null
+  required: true
+  type: text
+tags: []
+title: WatchYourLAN
+type: app
+upstream:
+  author: aceberg
+  categories:
+  - network
+  - utilities
+  source: https://github.com/aceberg/WatchYourLAN
+  tipi_version: 9
+  version: 2.1.4
+website: https://github.com/aceberg/WatchYourLAN

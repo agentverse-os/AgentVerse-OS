@@ -1,0 +1,267 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/transmission-vpn
+description: BitTorrent client with VPN support.
+endpoint:
+  port: 9091
+  service: transmission-vpn
+env:
+  TRANSMISSION_BLOCKLIST_ENABLED: ''
+  TRANSMISSION_BLOCKLIST_URL: ''
+  TRANSMISSION_CREATE_TUN_DEVICE: ''
+  TRANSMISSION_DHT_ENABLED: ''
+  TRANSMISSION_LPD_ENABLED: ''
+  TRANSMISSION_OVPN_CONFIG: ''
+  TRANSMISSION_OVPN_LOCAL_NETWORK: ''
+  TRANSMISSION_OVPN_PASSWORD:
+    generate: password
+  TRANSMISSION_OVPN_PROVIDER: ''
+  TRANSMISSION_OVPN_USERNAME: ''
+  TRANSMISSION_PEER_DNS: ''
+  TRANSMISSION_PEX_ENABLED: ''
+  TRANSMISSION_PGID: ''
+  TRANSMISSION_PUID: ''
+  TRANSMISSION_WEBUI: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: TRANSMISSION_OVPN_PASSWORD
+  path: null
+  user: TRANSMISSION_OVPN_USERNAME
+name: transmission-vpn
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TRANSMISSION_PUID
+  hint: null
+  label: Container > UserID (UID)
+  options: null
+  required: false
+  type: number
+- env: TRANSMISSION_PGID
+  hint: null
+  label: Container > GroupID (PGID)
+  options: null
+  required: false
+  type: number
+- env: TRANSMISSION_CREATE_TUN_DEVICE
+  hint: null
+  label: Container > Create TUN device
+  options: null
+  required: false
+  type: boolean
+- env: TRANSMISSION_OVPN_LOCAL_NETWORK
+  hint: null
+  label: OpenVPN > Local Network
+  options: null
+  required: false
+  type: text
+- env: TRANSMISSION_OVPN_USERNAME
+  hint: null
+  label: OpenVPN > Username
+  options: null
+  required: true
+  type: text
+- env: TRANSMISSION_OVPN_PASSWORD
+  hint: null
+  label: OpenVPN > Password
+  options: null
+  required: true
+  type: password
+- env: TRANSMISSION_OVPN_CONFIG
+  hint: null
+  label: OpenVPN > Default Provider Config
+  options: null
+  required: true
+  type: text
+- env: TRANSMISSION_OVPN_PROVIDER
+  hint: null
+  label: OpenVPN > Provider
+  options:
+  - label: Custom Config.
+    value: CUSTOM
+  - label: Anonine
+    value: ANONINE
+  - label: AnonVPN
+    value: ANONVPN
+  - label: BlackVPN
+    value: BLACKVPN
+  - label: BTGuard
+    value: BTGUARD
+  - label: Cryptostorm
+    value: CRYPTOSTORM
+  - label: ExpressVPN
+    value: EXPRESSVPN
+  - label: FastestVPN
+    value: FASTESTVPN
+  - label: FreeVPN
+    value: FREEVPN
+  - label: FrootVPN
+    value: FROOT
+  - label: FrostVPN
+    value: FROSTVPN
+  - label: Getflix
+    value: GETFLIX
+  - label: GhostPath
+    value: GHOSTPATH
+  - label: Giganews
+    value: GIGANEWS
+  - label: HideMe
+    value: HIDEME
+  - label: HideMyAss
+    value: HIDEMYASS
+  - label: IntegrityVPN
+    value: INTEGRITYVPN
+  - label: IPVanish
+    value: IPVANISH
+  - label: IronSocket
+    value: IRONSOCKET
+  - label: Ivacy
+    value: IVACY
+  - label: IVPN
+    value: IVPN
+  - label: Mullvad
+    value: MULLVAD
+  - label: NordVPN
+    value: NORDVPN
+  - label: OctaneVPN
+    value: OCTANEVPN
+  - label: OVPN
+    value: OVPN
+  - label: Privado
+    value: PRIVADO
+  - label: Private Internet Access
+    value: PIA
+  - label: PrivateVPN
+    value: PRIVATEVPN
+  - label: ProtonVPN
+    value: PROTONVPN
+  - label: proXPN
+    value: PROXPN
+  - label: PureVPN
+    value: PUREVPN
+  - label: RA4W VPN
+    value: RA4W
+  - label: SaferVPN
+    value: SAFERVPN
+  - label: SlickVPN
+    value: SLICKVPN
+  - label: SlickVPNCore
+    value: SLICKVPNCORE
+  - label: Smart DNS Proxy
+    value: SMARTDNSPROXY
+  - label: SmartVPN
+    value: SMARTVPN
+  - label: Surfshark
+    value: SURFSHARK
+  - label: TigerVPN
+    value: TIGER
+  - label: TorGuard
+    value: TORGUARD
+  - label: Trust.Zone
+    value: TRUSTZONE
+  - label: TunnelBear
+    value: TUNNELBEAR
+  - label: VPN.AC
+    value: VPNAC
+  - label: VPNArea.com
+    value: VPNAREA
+  - label: VPNBook.com
+    value: VPNBOOK
+  - label: VPNFacile
+    value: VPNFACILE
+  - label: VPN.ht
+    value: VPNHT
+  - label: VPNTunnel
+    value: VPNTUNNEL
+  - label: VPNUnlimited
+    value: VPNUNLIMITED
+  - label: VyprVpn
+    value: VYPRVPN
+  - label: Windscribe
+    value: WINDSCRIBE
+  - label: ZoogVPN
+    value: ZOOGVPN
+  required: true
+  type: text
+- env: TRANSMISSION_PEER_DNS
+  hint: null
+  label: OpenVPN > Use VPN DNS
+  options: null
+  required: false
+  type: boolean
+- env: TRANSMISSION_WEBUI
+  hint: null
+  label: Transmission > WebUI
+  options:
+  - label: Combustion
+    value: combustion
+  - label: Kettu
+    value: kettu
+  - label: Web-Control
+    value: transmission-web-control
+  - label: Flood
+    value: flood-for-transmission
+  - label: Shift
+    value: shift
+  - label: Transmissionic
+    value: transmissionic
+  required: true
+  type: text
+- env: TRANSMISSION_DHT_ENABLED
+  hint: null
+  label: Transmission > Enable DHT
+  options: null
+  required: false
+  type: boolean
+- env: TRANSMISSION_LPD_ENABLED
+  hint: null
+  label: Transmission > Enable LPD
+  options: null
+  required: false
+  type: boolean
+- env: TRANSMISSION_PEX_ENABLED
+  hint: null
+  label: Transmission > Enable PEX
+  options: null
+  required: false
+  type: boolean
+- env: TRANSMISSION_BLOCKLIST_ENABLED
+  hint: null
+  label: Transmission > Enable Blocklist
+  options: null
+  required: false
+  type: boolean
+- env: TRANSMISSION_BLOCKLIST_URL
+  hint: null
+  label: Transmission > Blocklist URL
+  options: null
+  required: false
+  type: text
+tags: []
+title: Transmission (VPN)
+type: app
+upstream:
+  author: haugene
+  categories:
+  - utilities
+  - security
+  source: https://github.com/haugene/docker-transmission-openvpn
+  tipi_version: 24
+  version: 5.5.2
+website: https://github.com/haugene/docker-transmission-openvpn

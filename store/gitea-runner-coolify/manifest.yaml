@@ -1,0 +1,87 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gitea-runner-coolify
+description: Gitea Actions runner for docker
+endpoint:
+  port: 80
+  service: runner
+env:
+  GITEA_INSTANCE_URL: ''
+  GITEA_RUNNER_LABELS: ubuntu-latest:docker://node:22
+  GITEA_RUNNER_NAME: gitea-runner
+  GITEA_RUNNER_REGISTRATION_TOKEN: ''
+  GITEA_TOKEN: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: gitea-runner-coolify
+notes:
+- 'runner: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GITEA_INSTANCE_URL
+  hint: null
+  label: gitea instance url
+  options: null
+  required: false
+  type: text
+- env: GITEA_RUNNER_REGISTRATION_TOKEN
+  hint: null
+  label: gitea runner registration token
+  options: null
+  required: false
+  type: password
+- env: GITEA_RUNNER_NAME
+  hint: 'по умолчанию: gitea-runner'
+  label: gitea runner name
+  options: null
+  required: false
+  type: text
+- env: GITEA_RUNNER_LABELS
+  hint: 'по умолчанию: ubuntu-latest:docker://node:22'
+  label: gitea runner labels
+  options: null
+  required: false
+  type: text
+- env: GITEA_TOKEN
+  hint: null
+  label: gitea token
+  options: null
+  required: false
+  type: password
+tags:
+- gitea
+- actions
+- runner
+- docker
+title: Gitea Runner
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://github.com/go-gitea/gitea
+  tags:
+  - gitea
+  - actions
+  - runner
+  - docker
+  template: gitea-runner.yaml
+website: https://github.com/go-gitea/gitea

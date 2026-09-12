@@ -1,0 +1,15 @@
+# metube: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  metube:
+    image: ghcr.io/alexta69/metube:latest
+    networks:
+      appnet:
+        aliases:
+        - metube_metube_1
+    restart: unless-stopped
+    volumes:
+    - ${ROOT_FOLDER_HOST}/media/downloads/complete/:/downloads

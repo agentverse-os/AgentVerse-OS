@@ -1,0 +1,17 @@
+# jupyterlab-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    command: start-notebook.py --IdentityProvider.token=${APP_PASSWORD}
+    image: quay.io/jupyter/base-notebook:lab-4.6.3@sha256:5fe2f811217b1d35448ef2e94ea5515914e894aa9f41688b8fac55ddd0b82640
+    networks:
+      appnet:
+        aliases:
+        - jupyterlab_server_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/home/jovyan/work

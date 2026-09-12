@@ -1,0 +1,19 @@
+# seerr: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  seerr:
+    environment:
+      LOG_LEVEL: debug
+      PORT: '5055'
+      TZ: ${TZ}
+    image: ghcr.io/seerr-team/seerr:v3.4.1
+    networks:
+      appnet:
+        aliases:
+        - seerr_seerr_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/app/config

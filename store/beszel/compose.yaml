@@ -1,0 +1,15 @@
+# beszel: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  beszel:
+    image: henrygd/beszel:0.18.8
+    networks:
+      appnet:
+        aliases:
+        - beszel_beszel_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/beszel_data

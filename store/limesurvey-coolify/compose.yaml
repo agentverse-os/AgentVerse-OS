@@ -1,0 +1,119 @@
+# limesurvey-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  limesurvey:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_LIMESURVEY_80=${SERVICE_URL_LIMESURVEY_80}
+    - LIMESURVEY_DB_HOST=mariadb
+    - LIMESURVEY_DB_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - LIMESURVEY_DB_USER=${SERVICE_USER_MYSQL}
+    - LIMESURVEY_DB_NAME=${MYSQL_DATABASE:-limesurvey-db}
+    - LIMESURVEY_ADMIN_USER=${LIMESURVEY_ADMIN_USER:-admin}
+    - LIMESURVEY_ADMIN_PASSWORD=${SERVICE_PASSWORD_ADMIN}
+    - LIMESURVEY_ADMIN_NAME=${LIMESURVEY_ADMIN_NAME:-Admin}
+    - LIMESURVEY_ADMIN_EMAIL=${LIMESURVEY_ADMIN_EMAIL:-admin@example.com}
+    - LIMESURVEY_FROM_EMAIL=${LIMESURVEY_FROM_EMAIL}
+    - LIMESURVEY_SMTP_HOST=${LIMESURVEY_SMTP_HOST}
+    - LIMESURVEY_SMTP_USER=${LIMESURVEY_SMTP_USER}
+    - LIMESURVEY_SMTP_PASSWORD=${LIMESURVEY_SMTP_PASSWORD}
+    - LIMESURVEY_SMTP_SSL=${LIMESURVEY_SMTP_SSL}
+    - LIMESURVEY_PHP_SESSION_SAVE_HANDLER=redis
+    - LIMESURVEY_PHP_SESSION_SAVE_PATH=tcp://redis:6379
+    - TZ=${TZ:-America/Jamaica}
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1
+      timeout: 10s
+    image: adamzammit/limesurvey:latest
+    networks:
+      appnet:
+        aliases:
+        - limesurvey-coolify_limesurvey_1
+    restart: unless-stopped
+    volumes:
+    - limesurvey_plugins_data:/var/www/html/plugins
+    - limesurvey_upload_data:/var/www/html/upload
+    - limesurvey_config_data:/var/www/html/application/config
+    - limesurvey_sessions_data:/var/lime/sessions
+  mariadb:
+    environment:
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-limesurvey-db}
+    - MYSQL_ROOT_PASSWORD=${SERVICE_PASSWORD_MYSQLROOT}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 20s
+    image: mariadb:11
+    networks:
+      appnet:
+        aliases:
+        - limesurvey-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - limesurvey_mariadb_data:/var/lib/mysql
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 3s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - limesurvey-coolify_redis_1
+    restart: unless-stopped
+volumes:
+  limesurvey_config_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/limesurvey_config_data
+      o: bind
+      type: none
+  limesurvey_mariadb_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/limesurvey_mariadb_data
+      o: bind
+      type: none
+  limesurvey_plugins_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/limesurvey_plugins_data
+      o: bind
+      type: none
+  limesurvey_sessions_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/limesurvey_sessions_data
+      o: bind
+      type: none
+  limesurvey_upload_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/limesurvey_upload_data
+      o: bind
+      type: none

@@ -1,0 +1,70 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/lobe-chat-coolify
+description: An open-source, modern-design AI chat framework.
+endpoint:
+  port: 3210
+  service: lobe-chat
+env:
+  OPENAI_API_KEY: ''
+  OPENAI_BASE_URL: https://api.openai.com/v1
+  SERVICE_PASSWORD_ACCESSCODE:
+    generate: password
+  SERVICE_URL_LOBECHAT_3210: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ACCESSCODE
+  path: null
+  user: null
+name: lobe-chat-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: OPENAI_API_KEY
+  hint: null
+  label: openai api key
+  options: null
+  required: false
+  type: password
+- env: OPENAI_BASE_URL
+  hint: 'по умолчанию: https://api.openai.com/v1'
+  label: openai base url
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- chat
+- openai
+- llm
+- chatbot
+title: Lobe Chat
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://github.com/lobehub/lobe-chat?tab=readme-ov-file#b-deploying-with-docker
+  tags:
+  - ai
+  - chat
+  - openai
+  - llm
+  - chatbot
+  template: lobe-chat.yaml
+website: https://github.com/lobehub/lobe-chat?tab=readme-ov-file#b-deploying-with-docker

@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/miner-sentinel-umbrel
+description: Unified monitoring dashboard for Bitaxe and Avalon Bitcoin miners
+endpoint:
+  port: 80
+  service: frontend
+env:
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: admin
+name: miner-sentinel-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: MinerSentinel
+type: app
+upstream:
+  author: Davide Bert
+  categories:
+  - bitcoin
+  release_notes: |-
+    Fixes a port conflict that could prevent MinerSentinel from running alongside OpenResty Manager.
+
+    MinerSentinel now opens on port 3082. No action is needed for normal use.
+
+    Note: If you manually created bookmarks or reverse proxy rules for MinerSentinel, update them to use the new port.
+  source: https://github.com/dcbert/miner-sentinel
+  version: 1.0.3-1
+  website: https://github.com/dcbert/miner-sentinel
+website: https://github.com/dcbert/miner-sentinel

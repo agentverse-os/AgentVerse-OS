@@ -1,0 +1,171 @@
+# chatwoot-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  chatwoot:
+    command: sh -c "bundle exec rails db:chatwoot_prepare && bundle exec rails s -p 3000 -b 0.0.0.0"
+    depends_on:
+    - postgres
+    - redis
+    entrypoint: docker/entrypoints/rails.sh
+    environment:
+    - SERVICE_URL_CHATWOOT_3000=${SERVICE_URL_CHATWOOT_3000}
+    - SECRET_KEY_BASE=$SERVICE_PASSWORD_CHATWOOT
+    - FRONTEND_URL=${SERVICE_URL_CHATWOOT}
+    - DEFAULT_LOCALE=${CHATWOOT_DEFAULT_LOCALE}
+    - FORCE_SSL=${FORCE_SSL:-false}
+    - ENABLE_ACCOUNT_SIGNUP=${ENABLE_ACCOUNT_SIGNUP:-false}
+    - REDIS_URL=redis://default@redis:6379
+    - REDIS_PASSWORD=$SERVICE_PASSWORD_REDIS
+    - REDIS_OPENSSL_VERIFY_MODE=${REDIS_OPENSSL_VERIFY_MODE:-none}
+    - POSTGRES_DATABASE=${POSTGRES_DB:-chatwoot}
+    - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+    - POSTGRES_USERNAME=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - RAILS_MAX_THREADS=${RAILS_MAX_THREADS:-5}
+    - NODE_ENV=${NODE_ENV:-production}
+    - RAILS_ENV=${RAILS_ENV:-production}
+    - INSTALLATION_ENV=${INSTALLATION_ENV:-docker}
+    - MAILER_SENDER_EMAIL=${CHATWOOT_MAILER_SENDER_EMAIL}
+    - SMTP_ADDRESS=${CHATWOOT_SMTP_ADDRESS}
+    - SMTP_AUTHENTICATION=${CHATWOOT_SMTP_AUTHENTICATION}
+    - SMTP_DOMAIN=${CHATWOOT_SMTP_DOMAIN}
+    - SMTP_ENABLE_STARTTLS_AUTO=${CHATWOOT_SMTP_ENABLE_STARTTLS_AUTO}
+    - SMTP_PORT=${CHATWOOT_SMTP_PORT}
+    - SMTP_USERNAME=${CHATWOOT_SMTP_USERNAME}
+    - SMTP_PASSWORD=${CHATWOOT_SMTP_PASSWORD}
+    - ACTIVE_STORAGE_SERVICE=${ACTIVE_STORAGE_SERVICE:-local}
+    - SAFE_FETCH_ALLOW_PRIVATE_NETWORK=${SAFE_FETCH_ALLOW_PRIVATE_NETWORK:-false}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://127.0.0.1:3000
+      timeout: 20s
+    image: chatwoot/chatwoot:latest
+    networks:
+      appnet:
+        aliases:
+        - chatwoot-coolify_chatwoot_1
+    restart: unless-stopped
+    volumes:
+    - rails-data:/app/storage
+  postgres:
+    environment:
+    - POSTGRES_DB=${POSTGRES_DB:-chatwoot}
+    - POSTGRES_USER=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U $SERVICE_USER_POSTGRES -d chatwoot -h 127.0.0.1
+      timeout: 10s
+    image: pgvector/pgvector:pg12
+    networks:
+      appnet:
+        aliases:
+        - chatwoot-coolify_postgres_1
+    restart: always
+    volumes:
+    - postgres-data:/var/lib/postgresql/data
+  redis:
+    command:
+    - sh
+    - -c
+    - redis-server --requirepass "$SERVICE_PASSWORD_REDIS"
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+      - CMD
+      - redis-cli
+      - -a
+      - $SERVICE_PASSWORD_REDIS
+      - PING
+      timeout: 10s
+    image: redis:alpine
+    networks:
+      appnet:
+        aliases:
+        - chatwoot-coolify_redis_1
+    restart: always
+    volumes:
+    - redis-data:/data
+  sidekiq:
+    command:
+    - bundle
+    - exec
+    - sidekiq
+    - -C
+    - config/sidekiq.yml
+    depends_on:
+    - postgres
+    - redis
+    environment:
+    - SECRET_KEY_BASE=$SERVICE_PASSWORD_CHATWOOT
+    - FRONTEND_URL=${SERVICE_URL_CHATWOOT}
+    - DEFAULT_LOCALE=${CHATWOOT_DEFAULT_LOCALE}
+    - FORCE_SSL=${FORCE_SSL:-false}
+    - ENABLE_ACCOUNT_SIGNUP=${ENABLE_ACCOUNT_SIGNUP:-false}
+    - REDIS_URL=redis://default@redis:6379
+    - REDIS_PASSWORD=$SERVICE_PASSWORD_REDIS
+    - REDIS_OPENSSL_VERIFY_MODE=${REDIS_OPENSSL_VERIFY_MODE:-none}
+    - POSTGRES_DATABASE=${POSTGRES_DB:-chatwoot}
+    - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+    - POSTGRES_USERNAME=$SERVICE_USER_POSTGRES
+    - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
+    - RAILS_MAX_THREADS=${RAILS_MAX_THREADS:-5}
+    - NODE_ENV=${NODE_ENV:-production}
+    - RAILS_ENV=${RAILS_ENV:-production}
+    - INSTALLATION_ENV=${INSTALLATION_ENV:-docker}
+    - MAILER_SENDER_EMAIL=${CHATWOOT_MAILER_SENDER_EMAIL}
+    - SMTP_ADDRESS=${CHATWOOT_SMTP_ADDRESS}
+    - SMTP_AUTHENTICATION=${CHATWOOT_SMTP_AUTHENTICATION}
+    - SMTP_DOMAIN=${CHATWOOT_SMTP_DOMAIN}
+    - SMTP_ENABLE_STARTTLS_AUTO=${CHATWOOT_SMTP_ENABLE_STARTTLS_AUTO}
+    - SMTP_PORT=${CHATWOOT_SMTP_PORT}
+    - SMTP_USERNAME=${CHATWOOT_SMTP_USERNAME}
+    - SMTP_PASSWORD=${CHATWOOT_SMTP_PASSWORD}
+    - ACTIVE_STORAGE_SERVICE=${ACTIVE_STORAGE_SERVICE:-local}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - bundle exec rails runner 'puts Sidekiq.redis(&:info)' > /dev/null 2>&1
+      timeout: 10s
+    image: chatwoot/chatwoot:latest
+    networks:
+      appnet:
+        aliases:
+        - chatwoot-coolify_sidekiq_1
+    restart: unless-stopped
+    volumes:
+    - rails-data:/app/storage
+volumes:
+  postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgres-data
+      o: bind
+      type: none
+  rails-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/rails-data
+      o: bind
+      type: none
+  redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis-data
+      o: bind
+      type: none

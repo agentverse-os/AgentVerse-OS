@@ -1,0 +1,53 @@
+# Coder + PostgreSQL. Поднимает bootstrap/install.sh (шаг coder, compose-проект cloudos-coder) с переменными окружения
+# EDGE_HOST=<узел>.<tailnet>.ts.net (или IP до подключения Tailscale) и INCUS_ADMIN_GID; первый пользователь admin и токен
+# для cloudd создаются установщиком. Coder получает сокет Incus напрямую (допущение спайка, не продукта).
+# Обновление образов: sudo agentverse-update --components cloudos-coder (пересоздание подхватит текущий EDGE_HOST).
+# Шаблон workspace: sudo bootstrap/install.sh template (cloudos-incus из templates/incus).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: coder
+      POSTGRES_PASSWORD: coder-spike-only
+      POSTGRES_DB: coder
+    volumes:
+      - /srv/postgres/coder:/var/lib/postgresql/data      # tank/postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coder"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  coder:
+    image: ghcr.io/coder/coder:latest                      # запинить конкретный stable после спайка
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      CODER_PG_CONNECTION_URL: postgresql://coder:coder-spike-only@postgres/coder?sslmode=disable
+      CODER_HTTP_ADDRESS: 0.0.0.0:7080
+      CODER_ACCESS_URL: https://${EDGE_HOST}:8444          # Caddy терминирует TLS (03-edge), Coder живёт на своём порту в корне
+      CODER_WILDCARD_ACCESS_URL: ""                        # без wildcard: только path-based apps
+      CODER_TELEMETRY_ENABLE: "false"
+      CODER_MAX_TOKEN_LIFETIME: 8760h                       # токен cloudd на год (по умолчанию 168h)
+      CODER_MAX_ADMIN_TOKEN_LIFETIME: 8760h                 # для владельца действует отдельный лимит
+      # провайдер lxc/incus внутри провижионера: локальный сокет
+      INCUS_SOCKET: /var/lib/incus/unix.socket
+    group_add:
+      - "${INCUS_ADMIN_GID}"
+    volumes:
+      - /var/lib/incus/unix.socket:/var/lib/incus/unix.socket
+      - coder-home:/home/coder
+    ports:
+      - "127.0.0.1:7080:7080"                              # для SSH-туннеля при первом входе; наружу — только через Caddy
+
+# Именованная сеть: edge-Caddy из 03-edge подключается к ней и проксирует на `coder:7080` по имени
+networks:
+  default:
+    name: coder-net
+
+volumes:
+  coder-home:

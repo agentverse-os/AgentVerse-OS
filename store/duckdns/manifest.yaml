@@ -1,0 +1,73 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/duckdns
+description: Duck DNS is a free Dynamic DNS service
+endpoint:
+  port: 8026
+  service: duckdns
+env:
+  DUCKDNS_ENABLE_LOG_FILE: ''
+  DUCKDNS_SUBDOMAINS: ''
+  DUCKDNS_TOKEN:
+    generate: password
+  DUCKDNS_UPDATE_IP: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: duckdns
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DUCKDNS_SUBDOMAINS
+  hint: null
+  label: Subdomains (comma separated). E.g. `mydomain1,mydomain2`.
+  options: null
+  required: true
+  type: text
+- env: DUCKDNS_TOKEN
+  hint: null
+  label: DuckDNS Token
+  options: null
+  required: true
+  type: password
+- env: DUCKDNS_UPDATE_IP
+  hint: null
+  label: Update IP (blank, ipv4, ipv6 or both). Setting this value uses external Cloudflare whoami service. Omitting the field uses DuckDNS for detection and only supports IPv4.
+  options: null
+  required: false
+  type: text
+- env: DUCKDNS_ENABLE_LOG_FILE
+  hint: null
+  label: Enable logging
+  options: null
+  required: false
+  type: boolean
+tags: []
+title: Duck DNS
+type: app
+upstream:
+  author: linuxserver.io
+  categories:
+  - network
+  source: https://github.com/linuxserver/docker-duckdns
+  tipi_version: 5
+  version: b14c520a-ls8
+website: https://github.com/linuxserver/docker-duckdns

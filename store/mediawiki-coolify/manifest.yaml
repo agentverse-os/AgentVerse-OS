@@ -1,0 +1,50 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/mediawiki-coolify
+description: MediaWiki is a collaboration and documentation platform brought to you by a vibrant community.
+endpoint:
+  port: 80
+  service: mediawiki
+env:
+  SERVICE_URL_MEDIAWIKI_80: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: mediawiki-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- wiki
+- collaboration
+- documentation
+title: Mediawiki
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://www.mediawiki.org
+  tags:
+  - wiki
+  - collaboration
+  - documentation
+  template: mediawiki.yaml
+website: https://www.mediawiki.org

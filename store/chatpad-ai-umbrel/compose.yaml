@@ -1,0 +1,13 @@
+# chatpad-ai-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: ghcr.io/deiucanta/chatpad:bb5f4abb36b45320df69dfccb64e734f36ca9bb3@sha256:15155e3a09fd677d578583f6bd3848c991cf768997400e37bc4c27e62a918a7e
+    networks:
+      appnet:
+        aliases:
+        - chatpad-ai_web_1
+    restart: on-failure

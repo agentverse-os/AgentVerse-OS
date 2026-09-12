@@ -1,0 +1,275 @@
+# trigger-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+  dockerro:
+    external: true
+    name: cloudos-docker-ro-net
+services:
+  clickhouse:
+    environment:
+    - CLICKHOUSE_USER=${SERVICE_USER_CLICKHOUSE}
+    - CLICKHOUSE_PASSWORD=${SERVICE_PASSWORD_64_CLICKHOUSE}
+    - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      timeout: 5s
+    image: clickhouse/clickhouse-server:25.8
+    networks:
+      appnet:
+        aliases:
+        - trigger-coolify_clickhouse_1
+    restart: unless-stopped
+    volumes:
+    - clickhouse-data:/var/lib/clickhouse
+    - clickhouse-logs:/var/log/clickhouse-server
+  docker-proxy:
+    environment:
+    - LOG_LEVEL=info
+    - POST=${POST:-1}
+    - CONTAINERS=${CONTAINERS:-1}
+    - IMAGES=${IMAGES:-1}
+    - INFO=${INFO:-1}
+    - NETWORKS=${NETWORKS:-1}
+    - AUTH=${AUTH:-1}
+    - DISTRIBUTION=${DISTRIBUTION:-1}
+    - DOCKER_HOST=tcp://cloudos-docker-ro:2375
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - nc -z 127.0.0.1 2375 || exit 1
+      timeout: 5s
+    image: tecnativa/docker-socket-proxy:v0.4.2
+    networks:
+      appnet:
+        aliases:
+        - trigger-coolify_docker-proxy_1
+      dockerro: {}
+    restart: unless-stopped
+    volumes: []
+  electric:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+    - DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB:-trigger-db}?sslmode=disable
+    - ELECTRIC_SECRET=${SERVICE_PASSWORD_64_ELECTRIC}
+    - ELECTRIC_USAGE_REPORTING=false
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:3000/v1/health
+      timeout: 5s
+    image: electricsql/electric:1.2.9
+    networks:
+      appnet:
+        aliases:
+        - trigger-coolify_electric_1
+    restart: unless-stopped
+  postgresql:
+    command:
+    - -c
+    - wal_level=logical
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-trigger-db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - trigger-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+  redis:
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 5s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - trigger-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - redis-data:/data
+  supervisor:
+    command: |
+      sh -c "chown -R node:node /home/node/shared && exec /usr/bin/dumb-init -- pnpm run --filter supervisor start"
+    depends_on:
+      docker-proxy:
+        condition: service_healthy
+      trigger:
+        condition: service_healthy
+    environment:
+    - TRIGGER_API_URL=http://trigger:3000
+    - OTEL_EXPORTER_OTLP_ENDPOINT=http://trigger:3000/otel
+    - TRIGGER_WORKER_TOKEN=${TRIGGER_WORKER_TOKEN:-file:///home/node/shared/worker_token}
+    - MANAGED_WORKER_SECRET=${SERVICE_PASSWORD_64_WORKERSECRET}
+    - TRIGGER_WORKLOAD_API_DOMAIN=${TRIGGER_WORKLOAD_API_DOMAIN}
+    - TRIGGER_WORKLOAD_API_PORT_EXTERNAL=8020
+    - DOCKER_HOST=tcp://docker-proxy:2375
+    - DOCKER_RUNNER_NETWORKS=${DOCKER_RUNNER_NETWORKS}
+    - DOCKER_AUTOREMOVE_EXITED_CONTAINERS=${DOCKER_AUTOREMOVE_EXITED_CONTAINERS:-1}
+    - DOCKER_REGISTRY_URL=https://${DEPLOY_REGISTRY_HOST:-ghcr.io}
+    - DOCKER_REGISTRY_USERNAME=${DEPLOY_REGISTRY_USERNAME}
+    - DOCKER_REGISTRY_PASSWORD=${DEPLOY_REGISTRY_PASSWORD}
+    - ENFORCE_MACHINE_PRESETS=1
+    - TRIGGER_DEQUEUE_INTERVAL_MS=1000
+    - DEBUG=${SUPERVISOR_DEBUG:-0}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - node
+      - -e
+      - require('http').get('http://127.0.0.1:8020/health',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))
+      timeout: 5s
+    image: ghcr.io/triggerdotdev/supervisor:v4.3.0
+    networks:
+      appnet:
+        aliases:
+        - trigger-coolify_supervisor_1
+    restart: unless-stopped
+    user: root
+    volumes:
+    - shared-data:/home/node/shared
+  trigger:
+    command: |
+      sh -c "chown -R node:node /home/node/shared && exec ./scripts/entrypoint.sh"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      electric:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_TRIGGER_3000=${SERVICE_URL_TRIGGER_3000}
+    - APP_ORIGIN=${SERVICE_URL_TRIGGER_3000}
+    - LOGIN_ORIGIN=${SERVICE_URL_TRIGGER_3000}
+    - API_ORIGIN=${SERVICE_URL_TRIGGER_3000}
+    - SESSION_SECRET=${SERVICE_PASSWORD_64_SESSION}
+    - MAGIC_LINK_SECRET=${SERVICE_PASSWORD_64_MAGICLINK}
+    - ENCRYPTION_KEY=${SERVICE_PASSWORD_ENCRYPTIONKEY}
+    - MANAGED_WORKER_SECRET=${SERVICE_PASSWORD_64_WORKERSECRET}
+    - TRIGGER_WORKER_TOKEN=${TRIGGER_WORKER_TOKEN}
+    - NODE_ENV=production
+    - APP_LOG_LEVEL=info
+    - DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB:-trigger-db}?schema=public&sslmode=disable
+    - DIRECT_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB:-trigger-db}?schema=public&sslmode=disable
+    - REDIS_HOST=redis
+    - REDIS_PORT=6379
+    - REDIS_TLS_DISABLED=true
+    - ELECTRIC_ORIGIN=http://electric:3000
+    - DEV_OTEL_EXPORTER_OTLP_ENDPOINT=${DEV_OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    - DEPLOY_REGISTRY_HOST=${DEPLOY_REGISTRY_HOST:-ghcr.io}
+    - DEPLOY_REGISTRY_PROTOCOL=${DEPLOY_REGISTRY_PROTOCOL:-https}
+    - DEPLOY_REGISTRY_NAMESPACE=${DEPLOY_REGISTRY_NAMESPACE:-trigger}
+    - V4_DEPLOY_REGISTRY_NAMESPACE=${DEPLOY_REGISTRY_NAMESPACE:-trigger}
+    - OBJECT_STORE_BASE_URL=${OBJECT_STORE_BASE_URL}
+    - OBJECT_STORE_ACCESS_KEY_ID=${OBJECT_STORE_ACCESS_KEY_ID}
+    - OBJECT_STORE_SECRET_ACCESS_KEY=${OBJECT_STORE_SECRET_ACCESS_KEY}
+    - CLICKHOUSE_URL=http://${SERVICE_USER_CLICKHOUSE}:${SERVICE_PASSWORD_64_CLICKHOUSE}@clickhouse:8123?secure=false
+    - CLICKHOUSE_LOG_LEVEL=info
+    - RUN_REPLICATION_ENABLED=1
+    - RUN_REPLICATION_CLICKHOUSE_URL=http://${SERVICE_USER_CLICKHOUSE}:${SERVICE_PASSWORD_64_CLICKHOUSE}@clickhouse:8123
+    - RUN_REPLICATION_LOG_LEVEL=info
+    - TRIGGER_BOOTSTRAP_ENABLED=1
+    - TRIGGER_BOOTSTRAP_WORKER_GROUP_NAME=bootstrap
+    - TRIGGER_BOOTSTRAP_WORKER_TOKEN_PATH=/home/node/shared/worker_token
+    - DEFAULT_ORG_EXECUTION_CONCURRENCY_LIMIT=${DEFAULT_ORG_EXECUTION_CONCURRENCY_LIMIT:-300}
+    - DEFAULT_ENV_EXECUTION_CONCURRENCY_LIMIT=${DEFAULT_ENV_EXECUTION_CONCURRENCY_LIMIT:-100}
+    - AUTH_GITHUB_CLIENT_ID=${AUTH_GITHUB_CLIENT_ID:-}
+    - AUTH_GITHUB_CLIENT_SECRET=${AUTH_GITHUB_CLIENT_SECRET:-}
+    - EMAIL_TRANSPORT=${EMAIL_TRANSPORT:-smtp}
+    - RESEND_API_KEY=${RESEND_API_KEY}
+    - SMTP_HOST=${SMTP_HOST}
+    - SMTP_PORT=${SMTP_PORT}
+    - SMTP_USER=${SMTP_USER}
+    - SMTP_PASSWORD=${SMTP_PASSWORD}
+    - SMTP_SECURE=${SMTP_SECURE}
+    - FROM_EMAIL=${FROM_EMAIL}
+    - REPLY_TO_EMAIL=${REPLY_TO_EMAIL}
+    - WHITELISTED_EMAILS=${WHITELISTED_EMAILS}
+    - ADMIN_EMAILS=${ADMIN_EMAILS}
+    - GRACEFUL_SHUTDOWN_TIMEOUT=1000
+    - INTERNAL_OTEL_TRACE_LOGGING_ENABLED=${INTERNAL_OTEL_TRACE_LOGGING_ENABLED:-0}
+    - TRIGGER_TELEMETRY_DISABLED=${TRIGGER_TELEMETRY_DISABLED:-true}
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      test:
+      - CMD
+      - node
+      - -e
+      - require('http').get('http://127.0.0.1:3000/healthcheck',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))
+      timeout: 5s
+    image: ghcr.io/triggerdotdev/trigger.dev:v4.3.0
+    networks:
+      appnet:
+        aliases:
+        - trigger-coolify_trigger_1
+    restart: unless-stopped
+    user: root
+    volumes:
+    - shared-data:/home/node/shared
+volumes:
+  clickhouse-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/clickhouse-data
+      o: bind
+      type: none
+  clickhouse-logs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/clickhouse-logs
+      o: bind
+      type: none
+  postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgresql-data
+      o: bind
+      type: none
+  redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis-data
+      o: bind
+      type: none
+  shared-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/shared-data
+      o: bind
+      type: none

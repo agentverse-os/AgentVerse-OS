@@ -1,0 +1,5 @@
+💿 mStream is a self-hosted music streaming server that allows you to stream your personal music collection from anywhere using a web browser or compatible app. Once installed, it scans your local music directory and creates a library that you can access remotely, making your music available on your phone, tablet, or computer without relying on third-party services.
+
+It supports high-quality audio formats such as FLAC and offers gapless playback for a smooth and uninterrupted listening experience. The user interface is clean, responsive, and easy to navigate, providing a familiar experience similar to commercial music platforms.
+
+Because mStream is open source and runs entirely on your own hardware, all your music and data remain private. There are no ads, no subscriptions, and no data collection, making it a reliable and privacy-focused solution for managing and enjoying your music library on your own terms.

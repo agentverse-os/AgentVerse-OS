@@ -1,0 +1,14 @@
+# cashu-me-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    image: rstmsn/cashu-me:0.1.1@sha256:46cf3752f58e20b7fd191b270208f6f41aa143ba950fddb0efb390ed3ea2851b
+    networks:
+      appnet:
+        aliases:
+        - cashu-me_web_1
+    restart: on-failure
+    stop_grace_period: 1m

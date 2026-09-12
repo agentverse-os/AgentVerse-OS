@@ -1,0 +1,26 @@
+# netbird-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    cap_add:
+    - NET_ADMIN
+    - SYS_ADMIN
+    - SYS_RESOURCE
+    image: ghcr.io/netbirdio/netbird:0.77.1-rootless@sha256:357e093c094b70ae764405303de3a43bb2017a5c96ddcc46c7a0a9e429e3d286
+    network_mode: host
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app_data:/var/lib/netbird:rw
+  web:
+    image: nginx:1.27@sha256:124b44bfc9ccd1f3cedf4b592d4d1e8bddb78b51ec2ed5056c52d3692baebc19
+    networks:
+      appnet:
+        aliases:
+        - netbird_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/www:/usr/share/nginx/html:ro

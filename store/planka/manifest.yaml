@@ -1,0 +1,81 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/planka
+description: Free open source kanban board for workgroups.
+endpoint:
+  port: 1337
+  service: planka
+env:
+  PLANKA_ADMIN_EMAIL: ''
+  PLANKA_ADMIN_NAME: ''
+  PLANKA_ADMIN_PASSWORD:
+    generate: password
+  PLANKA_ADMIN_USERNAME: ''
+  PLANKA_SECRET_KEY:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: PLANKA_ADMIN_PASSWORD
+  path: null
+  user: PLANKA_ADMIN_EMAIL
+name: planka
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PLANKA_ADMIN_EMAIL
+  hint: null
+  label: Admin email
+  options: null
+  required: true
+  type: email
+- env: PLANKA_ADMIN_NAME
+  hint: null
+  label: Admin name
+  options: null
+  required: true
+  type: text
+- env: PLANKA_ADMIN_USERNAME
+  hint: null
+  label: Admin username
+  options: null
+  required: true
+  type: text
+- env: PLANKA_ADMIN_PASSWORD
+  hint: null
+  label: Admin password
+  options: null
+  required: true
+  type: password
+- env: PLANKA_SECRET_KEY
+  hint: null
+  label: Planka Secret Key
+  options: null
+  required: false
+  type: random
+tags: []
+title: Planka
+type: app
+upstream:
+  author: Planka
+  categories:
+  - development
+  source: https://github.com/plankanban/planka
+  tipi_version: 54
+  version: 1.26.3
+website: https://github.com/plankanban/planka

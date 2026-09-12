@@ -1,0 +1,18 @@
+# snapdrop-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    environment:
+    - PUID=1000
+    - PGID=1000
+    image: linuxserver/snapdrop:version-b8b78cc2@sha256:3e0af233372e6ae7ac711397d40cbe2797cefe13220d65e5e284a64252cc0c2c
+    networks:
+      appnet:
+        aliases:
+        - snapdrop_server_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config

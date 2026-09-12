@@ -1,0 +1,78 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/grimmory-coolify
+description: Grimmory is a self-hosted application for managing your entire book collection in one place. Organize, read, annotate, sync across devices, and share without relying on third-party services.
+endpoint:
+  port: 80
+  service: grimmory
+env:
+  GRIMMORY_GROUP_ID: '0'
+  GRIMMORY_USER_ID: '0'
+  MARIADB_DATABASE: grimmory-db
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_MARIADBROOT:
+    generate: password
+  SERVICE_URL_GRIMMORY_80: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: grimmory-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: GRIMMORY_USER_ID
+  hint: 'по умолчанию: 0'
+  label: grimmory user id
+  options: null
+  required: false
+  type: text
+- env: GRIMMORY_GROUP_ID
+  hint: 'по умолчанию: 0'
+  label: grimmory group id
+  options: null
+  required: false
+  type: text
+- env: MARIADB_DATABASE
+  hint: 'по умолчанию: grimmory-db'
+  label: mariadb database
+  options: null
+  required: false
+  type: text
+tags:
+- books
+- ebooks
+- library
+- reader
+title: Grimmory
+type: app
+upstream:
+  categories: []
+  source: https://github.com/grimmory-tools/grimmory
+  tags:
+  - books
+  - ebooks
+  - library
+  - reader
+  template: grimmory.yaml
+website: https://github.com/grimmory-tools/grimmory

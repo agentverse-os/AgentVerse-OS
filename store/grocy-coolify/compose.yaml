@@ -1,0 +1,36 @@
+# grocy-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  grocy:
+    environment:
+    - SERVICE_URL_GROCY=${SERVICE_URL_GROCY}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: lscr.io/linuxserver/grocy:4.6.0
+    networks:
+      appnet:
+        aliases:
+        - grocy-coolify_grocy_1
+    restart: unless-stopped
+    volumes:
+    - grocy-config:/config
+volumes:
+  grocy-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/grocy-config
+      o: bind
+      type: none

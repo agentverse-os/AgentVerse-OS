@@ -1,0 +1,18 @@
+# gotify: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  gotify:
+    environment:
+      GOTIFY_DEFAULTUSER_NAME: ${GOTIFY_DEFAULTUSER_NAME}
+      GOTIFY_DEFAULTUSER_PASS: ${GOTIFY_DEFAULTUSER_PASS}
+    image: gotify/server:3.0.0
+    networks:
+      appnet:
+        aliases:
+        - gotify_gotify_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data

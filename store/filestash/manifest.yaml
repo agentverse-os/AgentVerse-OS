@@ -1,0 +1,65 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/filestash
+description: A modern web client for SFTP, S3, FTP, WebDAV, Git, Minio, LDAP, CalDAV, CardDAV, Mysql, Backblaze
+endpoint:
+  port: 8334
+  service: filestash
+env:
+  FILESTASH_DROPBOX_CLIENT_ID: ''
+  FILESTASH_GDRIVE_CLIENT_ID: ''
+  FILESTASH_GDRIVE_CLIENT_SECRET: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: filestash
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: FILESTASH_GDRIVE_CLIENT_ID
+  hint: null
+  label: (Optional) Google Drive Client ID
+  options: null
+  required: false
+  type: text
+- env: FILESTASH_GDRIVE_CLIENT_SECRET
+  hint: null
+  label: (Optional) Google Drive Client Secret
+  options: null
+  required: false
+  type: text
+- env: FILESTASH_DROPBOX_CLIENT_ID
+  hint: null
+  label: (Optional) Dropbox Client ID
+  options: null
+  required: false
+  type: text
+tags: []
+title: Filestash
+type: app
+upstream:
+  author: mickael-kerjean
+  categories:
+  - utilities
+  source: https://github.com/mickael-kerjean/filestash
+  tipi_version: 17
+  version: latest
+website: https://github.com/mickael-kerjean/filestash

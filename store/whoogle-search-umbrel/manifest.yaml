@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/whoogle-search-umbrel
+description: A self-hosted, ad-free, privacy-respecting metasearch engine
+endpoint:
+  port: 6420
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: whoogle-search-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Whoogle Search
+type: app
+upstream:
+  author: Ben Busby
+  categories:
+  - networking
+  release_notes: |-
+    ⚠️ Google's recent changes have made it difficult to provide JavaScript-free search results, which may affect Whoogle's functionality.
+
+    ⚠️ This is the final official release of Whoogle Search. The developer has announced the end of the project due to Google aggressively blocking JavaScript-free search queries. Whoogle may continue to work for now, but no further updates are planned.
+
+    This final release includes:
+      - Updated User-Agent pool, removing blocked patterns and adding new working strings to restore default search functionality
+      - Updated cryptography library for improved security
+
+
+    Full release notes are found at https://github.com/benbusby/whoogle-search/compare/v1.2.3...v1.2.4
+  source: https://github.com/benbusby/whoogle-search
+  version: 1.2.4
+  website: https://github.com/benbusby
+website: https://github.com/benbusby

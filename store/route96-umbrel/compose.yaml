@@ -1,0 +1,37 @@
+# route96-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  db:
+    environment:
+      MYSQL_DATABASE: route96
+      MYSQL_PASSWORD: moneyprintergobrrr
+      MYSQL_ROOT_PASSWORD: moneyprintergobrrr
+      MYSQL_USER: route96
+    image: mariadb:11.2.4@sha256:e9ea1dbab6783ff0281e41e3357d950a5f598b2033559b8443e03b181807910b
+    networks:
+      appnet:
+        aliases:
+        - route96_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql
+  server:
+    depends_on:
+    - db
+    environment:
+      APP_PUBLIC_URL: http://${APP_DOMAIN}:8002
+      RUST_LOG: info
+    image: voidic/route96:v0.7.0@sha256:5ab6064f18ca191dd5836487505607122ef3bfeba6e6ccc5b28eef5c604cf4cc
+    networks:
+      appnet:
+        aliases:
+        - route96_server_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/uploads:/app/data
+    - ${APP_DATA_DIR}/data/config.yaml:/app/config.yaml

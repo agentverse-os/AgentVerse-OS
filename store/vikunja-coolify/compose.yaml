@@ -1,0 +1,51 @@
+# vikunja-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  init:
+    command:
+    - sh
+    - -c
+    - touch /db/vikunja.db && chown -R 1000 /db
+    image: busybox
+    networks:
+      appnet:
+        aliases:
+        - vikunja-coolify_init_1
+    restart: no
+    volumes:
+    - vikunja-sqlite-data:/db
+  vikunja:
+    depends_on:
+    - init
+    environment:
+    - SERVICE_URL_VIKUNJA=${SERVICE_URL_VIKUNJA}
+    - VIKUNJA_SERVICE_PUBLICURL=$SERVICE_URL_VIKUNJA
+    - VIKUNJA_SERVICE_JWTSECRET=$SERVICE_PASSWORD_JWTSECRET
+    - VIKUNJA_SERVICE_ENABLEREGISTRATION=true
+    - VIKUNJA_DATABASE_PATH=/db/vikunja.db
+    - VIKUNJA_DATABASE_TYPE=sqlite
+    image: vikunja/vikunja
+    networks:
+      appnet:
+        aliases:
+        - vikunja-coolify_vikunja_1
+    restart: unless-stopped
+    volumes:
+    - vikunja-data:/app/vikunja/
+    - vikunja-sqlite-data:/db
+volumes:
+  vikunja-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/vikunja-data
+      o: bind
+      type: none
+  vikunja-sqlite-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/vikunja-sqlite-data
+      o: bind
+      type: none

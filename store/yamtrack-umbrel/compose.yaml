@@ -1,0 +1,32 @@
+# yamtrack-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  redis:
+    image: redis:8.0.2@sha256:b43d2dcbbdb1f9e1582e3a0f37e53bf79038522ccffb56a25858969d7a9b6c11
+    networks:
+      appnet:
+        aliases:
+        - yamtrack_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data:rw
+  web:
+    depends_on:
+    - redis
+    environment:
+      REDIS_URL: redis://yamtrack_redis_1:6379
+      SECRET: ${APP_SEED}
+    image: ghcr.io/fuzzygrim/yamtrack:0.26.3@sha256:78497b454b2b52d3b1062f6fd238351d714cff0895db4369e49ace36f4622e75
+    networks:
+      appnet:
+        aliases:
+        - yamtrack_web_1
+    restart: on-failure
+    security_opt:
+    - no-new-privileges:true
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/yamtrack/db:rw

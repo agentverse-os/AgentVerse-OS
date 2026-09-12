@@ -1,0 +1,99 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/romm
+description: Your beautiful, powerful, self-hosted rom manager.
+endpoint:
+  port: 8080
+  service: romm
+env:
+  ROMM_AUTH_SECRET_KEY:
+    generate: token
+  ROMM_IGDB_CLIENT_ID: ''
+  ROMM_IGDB_CLIENT_SECRET:
+    generate: password
+  ROMM_MOBYGAMES_API_KEY:
+    generate: password
+  ROMM_MYSQL_PASSWORD:
+    generate: token
+  ROMM_MYSQL_ROOT_PASSWORD:
+    generate: token
+  ROMM_STEAMGRIDDB_API_KEY:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: romm
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ROMM_MYSQL_PASSWORD
+  hint: null
+  label: RomM MySQL Password
+  options: null
+  required: false
+  type: random
+- env: ROMM_MYSQL_ROOT_PASSWORD
+  hint: null
+  label: RomM MySQL Root Password
+  options: null
+  required: false
+  type: random
+- env: ROMM_AUTH_SECRET_KEY
+  hint: null
+  label: RomM Auth Secret Key
+  options: null
+  required: false
+  type: random
+- env: ROMM_IGDB_CLIENT_ID
+  hint: null
+  label: IGDB Client ID
+  options: null
+  required: false
+  type: text
+- env: ROMM_IGDB_CLIENT_SECRET
+  hint: null
+  label: IGDB Client Secret
+  options: null
+  required: false
+  type: password
+- env: ROMM_MOBYGAMES_API_KEY
+  hint: null
+  label: MobyGames API Key
+  options: null
+  required: false
+  type: password
+- env: ROMM_STEAMGRIDDB_API_KEY
+  hint: SteamGrid Database API Key
+  label: SteamGrid Database API Key
+  options: null
+  required: false
+  type: password
+tags: []
+title: RomM
+type: app
+upstream:
+  author: rommapp
+  categories:
+  - gaming
+  source: https://github.com/rommapp/romm
+  tipi_version: 61
+  version: 5.2.0
+website: https://github.com/rommapp/romm

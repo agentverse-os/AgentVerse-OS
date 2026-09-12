@@ -1,0 +1,70 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/gitea-with-mariadb-coolify
+description: Gitea is a self-hosted, lightweight Git service, offering version control, collaboration, and code hosting.
+endpoint:
+  port: 3000
+  service: gitea
+env:
+  MYSQL_DATABASE: gitea
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_MYSQLROOT:
+    generate: password
+  SERVICE_URL_GITEA_3000: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: gitea-with-mariadb-coolify
+notes:
+- 'порт 22222:22 (gitea) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: gitea'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+tags:
+- version control
+- collaboration
+- code
+- hosting
+- lightweight
+- mariadb
+title: Gitea With Mariadb
+type: app
+upstream:
+  categories:
+  - git
+  source: https://docs.gitea.com
+  tags:
+  - version control
+  - collaboration
+  - code
+  - hosting
+  - lightweight
+  - mariadb
+  template: gitea-with-mariadb.yaml
+website: https://docs.gitea.com

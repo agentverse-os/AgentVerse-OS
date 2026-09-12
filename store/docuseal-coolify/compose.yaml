@@ -1,0 +1,35 @@
+# docuseal-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  docuseal:
+    environment:
+    - SERVICE_URL_DOCUSEAL_3000=${SERVICE_URL_DOCUSEAL_3000}
+    - HOST=${SERVICE_URL_DOCUSEAL}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:3000
+      timeout: 20s
+    image: docuseal/docuseal:latest
+    networks:
+      appnet:
+        aliases:
+        - docuseal-coolify_docuseal_1
+    restart: unless-stopped
+    volumes:
+    - docuseal-data:/data
+volumes:
+  docuseal-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/docuseal-data
+      o: bind
+      type: none

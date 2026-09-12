@@ -1,0 +1,68 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ctfd
+description: Cyber Security Training made simple.
+endpoint:
+  port: 8000
+  service: ctfd
+env:
+  CTFD_MYSQL_DB_PASSWORD:
+    generate: token
+  CTFD_MYSQL_ROOT_PASSWORD:
+    generate: token
+  CTFD_SECRET_KEY:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: ctfd
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CTFD_MYSQL_DB_PASSWORD
+  hint: null
+  label: CTFD_MYSQL_DB_PASSWORD
+  options: null
+  required: false
+  type: random
+- env: CTFD_SECRET_KEY
+  hint: null
+  label: CTFD_SECRET_KEY
+  options: null
+  required: false
+  type: random
+- env: CTFD_MYSQL_ROOT_PASSWORD
+  hint: null
+  label: CTFD_MYSQL_ROOT_PASSWORD
+  options: null
+  required: false
+  type: random
+tags: []
+title: CTFd
+type: app
+upstream:
+  author: CTFd
+  categories:
+  - utilities
+  source: https://github.com/CTFd/CTFd
+  tipi_version: 25
+  version: 3.8.7
+website: https://github.com/CTFd/CTFd

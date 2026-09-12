@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/searxng
+description: Privacy-respecting, hackable metasearch engine
+endpoint:
+  port: 8080
+  service: searxng
+env:
+  SEARXNG_SECRET_KEY:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: searxng
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SEARXNG_SECRET_KEY
+  hint: null
+  label: SearXNG Secret Key
+  options: null
+  required: false
+  type: random
+tags: []
+title: SearXNG
+type: app
+upstream:
+  author: searxng
+  categories:
+  - social
+  source: https://github.com/searxng/searxng
+  tipi_version: 10
+  version: latest
+website: https://github.com/searxng/searxng

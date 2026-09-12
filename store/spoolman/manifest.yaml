@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/spoolman
+description: Keep track of your inventory of 3D-printer filament spools
+endpoint:
+  port: 8000
+  service: spoolman
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: spoolman
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Spoolman
+type: app
+upstream:
+  author: Donkie
+  categories:
+  - utilities
+  - automation
+  source: https://github.com/Donkie/Spoolman
+  tipi_version: 25
+  version: 0.26.1
+website: https://github.com/Donkie/Spoolman

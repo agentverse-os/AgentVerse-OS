@@ -1,0 +1,14 @@
+# sshwifty: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  sshwifty:
+    image: niruix/sshwifty:0.4.10-beta-release
+    networks:
+      appnet:
+        aliases:
+        - sshwifty_sshwifty_1
+    privileged: true
+    restart: unless-stopped

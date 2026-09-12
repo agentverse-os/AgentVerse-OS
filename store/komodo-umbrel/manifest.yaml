@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/komodo-umbrel
+description: A tool to build and deploy software
+endpoint:
+  port: 9120
+  service: core
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/komodo/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/komodo/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/komodo/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/komodo/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/komodo/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/komodo/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: komodo-umbrel
+notes:
+- 'core: env_file из каталога проигнорирован (значения — через настройки приложения)'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Komodo
+type: app
+upstream:
+  author: mogh.tech
+  categories:
+  - developer
+  release_notes: |-
+    Komodo v2.3.3 fixes batch procedure tag filters and intermittent stack project-missing reports by lengthening periphery command timeouts.
+
+    This release also adds page breadcrumbs throughout the UI and fixes a v2 update edge case when KOMODO_FIRST_SERVER_ADDRESS is still defined.
+
+    Full release notes can be found at https://github.com/moghtech/komodo/releases/tag/v2.3.3
+  source: https://github.com/moghtech/komodo
+  version: 2.3.3
+  website: https://komo.do/
+website: https://komo.do/

@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/code-server
+description: VS Code in the browser
+endpoint:
+  port: 8443
+  service: code-server
+env:
+  CODESERVER_PASSWORD:
+    generate: password
+  CODESERVER_SUDO_PASSWORD:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: CODESERVER_PASSWORD
+  path: null
+  user: null
+name: code-server
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CODESERVER_PASSWORD
+  hint: null
+  label: Password
+  options: null
+  required: true
+  type: password
+- env: CODESERVER_SUDO_PASSWORD
+  hint: null
+  label: Sudo Password
+  options: null
+  required: false
+  type: password
+tags: []
+title: Code Server
+type: app
+upstream:
+  author: coder
+  categories:
+  - development
+  source: https://github.com/coder/code-server
+  tipi_version: 123
+  version: 4.134.0
+website: https://github.com/coder/code-server

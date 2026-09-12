@@ -1,0 +1,55 @@
+# domain-locker-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+    - postgres
+    environment:
+      DL_ENV_TYPE: selfHosted
+      DL_PG_HOST: domain-locker_postgres_1
+      DL_PG_NAME: domain_locker
+      DL_PG_PASSWORD: domain-locker
+      DL_PG_PORT: 5432
+      DL_PG_USER: postgres
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://localhost:3000/api/health
+      timeout: 10s
+    image: lissy93/domain-locker:0.2.0@sha256:1c3379d97344c153595973327957b23bc5695bb8c956f11a3d21e7cd92358781
+    networks:
+      appnet:
+        aliases:
+        - domain-locker_app_1
+    restart: on-failure
+    user: 1000:1000
+  postgres:
+    environment:
+      POSTGRES_DB: domain_locker
+      POSTGRES_PASSWORD: domain-locker
+      POSTGRES_USER: postgres
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres
+      timeout: 5s
+    image: postgres:17.4@sha256:fe3f571d128e8efadcd8b2fde0e2b73ebab6dbec33f6bfe69d98c682c7d8f7bd
+    networks:
+      appnet:
+        aliases:
+        - domain-locker_postgres_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db_data:/var/lib/postgresql/data

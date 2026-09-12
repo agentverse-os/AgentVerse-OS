@@ -1,0 +1,41 @@
+# odoo: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  odoo:
+    command: --
+    depends_on:
+    - odoodb
+    environment:
+      HOST: odoodb
+      PASSWORD: ${ODOO_POSTGRES_PASSWORD}
+      USER: odoo
+    image: odoo:19
+    networks:
+      appnet:
+        aliases:
+        - odoo_odoo_1
+    restart: unless-stopped
+    tty: true
+    user: root
+    volumes:
+    - ${APP_DATA_DIR}/data/addons:/mnt/extra-addons
+    - ${APP_DATA_DIR}/data/etc:/etc/odoo
+    - ${APP_DATA_DIR}/data/odoo-web-data:/var/lib/odoo
+    - ${APP_DATA_DIR}/data/filestore:/root/.local/share
+  odoodb:
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${ODOO_POSTGRES_PASSWORD}
+      POSTGRES_USER: odoo
+    image: postgres:15
+    networks:
+      appnet:
+        aliases:
+        - odoo_odoodb_1
+    restart: unless-stopped
+    user: root
+    volumes:
+    - ${APP_DATA_DIR}/data/postgresql:/var/lib/postgresql/data

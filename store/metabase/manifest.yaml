@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/metabase
+description: The simplest, fastest way to get business intelligence and analytics to everyone in your company
+endpoint:
+  port: 3000
+  service: metabase
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: metabase
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Metabase
+type: app
+upstream:
+  author: metabase
+  categories:
+  - data
+  - utilities
+  source: https://github.com/metabase/metabase
+  tipi_version: 112
+  version: v0.63.15
+website: https://github.com/metabase/metabase

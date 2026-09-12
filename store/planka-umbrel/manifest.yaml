@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/planka-umbrel
+description: Self-hosted Kanban boards for workgroups
+endpoint:
+  port: 1337
+  service: app
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_SEED:
+    generate: hex64
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/planka/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/planka/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/planka/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/planka/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/planka/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: umbrel@umbrel.local
+name: planka-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Planka
+type: app
+upstream:
+  author: PLANKA Software GmbH
+  categories:
+  - files
+  release_notes: |-
+    ⚠️ PLANKA Community no longer includes OIDC/SSO. If you're updating from a pre-2.2 version and use SSO accounts, create or confirm a local admin account before updating because SSO-only users will be deactivated.
+    - Fixed a path traversal vulnerability in JWT-protected static file routes
+      when using local file storage
+
+    Full release notes can be found at https://github.com/plankanban/planka/releases/tag/v2.2.1
+  source: https://github.com/plankanban/planka
+  version: 2.2.1
+  website: https://planka.app
+website: https://planka.app

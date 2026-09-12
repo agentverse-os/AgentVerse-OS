@@ -1,0 +1,106 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/diun-coolify
+description: Docker Image Update Notifier is a CLI application to receive notifications when a Docker image is updated on a Docker registry.
+endpoint:
+  port: 80
+  service: diun
+env:
+  DIUN_PROVIDERS_DOCKER: 'true'
+  DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT: 'true'
+  DIUN_WATCH_JITTER: 30s
+  DIUN_WATCH_SCHEDULE: ' * */6 * * *'
+  DIUN_WATCH_WORKERS: '20'
+  LOG_JSON: 'false'
+  LOG_LEVEL: info
+  TIME_ZONE: Europe/Vienna
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: diun-coolify
+notes:
+- 'diun: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TIME_ZONE
+  hint: 'по умолчанию: Europe/Vienna'
+  label: time zone
+  options: null
+  required: false
+  type: text
+- env: LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: LOG_JSON
+  hint: 'по умолчанию: false'
+  label: log json
+  options: null
+  required: false
+  type: text
+- env: DIUN_WATCH_WORKERS
+  hint: 'по умолчанию: 20'
+  label: diun watch workers
+  options: null
+  required: false
+  type: text
+- env: DIUN_WATCH_SCHEDULE
+  hint: 'по умолчанию:  * */6 * * *'
+  label: diun watch schedule
+  options: null
+  required: false
+  type: text
+- env: DIUN_WATCH_JITTER
+  hint: 'по умолчанию: 30s'
+  label: diun watch jitter
+  options: null
+  required: false
+  type: text
+- env: DIUN_PROVIDERS_DOCKER
+  hint: 'по умолчанию: true'
+  label: diun providers docker
+  options: null
+  required: false
+  type: text
+- env: DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT
+  hint: 'по умолчанию: true'
+  label: diun providers docker watchbydefault
+  options: null
+  required: false
+  type: text
+tags:
+- docker
+- notifier
+- slack
+title: Diun
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://crazymax.dev/diun/
+  tags:
+  - docker
+  - notifier
+  - slack
+  template: diun.yaml
+website: https://crazymax.dev/diun/

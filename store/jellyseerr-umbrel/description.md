@@ -1,0 +1,18 @@
+Seerr is a free and open source software application for managing requests for your media library.
+
+It integrates with the media server of your choice: Jellyfin, Plex, and Emby. In addition, it integrates with your existing services, such as Sonarr, Radarr.
+
+Seerr scans your libraries at regular intervals, so it knows which items are already available on your server.
+It also integrates with the popular DVR applications Radarr and Sonarr, and supports activity monitoring within Seerr itself.
+
+🛠️ SET-UP INSTRUCTIONS
+
+During initial set-up, you will need to input your Umbrel device's IP address to connect to Jellyfin / Plex / Emby (and optional services such as Radarr and Sonarr).
+You can find your device's IP address in the Umbrel Settings.
+
+You can also use the following addresses:
+  - **Jellyfin:** jellyfin_server_1:8096
+  - **Emby:** emby_server_1:8086
+  - **Radarr:** radarr_server_1:7878
+  - **Sonarr:** sonarr_server_1:8989
+  - **Plex:** No address needed

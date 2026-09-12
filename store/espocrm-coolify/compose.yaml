@@ -1,0 +1,138 @@
+# espocrm-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  espocrm:
+    depends_on:
+      espocrm-db:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_ESPOCRM=${SERVICE_URL_ESPOCRM}
+    - ESPOCRM_ADMIN_USERNAME=${ESPOCRM_ADMIN_USERNAME:-admin}
+    - ESPOCRM_ADMIN_PASSWORD=${SERVICE_PASSWORD_ADMIN}
+    - ESPOCRM_DATABASE_PLATFORM=Mysql
+    - ESPOCRM_DATABASE_HOST=espocrm-db
+    - ESPOCRM_DATABASE_NAME=${MARIADB_DATABASE:-espocrm}
+    - ESPOCRM_DATABASE_USER=${SERVICE_USER_MARIADB}
+    - ESPOCRM_DATABASE_PASSWORD=${SERVICE_PASSWORD_MARIADB}
+    - ESPOCRM_SITE_URL=${SERVICE_URL_ESPOCRM}
+    healthcheck:
+      interval: 60s
+      retries: 3
+      start_period: 20s
+      test:
+      - CMD
+      - bin/command
+      - app-check
+      timeout: 20s
+    image: espocrm/espocrm:10
+    networks:
+      appnet:
+        aliases:
+        - espocrm-coolify_espocrm_1
+    restart: unless-stopped
+    volumes:
+    - espocrm-data:/var/www/html/data
+    - espocrm-custom:/var/www/html/custom
+    - espocrm-custom-client:/var/www/html/client/custom
+  espocrm-daemon:
+    depends_on:
+      espocrm:
+        condition: service_healthy
+    entrypoint: docker-daemon.sh
+    healthcheck:
+      interval: 180s
+      retries: 3
+      start_period: 20s
+      test:
+      - CMD
+      - bin/command
+      - app-check
+      timeout: 20s
+    image: espocrm/espocrm:10
+    networks:
+      appnet:
+        aliases:
+        - espocrm-coolify_espocrm-daemon_1
+    restart: unless-stopped
+    volumes_from:
+    - espocrm
+  espocrm-db:
+    environment:
+    - MARIADB_DATABASE=${MARIADB_DATABASE:-espocrm}
+    - MARIADB_USER=${SERVICE_USER_MARIADB}
+    - MARIADB_PASSWORD=${SERVICE_PASSWORD_MARIADB}
+    - MARIADB_ROOT_PASSWORD=${SERVICE_PASSWORD_ROOT}
+    healthcheck:
+      interval: 20s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 10s
+    image: mariadb:12.3
+    networks:
+      appnet:
+        aliases:
+        - espocrm-coolify_espocrm-db_1
+    restart: unless-stopped
+    volumes:
+    - espocrm-db:/var/lib/mysql
+  espocrm-websocket:
+    depends_on:
+      espocrm:
+        condition: service_healthy
+    entrypoint: docker-websocket.sh
+    environment:
+    - SERVICE_URL_ESPOCRM_WEBSOCKET_8080=${SERVICE_URL_ESPOCRM_WEBSOCKET_8080}
+    - ESPOCRM_CONFIG_USE_WEB_SOCKET=true
+    - ESPOCRM_CONFIG_WEB_SOCKET_URL=$SERVICE_URL_ESPOCRM_WEBSOCKET
+    - ESPOCRM_CONFIG_WEB_SOCKET_ZERO_M_Q_SUBSCRIBER_DSN=tcp://*:7777
+    - ESPOCRM_CONFIG_WEB_SOCKET_ZERO_M_Q_SUBMISSION_DSN=tcp://espocrm-websocket:7777
+    healthcheck:
+      interval: 180s
+      retries: 3
+      start_period: 20s
+      test:
+      - CMD
+      - bin/command
+      - app-check
+      timeout: 20s
+    image: espocrm/espocrm:10
+    networks:
+      appnet:
+        aliases:
+        - espocrm-coolify_espocrm-websocket_1
+    restart: unless-stopped
+    volumes_from:
+    - espocrm
+volumes:
+  espocrm-custom:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/espocrm-custom
+      o: bind
+      type: none
+  espocrm-custom-client:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/espocrm-custom-client
+      o: bind
+      type: none
+  espocrm-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/espocrm-data
+      o: bind
+      type: none
+  espocrm-db:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/espocrm-db
+      o: bind
+      type: none

@@ -1,0 +1,35 @@
+# silverbullet-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  silverbullet:
+    environment:
+    - SERVICE_URL_SILVERBULLET_3000=${SERVICE_URL_SILVERBULLET_3000}
+    - SB_USER=${SERVICE_USER_SILVERBULLET}:${SERVICE_PASSWORD_SILVERBULLET}
+    healthcheck:
+      interval: 2s
+      retries: 5
+      test:
+      - CMD
+      - wget
+      - --spider
+      - --quiet
+      - http://127.0.0.1:3000
+      timeout: 10s
+    image: ghcr.io/silverbulletmd/silverbullet:v2
+    networks:
+      appnet:
+        aliases:
+        - silverbullet-coolify_silverbullet_1
+    restart: unless-stopped
+    volumes:
+    - silverbullet-space:/space
+volumes:
+  silverbullet-space:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/silverbullet-space
+      o: bind
+      type: none

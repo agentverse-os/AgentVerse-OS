@@ -1,0 +1,19 @@
+# proxyscotch-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  proxyscotch:
+    environment:
+    - SERVICE_URL_PROXYSCOTCH_9159=${SERVICE_URL_PROXYSCOTCH_9159}
+    - PROXYSCOTCH_TOKEN=${SERVICE_PASSWORD_TOKEN}
+    - PROXYSCOTCH_ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+    - PROXYSCOTCH_BANNED_OUTPUTS=${BANNED_OUTPUTS}
+    - PROXYSCOTCH_BANNED_DESTS=${BANNED_DESTS}
+    image: hoppscotch/proxyscotch:v0.1.4
+    networks:
+      appnet:
+        aliases:
+        - proxyscotch-coolify_proxyscotch_1
+    restart: unless-stopped

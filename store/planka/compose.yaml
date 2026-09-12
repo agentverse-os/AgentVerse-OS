@@ -1,0 +1,45 @@
+# planka: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  planka:
+    depends_on:
+      planka-db:
+        condition: service_healthy
+    environment:
+      BASE_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
+      DATABASE_URL: postgresql://postgres@planka-db/planka
+      DEFAULT_ADMIN_EMAIL: ${PLANKA_ADMIN_EMAIL}
+      DEFAULT_ADMIN_NAME: ${PLANKA_ADMIN_NAME}
+      DEFAULT_ADMIN_PASSWORD: ${PLANKA_ADMIN_PASSWORD}
+      DEFAULT_ADMIN_USERNAME: ${PLANKA_ADMIN_USERNAME}
+      SECRET_KEY: ${PLANKA_SECRET_KEY}
+      TRUST_PROXY: '1'
+    image: ghcr.io/plankanban/planka:1.26.3
+    networks:
+      appnet:
+        aliases:
+        - planka_planka_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/user-avatars:/app/public/user-avatars
+    - ${APP_DATA_DIR}/data/project-background-images:/app/public/project-background-images
+    - ${APP_DATA_DIR}/data/attachments:/app/private/attachments
+  planka-db:
+    environment:
+      POSTGRES_DB: planka
+      POSTGRES_HOST_AUTH_METHOD: trust
+    healthcheck:
+      retries: 3
+      test: pg_isready -d planka -U postgres
+      timeout: 5s
+    image: postgres:14-alpine
+    networks:
+      appnet:
+        aliases:
+        - planka_planka-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data

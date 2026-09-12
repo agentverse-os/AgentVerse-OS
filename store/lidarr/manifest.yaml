@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/lidarr
+description: ' Looks and smells like Sonarr but made for music.'
+endpoint:
+  port: 8686
+  service: lidarr
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: lidarr
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Lidarr
+type: app
+upstream:
+  author: lidarr.audio
+  categories:
+  - media
+  - music
+  source: https://github.com/Lidarr/Lidarr
+  tipi_version: 24
+  version: 3.1.0
+website: https://github.com/Lidarr/Lidarr

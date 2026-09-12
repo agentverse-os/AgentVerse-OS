@@ -1,0 +1,174 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/buzz-coolify
+description: Self-hostable workspace where humans and AI agents collaborate on a Nostr relay you own.
+endpoint:
+  port: 3000
+  service: buzz
+env:
+  BUZZ_ALLOW_NIP_OA_AUTH: 'true'
+  BUZZ_AUTO_MIGRATE: 'true'
+  BUZZ_GIT_CONFORMANCE_PROBE: 'true'
+  BUZZ_REQUIRE_AUTH_TOKEN: 'true'
+  BUZZ_REQUIRE_RELAY_MEMBERSHIP: 'false'
+  BUZZ_S3_ACCESS_KEY: ''
+  BUZZ_S3_BUCKET: buzz-media
+  BUZZ_S3_SECRET_KEY: ''
+  BUZZ_TAG: main
+  POSTGRES_DB: buzz
+  POSTGRES_USER: ''
+  REDIS_PASSWORD: ''
+  RELAY_OWNER_PUBKEY: ''
+  RUST_LOG: buzz_relay=info,buzz_db=info,buzz_auth=info,buzz_pubsub=info,tower_http=info
+  SERVICE_FQDN_BUZZ: ${APP_DOMAIN}
+  SERVICE_HEX_64_GITHMAC:
+    generate: hex64
+  SERVICE_HEX_64_RELAYKEY:
+    generate: hex64
+  SERVICE_PASSWORD_MINIO:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_URL_BUZZ: https://${APP_DOMAIN}
+  SERVICE_URL_BUZZ_3000: https://${APP_DOMAIN}
+  SERVICE_USER_MINIO:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: buzz-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: BUZZ_TAG
+  hint: 'по умолчанию: main'
+  label: buzz tag
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: buzz'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: BUZZ_S3_BUCKET
+  hint: 'по умолчанию: buzz-media'
+  label: buzz s3 bucket
+  options: null
+  required: false
+  type: text
+- env: BUZZ_AUTO_MIGRATE
+  hint: 'по умолчанию: true'
+  label: buzz auto migrate
+  options: null
+  required: false
+  type: text
+- env: BUZZ_GIT_CONFORMANCE_PROBE
+  hint: 'по умолчанию: true'
+  label: buzz git conformance probe
+  options: null
+  required: false
+  type: text
+- env: BUZZ_REQUIRE_AUTH_TOKEN
+  hint: 'по умолчанию: true'
+  label: buzz require auth token
+  options: null
+  required: false
+  type: password
+- env: BUZZ_REQUIRE_RELAY_MEMBERSHIP
+  hint: 'по умолчанию: false'
+  label: buzz require relay membership
+  options: null
+  required: false
+  type: text
+- env: BUZZ_ALLOW_NIP_OA_AUTH
+  hint: 'по умолчанию: true'
+  label: buzz allow nip oa auth
+  options: null
+  required: false
+  type: text
+- env: RELAY_OWNER_PUBKEY
+  hint: null
+  label: relay owner pubkey
+  options: null
+  required: false
+  type: password
+- env: RUST_LOG
+  hint: 'по умолчанию: buzz_relay=info,buzz_db=info,buzz_auth=info,buzz_pubsub=info,tower_http=info'
+  label: rust log
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: REDIS_PASSWORD
+  hint: null
+  label: redis password
+  options: null
+  required: false
+  type: password
+- env: BUZZ_S3_ACCESS_KEY
+  hint: null
+  label: buzz s3 access key
+  options: null
+  required: false
+  type: password
+- env: BUZZ_S3_SECRET_KEY
+  hint: null
+  label: buzz s3 secret key
+  options: null
+  required: false
+  type: password
+tags:
+- buzz
+- chat
+- nostr
+- agents
+- ai
+- collaboration
+- relay
+- block
+title: Buzz
+type: app
+upstream:
+  categories:
+  - messaging
+  source: https://github.com/block/buzz
+  tags:
+  - buzz
+  - chat
+  - nostr
+  - agents
+  - ai
+  - collaboration
+  - relay
+  - block
+  template: buzz.yaml
+website: https://github.com/block/buzz

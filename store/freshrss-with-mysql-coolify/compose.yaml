@@ -1,0 +1,75 @@
+# freshrss-with-mysql-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  freshrss:
+    depends_on:
+      freshrss-db:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_FRESHRSS_80=${SERVICE_URL_FRESHRSS_80}
+    - CRON_MIN=${CRON_MIN:-1,31}
+    - MYSQL_DB=${MYSQL_DATABASE:-freshrss}
+    - MYSQL_USER=${SERVICE_USER_MYSQL}
+    - MYSQL_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/80' || exit 1
+      timeout: 20s
+    image: freshrss/freshrss:latest
+    networks:
+      appnet:
+        aliases:
+        - freshrss-with-mysql-coolify_freshrss_1
+    restart: unless-stopped
+    volumes:
+    - freshrss-data:/var/www/FreshRSS/data
+    - freshrss-extensions:/var/www/FreshRSS/extensions
+  freshrss-db:
+    environment:
+    - MYSQL_ROOT_PASSWORD=$SERVICE_PASSWORD_ROOT
+    - MYSQL_DATABASE=${MYSQL_DATABASE:-freshrss}
+    - MYSQL_USER=$SERVICE_USER_MYSQL
+    - MYSQL_PASSWORD=$SERVICE_PASSWORD_MYSQL
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - 127.0.0.1
+      timeout: 20s
+    image: mysql:8
+    networks:
+      appnet:
+        aliases:
+        - freshrss-with-mysql-coolify_freshrss-db_1
+    restart: unless-stopped
+    volumes:
+    - mysql-data:/var/lib/mysql
+volumes:
+  freshrss-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/freshrss-data
+      o: bind
+      type: none
+  freshrss-extensions:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/freshrss-extensions
+      o: bind
+      type: none
+  mysql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mysql-data
+      o: bind
+      type: none

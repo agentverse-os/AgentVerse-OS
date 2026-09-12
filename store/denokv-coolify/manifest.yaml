@@ -1,0 +1,61 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/denokv-coolify
+description: The Denoland key-value database
+endpoint:
+  port: 4512
+  service: denokv
+env:
+  COOLIFY_VOLUME_APP: ''
+  SERVICE_PASSWORD_DENOKV:
+    generate: password
+  SERVICE_URL_DENOKV_4512: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: denokv-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: COOLIFY_VOLUME_APP
+  hint: null
+  label: coolify volume app
+  options: null
+  required: false
+  type: text
+tags:
+- deno
+- kv
+- key-value
+- database
+title: Denokv
+type: app
+upstream:
+  categories:
+  - database
+  source: https://docs.deno.com/deploy/kv/manual/
+  tags:
+  - deno
+  - kv
+  - key-value
+  - database
+  template: denoKV.yaml
+website: https://docs.deno.com/deploy/kv/manual/

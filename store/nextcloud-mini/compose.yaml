@@ -1,0 +1,36 @@
+# nextcloud-mini: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  nextcloud-mini:
+    environment:
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_MINI_ADMIN_PASSWORD}
+      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_MINI_ADMIN_USER}
+      NEXTCLOUD_TRUSTED_DOMAINS: ${NEXTCLOUD_MINI_TRUSTED_DOMAINS}
+      POSTGRES_DB: nextcloud
+      POSTGRES_HOST: nextcloud-mini-db
+      POSTGRES_PASSWORD: ${NEXTCLOUD_MINI_DB_PASSWORD}
+      POSTGRES_USER: nextcloud
+    image: nextcloud:34.0.2
+    networks:
+      appnet:
+        aliases:
+        - nextcloud-mini_nextcloud-mini_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/nextcloud:/var/www/html
+  nextcloud-mini-db:
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_PASSWORD: ${NEXTCLOUD_MINI_DB_PASSWORD}
+      POSTGRES_USER: nextcloud
+    image: postgres:16
+    networks:
+      appnet:
+        aliases:
+        - nextcloud-mini_nextcloud-mini-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data

@@ -1,0 +1,60 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/qdrant-coolify
+description: Qdrant is a vector similarity search engine that provides a production-ready service with a convenient API to store, search, and manage points (i.e. vectors) with an additional payload.
+endpoint:
+  port: 6333
+  service: qdrant
+env:
+  SERVICE_PASSWORD_QDRANTAPIKEY:
+    generate: password
+  SERVICE_URL_QDRANT_6333: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: qdrant-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- ai
+- vector-database
+- semantic-search
+- machine-learning
+- bm25
+- embeddings
+- llm
+title: Qdrant
+type: app
+upstream:
+  categories:
+  - database
+  source: https://qdrant.tech/documentation/
+  tags:
+  - ai
+  - vector-database
+  - semantic-search
+  - machine-learning
+  - bm25
+  - embeddings
+  - llm
+  template: qdrant.yaml
+website: https://qdrant.tech/documentation/

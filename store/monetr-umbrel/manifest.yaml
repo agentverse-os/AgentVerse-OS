@@ -1,0 +1,56 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/monetr-umbrel
+description: A budgeting application focused on planning for recurring expenses
+endpoint:
+  port: 4000
+  service: monetr
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/monetr/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/monetr/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/monetr/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/monetr/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/monetr/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: monetr-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Monetr
+type: app
+upstream:
+  author: Monetr LLC.
+  categories:
+  - finance
+  release_notes: |-
+    This release fixes duplicate automatic transactions and improves the spending update flow by moving spending changes to the newer PATCH endpoint.
+
+    It also includes API, UI, and container dependency updates.
+
+    If you are updating from a version before 1.15.0, Monetr now includes built-in proof-of-work spam protection for authentication endpoints and configuration for blocking registrations from specific email domains. Proof of work remains disabled by default for self-hosted installs; only enable it if Monetr is served over HTTPS.
+
+    Full release notes can be found at https://github.com/monetr/monetr/releases/tag/v1.15.3
+  source: https://github.com/monetr/monetr
+  version: 1.15.3
+  website: https://monetr.app/
+website: https://monetr.app/

@@ -1,0 +1,39 @@
+# overseerr-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  overseerr:
+    environment:
+    - SERVICE_URL_OVERSEERR_5055=${SERVICE_URL_OVERSEERR_5055}
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ:-America/Toronto}
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - wget
+      - --tries
+      - '1'
+      - --no-verbose
+      - --spider
+      - http://localhost:5055/api/v1/status
+      timeout: 10s
+    image: sctx/overseerr:latest
+    networks:
+      appnet:
+        aliases:
+        - overseerr-coolify_overseerr_1
+    restart: unless-stopped
+    volumes:
+    - overseerr-config:/app/config
+volumes:
+  overseerr-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/overseerr-config
+      o: bind
+      type: none

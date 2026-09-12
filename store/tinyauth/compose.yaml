@@ -1,0 +1,24 @@
+# tinyauth: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  tinyauth:
+    environment:
+      TINYAUTH_APPURL: ${TINYAUTH_APP_URL}
+      TINYAUTH_AUTH_USERS: ${TINYAUTH_USERS}
+      TINYAUTH_OAUTH_PROVIDERS_GITHUB_CLIENTID: ${TINYAUTH_GITHUB_CLIENT_ID}
+      TINYAUTH_OAUTH_PROVIDERS_GITHUB_CLIENTSECRET: ${TINYAUTH_GITHUB_CLIENT_SECRET}
+      TINYAUTH_OAUTH_PROVIDERS_GOOGLE_CLIENTID: ${TINYAUTH_GOOGLE_CLIENT_ID}
+      TINYAUTH_OAUTH_PROVIDERS_GOOGLE_CLIENTSECRET: ${TINYAUTH_GOOGLE_CLIENT_SECRET}
+      TINYAUTH_OAUTH_WHITELIST: ${TINYAUTH_OAUTH_WHITELIST}
+      TINYAUTH_UI_TITLE: ${TINYAUTH_APP_TITLE}
+    image: ghcr.io/tinyauthapp/tinyauth:v5.1.3
+    networks:
+      appnet:
+        aliases:
+        - tinyauth_tinyauth_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data:/data

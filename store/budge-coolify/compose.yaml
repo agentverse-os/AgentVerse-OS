@@ -1,0 +1,36 @@
+# budge-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  budge:
+    environment:
+    - SERVICE_URL_BUDGE=${SERVICE_URL_BUDGE}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: lscr.io/linuxserver/budge:latest
+    networks:
+      appnet:
+        aliases:
+        - budge-coolify_budge_1
+    restart: unless-stopped
+    volumes:
+    - budge-config:/config
+volumes:
+  budge-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/budge-config
+      o: bind
+      type: none

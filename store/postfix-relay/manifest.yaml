@@ -1,0 +1,94 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/postfix-relay
+description: Simple SMTP relay for environments where you may have private servers with no Internet connection.
+endpoint:
+  port: 25
+  service: postfix-relay
+env:
+  RELAY_ACCEPTED_NETWORKS: ''
+  RELAY_SMTP_HOST: ''
+  RELAY_SMTP_LOGIN: ''
+  RELAY_SMTP_PASSWORD:
+    generate: password
+  RELAY_SMTP_PORT: ''
+  RELAY_TLS_VERIFY: ''
+  RELAY_USE_TLS: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: postfix-relay
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: RELAY_ACCEPTED_NETWORKS
+  hint: Space delimited list of networks to accept mail from.
+  label: Accepted Networks
+  options: null
+  required: false
+  type: text
+- env: RELAY_SMTP_HOST
+  hint: External relay DNS name.
+  label: SMTP Host
+  options: null
+  required: true
+  type: text
+- env: RELAY_SMTP_LOGIN
+  hint: Login to connect to the external relay.
+  label: SMTP Login
+  options: null
+  required: true
+  type: text
+- env: RELAY_SMTP_PASSWORD
+  hint: Password to connect to the external relay.
+  label: SMTP Password
+  options: null
+  required: true
+  type: password
+- env: RELAY_SMTP_PORT
+  hint: External relay TCP port.
+  label: SMTP Port
+  options: null
+  required: false
+  type: number
+- env: RELAY_TLS_VERIFY
+  hint: 'Trust level for checking remote side cert: http://www.postfix.org/postconf.5.html#smtp_tls_security_level'
+  label: TLS Verify
+  options: null
+  required: false
+  type: text
+- env: RELAY_USE_TLS
+  hint: Remote require tls.
+  label: Use TLS
+  options: null
+  required: false
+  type: text
+tags: []
+title: Postfix Mail Relay
+type: app
+upstream:
+  author: shamil
+  categories:
+  - utilities
+  source: https://github.com/shamil/docker-postfix-relay
+  tipi_version: 5
+  version: 1.4.0
+website: https://github.com/shamil/docker-postfix-relay

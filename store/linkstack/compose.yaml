@@ -1,0 +1,48 @@
+# linkstack: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  linkstack:
+    command:
+    - -c
+    - |-
+      cp -n -r /htdocs/database/ /data/database
+       cp -n /htdocs/.env /data/.env
+       cp -n -r /htdocs/assets/images /data/images
+       cp -n -r /htdocs/themes /data/themes
+       cp -n -r /htdocs/assets/img /data/img
+       chown -R apache:apache /data
+       rm -rf /htdocs/database/
+       rm /htdocs/.env
+       rm -rf /htdocs/assets/images
+       rm -rf /htdocs/themes
+       rm -rf /htdocs/assets/img
+       sed -i 's/FORCE_HTTPS=false/FORCE_HTTPS=true/g' /data/.env
+       ln -s /data/database /htdocs/database
+       ln -s /data/.env /htdocs/.env
+       ln -s /data/images /htdocs/assets/images
+       ln -s /data/themes /htdocs/themes
+       ln -s /data/img/ /htdocs/assets/img
+       cd /htdocs
+       exec /usr/local/bin/docker-entrypoint.sh server
+    entrypoint: /bin/sh
+    environment:
+      DB_CONNECTION: sqlite
+      FORCE_HTTPS: 'false'
+      HTTPS_SERVER_NAME: ${APP_DOMAIN}
+      HTTP_SERVER_NAME: ${APP_DOMAIN}
+      LOG_LEVEL: info
+      PHP_MEMORY_LIMIT: 256M
+      TZ: ${TZ}
+      UPLOAD_MAX_FILESIZE: 8M
+    hostname: linkstack
+    image: linkstackorg/linkstack:latest
+    networks:
+      appnet:
+        aliases:
+        - linkstack_linkstack_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/linkstack:/data

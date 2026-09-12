@@ -1,0 +1,55 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/freshrss-coolify
+description: A free, self-hostable feed aggregator.
+endpoint:
+  port: 80
+  service: freshrss
+env:
+  CRON_MIN: 1,31
+  SERVICE_URL_FRESHRSS_80: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: freshrss-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CRON_MIN
+  hint: 'по умолчанию: 1,31'
+  label: cron min
+  options: null
+  required: false
+  type: text
+tags:
+- rss
+- feed
+title: Freshrss
+type: app
+upstream:
+  categories:
+  - RSS
+  source: https://freshrss.org/index.html
+  tags:
+  - rss
+  - feed
+  template: freshrss.yaml
+website: https://freshrss.org/index.html

@@ -1,0 +1,58 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/homehub-umbrel
+description: A modern hub for family organization
+endpoint:
+  port: 5000
+  service: web
+env:
+  APP_SEED:
+    generate: hex64
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/homehub/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homehub/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homehub/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homehub/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homehub/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/homehub/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: homehub-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: HomeHub
+type: app
+upstream:
+  author: Suraj Verma
+  categories:
+  - files
+  release_notes: |-
+    This update adds a new calendar module with enhanced reminders:
+      - Added a dedicated calendar page for viewing and managing reminders
+      - Improved reminder organization and calendar UX
+
+
+    Full release notes can be found at https://github.com/surajverma/homehub/releases/tag/v0.2.4
+  source: https://github.com/surajverma/homehub
+  version: 0.2.4
+  website: https://github.com/surajverma/homehub
+website: https://github.com/surajverma/homehub

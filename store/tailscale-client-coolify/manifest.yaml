@@ -1,0 +1,70 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/tailscale-client-coolify
+description: Tailscale securely connects your devices over the internet using WireGuard.
+endpoint:
+  port: 80
+  service: nginx
+env:
+  TS_HOSTNAME: coolify-ts
+  TS_STATE_DIR: /var/lib/tailscale
+  TS_USERSPACE: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: tailscale-client-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TS_HOSTNAME
+  hint: 'по умолчанию: coolify-ts'
+  label: ts hostname
+  options: null
+  required: false
+  type: text
+- env: TS_STATE_DIR
+  hint: 'по умолчанию: /var/lib/tailscale'
+  label: ts state dir
+  options: null
+  required: false
+  type: text
+- env: TS_USERSPACE
+  hint: 'по умолчанию: false'
+  label: ts userspace
+  options: null
+  required: false
+  type: text
+tags:
+- vpn
+- wireguard
+- remote-access
+title: Tailscale Client
+type: app
+upstream:
+  categories:
+  - networking
+  source: https://tailscale.com/kb
+  tags:
+  - vpn
+  - wireguard
+  - remote-access
+  template: tailscale-client.yaml
+website: https://tailscale.com/kb

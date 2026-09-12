@@ -1,0 +1,40 @@
+# mage-ai-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mage-ai:
+    command: mage start default_project
+    environment:
+    - SERVICE_URL_MAGEAI_6789=${SERVICE_URL_MAGEAI_6789}
+    - PROJECT_NAME=default_project
+    - USER_CODE_PATH=/home/src/default_project
+    - ENV=production
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -s
+      - -f
+      - -o
+      - /dev/null
+      - http://127.0.0.1:6789
+      timeout: 10s
+    image: mageai/mageai:0.9.78
+    networks:
+      appnet:
+        aliases:
+        - mage-ai-coolify_mage-ai_1
+    restart: unless-stopped
+    volumes:
+    - mageai_data:/home/src/
+volumes:
+  mageai_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/mageai_data
+      o: bind
+      type: none

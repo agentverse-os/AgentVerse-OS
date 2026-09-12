@@ -1,0 +1,36 @@
+# rivet-engine-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  rivet-engine:
+    environment:
+    - SERVICE_URL_RIVET_6420=${SERVICE_URL_RIVET_6420}
+    - RIVET__FILE_SYSTEM__PATH=/data
+    - RIVET__AUTH__ADMIN_TOKEN=${SERVICE_BASE64_TOKEN}
+    healthcheck:
+      interval: 2s
+      retries: 10
+      start_period: 30s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:6420/health
+      timeout: 10s
+    image: rivetdev/engine:2.2.0
+    networks:
+      appnet:
+        aliases:
+        - rivet-engine-coolify_rivet-engine_1
+    restart: unless-stopped
+    volumes:
+    - rivet-data:/data
+volumes:
+  rivet-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/rivet-data
+      o: bind
+      type: none

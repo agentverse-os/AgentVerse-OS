@@ -1,0 +1,107 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/codimd-coolify
+description: Realtime collaborative markdown notes on all platforms
+endpoint:
+  port: 3000
+  service: codimd
+env:
+  CMD_ALLOW_EMAIL_REGISTER: 'true'
+  CMD_EMAIL: 'true'
+  CMD_PROTOCOL_USESSL: 'true'
+  CMD_USECDN: 'false'
+  POSTGRES_DB: codimd-db
+  POSTGRES_USER: ''
+  SERVICE_FQDN_CODIMD: ${APP_DOMAIN}
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_SESSIONSECRET:
+    generate: password
+  SERVICE_URL_CODIMD_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: codimd-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: CMD_PROTOCOL_USESSL
+  hint: 'по умолчанию: true'
+  label: cmd protocol usessl
+  options: null
+  required: false
+  type: text
+- env: CMD_USECDN
+  hint: 'по умолчанию: false'
+  label: cmd usecdn
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: codimd-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: CMD_EMAIL
+  hint: 'по умолчанию: true'
+  label: cmd email
+  options: null
+  required: false
+  type: text
+- env: CMD_ALLOW_EMAIL_REGISTER
+  hint: 'по умолчанию: true'
+  label: cmd allow email register
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- markdown
+- md
+- editor
+- opensource
+- collaborative
+- realtime-collaboration
+- notes
+title: Codimd
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://hackmd.io/c/codimd-documentation
+  tags:
+  - markdown
+  - md
+  - editor
+  - opensource
+  - collaborative
+  - realtime-collaboration
+  - notes
+  template: codimd.yaml
+website: https://hackmd.io/c/codimd-documentation

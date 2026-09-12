@@ -1,0 +1,75 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/firefly-iii
+description: 'Firefly III: a personal finances manager '
+endpoint:
+  port: 8080
+  service: firefly-iii
+env:
+  APP_KEY:
+    generate: token
+  EMAIL: ''
+  MYSQL_PASSWORD:
+    generate: token
+  STATIC_CRON_TOKEN:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: firefly-iii
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: EMAIL
+  hint: null
+  label: Your email
+  options: null
+  required: true
+  type: email
+- env: APP_KEY
+  hint: null
+  label: Random key
+  options: null
+  required: false
+  type: random
+- env: MYSQL_PASSWORD
+  hint: null
+  label: Database password
+  options: null
+  required: false
+  type: random
+- env: STATIC_CRON_TOKEN
+  hint: null
+  label: Random key
+  options: null
+  required: false
+  type: random
+tags: []
+title: Firefly III
+type: app
+upstream:
+  author: JC5
+  categories:
+  - finance
+  source: https://github.com/firefly-iii/firefly-iii
+  tipi_version: 17
+  version: version-6
+website: https://github.com/firefly-iii/firefly-iii

@@ -1,0 +1,146 @@
+# forgejo-with-runner-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  docker-in-docker:
+    environment: DOCKER_TLS_CERTDIR=/certs DOCKER_HOST=docker-in-docker
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD
+      - pgrep
+      - dockerd
+      timeout: 30s
+    hostname: docker
+    image: docker:dind
+    networks:
+      appnet:
+        aliases:
+        - forgejo-with-runner-coolify_docker-in-docker_1
+    privileged: true
+    restart: unless-stopped
+    volumes:
+    - forgejo-did-certs:/certs
+  forgejo:
+    command: bash -c ' /bin/s6-svscan /etc/s6 & sleep 10 ; su -c "forgejo forgejo-cli actions register --secret ${RUNNER_SHARED_SECRET}" git ; sleep infinity '
+    environment:
+    - SERVICE_URL_FORGEJO_3000=${SERVICE_URL_FORGEJO_3000}
+    - FORGEJO__server__ROOT_URL=${SERVICE_URL_FORGEJO}
+    - FORGEJO__migrations__ALLOWED_DOMAINS=${FORGEJO__migrations__ALLOWED_DOMAINS}
+    - FORGEJO__migrations__ALLOW_LOCALNETWORKS=${FORGEJO__migrations__ALLOW_LOCALNETWORKS:-false}
+    - USER_UID=1000
+    - USER_GID=1000
+    - RUNNER_SHARED_SECRET=${RUNNER_SHARED_SECRET-0000000000000000000000000000000000000000}
+    - FORGEJO__repository__ENABLE_PUSH_CREATE_USER=true
+    - FORGEJO__repository__DEFAULT_PUSH_CREATE_PRIVATE=false
+    - FORGEJO__repository__DEFAULT_REPO_UNITS=repo.code,repo.actions
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000
+      timeout: 10s
+    image: codeberg.org/forgejo/forgejo:15
+    networks:
+      appnet:
+        aliases:
+        - forgejo-with-runner-coolify_forgejo_1
+    restart: unless-stopped
+    volumes:
+    - forgejo-data:/data
+    - forgejo-timezone:/etc/timezone:ro
+    - forgejo-localtime:/etc/localtime:ro
+  runner:
+    command: 'bash -c '' while : ; do test -w .runner && forgejo-runner --config config.yml daemon ; sleep 1 ; done '''
+    depends_on:
+      docker-in-docker:
+        condition: service_started
+    environment:
+    - DOCKER_HOST=tcp://docker:2376
+    - DOCKER_CERT_PATH=/certs/client
+    - DOCKER_TLS_VERIFY=1
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD
+      - pgrep
+      - forgejo-runner
+      timeout: 30s
+    image: code.forgejo.org/forgejo/runner:3.5.0
+    links:
+    - docker-in-docker
+    - forgejo
+    networks:
+      appnet:
+        aliases:
+        - forgejo-with-runner-coolify_runner_1
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+    - forgejo-runner-data:/data
+    - forgejo-did-certs:/certs
+    - forgejo-timezone:/etc/timezone:ro
+    - forgejo-localtime:/etc/localtime:ro
+  runner-register:
+    command: |-
+      bash -ec ' while : ; do
+        forgejo-runner create-runner-file --connect --instance ${SERVICE_URL_FORGEJO}:3000 --name runner --secret ${RUNNER_SHARED_SECRET} && break ;
+        sleep 1 ;
+      done ; sed -i -e "s|\"labels\": null|\"labels\": [\"docker:docker://node:20-bookworm\", \"ubuntu-22.04:docker://catthehacker/ubuntu:act-22.04\"]|" .runner ; forgejo-runner generate-config > config.yml ; sed -i -e "s|network: .*|network: host|" config.yml ; sed -i -e "s|^  envs:$$|  envs:\n    DOCKER_HOST: tcp://docker:2376\n    DOCKER_TLS_VERIFY: 1\n    DOCKER_CERT_PATH: /certs/client|" config.yml ; sed -i -e "s|^  options:|  options: -v /certs/client:/certs/client|" config.yml ; sed -i -e "s|  valid_volumes: \[\]$$|  valid_volumes:\n    - /certs/client|" config.yml ; chown -R 1000:1000 /data ; exit 0 '
+    environment:
+    - DOCKER_HOST=tcp://docker-in-docker:2376
+    - RUNNER_SHARED_SECRET=${RUNNER_SHARED_SECRET}
+    healthcheck:
+      disable: true
+    image: code.forgejo.org/forgejo/runner:3.5.0
+    links:
+    - docker-in-docker
+    - forgejo
+    networks:
+      appnet:
+        aliases:
+        - forgejo-with-runner-coolify_runner-register_1
+    restart: no
+    user: 0:0
+    volumes:
+    - forgejo-runner-data:/data
+    - forgejo-timezone:/etc/timezone:ro
+    - forgejo-localtime:/etc/localtime:ro
+volumes:
+  forgejo-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-data
+      o: bind
+      type: none
+  forgejo-did-certs:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-did-certs
+      o: bind
+      type: none
+  forgejo-localtime:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-localtime
+      o: bind
+      type: none
+  forgejo-runner-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-runner-data
+      o: bind
+      type: none
+  forgejo-timezone:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/forgejo-timezone
+      o: bind
+      type: none

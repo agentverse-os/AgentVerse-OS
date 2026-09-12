@@ -1,0 +1,83 @@
+# nextcloud-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  cron:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    entrypoint: /cron.sh
+    image: nextcloud:34.0.3-apache@sha256:365baea128b5e0f45a8dc5111c9234b926f1e6082b4c14d75ae650324ce5d65c
+    networks:
+      appnet:
+        aliases:
+        - nextcloud_cron_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/nextcloud:/var/www/html
+  db:
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    environment:
+    - MYSQL_ROOT_PASSWORD=moneyprintergobrrr
+    - MYSQL_PASSWORD=moneyprintergobrrr
+    - MYSQL_DATABASE=nextcloud
+    - MYSQL_USER=nextcloud
+    - MARIADB_AUTO_UPGRADE=1
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 5s
+    image: mariadb:10.6.21@sha256:8a16204dc96c08ed0ee2c52c0f9324aa5d2dd0e43ad23a471d447a39f75765b5
+    networks:
+      appnet:
+        aliases:
+        - nextcloud_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql
+  redis:
+    image: redis:6.2.2-buster@sha256:e10f55f92478715698a2cef97c2bbdc48df2a05081edd884938903aa60df6396
+    networks:
+      appnet:
+        aliases:
+        - nextcloud_redis_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  web:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+    - MYSQL_HOST=nextcloud_db_1
+    - REDIS_HOST=nextcloud_redis_1
+    - MYSQL_PASSWORD=moneyprintergobrrr
+    - MYSQL_DATABASE=nextcloud
+    - MYSQL_USER=nextcloud
+    - TRUSTED_PROXIES=${NETWORK_IP}/16
+    - NEXTCLOUD_ADMIN_USER=umbrel
+    - NEXTCLOUD_ADMIN_PASSWORD=${APP_PASSWORD}
+    - NEXTCLOUD_TRUSTED_DOMAINS=${APP_DOMAIN}:${APP_NEXTCLOUD_PORT} ${APP_HIDDEN_SERVICE} ${DEVICE_HOSTNAME}:${APP_NEXTCLOUD_PORT} ${APP_NEXTCLOUD_LOCAL_IPS} nextcloud_web_1
+    - PHP_UPLOAD_LIMIT=1024G
+    image: nextcloud:34.0.3-apache@sha256:365baea128b5e0f45a8dc5111c9234b926f1e6082b4c14d75ae650324ce5d65c
+    networks:
+      appnet:
+        aliases:
+        - nextcloud_web_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/nextcloud:/var/www/html

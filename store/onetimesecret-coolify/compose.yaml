@@ -1,0 +1,52 @@
+# onetimesecret-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  onetimesecret:
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_ONETIMESECRET_3000=${SERVICE_URL_ONETIMESECRET_3000}
+    - AUTH_AUTOVERIFY=${AUTH_AUTOVERIFY:-true}
+    - AUTH_SIGNUP=${AUTH_SIGNUP:-true}
+    - COLONEL=${COLONEL:-admin@example.com}
+    - HOST=${HOST:-localhost}
+    - REDIS_URL=redis://:${SERVICE_PASSWORD_REDIS}@redis:6379/0
+    - SECRET=${SERVICE_PASSWORD_ONETIMESECRET}
+    - SSL=${SSL:-false}
+    - RACK_ENV=production
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - ruby
+      - -rnet/http
+      - -e
+      - 'exit(Net::HTTP.get_response(URI(''http://localhost:3000'')).is_a?(Net::HTTPSuccess) ? 0 : 1)'
+      timeout: 10s
+    image: onetimesecret/onetimesecret:latest
+    networks:
+      appnet:
+        aliases:
+        - onetimesecret-coolify_onetimesecret_1
+    restart: unless-stopped
+  redis:
+    command: redis-server --requirepass ${SERVICE_PASSWORD_REDIS}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 10s
+    image: redis:8-alpine
+    networks:
+      appnet:
+        aliases:
+        - onetimesecret-coolify_redis_1
+    restart: unless-stopped

@@ -1,0 +1,38 @@
+# forgejo: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  forgejo:
+    depends_on:
+    - forgejo-db
+    environment:
+      FORGEJO__database__DB_TYPE: postgres
+      FORGEJO__database__HOST: forgejo-db:5432
+      FORGEJO__database__NAME: forgejo
+      FORGEJO__database__PASSWD: ${FORGEJO_DB_PASSWORD}
+      FORGEJO__database__USER: forgejo
+      USER_GID: '1000'
+      USER_UID: '1000'
+    image: codeberg.org/forgejo/forgejo:16.0.3
+    networks:
+      appnet:
+        aliases:
+        - forgejo_forgejo_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/forgejo:/data
+  forgejo-db:
+    environment:
+      POSTGRES_DB: forgejo
+      POSTGRES_PASSWORD: ${FORGEJO_DB_PASSWORD}
+      POSTGRES_USER: forgejo
+    image: postgres:14
+    networks:
+      appnet:
+        aliases:
+        - forgejo_forgejo-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data

@@ -1,0 +1,23 @@
+# sabnzbd-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+    - DOCKER_MODS=linuxserver/mods:universal-package-install
+    - INSTALL_PACKAGES=ffmpeg
+    - PUID=1000
+    - PGID=1000
+    - TZ=Etc/UTC
+    image: linuxserver/sabnzbd:5.1.2@sha256:d22bc8b3185f0e0c1050f6427df6b9ad072f70586b3b1edf916131b0c3101542
+    networks:
+      appnet:
+        aliases:
+        - sabnzbd_web_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${UMBREL_ROOT}/data/storage/downloads:/downloads

@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/memos-umbrel
+description: Easily capture and share your great thoughts
+endpoint:
+  port: 5230
+  service: main
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/memos/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/memos/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/memos/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/memos/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: memos-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Memos
+type: app
+upstream:
+  author: Memos
+  categories:
+  - files
+  release_notes: |-
+    This release adds Memos Web Clipper, a rebuilt Markdown editor, richer memo detail views, flexible multi-column feeds, improved filters, and refreshed settings.
+    It also includes self-hosting and API changes:
+      - Instances without MEMOS_INSTANCE_URL now run in private mode and send anonymous visitors to sign in
+      - Shared-memo API routes, saved time filters, and MCP clients changed; update shortcuts or integrations if you use them
+
+
+    Full release notes are available at https://github.com/usememos/memos/releases/tag/v0.30.0
+  source: https://github.com/usememos/memos
+  version: 0.30.0
+  website: https://www.usememos.com/
+website: https://www.usememos.com/

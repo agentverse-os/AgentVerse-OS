@@ -1,0 +1,84 @@
+# mastodon: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mastodon:
+    depends_on:
+      mastodon-db:
+        condition: service_healthy
+      mastodon-redis:
+        condition: service_healthy
+    environment:
+      ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY: ${MASTODON_ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY}
+      ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: ${MASTODON_ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT}
+      ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY: ${MASTODON_ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY}
+      DB_HOST: mastodon-db
+      DB_NAME: mastodon
+      DB_PASS: ${MASTODON_POSTGRES_PASSWORD}
+      DB_PORT: '5432'
+      DB_USER: tipi
+      ES_ENABLED: 'false'
+      LOCAL_DOMAIN: ${MASTODON_LOCAL_DOMAIN}
+      OTP_SECRET: ${MASTODON_OTP_SECRET}
+      PGID: '1000'
+      PUID: '1000'
+      REDIS_HOST: mastodon-redis
+      REDIS_PASSWORD: ${MASTODON_REDIS_PASSWORD}
+      REDIS_PORT: '6379'
+      S3_ENABLED: 'false'
+      SECRET_KEY_BASE: ${MASTODON_SECRET_KEY_BASE}
+      SIDEKIQ_DEFAULT: 'false'
+      SIDEKIQ_ONLY: 'false'
+      SIDEKIQ_THREADS: '5'
+      SMTP_FROM_ADDRESS: ${MASTODON_SMTP_FROM_ADDRESS}
+      SMTP_LOGIN: ${MASTODON_SMTP_LOGIN}
+      SMTP_PASSWORD: ${MASTODON_SMTP_PASSWORD}
+      SMTP_PORT: ${MASTODON_SMTP_PORT}
+      SMTP_SERVER: ${MASTODON_SMTP_SERVER}
+      TZ: ${TZ}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      WEB_DOMAIN: ${APP_DOMAIN}
+    image: lscr.io/linuxserver/mastodon:4.7.0
+    labels:
+      traefik.http.services.{{RUNTIPI_APP_ID}}.loadbalancer.server.scheme: https
+      traefik.http.services.{{RUNTIPI_APP_ID}}.loadbalancer.serverstransport: insecuretransport@file
+    networks:
+      appnet:
+        aliases:
+        - mastodon_mastodon_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/mastodon-config:/config
+  mastodon-db:
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_DB: mastodon
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_PASSWORD: ${MASTODON_POSTGRES_PASSWORD}
+      POSTGRES_USER: tipi
+    healthcheck:
+      test: pg_isready -U tipi -d mastodon
+    image: postgres:14-alpine
+    networks:
+      appnet:
+        aliases:
+        - mastodon_mastodon-db_1
+    restart: unless-stopped
+    shm_size: 256mb
+    volumes:
+    - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+  mastodon-redis:
+    command: redis-server --appendonly yes --replica-read-only no --requirepass "${MASTODON_REDIS_PASSWORD}"
+    healthcheck:
+      test: redis-cli ping
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - mastodon_mastodon-redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data

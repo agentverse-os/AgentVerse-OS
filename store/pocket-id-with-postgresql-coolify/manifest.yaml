@@ -1,0 +1,188 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pocket-id-with-postgresql-coolify
+description: A simple and secure OIDC provider with passkey authentication
+endpoint:
+  port: 1411
+  service: pocket-id
+env:
+  EMAIL_API_KEY_EXPIRATION_ENABLED: 'false'
+  EMAIL_LOGIN_NOTIFICATION_ENABLED: 'false'
+  EMAIL_ONE_TIME_ACCESS_AS_ADMIN_ENABLED: 'false'
+  KEYS_STORAGE: database
+  MAXMIND_LICENSE_KEY: ''
+  PGID: '1000'
+  POSTGRES_DB: pocketid
+  POSTGRES_USER: ''
+  PUID: '1000'
+  SERVICE_PASSWORD_64_POCKETID:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_POCKETID: https://${APP_DOMAIN}
+  SERVICE_URL_POCKETID_1411: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+  SMTP_FROM: ''
+  SMTP_HOST: ''
+  SMTP_PASSWORD: ''
+  SMTP_PORT: '587'
+  SMTP_SKIP_CERT_VERIFY: 'false'
+  SMTP_TLS: starttls
+  SMTP_USER: ''
+  TRUST_PROXY: 'true'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pocket-id-with-postgresql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TRUST_PROXY
+  hint: 'по умолчанию: true'
+  label: trust proxy
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: pocketid'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: KEYS_STORAGE
+  hint: 'по умолчанию: database'
+  label: keys storage
+  options: null
+  required: false
+  type: password
+- env: MAXMIND_LICENSE_KEY
+  hint: null
+  label: maxmind license key
+  options: null
+  required: false
+  type: password
+- env: SMTP_HOST
+  hint: null
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: 'по умолчанию: 587'
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_FROM
+  hint: null
+  label: smtp from
+  options: null
+  required: false
+  type: text
+- env: SMTP_USER
+  hint: null
+  label: smtp user
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: null
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: SMTP_TLS
+  hint: 'по умолчанию: starttls'
+  label: smtp tls
+  options: null
+  required: false
+  type: text
+- env: SMTP_SKIP_CERT_VERIFY
+  hint: 'по умолчанию: false'
+  label: smtp skip cert verify
+  options: null
+  required: false
+  type: text
+- env: EMAIL_LOGIN_NOTIFICATION_ENABLED
+  hint: 'по умолчанию: false'
+  label: email login notification enabled
+  options: null
+  required: false
+  type: text
+- env: EMAIL_ONE_TIME_ACCESS_AS_ADMIN_ENABLED
+  hint: 'по умолчанию: false'
+  label: email one time access as admin enabled
+  options: null
+  required: false
+  type: text
+- env: EMAIL_API_KEY_EXPIRATION_ENABLED
+  hint: 'по умолчанию: false'
+  label: email api key expiration enabled
+  options: null
+  required: false
+  type: password
+- env: PUID
+  hint: 'по умолчанию: 1000'
+  label: puid
+  options: null
+  required: false
+  type: text
+- env: PGID
+  hint: 'по умолчанию: 1000'
+  label: pgid
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- identity
+- oidc
+- oauth
+- passkey
+- webauthn
+- authentication
+- sso
+- openid
+- postgresql
+title: Pocket Id With Postgresql
+type: app
+upstream:
+  categories:
+  - auth
+  source: https://pocket-id.org/docs/setup/installation
+  tags:
+  - identity
+  - oidc
+  - oauth
+  - passkey
+  - webauthn
+  - authentication
+  - sso
+  - openid
+  - postgresql
+  template: pocket-id-with-postgresql.yaml
+website: https://pocket-id.org/docs/setup/installation

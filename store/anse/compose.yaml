@@ -1,0 +1,15 @@
+# anse: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  anse:
+    environment:
+    - PORT=8014
+    image: ddiu8081/anse:v1.1.11
+    networks:
+      appnet:
+        aliases:
+        - anse_anse_1
+    restart: unless-stopped

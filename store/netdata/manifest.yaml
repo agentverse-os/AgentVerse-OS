@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/netdata
+description: Open-source, real-time, performance and health monitoring.
+endpoint:
+  port: 19999
+  service: netdata
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: netdata
+notes:
+- 'netdata: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Netdata
+type: app
+upstream:
+  author: netdata
+  categories:
+  - utilities
+  source: https://github.com/netdata/netdata
+  tipi_version: 69
+  version: v2.11.0
+website: https://github.com/netdata/netdata

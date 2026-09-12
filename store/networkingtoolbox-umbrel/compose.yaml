@@ -1,0 +1,28 @@
+# networkingtoolbox-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      PORT: 3000
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - wget
+      - -qO-
+      - http://localhost:3000/health
+      timeout: 10s
+    image: ghcr.io/lissy93/networking-toolbox:1.6.0@sha256:4e97330fb310e1a5fbe185b1bf859270902ddef7934b88cecc6b3def98d21eaa
+    networks:
+      appnet:
+        aliases:
+        - networkingtoolbox_app_1
+    restart: on-failure
+    user: 1000:1000

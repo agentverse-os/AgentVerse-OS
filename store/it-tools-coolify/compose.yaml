@@ -1,0 +1,33 @@
+# it-tools-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  it-tools:
+    environment:
+    - SERVICE_URL_ITTOOLS_80=${SERVICE_URL_ITTOOLS_80}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: corentinth/it-tools:latest
+    networks:
+      appnet:
+        aliases:
+        - it-tools-coolify_it-tools_1
+    restart: unless-stopped
+    volumes:
+    - it-tools-data:/app/data
+volumes:
+  it-tools-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/it-tools-data
+      o: bind
+      type: none

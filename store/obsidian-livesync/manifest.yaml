@@ -1,0 +1,66 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/obsidian-livesync
+description: LiveSync couchdb backend for Obsidian
+endpoint:
+  port: 5984
+  service: obsidian-livesync
+env:
+  CUSTOM_PORTOBSIDIAN_LIVESYNC_PORT: '5984'
+  OBSIDIAN_LIVESYNC_PASSWORD:
+    generate: password
+  OBSIDIAN_LIVESYNC_USER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: OBSIDIAN_LIVESYNC_PASSWORD
+  path: null
+  user: OBSIDIAN_LIVESYNC_USER
+name: obsidian-livesync
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: OBSIDIAN_LIVESYNC_USER
+  hint: null
+  label: CouchDB username
+  options: null
+  required: true
+  type: text
+- env: OBSIDIAN_LIVESYNC_PASSWORD
+  hint: null
+  label: CouchDB password
+  options: null
+  required: true
+  type: password
+- env: CUSTOM_PORTOBSIDIAN_LIVESYNC_PORT
+  hint: Default is 5984
+  label: CouchDB port
+  options: null
+  required: false
+  type: number
+tags: []
+title: Obsidian LiveSync
+type: app
+upstream:
+  author: vorotamoroz
+  categories:
+  - utilities
+  source: https://github.com/vrtmrz/self-hosted-livesync-server
+  tipi_version: 8
+  version: 3.5.2
+website: https://github.com/vrtmrz/self-hosted-livesync-server

@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/opengist-umbrel
+description: A Git-powered pastebin for code snippets and notes
+endpoint:
+  port: 6157
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/opengist/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/opengist/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/opengist/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/opengist/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/opengist/5.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/opengist/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: opengist-umbrel
+notes:
+- 'порт 2224:2224 (server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Opengist
+type: app
+upstream:
+  author: Thomas Miceli
+  categories:
+  - developer
+  release_notes: This update adds anonymous LDAP user search and fixes several edge cases, including symbolic-link writes in gists, empty CSV rendering crashes, invalid Git cat-file batch headers, and overlapping headers in narrow embeds.
+  source: https://github.com/thomiceli/opengist
+  version: 1.15.2
+  website: https://opengist.io/
+website: https://opengist.io/

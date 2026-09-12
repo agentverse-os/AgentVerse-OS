@@ -1,0 +1,46 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/pairdrop
+description: Local file sharing in your browser. Inspired by Apple's AirDrop
+endpoint:
+  port: 3000
+  service: pairdrop
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: pairdrop
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: PairDrop
+type: app
+upstream:
+  author: schlagmichdoch
+  categories:
+  - media
+  - data
+  - utilities
+  source: https://github.com/schlagmichdoch/PairDrop
+  tipi_version: 34
+  version: 1.11.2
+website: https://github.com/schlagmichdoch/PairDrop

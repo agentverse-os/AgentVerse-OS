@@ -1,0 +1,77 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/blockstream-blind-oracle-umbrel
+description: Encrypt your wallet on Blockstream Jade
+endpoint:
+  port: 3344
+  service: web
+env:
+  APP_PINSERVER_HIDDEN_SERVICE: ''
+  APP_PINSERVER_PORT: '8097'
+  APP_PINSERVER_WEB_HOST_PORT: '8102'
+  APP_PINSERVER_WEB_PORT: '8095'
+  APP_TAILSCALE_URL: ''
+  TOR_DATA_DIR: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/blockstream-blind-oracle/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/blockstream-blind-oracle/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/blockstream-blind-oracle/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/blockstream-blind-oracle/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: blockstream-blind-oracle-umbrel
+notes:
+- 'порт $APP_PINSERVER_PORT:8096 (node) не публикуется: доступ только через edge/gate'
+- 'порт $APP_PINSERVER_WEB_HOST_PORT:$APP_PINSERVER_WEB_PORT (web) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: TOR_DATA_DIR
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: tor data dir
+  options: null
+  required: false
+  type: text
+- env: APP_PINSERVER_HIDDEN_SERVICE
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app pinserver hidden service
+  options: null
+  required: false
+  type: text
+- env: APP_TAILSCALE_URL
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app tailscale url
+  options: null
+  required: false
+  type: text
+tags: []
+title: Blockstream Blind Oracle
+type: app
+upstream:
+  author: Blockstream
+  categories:
+  - bitcoin
+  release_notes: |-
+    This security update upgrades the bundled Tor sidecar to 0.4.9.11, restoring Tor connectivity and including the latest Tor security fixes. The primary app version is unchanged.
+
+    Fixes a port conflict with AdGuard Home.
+  source: https://github.com/Blockstream/blind_pin_server
+  version: 0.1.2-patch.1
+  website: https://blockstream.com
+website: https://blockstream.com

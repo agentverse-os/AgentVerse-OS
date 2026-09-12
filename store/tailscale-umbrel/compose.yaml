@@ -1,0 +1,38 @@
+# tailscale-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    cap_add:
+    - NET_ADMIN
+    - NET_RAW
+    command:
+    - sh
+    - -c
+    - |
+      tailscale web --listen 0.0.0.0:8240 &
+
+      (
+        for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do
+          if tailscale set --accept-routes=false >/dev/null 2>&1; then
+            exit 0
+          fi
+          sleep 1
+        done
+
+        echo "Warning: failed to disable Tailscale accept-routes; continuing"
+      ) &
+
+      exec tailscaled
+    devices:
+    - /dev/net/tun:/dev/net/tun
+    environment:
+    - TS_DEBUG_FIREWALL_MODE=nftables
+    image: tailscale/tailscale:v1.102.3@sha256:8c42c4574ab066384fcb72f69e086a2ff1dd3652eb6f56856cee34bcf0d2f680
+    network_mode: host
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data:/var/lib

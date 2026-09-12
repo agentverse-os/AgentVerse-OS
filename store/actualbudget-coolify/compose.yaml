@@ -1,0 +1,32 @@
+# actualbudget-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  actual_server:
+    environment:
+    - SERVICE_URL_ACTUAL_5006=${SERVICE_URL_ACTUAL_5006}
+    - ACTUAL_LOGIN_METHOD=password
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - bash -c ':> /dev/tcp/127.0.0.1/5006' || exit 1
+      timeout: 20s
+    image: actualbudget/actual-server:latest
+    networks:
+      appnet:
+        aliases:
+        - actualbudget-coolify_actual_server_1
+    restart: unless-stopped
+    volumes:
+    - actual_data:/data
+volumes:
+  actual_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/actual_data
+      o: bind
+      type: none

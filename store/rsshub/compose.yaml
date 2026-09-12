@@ -1,0 +1,41 @@
+# rsshub: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  browserless:
+    image: browserless/chrome
+    networks:
+      appnet:
+        aliases:
+        - rsshub_browserless_1
+    restart: unless-stopped
+    ulimits:
+      core:
+        hard: 0
+        soft: 0
+  redis:
+    image: redis:alpine
+    networks:
+      appnet:
+        aliases:
+        - rsshub_redis_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/redis:/data
+  rsshub:
+    depends_on:
+    - redis
+    - browserless
+    environment:
+      NODE_ENV: production
+      PUPPETEER_WS_ENDPOINT: ws://rsshub-browserless:3000
+      REDIS_URL: redis://rsshub-redis:6379/
+      TZ: ${TZ}
+    image: diygod/rsshub:2026-04-17
+    networks:
+      appnet:
+        aliases:
+        - rsshub_rsshub_1
+    restart: unless-stopped

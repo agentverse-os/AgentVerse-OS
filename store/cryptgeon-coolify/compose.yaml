@@ -1,0 +1,49 @@
+# cryptgeon-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_CRYPTGEON_8000=${SERVICE_URL_CRYPTGEON_8000}
+    - SIZE_LIMIT=${SIZE_LIMIT:-4 MiB}
+    - MAX_VIEWS=${MAX_VIEWS:-100}
+    - MAX_EXPIRATION=${MAX_EXPIRATION:-360}
+    - ALLOW_ADVANCED=${ALLOW_ADVANCED:-true}
+    - ALLOW_FILES=${ALLOW_FILES:-true}
+    healthcheck:
+      interval: 1m
+      retries: 2
+      start_period: 5s
+      test:
+      - CMD
+      - curl
+      - --fail
+      - http://127.0.0.1:8000/api/live/
+      timeout: 3s
+    image: cupcakearmy/cryptgeon:latest
+    networks:
+      appnet:
+        aliases:
+        - cryptgeon-coolify_app_1
+    restart: unless-stopped
+  redis:
+    command: redis-server --maxmemory 200mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      interval: 5s
+      retries: 2
+      test:
+      - CMD
+      - redis-cli
+      - PING
+      timeout: 10s
+    image: redis:7-alpine
+    networks:
+      appnet:
+        aliases:
+        - cryptgeon-coolify_redis_1
+    restart: unless-stopped

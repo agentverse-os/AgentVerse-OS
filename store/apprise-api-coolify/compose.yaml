@@ -1,0 +1,27 @@
+# apprise-api-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  apprise-api:
+    environment:
+    - SERVICE_URL_APPRISE_8000=${SERVICE_URL_APPRISE_8000}
+    - PUID=1000
+    - PGID=1000
+    - TZ=UTC
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:8000/
+      timeout: 20s
+    image: linuxserver/apprise-api:latest
+    networks:
+      appnet:
+        aliases:
+        - apprise-api-coolify_apprise-api_1
+    restart: unless-stopped
+    volumes:
+    - /apprise-api/config:/config

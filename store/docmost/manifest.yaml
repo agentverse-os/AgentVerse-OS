@@ -1,0 +1,61 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/docmost
+description: An open-source collaborative wiki and documentation software
+endpoint:
+  port: 3000
+  service: docmost
+env:
+  DOCMOST_APP_SECRET:
+    generate: hex64
+  DOCMOST_PG_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: docmost
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DOCMOST_APP_SECRET
+  hint: null
+  label: App Secret
+  options: null
+  required: false
+  type: random
+- env: DOCMOST_PG_PASSWORD
+  hint: null
+  label: Postgres database password
+  options: null
+  required: false
+  type: random
+tags: []
+title: Docmost
+type: app
+upstream:
+  author: docmost
+  categories:
+  - data
+  - utilities
+  source: https://github.com/docmost/docmost
+  tipi_version: 64
+  version: 0.95.0
+website: https://github.com/docmost/docmost

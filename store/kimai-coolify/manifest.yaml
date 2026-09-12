@@ -1,0 +1,93 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/kimai-coolify
+description: Open source time-tracking app.
+endpoint:
+  port: 8001
+  service: kimai
+env:
+  ADMINMAIL: admin@kimai.local
+  MAILER_FROM: kimai@example.com
+  MAILER_URL: null://null
+  MYSQL_DATABASE: kimai
+  SERVICE_PASSWORD_ADMINPASS:
+    generate: password
+  SERVICE_PASSWORD_APPSECRET:
+    generate: password
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_URL_KIMAI_8001: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+  TRUSTED_HOSTS: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMINPASS
+  path: null
+  user: null
+name: kimai-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: kimai'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: MAILER_FROM
+  hint: 'по умолчанию: kimai@example.com'
+  label: mailer from
+  options: null
+  required: false
+  type: text
+- env: MAILER_URL
+  hint: 'по умолчанию: null://null'
+  label: mailer url
+  options: null
+  required: false
+  type: text
+- env: ADMINMAIL
+  hint: 'по умолчанию: admin@kimai.local'
+  label: adminmail
+  options: null
+  required: false
+  type: text
+- env: TRUSTED_HOSTS
+  hint: null
+  label: trusted hosts
+  options: null
+  required: false
+  type: text
+tags:
+- time-tracking
+- open-source
+title: Kimai
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://www.kimai.org/
+  tags:
+  - time-tracking
+  - open-source
+  template: kimai.yaml
+website: https://www.kimai.org/

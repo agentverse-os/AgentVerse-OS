@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bisq2-node-umbrel
+description: Run your own Bisq 2 node for private Bitcoin trading
+endpoint:
+  port: 8091
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/bisq2-node/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bisq2-node/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bisq2-node/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/bisq2-node/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bisq2-node-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Bisq 2 Node
+type: app
+upstream:
+  author: Bisq
+  categories:
+  - bitcoin
+  release_notes: |-
+    Important security update that fixes vulnerabilities identified during Bisq's recent security audit. Updating to this version is required to continue trading.
+
+    Full release notes can be found at https://github.com/bisq-network/bisq2/releases/tag/v2.1.12
+  source: https://github.com/bisq-network/bisq2
+  version: 2.1.12.0
+  website: https://bisq.network
+website: https://bisq.network

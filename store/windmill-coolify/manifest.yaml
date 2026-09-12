@@ -1,0 +1,76 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/windmill-coolify
+description: Windmill is a developer platform to build production-grade multi-steps automations and internal apps.
+endpoint:
+  port: 8000
+  service: db
+env:
+  POSTGRES_DB: windmill-db
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_WINDMILL: https://${APP_DOMAIN}
+  SERVICE_URL_WINDMILL_8000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: windmill-coolify
+notes:
+- 'windmill-worker-1: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+- 'windmill-worker-2: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+- 'windmill-worker-3: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: windmill-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- windmill
+- workflow
+- automation
+- developer
+- platform
+title: Windmill
+type: app
+upstream:
+  categories:
+  - automation
+  source: https://www.windmill.dev/docs/
+  tags:
+  - windmill
+  - workflow
+  - automation
+  - developer
+  - platform
+  template: windmill.yaml
+website: https://www.windmill.dev/docs/

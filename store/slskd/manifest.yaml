@@ -1,0 +1,81 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/slskd
+description: P2P downloads
+endpoint:
+  port: 5030
+  service: slskd
+env:
+  SLSKD_PASSWORD:
+    generate: password
+  SLSKD_REMOTE_CONFIGURATION: ''
+  SLSKD_USER: ''
+  SLSKD_WEB_PASSWORD:
+    generate: password
+  SLSKD_WEB_USER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: SLSKD_WEB_PASSWORD
+  path: null
+  user: SLSKD_WEB_USER
+name: slskd
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SLSKD_WEB_USER
+  hint: null
+  label: WebUI username
+  options: null
+  required: true
+  type: text
+- env: SLSKD_WEB_PASSWORD
+  hint: null
+  label: WebUI password
+  options: null
+  required: true
+  type: password
+- env: SLSKD_USER
+  hint: null
+  label: Soulseek username
+  options: null
+  required: true
+  type: text
+- env: SLSKD_PASSWORD
+  hint: null
+  label: Soulseek password
+  options: null
+  required: true
+  type: password
+- env: SLSKD_REMOTE_CONFIGURATION
+  hint: null
+  label: Allow remote configuration
+  options: null
+  required: true
+  type: boolean
+tags: []
+title: SLSKD
+type: app
+upstream:
+  author: jpdillingham
+  categories:
+  - utilities
+  source: https://github.com/slskd/slskd
+  tipi_version: 27
+  version: 0.26.0
+website: https://github.com/slskd/slskd

@@ -1,0 +1,52 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/neko-umbrel
+description: A self-hosted virtual browser powered by WebRTC
+endpoint:
+  port: 8080
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/neko/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/neko/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/neko/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/neko/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: neko-umbrel
+notes:
+- 'порт 52000-52100:52000-52100/udp (web) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Neko
+type: app
+upstream:
+  author: m1k1o
+  categories:
+  - networking
+  release_notes: |-
+    This update adds H.265 (HEVC) video encoding support, improves keyboard input compatibility, and syncs the clipboard automatically when the browser window gains focus.
+    It also improves NVIDIA video encoding support, reduces audio latency, adds Widevine DRM support for ARM64, and fixes several video pipeline, CORS, legacy host, and browser image issues.
+    Full release notes can be found at https://github.com/m1k1o/neko/releases/tag/v3.1.5
+  source: https://github.com/m1k1o/neko
+  version: 3.1.5
+  website: https://neko.m1k1o.net/
+website: https://neko.m1k1o.net/

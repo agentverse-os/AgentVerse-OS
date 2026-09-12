@@ -1,0 +1,20 @@
+# kavita: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  kavita:
+    environment:
+      TZ: ${TZ}
+    image: jvmilazz0/kavita:0.9.0
+    networks:
+      appnet:
+        aliases:
+        - kavita_kavita_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/kavita-config:/kavita/config
+    - ${ROOT_FOLDER_HOST}/media/data/books:/books
+    - ${ROOT_FOLDER_HOST}/media/data/comics:/comics
+    - ${ROOT_FOLDER_HOST}/media/data/manga:/manga

@@ -1,0 +1,60 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/logto
+description: 'Logto is a cost-effective open-source alternative to Auth0. '
+endpoint:
+  port: 3001
+  service: logto
+env:
+  LOGTO_ADMIN_URL: ''
+  LOGTO_DB_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: logto
+notes:
+- 'порт 8204→3002 (logto) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LOGTO_DB_PASSWORD
+  hint: null
+  label: Database Password
+  options: null
+  required: false
+  type: random
+- env: LOGTO_ADMIN_URL
+  hint: 'Example: admin.example.com'
+  label: Logto Admin Console URL URL
+  options: null
+  required: true
+  type: text
+tags: []
+title: Logto
+type: app
+upstream:
+  author: Logto Team
+  categories:
+  - security
+  source: https://github.com/logto-io/logto
+  tipi_version: 53
+  version: 1.42.0
+website: https://github.com/logto-io/logto

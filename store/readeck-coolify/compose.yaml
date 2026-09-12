@@ -1,0 +1,35 @@
+# readeck-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  readeck:
+    environment:
+    - SERVICE_URL_READECK=${SERVICE_URL_READECK}
+    - READECK_USE_X_FORWARDED=${READECK_USE_X_FORWARDED:-true}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - /bin/readeck
+      - healthcheck
+      - -config
+      - config.toml
+      timeout: 2s
+    image: codeberg.org/readeck/readeck:latest
+    networks:
+      appnet:
+        aliases:
+        - readeck-coolify_readeck_1
+    restart: unless-stopped
+    volumes:
+    - readeck_data:/readeck
+volumes:
+  readeck_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/readeck_data
+      o: bind
+      type: none

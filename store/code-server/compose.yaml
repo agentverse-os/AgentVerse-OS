@@ -1,0 +1,24 @@
+# code-server: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  code-server:
+    environment:
+      DEFAULT_WORKSPACE: /config/workspace
+      PASSWORD: ${CODESERVER_PASSWORD}
+      PGID: '1000'
+      PUID: '1000'
+      SUDO_PASSWORD: ${CODESERVER_SUDO_PASSWORD}
+      TZ: ${TZ}
+    image: lscr.io/linuxserver/code-server:4.134.0
+    networks:
+      appnet:
+        aliases:
+        - code-server_code-server_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${APP_DATA_DIR}/data/projects:/projects
+    - ${ROOT_FOLDER_HOST}:/runtipi

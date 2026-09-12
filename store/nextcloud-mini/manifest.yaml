@@ -1,0 +1,74 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nextcloud-mini
+description: A safe home for all your data.
+endpoint:
+  port: 80
+  service: nextcloud-mini
+env:
+  NEXTCLOUD_MINI_ADMIN_PASSWORD:
+    generate: password
+  NEXTCLOUD_MINI_ADMIN_USER: ''
+  NEXTCLOUD_MINI_DB_PASSWORD:
+    generate: token
+  NEXTCLOUD_MINI_TRUSTED_DOMAINS: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: NEXTCLOUD_MINI_ADMIN_PASSWORD
+  path: null
+  user: NEXTCLOUD_MINI_ADMIN_USER
+name: nextcloud-mini
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NEXTCLOUD_MINI_ADMIN_USER
+  hint: The username which you will use to sign in to nextcloud.
+  label: Nextcloud user
+  options: null
+  required: true
+  type: text
+- env: NEXTCLOUD_MINI_ADMIN_PASSWORD
+  hint: The password which you will use to sign in to nextcloud.
+  label: Nextcloud password
+  options: null
+  required: true
+  type: password
+- env: NEXTCLOUD_MINI_TRUSTED_DOMAINS
+  hint: Add all of your trusted domains separated by a space.
+  label: Nextcloud trusted domains
+  options: null
+  required: false
+  type: text
+- env: NEXTCLOUD_MINI_DB_PASSWORD
+  hint: null
+  label: Nextcloud database password
+  options: null
+  required: false
+  type: random
+tags: []
+title: Nextcloud Mini
+type: app
+upstream:
+  author: nextcloud
+  categories:
+  - data
+  source: https://github.com/nextcloud/server
+  tipi_version: 20
+  version: 34.0.2
+website: https://github.com/nextcloud/server

@@ -1,0 +1,39 @@
+# gitea-mirror-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      BETTER_AUTH_SECRET: ${APP_SEED}
+      BETTER_AUTH_TRUSTED_ORIGINS: '*'
+      BETTER_AUTH_URL: http://${DEVICE_DOMAIN_NAME}:${APP_GITEA_MIRROR_PORT}
+      DATABASE_URL: file:data/gitea-mirror.db
+      HOST: 0.0.0.0
+      MIRROR_ISSUE_CONCURRENCY: '3'
+      MIRROR_PULL_REQUEST_CONCURRENCY: '5'
+      NODE_ENV: production
+      PORT: '4321'
+      PUBLIC_BETTER_AUTH_URL: http://${DEVICE_DOMAIN_NAME}:${APP_GITEA_MIRROR_PORT}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 15s
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=3
+      - --spider
+      - http://localhost:4321/api/health
+      timeout: 10s
+    image: ghcr.io/raylabshq/gitea-mirror:v3.30.0@sha256:4bb9a0bad51eed3d91f650b39acf6123300cb935e32542cc94342b28ada4aa03
+    networks:
+      appnet:
+        aliases:
+        - gitea-mirror_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data

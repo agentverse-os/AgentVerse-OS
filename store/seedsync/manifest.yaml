@@ -1,0 +1,58 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/seedsync
+description: SeedSync is a tool to sync the files on a remote Linux server.
+endpoint:
+  port: 8800
+  service: seedsync
+env:
+  SEEDSYNC_PGID: ''
+  SEEDSYNC_PUID: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: seedsync
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SEEDSYNC_PUID
+  hint: Ensure any volume directories on the host are owned by the same user you specify
+  label: UID
+  options: null
+  required: false
+  type: number
+- env: SEEDSYNC_PGID
+  hint: Ensure any volume directories on the host are owned by the same group you specify
+  label: GUID
+  options: null
+  required: false
+  type: number
+tags: []
+title: SeedSync
+type: app
+upstream:
+  author: Inderpreet Singh
+  categories:
+  - utilities
+  source: https://github.com/ipsingh06/seedsync
+  tipi_version: 5
+  version: 0.8.6
+website: https://github.com/ipsingh06/seedsync

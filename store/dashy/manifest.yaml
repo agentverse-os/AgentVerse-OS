@@ -1,0 +1,44 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/dashy
+description: A self-hostable personal dashboard built for you.
+endpoint:
+  port: 8080
+  service: dashy
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: dashy
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Dashy
+type: app
+upstream:
+  author: lissy93
+  categories:
+  - utilities
+  source: https://github.com/lissy93/dashy
+  tipi_version: 125
+  version: 4.6.6
+website: https://github.com/lissy93/dashy

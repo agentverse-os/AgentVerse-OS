@@ -1,0 +1,72 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cloudreve-coolify
+description: A self-hosted file management and sharing system.
+endpoint:
+  port: 5212
+  service: cloudreve
+env:
+  POSTGRES_DB: cloudreve-db
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_URL_CLOUDREVE_5212: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cloudreve-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: cloudreve-db'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- file sharing
+- cloud storage
+- self-hosted
+- open-source
+title: Cloudreve
+type: app
+upstream:
+  categories:
+  - storage
+  source: https://docs.cloudreve.org/
+  tags:
+  - file sharing
+  - cloud storage
+  - self-hosted
+  - open-source
+  template: cloudreve.yaml
+website: https://docs.cloudreve.org/

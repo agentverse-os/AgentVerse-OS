@@ -1,0 +1,19 @@
+# excalidraw-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+    - PORT=4000
+    - NODE_ENV=production
+    - DB_PATH=/app/data/database.sqlite
+    image: ghcr.io/ozencb/excalidraw-persist:0.18.0-persist.7@sha256:8c86a50d299cdcd27e178e80e7567479bf9b6c5eb62d08abbbfcd5ddba60bc26
+    networks:
+      appnet:
+        aliases:
+        - excalidraw_app_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data:/app/data:rw

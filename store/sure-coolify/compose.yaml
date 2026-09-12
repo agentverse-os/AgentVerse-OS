@@ -1,0 +1,137 @@
+# sure-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  postgresql:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-sure}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      timeout: 20s
+    image: postgres:16-alpine
+    networks:
+      appnet:
+        aliases:
+        - sure-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - sure-postgresql-data:/var/lib/postgresql/data
+  valkey:
+    command: valkey-server --appendonly yes
+    healthcheck:
+      interval: 5s
+      retries: 5
+      start_period: 3s
+      test:
+      - CMD-SHELL
+      - valkey-cli ping | grep PONG
+      timeout: 5s
+    image: valkey/valkey:8-alpine
+    networks:
+      appnet:
+        aliases:
+        - sure-coolify_valkey_1
+    restart: unless-stopped
+    volumes:
+    - sure-valkey:/data
+  web:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_SURE_3000=${SERVICE_URL_SURE_3000}
+    - APP_DOMAIN=$SERVICE_FQDN_SURE
+    - SECRET_KEY_BASE=$SERVICE_BASE64_BASE
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-sure}
+    - REDIS_URL=redis://valkey:6379
+    - DB_HOST=postgresql
+    - DB_PORT=5432
+    - SELF_HOSTED=true
+    - RAILS_FORCE_SSL=false
+    - RAILS_ASSUME_SSL=false
+    - ONBOARDING_STATE=${ONBOARDING_STATE:-open}
+    healthcheck:
+      interval: 15s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000
+      timeout: 20s
+    image: ghcr.io/we-promise/sure:0.6.7
+    networks:
+      appnet:
+        aliases:
+        - sure-coolify_web_1
+    restart: unless-stopped
+    volumes:
+    - sure-app-storage:/rails/storage
+  worker:
+    command: bundle exec sidekiq
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    environment:
+    - APP_DOMAIN=$SERVICE_FQDN_SURE
+    - SECRET_KEY_BASE=$SERVICE_BASE64_BASE
+    - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-sure}
+    - REDIS_URL=redis://valkey:6379
+    - DB_HOST=postgresql
+    - DB_PORT=5432
+    - SELF_HOSTED=true
+    - RAILS_FORCE_SSL=false
+    - RAILS_ASSUME_SSL=false
+    - ONBOARDING_STATE=${ONBOARDING_STATE:-open}
+    healthcheck:
+      interval: 15s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:3000
+      timeout: 20s
+    image: ghcr.io/we-promise/sure:0.6.7
+    networks:
+      appnet:
+        aliases:
+        - sure-coolify_worker_1
+    restart: unless-stopped
+    volumes:
+    - sure-app-storage:/rails/storage
+volumes:
+  sure-app-storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sure-app-storage
+      o: bind
+      type: none
+  sure-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sure-postgresql-data
+      o: bind
+      type: none
+  sure-valkey:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/sure-valkey
+      o: bind
+      type: none

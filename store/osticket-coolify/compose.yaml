@@ -1,0 +1,79 @@
+# osticket-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  mariadb:
+    environment:
+      MARIADB_DATABASE: ${OSTICKET_DATABASE:-osticket-db}
+      MARIADB_PASSWORD: ${SERVICE_PASSWORD_MARIADB}
+      MARIADB_ROOT_PASSWORD: ${SERVICE_PASSWORD_MARIADBROOT}
+      MARIADB_USER: ${SERVICE_USER_MARIADB}
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - healthcheck.sh
+      - --connect
+      - --innodb_initialized
+      timeout: 5s
+    image: mariadb:11
+    networks:
+      appnet:
+        aliases:
+        - osticket-coolify_mariadb_1
+    restart: unless-stopped
+    volumes:
+    - osticket-mariadb-data:/var/lib/mysql
+  osticket:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_OSTICKET_80=${SERVICE_URL_OSTICKET_80}
+    - APP_URL=${SERVICE_URL_OSTICKET}
+    - CRON_INTERVAL=${CRON_INTERVAL:-10}
+    - DB_HOST=mariadb
+    - DB_NAME=${OSTICKET_DATABASE:-osticket-db}
+    - DB_USER=${SERVICE_USER_MARIADB}
+    - DB_PASS=${SERVICE_PASSWORD_MARIADB}
+    - INSTALL_SECRET=${SERVICE_PASSWORD_OSTICKETSECRET}
+    - ADMIN_FIRSTNAME=${OSTICKET_FIRSTNAME:-Admin}
+    - ADMIN_LASTNAME=${OSTICKET_LASTNAME:-istrator}
+    - ADMIN_EMAIL=${OSTICKET_ADMIN_EMAIL:-admin@example.com}
+    - ADMIN_USER=${SERVICE_USER_OSTICKETADMIN}
+    - ADMIN_PASS=${SERVICE_PASSWORD_OSTICKETADMINPASS}
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1/
+      timeout: 5s
+    image: tiredofit/osticket:latest
+    networks:
+      appnet:
+        aliases:
+        - osticket-coolify_osticket_1
+    restart: unless-stopped
+    volumes:
+    - osticket-data:/www/osticket
+volumes:
+  osticket-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/osticket-data
+      o: bind
+      type: none
+  osticket-mariadb-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/osticket-mariadb-data
+      o: bind
+      type: none

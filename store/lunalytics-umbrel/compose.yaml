@@ -1,0 +1,25 @@
+# lunalytics-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 90s
+      test:
+      - CMD-SHELL
+      - nc -z 127.0.0.1 2308 || exit 1
+      timeout: 5s
+    image: ksjaay/lunalytics:0.10.23@sha256:b1e44f9e647e3e240400eafc914facafbfad2cc87d6c4f02d823226dd9731511
+    networks:
+      appnet:
+        aliases:
+        - lunalytics_web_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/lunalytics_data:/app/data:rw
+    - ${APP_DATA_DIR}/data/logs:/app/logs:rw

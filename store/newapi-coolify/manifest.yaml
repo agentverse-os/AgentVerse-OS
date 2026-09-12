@@ -1,0 +1,88 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/newapi-coolify
+description: The next-generation LLM gateway and AI asset management system supports multiple languages.
+endpoint:
+  port: 3000
+  service: new-api
+env:
+  ERROR_LOG_ENABLED: 'true'
+  POSTGRES_DATABASE: newapi
+  POSTGRES_DB: newapi
+  POSTGRES_USER: ''
+  SERVICE_BASE64_64_SESSION:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_NEW: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: newapi-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DATABASE
+  hint: 'по умолчанию: newapi'
+  label: postgres database
+  options: null
+  required: false
+  type: text
+- env: ERROR_LOG_ENABLED
+  hint: 'по умолчанию: true'
+  label: error log enabled
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: newapi'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- api
+- openai
+- llm
+- api-gateway
+- api-management
+title: Newapi
+type: app
+upstream:
+  categories:
+  - api
+  source: https://docs.newapi.pro/en/getting-started/
+  tags:
+  - api
+  - openai
+  - llm
+  - api-gateway
+  - api-management
+  template: newapi.yaml
+website: https://docs.newapi.pro/en/getting-started/

@@ -1,0 +1,52 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/stirling-pdf-coolify
+description: Stirling is a powerful web based PDF manipulation tool
+endpoint:
+  port: 8080
+  service: stirling-pdf
+env:
+  SERVICE_URL_SPDF_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: stirling-pdf-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- pdf
+- manipulation
+- web
+- tool
+title: Stirling Pdf
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/Stirling-Tools/Stirling-PDF
+  tags:
+  - pdf
+  - manipulation
+  - web
+  - tool
+  template: stirling-pdf.yaml
+website: https://github.com/Stirling-Tools/Stirling-PDF

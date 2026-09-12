@@ -1,0 +1,12 @@
+# homebridge-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    image: homebridge/homebridge:2026-05-10@sha256:0783bf37e5b7681e515f95998f7084505596e176ca8ddacce4a7d034bf2c71cd
+    network_mode: host
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/homebridge:/homebridge

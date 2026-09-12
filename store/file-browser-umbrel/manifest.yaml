@@ -1,0 +1,57 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/file-browser-umbrel
+description: Browse and manage the files you download on your Umbrel
+endpoint:
+  port: 80
+  service: server
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/file-browser/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/file-browser/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/file-browser/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/file-browser/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: file-browser-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: File Browser
+type: app
+upstream:
+  author: File Browser
+  categories:
+  - files
+  release_notes: |-
+    Key updates in this version:
+      - File Browser is winding down; this is the last planned release, with the upstream repository scheduled to be archived on September 1, 2026
+      - Tightened path and access-rule checks for safer scoped file operations
+      - Fixed stalled and frozen uploads, recursive operation checks, and expired proxy-token handling
+      - Updated project links, PWA icon URLs, sidebar scrolling, translations, and dependencies
+
+
+    Full release notes are available at https://github.com/filebrowser/filebrowser/releases/tag/v2.63.23
+  source: https://github.com/filebrowser/filebrowser
+  version: 2.63.23
+  website: https://filebrowser.org/
+website: https://filebrowser.org/

@@ -1,0 +1,19 @@
+# seedsync: сгенерировано импортёром (runtipi); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  seedsync:
+    environment:
+      TZ: ${TZ}
+    image: ipsingh06/seedsync:0.8.6
+    networks:
+      appnet:
+        aliases:
+        - seedsync_seedsync_1
+    restart: unless-stopped
+    user: ${SEEDSYNC_PUID:-1000}:${SEEDSYNC_PGID:-1000}
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/config
+    - ${ROOT_FOLDER_HOST}/media/torrents/complete:/downloads

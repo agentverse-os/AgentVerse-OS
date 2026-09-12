@@ -1,0 +1,72 @@
+# paperless-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  broker:
+    image: docker.io/library/redis:7@sha256:d6ecc832969a4827645a083da38345327b3447772fe907e7d4311c79b4e3a06e
+    networks:
+      appnet:
+        aliases:
+        - paperless_broker_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/redisdata:/data
+  db:
+    environment:
+      POSTGRES_DB: paperless
+      POSTGRES_PASSWORD: paperless
+      POSTGRES_USER: paperless
+    image: docker.io/library/postgres:16@sha256:46aa2ee5d664b275f05d1a963b30fff60fb422b4b594d509765c42db46d48881
+    networks:
+      appnet:
+        aliases:
+        - paperless_db_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/pgdata:/var/lib/postgresql/data
+  gotenberg:
+    command:
+    - gotenberg
+    - --chromium-disable-javascript=true
+    - --chromium-allow-list=file:///tmp/.*
+    image: docker.io/gotenberg/gotenberg:7.10@sha256:d03b8a04c6e6c5e568b38f57352266dee4674849b71818774025f8f48d869a9a
+    networks:
+      appnet:
+        aliases:
+        - paperless_gotenberg_1
+    restart: on-failure
+  tika:
+    image: apache/tika:3.3.1.0@sha256:90b7fa1dc018434075fce9e1d9b88b1e3d0ea6979d0cf86e116c79a8073ae973
+    networks:
+      appnet:
+        aliases:
+        - paperless_tika_1
+    restart: on-failure
+  webserver:
+    depends_on:
+    - db
+    - broker
+    - gotenberg
+    - tika
+    environment:
+      PAPERLESS_ADMIN_PASSWORD: $APP_PASSWORD
+      PAPERLESS_ADMIN_USER: admin
+      PAPERLESS_DBHOST: paperless_db_1
+      PAPERLESS_REDIS: redis://paperless_broker_1:6379
+      PAPERLESS_SECRET_KEY: $APP_SEED
+      PAPERLESS_TIKA_ENABLED: 1
+      PAPERLESS_TIKA_ENDPOINT: http://paperless_tika_1:9998
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless_gotenberg_1:3000
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.1.2@sha256:5ab4f4f9bb099a36bec3e092906ea3e611323c5f18dc5cc38c76a1d540bdca9c
+    networks:
+      appnet:
+        aliases:
+        - paperless_webserver_1
+    restart: on-failure
+    volumes:
+    - ${APP_DATA_DIR}/data/data:/usr/src/paperless/data
+    - ${APP_DATA_DIR}/data/media:/usr/src/paperless/media
+    - ${UMBREL_ROOT}/data/storage/paperless/export:/usr/src/paperless/export
+    - ${UMBREL_ROOT}/data/storage/paperless/consume:/usr/src/paperless/consume

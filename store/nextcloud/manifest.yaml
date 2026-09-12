@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/nextcloud
+description: Productivity platform that keeps you in control
+endpoint:
+  port: 80
+  service: nextcloud
+env:
+  NEXTCLOUD_ADMIN_PASSWORD:
+    generate: password
+  NEXTCLOUD_ADMIN_USER: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: NEXTCLOUD_ADMIN_PASSWORD
+  path: null
+  user: NEXTCLOUD_ADMIN_USER
+name: nextcloud
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NEXTCLOUD_ADMIN_USER
+  hint: null
+  label: Username
+  options: null
+  required: true
+  type: text
+- env: NEXTCLOUD_ADMIN_PASSWORD
+  hint: null
+  label: Password
+  options: null
+  required: true
+  type: password
+tags: []
+title: Nextcloud
+type: app
+upstream:
+  author: Nextcloud GmbH
+  categories:
+  - data
+  source: https://github.com/nextcloud/server
+  tipi_version: 35
+  version: 33-apache
+website: https://github.com/nextcloud/server

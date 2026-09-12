@@ -1,0 +1,56 @@
+# pgbackweb-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  pgbackweb:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_PGBACKWEB_8085=${SERVICE_URL_PGBACKWEB_8085}
+    - PBW_ENCRYPTION_KEY=${SERVICE_PASSWORD_64_PGBACKWEB}
+    - PBW_POSTGRES_CONN_STRING=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/${POSTGRES_DB:-pgbackweb-db}?sslmode=disable
+    - TZ=${TIME_ZONE:-UTC}
+    image: eduardolat/pgbackweb:latest
+    networks:
+      appnet:
+        aliases:
+        - pgbackweb-coolify_pgbackweb_1
+    restart: unless-stopped
+    volumes:
+    - pgbackweb_backups:/backups
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${POSTGRES_DB:-pgbackweb-db}
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+      - CMD-SHELL
+      - pg_isready -U ${SERVICE_USER_POSTGRES} -d pgbackweb
+      timeout: 5s
+    image: postgres:17
+    networks:
+      appnet:
+        aliases:
+        - pgbackweb-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - pgbackweb_postgres_data:/var/lib/postgresql/data
+volumes:
+  pgbackweb_backups:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pgbackweb_backups
+      o: bind
+      type: none
+  pgbackweb_postgres_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/pgbackweb_postgres_data
+      o: bind
+      type: none

@@ -1,0 +1,62 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/cloudbeaver-coolify
+description: CloudBeaver is a lightweight web application designed for comprehensive data management.
+endpoint:
+  port: 8978
+  service: cloudbeaver
+env:
+  SERVICE_URL_CLOUDBEAVER_8978: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: cloudbeaver-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- dbeaver
+- data management
+- data
+- database
+- mysql
+- postgres
+- sqlite
+- sql
+- mongodb
+title: Cloudbeaver
+type: app
+upstream:
+  categories:
+  - devtools
+  source: https://dbeaver.com/docs/cloudbeaver/
+  tags:
+  - dbeaver
+  - data management
+  - data
+  - database
+  - mysql
+  - postgres
+  - sqlite
+  - sql
+  - mongodb
+  template: cloudbeaver.yaml
+website: https://dbeaver.com/docs/cloudbeaver/

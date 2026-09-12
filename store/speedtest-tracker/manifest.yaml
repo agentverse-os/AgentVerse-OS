@@ -1,0 +1,73 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/speedtest-tracker
+description: Internet performance tracking application.
+endpoint:
+  port: 80
+  service: speedtest-tracker
+env:
+  SPEEDTEST_APP_KEY: ''
+  SPEEDTEST_SCHEDULE: 30 * * * *
+  SPEEDTEST_SERVERS: ''
+  SPEEDTEST_TRACKER_DB_PASSWORD:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: speedtest-tracker
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: SPEEDTEST_TRACKER_DB_PASSWORD
+  hint: null
+  label: SPEEDTEST_TRACKER_DB_PASSWORD
+  options: null
+  required: false
+  type: random
+- env: SPEEDTEST_APP_KEY
+  hint: Generate an app key at https://speedtest-tracker.dev/
+  label: Application Key
+  options: null
+  required: true
+  type: text
+- env: SPEEDTEST_SCHEDULE
+  hint: https://crontab.guru is a good resource
+  label: Speedtest Schedule (cron format)
+  options: null
+  required: false
+  type: text
+- env: SPEEDTEST_SERVERS
+  hint: Convenient-to-you speedtest servers may be found at https://speedtest.net/speedtest-servers-static.php
+  label: Speedtest Servers (comma-separated IDs)
+  options: null
+  required: false
+  type: text
+tags: []
+title: Speedtest Tracker
+type: app
+upstream:
+  author: alexjustesen
+  categories:
+  - utilities
+  source: https://github.com/alexjustesen/speedtest-tracker
+  tipi_version: 123
+  version: 1.15.0
+website: https://github.com/alexjustesen/speedtest-tracker

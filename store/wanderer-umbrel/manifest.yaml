@@ -1,0 +1,71 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wanderer-umbrel
+description: A self-hosted trail database
+endpoint:
+  port: 3000
+  service: web
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_SEED:
+    generate: hex64
+  APP_WANDERER_ENCRYPTION_KEY: ''
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/wanderer/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wanderer/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wanderer/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wanderer/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wanderer/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wanderer/6.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wanderer/7.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/wanderer/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin
+name: wanderer-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_WANDERER_ENCRYPTION_KEY
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app wanderer encryption key
+  options: null
+  required: false
+  type: password
+tags: []
+title: Wanderer
+type: app
+upstream:
+  author: Flomp
+  categories:
+  - files
+  release_notes: |-
+    ⚠️ Breaking change: integrations now use manually installed plugins. If you use Strava, Komoot, or Hammerhead integrations, install the plugin bundle you want after upgrading. Existing custom trail categories may also need review.
+
+    This release adds faster map clustering for large trail libraries, improved trail planning controls, editable route waypoints, and improved user search.
+
+    Security fixes include hardened ActivityPub federation and a fix for an unauthenticated SSRF in trail downloads.
+
+    Full release notes: https://github.com/open-wanderer/wanderer/releases/tag/v0.20.0
+  source: https://github.com/Flomp/wanderer
+  version: 0.20.0
+  website: https://wanderer.to/
+website: https://wanderer.to/

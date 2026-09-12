@@ -1,0 +1,50 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/spacebot-umbrel
+description: AI agent for teams, communities, and multi-user environments
+endpoint:
+  port: 19898
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/spacebot/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: spacebot-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Spacebot
+type: app
+upstream:
+  author: Spacedrive Technology Inc.
+  categories:
+  - ai
+  release_notes: null
+  source: https://github.com/spacedriveapp/spacebot
+  version: 0.5.0
+  website: https://spacebot.sh
+website: https://spacebot.sh

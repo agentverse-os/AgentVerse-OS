@@ -1,0 +1,18 @@
+# robosats-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  web:
+    environment:
+      TOR_PROXY_IP: ${TOR_PROXY_IP}
+      TOR_PROXY_PORT: ${TOR_PROXY_PORT}
+    image: recksato/robosats-client:v0.8.6-alpha@sha256:071634c1a73aa5eecdb4e7f84419319888fa10d238ae3ad2433a984301727fbe
+    init: true
+    networks:
+      appnet:
+        aliases:
+        - robosats_web_1
+    restart: on-failure
+    stop_grace_period: 1m

@@ -1,0 +1,38 @@
+# phpmyadmin-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  phpmyadmin:
+    environment:
+    - SERVICE_URL_PHPMYADMIN=${SERVICE_URL_PHPMYADMIN}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    - PMA_ARBITRARY=1
+    - PMA_ABSOLUTE_URI=$SERVICE_URL_PHPMYADMIN
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80
+      timeout: 10s
+    image: lscr.io/linuxserver/phpmyadmin:latest
+    networks:
+      appnet:
+        aliases:
+        - phpmyadmin-coolify_phpmyadmin_1
+    restart: unless-stopped
+    volumes:
+    - phpmyadmin-config:/config
+volumes:
+  phpmyadmin-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/phpmyadmin-config
+      o: bind
+      type: none

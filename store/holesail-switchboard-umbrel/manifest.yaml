@@ -1,0 +1,60 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/holesail-switchboard-umbrel
+description: Manage multiple holesail P2P tunnels from a single dashboard
+endpoint:
+  port: 3160
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/holesail-switchboard/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/holesail-switchboard/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/holesail-switchboard/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/holesail-switchboard/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/holesail-switchboard/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/holesail-switchboard/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: holesail-switchboard-umbrel
+notes:
+- 'порт 3161:3161 (web) не публикуется: доступ только через edge/gate'
+- 'порт 3162:3162 (web) не публикуется: доступ только через edge/gate'
+- 'порт 3163:3163 (web) не публикуется: доступ только через edge/gate'
+- 'порт 3164:3164 (web) не публикуется: доступ только через edge/gate'
+- 'порт 3165:3165 (web) не публикуется: доступ только через edge/gate'
+- 'порт 3166:3166 (web) не публикуется: доступ только через edge/gate'
+- 'порт 3167:3167 (web) не публикуется: доступ только через edge/gate'
+- 'порт 3168:3168 (web) не публикуется: доступ только через edge/gate'
+- 'порт 3169:3169 (web) не публикуется: доступ только через edge/gate'
+- 'порт 3170:3170 (web) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Holesail Switchboard
+type: app
+upstream:
+  author: oren-z0
+  categories:
+  - networking
+  release_notes: null
+  source: https://github.com/oren-z0/holesail-switchboard
+  version: 2.0.8
+  website: https://github.com/oren-z0/holesail-switchboard
+website: https://github.com/oren-z0/holesail-switchboard

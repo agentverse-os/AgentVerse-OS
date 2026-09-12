@@ -1,0 +1,77 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/vvveb-with-mysql-coolify
+description: Powerful and easy to use cms to build websites, blogs or ecommerce stores.
+endpoint:
+  port: 80
+  service: vvveb
+env:
+  MYSQL_DATABASE: vvveb
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_PASSWORD_VVVEB:
+    generate: password
+  SERVICE_URL_VVVEB_80: https://${APP_DOMAIN}
+  SERVICE_USER_VVVEB:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: vvveb-with-mysql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: vvveb'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+tags:
+- cms
+- blog
+- content
+- management
+- ecommerce
+- page-builder
+- nocode
+- mysql
+- sqlite
+- pgsql
+title: Vvveb With Mysql
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://docs.vvveb.com
+  tags:
+  - cms
+  - blog
+  - content
+  - management
+  - ecommerce
+  - page-builder
+  - nocode
+  - mysql
+  - sqlite
+  - pgsql
+  template: vvveb-with-mysql.yaml
+website: https://docs.vvveb.com

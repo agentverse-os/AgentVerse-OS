@@ -1,0 +1,43 @@
+# akaunting-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+    - db
+    environment:
+      ADMIN_EMAIL: umbrel@umbrel.local
+      ADMIN_PASSWORD: ${APP_PASSWORD}
+      AKAUNTING_SETUP: 'true'
+      COMPANY_EMAIL: my@company.com
+      COMPANY_NAME: My Company
+      DB_HOST: akaunting_db_1
+      DB_NAME: akaunting
+      DB_PASSWORD: akaunting_password
+      DB_PORT: 3306
+      DB_PREFIX: asd_
+      DB_USERNAME: admin
+      LOCALE: en-US
+    image: akaunting/akaunting:3.1.21@sha256:918bbc77981e5b96ab6aa6838491cfa7c98cb4ee7bbf9532ee083e7e66d04255
+    networks:
+      appnet:
+        aliases:
+        - akaunting_app_1
+    restart: on-failure
+  db:
+    environment:
+      MYSQL_DATABASE: akaunting
+      MYSQL_PASSWORD: akaunting_password
+      MYSQL_RANDOM_ROOT_PASSWORD: yes
+      MYSQL_USER: admin
+    image: mariadb:11.8.2@sha256:2bcbaec92bd9d4f6591bc8103d3a8e6d0512ee2235506e47a2e129d190444405
+    networks:
+      appnet:
+        aliases:
+        - akaunting_db_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/db:/var/lib/mysql

@@ -1,0 +1,59 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/homebox
+description: Inventory and organization system.
+endpoint:
+  port: 7745
+  service: homebox
+env:
+  HBOX_AUTH_API_KEY_PEPPER:
+    generate: token
+  HBOX_OPTIONS_ALLOW_REGISTRATION: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: homebox
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: HBOX_OPTIONS_ALLOW_REGISTRATION
+  hint: true or false if you want to allow self registration.
+  label: Allow Users Registration
+  options: null
+  required: true
+  type: text
+- env: HBOX_AUTH_API_KEY_PEPPER
+  hint: null
+  label: HBOX_AUTH_API_KEY_PEPPER
+  options: null
+  required: false
+  type: random
+tags: []
+title: HomeBox
+type: app
+upstream:
+  author: sysadminsmedia & hay-kot
+  categories:
+  - utilities
+  source: https://github.com/sysadminsmedia/homebox
+  tipi_version: 40
+  version: 0.26.2
+website: https://github.com/sysadminsmedia/homebox

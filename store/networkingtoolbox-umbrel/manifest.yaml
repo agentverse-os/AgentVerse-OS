@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/networkingtoolbox-umbrel
+description: The all-in-one offline-first networking toolbox for sysadmins
+endpoint:
+  port: 3000
+  service: app
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/6.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: networkingtoolbox-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Networking Toolbox
+type: app
+upstream:
+  author: Alicia Sykes
+  categories:
+  - developer
+  release_notes: null
+  source: https://github.com/Lissy93/networking-toolbox
+  version: 1.6.0
+  website: https://www.networkingtoolbox.net/
+website: https://www.networkingtoolbox.net/

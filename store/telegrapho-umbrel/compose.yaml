@@ -1,0 +1,16 @@
+# telegrapho-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    environment:
+      PORT: 3712
+    image: ghcr.io/egzola/telegrapho:1.0.1@sha256:9486b185b993398cc651158a9292c2fa54eb83254c83d610759988fb20b413b8
+    networks:
+      appnet:
+        aliases:
+        - telegrapho_app_1
+    restart: on-failure
+    stop_grace_period: 1m

@@ -1,0 +1,88 @@
+# searxng-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+configs:
+  searxng-inline-1:
+    content: |
+      # see https://docs.searxng.org/admin/settings/settings.html#settings-use-default-settings
+      use_default_settings: true
+      server:
+        limiter: false
+        image_proxy: true
+      search:
+        formats:
+          - html
+          - csv
+          - json
+          - rss
+      ui:
+        static_use_hash: true
+  searxng-inline-2:
+    content: |
+      # This configuration file updates the default configuration file
+      # See https://github.com/searxng/searxng/blob/master/searx/botdetection/limiter.toml
+
+      [botdetection.ip_limit]
+      # activate link_token method in the ip_limit method
+      link_token = true
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  redis:
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 5s
+    image: redis:7
+    networks:
+      appnet:
+        aliases:
+        - searxng-coolify_redis_1
+    restart: always
+    volumes:
+    - redis-data:/data
+  searxng:
+    configs:
+    - source: searxng-inline-1
+      target: /etc/searxng/settings.yml
+    - source: searxng-inline-2
+      target: /etc/searxng/limiter.toml
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_SEARXNG_8080=${SERVICE_URL_SEARXNG_8080}
+    - INSTANCE_NAME=${INSTANCE_NAME:-coolify}
+    - BASE_URL=${SERVICE_URL_SEARXNG_8080}
+    - SEARXNG_URL=${SERVICE_URL_SEARXNG_8080}
+    - SEARXNG_BIND_ADDRESS=${SEARXNG_BIND_ADDRESS:-0.0.0.0}
+    - SEARXNG_SECRET=${SERVICE_PASSWORD_SEARXNGSECRET}
+    - SEARXNG_REDIS_URL=redis://redis:6379/0
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:8080/healthz
+      timeout: 5s
+    image: searxng/searxng
+    networks:
+      appnet:
+        aliases:
+        - searxng-coolify_searxng_1
+    restart: unless-stopped
+    volumes: []
+volumes:
+  redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/redis-data
+      o: bind
+      type: none

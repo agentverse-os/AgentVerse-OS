@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/embystat-coolify
+description: EmbyStat is a web analytics tool, designed to provide insight into website traffic and user behavior.
+endpoint:
+  port: 6555
+  service: embystat
+env:
+  SERVICE_URL_EMBYSTAT_6555: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: embystat-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- analytics
+- insights
+- statistics
+- web
+- traffic
+title: Embystat
+type: app
+upstream:
+  categories:
+  - analytics
+  source: https://github.com/mregni/EmbyStat
+  tags:
+  - analytics
+  - insights
+  - statistics
+  - web
+  - traffic
+  template: embystat.yaml
+website: https://github.com/mregni/EmbyStat

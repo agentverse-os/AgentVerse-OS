@@ -1,0 +1,14 @@
+RoboSats is a simple and private app to exchange bitcoin for national currencies.  Robosats simplifies the P2P user experience and uses lightning hold invoices to  minimize custody and trust requirements. The deterministically generated robot  avatars help users stick to best privacy practices.
+
+Features:
+
+- Privacy focused: your robot avatar is deterministically generated, no need for registration.
+- More than 10 languages available and over 60 fiat currencies
+- Safe: simply lock a lightning hodl invoice and show you are real and committed.
+- No data collection. Your communication with your peer is PGP encrypted, only you can read it.
+- Lightning fast: the average sovereign trade finishes in ~ 8 minutes. Faster than a single block confirmation!
+- Fully collateralized escrow: your peer is always committed and cannot run away with the funds.
+- Strong incentives system: attempts of cheating are penalized with the slashing of the Sats in the fidelity bond.
+- Guides and video tutorials available at https://learn.robosats.org/watch/en
+
+You can join other cool Robots and get community support at https://t.me/robosats telegram group.

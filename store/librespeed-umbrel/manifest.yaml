@@ -1,0 +1,55 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/librespeed-umbrel
+description: Free and open source speedtest
+endpoint:
+  port: 8080
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/librespeed/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librespeed/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librespeed/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/librespeed/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: librespeed-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: LibreSpeed
+type: app
+upstream:
+  author: LibreSpeed
+  categories:
+  - networking
+  release_notes: |-
+    What's new in this release:
+      - Fixed inflated upload-speed results when an upload request receives an HTTP error response
+      - Fixed the modern frontend asset layout so deployments can serve the repository without rearranging files
+      - Improved Docker, installation, and design-switch documentation for the current deployment layout
+
+
+    Full release notes are found at: https://github.com/librespeed/speedtest/releases/tag/v6.2.1
+  source: https://github.com/librespeed/speedtest
+  version: 6.2.1
+  website: https://librespeed.org/
+website: https://librespeed.org/

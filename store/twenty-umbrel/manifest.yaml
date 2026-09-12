@@ -1,0 +1,53 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/twenty-umbrel
+description: An adaptable CRM solution for seamless team collaboration and growth
+endpoint:
+  port: 3000
+  service: server
+env:
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/twenty/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/twenty/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/twenty/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/twenty/4.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/twenty/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: twenty-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Twenty
+type: app
+upstream:
+  author: Twenty.com PBC
+  categories:
+  - files
+  release_notes: |-
+    Twenty 2.37.4 improves performance around workspace cache recomputation, metadata queries, email full-sync cleanup, and imported-message processing.
+
+    This release also fixes rate-limit handling so users see proper rate-limit errors, and improves file-storage streaming cleanup to avoid stuck S3 connections during workspace setup or application asset downloads.
+  source: https://github.com/twentyhq/twenty
+  version: 2.37.4
+  website: https://twenty.com/
+website: https://twenty.com/

@@ -1,0 +1,125 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/directus-with-postgresql-coolify
+description: Directus wraps databases with a dynamic API, and provides an intuitive app for managing its content.
+endpoint:
+  port: 8055
+  service: directus
+env:
+  ADMIN_EMAIL: admin@example.com
+  CORS_ALLOWED_HEADERS: Content-Type,Authorization
+  CORS_CREDENTIALS: 'true'
+  CORS_ENABLED: 'true'
+  CORS_METHODS: GET,POST,PATCH,DELETE,OPTIONS
+  CORS_ORIGIN: ''
+  POSTGRESQL_DATABASE: directus
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_BASE64_64_KEY:
+    generate: hex64
+  SERVICE_BASE64_64_SECRET:
+    generate: hex64
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_DIRECTUS_8055: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_ADMIN
+  path: null
+  user: ADMIN_EMAIL
+name: directus-with-postgresql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: admin email
+  options: null
+  required: false
+  type: text
+- env: POSTGRESQL_DATABASE
+  hint: 'по умолчанию: directus'
+  label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: CORS_ENABLED
+  hint: 'по умолчанию: true'
+  label: cors enabled
+  options: null
+  required: false
+  type: text
+- env: CORS_ORIGIN
+  hint: null
+  label: cors origin
+  options: null
+  required: false
+  type: text
+- env: CORS_METHODS
+  hint: 'по умолчанию: GET,POST,PATCH,DELETE,OPTIONS'
+  label: cors methods
+  options: null
+  required: false
+  type: text
+- env: CORS_ALLOWED_HEADERS
+  hint: 'по умолчанию: Content-Type,Authorization'
+  label: cors allowed headers
+  options: null
+  required: false
+  type: text
+- env: CORS_CREDENTIALS
+  hint: 'по умолчанию: true'
+  label: cors credentials
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- directus
+- cms
+- database
+- sql
+title: Directus With Postgresql
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://directus.io
+  tags:
+  - directus
+  - cms
+  - database
+  - sql
+  template: directus-with-postgresql.yaml
+website: https://directus.io

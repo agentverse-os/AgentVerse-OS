@@ -1,0 +1,35 @@
+# wavelog-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  app:
+    depends_on:
+    - wavelog-db
+    environment:
+      CI_ENV: docker
+    image: ghcr.io/wavelog/wavelog:3.2.0@sha256:13bb80398fd7afc418014aeb19b6973aac64f4fb6c89f4a4387ea03734fac8eb
+    networks:
+      appnet:
+        aliases:
+        - wavelog_app_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/config:/var/www/html/application/config/docker
+    - ${APP_DATA_DIR}/data/uploads:/var/www/html/uploads
+    - ${APP_DATA_DIR}/data/userdata:/var/www/html/userdata
+  wavelog-db:
+    environment:
+      MARIADB_DATABASE: wavelog
+      MARIADB_PASSWORD: wavelog
+      MARIADB_RANDOM_ROOT_PASSWORD: yes
+      MARIADB_USER: wavelog
+    image: mariadb:11.4@sha256:39596f079862334be04f4231664862e55d4febe54309cc62f750f2297de85b06
+    networks:
+      appnet:
+        aliases:
+        - wavelog_wavelog-db_1
+    restart: unless-stopped
+    volumes:
+    - ${APP_DATA_DIR}/data/db:/var/lib/mysql

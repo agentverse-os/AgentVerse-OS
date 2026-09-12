@@ -1,0 +1,63 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ntfy-umbrel
+description: Send notifications to your phone or desktop via scripts from any computer, and/or using a REST API
+endpoint:
+  port: 80
+  service: app
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_PROXY_PORT: ''
+  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/ntfy/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ntfy/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ntfy/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/ntfy/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: umbrel
+name: ntfy-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_PROXY_PORT
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app proxy port
+  options: null
+  required: false
+  type: text
+tags: []
+title: ntfy
+type: app
+upstream:
+  author: ntfy LLC
+  categories:
+  - automation
+  release_notes: |-
+    This hardening release limits message title and tag sizes and caps cache replay responses so polling busy topics cannot use excessive server memory.
+
+    It also fixes message ordering when polling multiple topics at once and applies attachment daily bandwidth limits to cached-message replay requests.
+
+    Full release notes can be found at https://github.com/binwiederhier/ntfy/releases/tag/v2.28.0
+  source: https://github.com/binwiederhier/ntfy
+  version: 2.28.0
+  website: https://ntfy.sh/
+website: https://ntfy.sh/

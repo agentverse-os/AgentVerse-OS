@@ -1,0 +1,54 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/silverbullet-coolify
+description: SilverBullet is a tool to develop, organize, and structure your personal knowledge and to make it universally accessible across all your devices.
+endpoint:
+  port: 3000
+  service: silverbullet
+env:
+  SERVICE_PASSWORD_SILVERBULLET:
+    generate: password
+  SERVICE_URL_SILVERBULLET_3000: https://${APP_DOMAIN}
+  SERVICE_USER_SILVERBULLET:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_SILVERBULLET
+  path: null
+  user: SERVICE_USER_SILVERBULLET
+name: silverbullet-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- note-taking
+- markdown
+- pkm
+title: Silverbullet
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://v2.silverbullet.md/Install/Configuration
+  tags:
+  - note-taking
+  - markdown
+  - pkm
+  template: silverbullet.yaml
+website: https://v2.silverbullet.md/Install/Configuration

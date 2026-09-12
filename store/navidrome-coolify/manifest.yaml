@@ -1,0 +1,81 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/navidrome-coolify
+description: Standalone server, that allows you to browse and listen to your music collection using a web browser or any Subsonic-compatible client.
+endpoint:
+  port: 4533
+  service: navidrome
+env:
+  ND_ENABLEINSIGHTSCOLLECTOR: 'false'
+  ND_LOGLEVEL: info
+  ND_SCANSCHEDULE: 1h
+  ND_SESSIONTIMEOUT: 24h
+  SERVICE_URL_NAVIDROME: https://${APP_DOMAIN}
+  SERVICE_URL_NAVIDROME_4533: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: navidrome-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ND_SCANSCHEDULE
+  hint: 'по умолчанию: 1h'
+  label: nd scanschedule
+  options: null
+  required: false
+  type: text
+- env: ND_LOGLEVEL
+  hint: 'по умолчанию: info'
+  label: nd loglevel
+  options: null
+  required: false
+  type: text
+- env: ND_SESSIONTIMEOUT
+  hint: 'по умолчанию: 24h'
+  label: nd sessiontimeout
+  options: null
+  required: false
+  type: text
+- env: ND_ENABLEINSIGHTSCOLLECTOR
+  hint: 'по умолчанию: false'
+  label: nd enableinsightscollector
+  options: null
+  required: false
+  type: text
+tags:
+- media
+- server
+- music
+- subsonic
+title: Navidrome
+type: app
+upstream:
+  categories:
+  - media
+  source: https://www.navidrome.org/docs/
+  tags:
+  - media
+  - server
+  - music
+  - subsonic
+  template: navidrome.yaml
+website: https://www.navidrome.org/docs/

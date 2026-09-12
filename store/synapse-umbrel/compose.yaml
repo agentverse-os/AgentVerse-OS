@@ -1,0 +1,28 @@
+# synapse-umbrel: сгенерировано импортёром (umbrel); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  server:
+    command: |-
+      -c './start.py generate && ./start.py migrate_config && echo -e "
+      enable_registration_without_verification: true" >> /data/homeserver.yaml && exec ./start.py'
+    entrypoint: bash
+    environment:
+      GID: '1000'
+      SYNAPSE_ENABLE_REGISTRATION: yes
+      SYNAPSE_HTTP_PORT: ${APP_SYNAPSE_PORT}
+      SYNAPSE_NO_TLS: yes
+      SYNAPSE_REPORT_STATS: yes
+      SYNAPSE_SERVER_NAME: ${APP_HIDDEN_SERVICE}
+      UID: '1000'
+    image: matrixdotorg/synapse:v1.159.0@sha256:edf259d2b575b669a3e81024918ab8d5cfb7d2fba5a53c9e09695f1abc5645cb
+    networks:
+      appnet:
+        aliases:
+        - synapse_server_1
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+    - ${APP_DATA_DIR}/data/synapse:/data

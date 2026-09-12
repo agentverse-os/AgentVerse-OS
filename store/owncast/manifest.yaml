@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/owncast
+description: ' Take control over your live stream video by running it yourself. Streaming + chat out of the box. '
+endpoint:
+  port: 8080
+  service: owncast
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: owncast
+notes:
+- 'порт 1935→1935 (owncast) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Owncast
+type: app
+upstream:
+  author: Owncast
+  categories:
+  - media
+  source: https://github.com/owncast/owncast
+  tipi_version: 13
+  version: 0.2.5
+website: https://github.com/owncast/owncast

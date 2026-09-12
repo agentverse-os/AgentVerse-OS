@@ -1,0 +1,59 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/n8n-umbrel
+description: Build complex workflows, really fast
+endpoint:
+  port: 5678
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/n8n/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/n8n/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/n8n/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/n8n/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: n8n-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: n8n
+type: app
+upstream:
+  author: n8n
+  categories:
+  - automation
+  release_notes: |-
+    ⚠️ If you're updating from n8n 2.27.3 or earlier, this update includes the database index migration for workflow executions introduced in 2.27.4. Large n8n instances may take several minutes to finish the migration.
+
+    This 2.37.x stable roll-up adds Slack Agent view support, streaming for Message an Agent workflows, workflow-as-tool input configuration for AI Agents, and clearer AI Builder failure traces.
+
+    It also adds role-mapping and custom-role API endpoints, execution date filters, workflow review/source-control improvements, and better package import/export handling.
+
+    Fixes include OAuth/proxy handling, domain-restricted credentials, Form Trigger authentication/submission edge cases, task-runner startup behavior, community package installs, and multiple editor/node integration issues.
+
+    Public Form Trigger paths (`/form/*`, `/form-test/*`, `/form-waiting/*`) remain available without Umbrel login, while the n8n editor remains protected by your Umbrel login.
+
+    Full release notes can be found at https://github.com/n8n-io/n8n/releases/tag/n8n%402.37.7
+  source: https://github.com/n8n-io/n8n
+  version: 2.37.7
+  website: https://n8n.io
+website: https://n8n.io

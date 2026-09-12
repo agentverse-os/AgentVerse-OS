@@ -1,0 +1,65 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/plane-umbrel
+description: Modern project management for all teams
+endpoint:
+  port: 8762
+  service: nginx
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/plane/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plane/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plane/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plane/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plane/5.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/plane/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: plane-umbrel
+notes:
+- 'admin: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'api: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'beat-worker: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'db: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'live: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'migrator: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'порт 8763:8763 (minio) не публикуется: доступ только через edge/gate'
+- 'minio: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'rabbitmq: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'space: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'web: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'worker: env_file из каталога проигнорирован (значения — через настройки приложения)'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Plane
+type: app
+upstream:
+  author: Plane Software Inc.
+  categories:
+  - files
+  release_notes: |-
+    This update fixes stale frontend chunk loading during navigation, so the web app can automatically reload instead of failing when an updated asset is requested.
+
+    Full release notes can be found at https://github.com/makeplane/plane/releases/tag/v1.4.2
+  source: https://github.com/makeplane/plane
+  version: 1.4.2
+  website: http://plane.so/
+website: http://plane.so/

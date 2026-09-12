@@ -1,0 +1,12 @@
+Uptime Kuma is a self-hosted monitoring tool like Uptime Robot.
+
+Features:
+
+- Monitoring uptime for HTTP(s) / TCP / HTTP(s) Keyword / Ping / DNS Record / Push / Steam Game Server.
+- Fancy, Reactive, Fast UI/UX.
+- Notifications via Telegram, Discord, Gotify, Slack, Pushover, Email (SMTP), and 70+ notification services.
+- 20 second intervals.
+- Multi Languages
+- Simple Status Page
+- Ping Chart
+- Certificate Info

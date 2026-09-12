@@ -1,0 +1,416 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/getoutline-coolify
+description: Your team’s knowledge base
+endpoint:
+  port: 3000
+  service: outline
+env:
+  AWS_ACCESS_KEY_ID: ''
+  AWS_REGION: ''
+  AWS_S3_ACCELERATE_URL: ''
+  AWS_S3_ACL: private
+  AWS_S3_FORCE_PATH_STYLE: 'true'
+  AWS_S3_UPLOAD_BUCKET_NAME: ''
+  AWS_S3_UPLOAD_BUCKET_URL: ''
+  AWS_SECRET_ACCESS_KEY: ''
+  AZURE_CLIENT_ID: ''
+  AZURE_CLIENT_SECRET: ''
+  AZURE_RESOURCE_APP_ID: ''
+  DISCORD_CLIENT_ID: ''
+  DISCORD_CLIENT_SECRET: ''
+  DISCORD_SERVER_ID: ''
+  DISCORD_SERVER_ROLES: ''
+  FILE_STORAGE: local
+  FILE_STORAGE_IMPORT_MAX_SIZE: '100'
+  FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+  FILE_STORAGE_UPLOAD_MAX_SIZE: '2000'
+  FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE: ''
+  FORCE_HTTPS: 'true'
+  GITHUB_APP_ID: ''
+  GITHUB_APP_NAME: ''
+  GITHUB_APP_PRIVATE_KEY: ''
+  GITHUB_CLIENT_ID: ''
+  GITHUB_CLIENT_SECRET: ''
+  GOOGLE_CLIENT_ID: ''
+  GOOGLE_CLIENT_SECRET: ''
+  OIDC_AUTH_URI: ''
+  OIDC_CLIENT_ID: ''
+  OIDC_CLIENT_SECRET: ''
+  OIDC_DISPLAY_NAME: ''
+  OIDC_LOGOUT_URI: ''
+  OIDC_SCOPES: ''
+  OIDC_TOKEN_URI: ''
+  OIDC_USERINFO_URI: ''
+  OIDC_USERNAME_CLAIM: ''
+  OUTLINE_PORT: '3000'
+  PGSSLMODE: disable
+  POSTGRES_DATABASE: outline
+  SERVICE_HEX_64_OUTLINE:
+    generate: hex64
+  SERVICE_PASSWORD_64_OUTLINE:
+    generate: hex64
+  SERVICE_PASSWORD_64_POSTGRES:
+    generate: hex64
+  SERVICE_PASSWORD_64_REDIS:
+    generate: hex64
+  SERVICE_URL_OUTLINE: https://${APP_DOMAIN}
+  SERVICE_URL_OUTLINE_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SLACK_CLIENT_ID: ''
+  SLACK_CLIENT_SECRET: ''
+  SMTP_FROM_EMAIL: ''
+  SMTP_HOST: ''
+  SMTP_NAME: ''
+  SMTP_PASSWORD: ''
+  SMTP_PORT: ''
+  SMTP_REPLY_EMAIL: ''
+  SMTP_SECURE: ''
+  SMTP_TLS_CIPHERS: ''
+  SMTP_USERNAME: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: getoutline-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DATABASE
+  hint: 'по умолчанию: outline'
+  label: postgres database
+  options: null
+  required: false
+  type: text
+- env: OUTLINE_PORT
+  hint: 'по умолчанию: 3000'
+  label: outline port
+  options: null
+  required: false
+  type: text
+- env: FILE_STORAGE
+  hint: 'по умолчанию: local'
+  label: file storage
+  options: null
+  required: false
+  type: text
+- env: FILE_STORAGE_LOCAL_ROOT_DIR
+  hint: 'по умолчанию: /var/lib/outline/data'
+  label: file storage local root dir
+  options: null
+  required: false
+  type: text
+- env: FILE_STORAGE_UPLOAD_MAX_SIZE
+  hint: 'по умолчанию: 2000'
+  label: file storage upload max size
+  options: null
+  required: false
+  type: text
+- env: FILE_STORAGE_IMPORT_MAX_SIZE
+  hint: 'по умолчанию: 100'
+  label: file storage import max size
+  options: null
+  required: false
+  type: text
+- env: FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE
+  hint: null
+  label: file storage workspace import max size
+  options: null
+  required: false
+  type: text
+- env: AWS_ACCESS_KEY_ID
+  hint: null
+  label: aws access key id
+  options: null
+  required: false
+  type: password
+- env: AWS_SECRET_ACCESS_KEY
+  hint: null
+  label: aws secret access key
+  options: null
+  required: false
+  type: password
+- env: AWS_REGION
+  hint: null
+  label: aws region
+  options: null
+  required: false
+  type: text
+- env: AWS_S3_ACCELERATE_URL
+  hint: null
+  label: aws s3 accelerate url
+  options: null
+  required: false
+  type: text
+- env: AWS_S3_UPLOAD_BUCKET_URL
+  hint: null
+  label: aws s3 upload bucket url
+  options: null
+  required: false
+  type: text
+- env: AWS_S3_UPLOAD_BUCKET_NAME
+  hint: null
+  label: aws s3 upload bucket name
+  options: null
+  required: false
+  type: text
+- env: AWS_S3_FORCE_PATH_STYLE
+  hint: 'по умолчанию: true'
+  label: aws s3 force path style
+  options: null
+  required: false
+  type: text
+- env: AWS_S3_ACL
+  hint: 'по умолчанию: private'
+  label: aws s3 acl
+  options: null
+  required: false
+  type: text
+- env: SLACK_CLIENT_ID
+  hint: null
+  label: slack client id
+  options: null
+  required: false
+  type: text
+- env: SLACK_CLIENT_SECRET
+  hint: null
+  label: slack client secret
+  options: null
+  required: false
+  type: password
+- env: GOOGLE_CLIENT_ID
+  hint: null
+  label: google client id
+  options: null
+  required: false
+  type: text
+- env: GOOGLE_CLIENT_SECRET
+  hint: null
+  label: google client secret
+  options: null
+  required: false
+  type: password
+- env: AZURE_CLIENT_ID
+  hint: null
+  label: azure client id
+  options: null
+  required: false
+  type: text
+- env: AZURE_CLIENT_SECRET
+  hint: null
+  label: azure client secret
+  options: null
+  required: false
+  type: password
+- env: AZURE_RESOURCE_APP_ID
+  hint: null
+  label: azure resource app id
+  options: null
+  required: false
+  type: text
+- env: OIDC_CLIENT_ID
+  hint: null
+  label: oidc client id
+  options: null
+  required: false
+  type: text
+- env: OIDC_CLIENT_SECRET
+  hint: null
+  label: oidc client secret
+  options: null
+  required: false
+  type: password
+- env: OIDC_AUTH_URI
+  hint: null
+  label: oidc auth uri
+  options: null
+  required: false
+  type: text
+- env: OIDC_TOKEN_URI
+  hint: null
+  label: oidc token uri
+  options: null
+  required: false
+  type: password
+- env: OIDC_USERINFO_URI
+  hint: null
+  label: oidc userinfo uri
+  options: null
+  required: false
+  type: text
+- env: OIDC_LOGOUT_URI
+  hint: null
+  label: oidc logout uri
+  options: null
+  required: false
+  type: text
+- env: OIDC_USERNAME_CLAIM
+  hint: null
+  label: oidc username claim
+  options: null
+  required: false
+  type: text
+- env: OIDC_DISPLAY_NAME
+  hint: null
+  label: oidc display name
+  options: null
+  required: false
+  type: text
+- env: OIDC_SCOPES
+  hint: null
+  label: oidc scopes
+  options: null
+  required: false
+  type: text
+- env: GITHUB_CLIENT_ID
+  hint: null
+  label: github client id
+  options: null
+  required: false
+  type: text
+- env: GITHUB_CLIENT_SECRET
+  hint: null
+  label: github client secret
+  options: null
+  required: false
+  type: password
+- env: GITHUB_APP_NAME
+  hint: null
+  label: github app name
+  options: null
+  required: false
+  type: text
+- env: GITHUB_APP_ID
+  hint: null
+  label: github app id
+  options: null
+  required: false
+  type: text
+- env: GITHUB_APP_PRIVATE_KEY
+  hint: null
+  label: github app private key
+  options: null
+  required: false
+  type: password
+- env: DISCORD_CLIENT_ID
+  hint: null
+  label: discord client id
+  options: null
+  required: false
+  type: text
+- env: DISCORD_CLIENT_SECRET
+  hint: null
+  label: discord client secret
+  options: null
+  required: false
+  type: password
+- env: DISCORD_SERVER_ID
+  hint: null
+  label: discord server id
+  options: null
+  required: false
+  type: text
+- env: DISCORD_SERVER_ROLES
+  hint: null
+  label: discord server roles
+  options: null
+  required: false
+  type: text
+- env: PGSSLMODE
+  hint: 'по умолчанию: disable'
+  label: pgsslmode
+  options: null
+  required: false
+  type: text
+- env: FORCE_HTTPS
+  hint: 'по умолчанию: true'
+  label: force https
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST
+  hint: null
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: null
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_USERNAME
+  hint: null
+  label: smtp username
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: null
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: SMTP_FROM_EMAIL
+  hint: null
+  label: smtp from email
+  options: null
+  required: false
+  type: text
+- env: SMTP_REPLY_EMAIL
+  hint: null
+  label: smtp reply email
+  options: null
+  required: false
+  type: text
+- env: SMTP_TLS_CIPHERS
+  hint: null
+  label: smtp tls ciphers
+  options: null
+  required: false
+  type: text
+- env: SMTP_SECURE
+  hint: null
+  label: smtp secure
+  options: null
+  required: false
+  type: text
+- env: SMTP_NAME
+  hint: null
+  label: smtp name
+  options: null
+  required: false
+  type: text
+tags:
+- knowledge base
+- documentation
+title: Getoutline
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.getoutline.com/s/hosting/doc/hosting-outline-nipGaCRBDu
+  tags:
+  - knowledge base
+  - documentation
+  template: getoutline.yaml
+website: https://docs.getoutline.com/s/hosting/doc/hosting-outline-nipGaCRBDu

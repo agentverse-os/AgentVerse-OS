@@ -1,0 +1,45 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/qbittorrent
+description: Fast, easy, and free BitTorrent client
+endpoint:
+  port: 8133
+  service: qbittorrent
+env: {}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: qbittorrent
+notes:
+- 'порт 6881→6881 (qbittorrent) не публикуется: доступ только через edge/gate'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: qBittorrent
+type: app
+upstream:
+  author: qBittorrent project
+  categories:
+  - utilities
+  source: https://github.com/qbittorrent/qBittorrent
+  tipi_version: 39
+  version: 5.2.3
+website: https://github.com/qbittorrent/qBittorrent

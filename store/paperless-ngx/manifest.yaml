@@ -1,0 +1,74 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/paperless-ngx
+description: Document Management System (DMS)
+endpoint:
+  port: 8000
+  service: paperless-ngx
+env:
+  PAPERLESS_ADMIN_PASSWORD:
+    generate: password
+  PAPERLESS_ADMIN_USERNAME: ''
+  PAPERLESS_SECRET_KEY:
+    generate: hex64
+  PAPERLESS_TIKA_ENABLED: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: PAPERLESS_ADMIN_PASSWORD
+  path: null
+  user: PAPERLESS_ADMIN_USERNAME
+name: paperless-ngx
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PAPERLESS_ADMIN_USERNAME
+  hint: Username for the paperless-ngx Admin user
+  label: Administrator Username
+  options: null
+  required: true
+  type: text
+- env: PAPERLESS_ADMIN_PASSWORD
+  hint: Password for the paperless-ngx Admin user
+  label: Administrator password
+  options: null
+  required: true
+  type: password
+- env: PAPERLESS_TIKA_ENABLED
+  hint: allow parsing and converting 'Office' documents (such as '.doc', '.xlsx' and '.odt')
+  label: Enable Tika
+  options: null
+  required: false
+  type: boolean
+- env: PAPERLESS_SECRET_KEY
+  hint: null
+  label: App Secret Key
+  options: null
+  required: false
+  type: random
+tags: []
+title: Paperless-ngx
+type: app
+upstream:
+  author: Daniel Quinn, Jonas Winkler, and the Paperless-ngx team
+  categories:
+  - utilities
+  source: https://github.com/paperless-ngx/paperless-ngx
+  tipi_version: 134
+  version: 3.0.5
+website: https://github.com/paperless-ngx/paperless-ngx

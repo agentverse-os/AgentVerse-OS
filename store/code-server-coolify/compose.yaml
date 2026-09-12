@@ -1,0 +1,39 @@
+# code-server-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  code-server:
+    environment:
+    - SERVICE_URL_CODESERVER_8443=${SERVICE_URL_CODESERVER_8443}
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Madrid
+    - PASSWORD=$SERVICE_PASSWORD_64_PASSWORDCODESERVER
+    - SUDO_PASSWORD=$SERVICE_PASSWORD_SUDOCODESERVER
+    - DEFAULT_WORKSPACE=/config/workspace
+    healthcheck:
+      interval: 2s
+      retries: 15
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:8443
+      timeout: 10s
+    image: lscr.io/linuxserver/code-server:latest
+    networks:
+      appnet:
+        aliases:
+        - code-server-coolify_code-server_1
+    restart: unless-stopped
+    volumes:
+    - code-server-config:/config
+volumes:
+  code-server-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/code-server-config
+      o: bind
+      type: none

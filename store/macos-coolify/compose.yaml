@@ -1,0 +1,40 @@
+# macos-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  macos:
+    cap_add:
+    - NET_ADMIN
+    devices:
+    - /dev/kvm:/dev/kvm
+    environment:
+    - SERVICE_URL_MACOS_8006=${SERVICE_URL_MACOS_8006}
+    - VERSION=15
+    healthcheck:
+      interval: 2s
+      retries: 10
+      test:
+      - CMD
+      - nc
+      - -z
+      - 127.0.0.1
+      - '8006'
+      timeout: 10s
+    image: dockurr/macos
+    networks:
+      appnet:
+        aliases:
+        - macos-coolify_macos_1
+    restart: unless-stopped
+    stop_grace_period: 2m
+    volumes:
+    - macos-storage:/storage
+volumes:
+  macos-storage:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/macos-storage
+      o: bind
+      type: none

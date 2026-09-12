@@ -1,0 +1,42 @@
+# homebox-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  homebox:
+    environment:
+    - SERVICE_URL_HOMEBOX_7745=${SERVICE_URL_HOMEBOX_7745}
+    - HBOX_OPTIONS_ALLOW_REGISTRATION=${HBOX_OPTIONS_ALLOW_REGISTRATION:-false}
+    - HBOX_LOG_LEVEL=${HBOX_LOG_LEVEL:-info}
+    - HBOX_LOG_FORMAT=${HBOX_LOG_FORMAT:-text}
+    - HBOX_WEB_MAX_UPLOAD_SIZE=${HBOX_WEB_MAX_UPLOAD_SIZE:-10}
+    - HBOX_MAILER_HOST=${HBOX_MAILER_HOST}
+    - HBOX_MAILER_PORT=${HBOX_MAILER_PORT:-587}
+    - HBOX_MAILER_USERNAME=${HBOX_MAILER_USERNAME}
+    - HBOX_MAILER_PASSWORD=${HBOX_MAILER_PASSWORD}
+    - HBOX_MAILER_FROM=${HBOX_MAILER_FROM}
+    healthcheck:
+      interval: 30s
+      retries: 10
+      test:
+      - CMD
+      - sh
+      - -c
+      - wget --method=GET -qO- http://localhost:7745/api/v1/status > /dev/null || exit 1
+      timeout: 5s
+    image: ghcr.io/sysadminsmedia/homebox:latest
+    networks:
+      appnet:
+        aliases:
+        - homebox-coolify_homebox_1
+    restart: unless-stopped
+    volumes:
+    - homebox-data:/data
+volumes:
+  homebox-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/homebox-data
+      o: bind
+      type: none

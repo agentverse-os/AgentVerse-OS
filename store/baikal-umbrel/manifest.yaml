@@ -1,0 +1,51 @@
+# Импортировано из каталога umbrel командой `cloudd store import umbrel`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/baikal-umbrel
+description: A lightweight calendar and contacts server
+endpoint:
+  port: 80
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/baikal/1.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/baikal/2.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/baikal/3.jpg
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/baikal/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: baikal-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Baikal
+type: app
+upstream:
+  author: fruux GmbH
+  categories:
+  - networking
+  release_notes: |-
+    This release fixes upgrades for Baikal installations using MySQL and ships with sabre/dav 4.7.0.
+
+    Full release notes can be found at https://github.com/sabre-io/Baikal/releases
+  source: https://github.com/sabre-io/Baikal
+  version: 0.11.1
+  website: https://sabre.io/baikal/
+website: https://sabre.io/baikal/

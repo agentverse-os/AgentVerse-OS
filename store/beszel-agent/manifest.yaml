@@ -1,0 +1,52 @@
+# Импортировано из каталога runtipi командой `cloudd store import runtipi`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/beszel-agent
+description: Agent software for Beszel.
+endpoint:
+  port: 45876
+  service: beszel-agent
+env:
+  BESZEL_AGENT_KEY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: beszel-agent
+notes:
+- 'beszel-agent: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: BESZEL_AGENT_KEY
+  hint: The key beszel provides when you add a new server.
+  label: Beszel key
+  options: null
+  required: true
+  type: text
+tags: []
+title: Beszel Agent
+type: app
+upstream:
+  author: henrygd
+  categories:
+  - utilities
+  source: https://github.com/henrygd/beszel
+  tipi_version: 54
+  version: 0.18.8
+website: https://github.com/henrygd/beszel

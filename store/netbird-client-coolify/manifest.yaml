@@ -1,0 +1,74 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/netbird-client-coolify
+description: Connect your devices into a secure WireGuard®-based overlay network with SSO, MFA and granular access controls.
+endpoint:
+  port: 80
+  service: netbird-client
+env:
+  NB_ENABLE_EXPERIMENTAL_LAZY_CONN: 'false'
+  NB_ENABLE_ROSENPASS: 'false'
+  NB_SETUP_KEY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: netbird-client-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NB_SETUP_KEY
+  hint: null
+  label: nb setup key
+  options: null
+  required: false
+  type: password
+- env: NB_ENABLE_ROSENPASS
+  hint: 'по умолчанию: false'
+  label: nb enable rosenpass
+  options: null
+  required: false
+  type: text
+- env: NB_ENABLE_EXPERIMENTAL_LAZY_CONN
+  hint: 'по умолчанию: false'
+  label: nb enable experimental lazy conn
+  options: null
+  required: false
+  type: text
+tags:
+- wireguard
+- mesh-networks
+- vpn
+- zero-trust-network-access
+- open source
+title: Netbird Client
+type: app
+upstream:
+  categories:
+  - vpn
+  source: https://docs.netbird.io/how-to/examples#net-bird-client-in-docker
+  tags:
+  - wireguard
+  - mesh-networks
+  - vpn
+  - zero-trust-network-access
+  - open source
+  template: netbird-client.yaml
+website: https://docs.netbird.io/how-to/examples#net-bird-client-in-docker

@@ -1,0 +1,84 @@
+# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
+# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/supertokens-with-mysql-coolify
+description: An open-source authentication solution that simplifies the implementation of secure user authentication and session management for web and mobile applications.
+endpoint:
+  port: 3567
+  service: supertokens
+env:
+  API_KEYS: ''
+  MYSQL_DATABASE: supertokens
+  SERVICE_PASSWORD_MYSQL:
+    generate: password
+  SERVICE_URL_SUPERTOKENS_3567: https://${APP_DOMAIN}
+  SERVICE_USER_MYSQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: supertokens-with-mysql-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: API_KEYS
+  hint: null
+  label: api keys
+  options: null
+  required: false
+  type: password
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: supertokens'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+tags:
+- supertokens
+- login
+- authentication
+- authorization
+- oauth
+- user-management
+- session-management
+- access-control
+- otp
+- magic-link
+- passwordless
+title: Supertokens With Mysql
+type: app
+upstream:
+  categories:
+  - auth
+  source: https://supertokens.com/docs/guides
+  tags:
+  - supertokens
+  - login
+  - authentication
+  - authorization
+  - oauth
+  - user-management
+  - session-management
+  - access-control
+  - otp
+  - magic-link
+  - passwordless
+  template: supertokens-with-mysql.yaml
+website: https://supertokens.com/docs/guides

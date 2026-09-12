@@ -1,0 +1,118 @@
+# ente-photos-coolify: сгенерировано импортёром (coolify); сеть external (создаёт cloudd), порты не публикуются.
+networks:
+  appnet:
+    external: true
+    name: ${APP_NET}
+services:
+  museum:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_MUSEUM_8080=${SERVICE_URL_MUSEUM_8080}
+    - ENTE_HTTP_USE_TLS=${ENTE_HTTP_USE_TLS:-false}
+    - ENTE_APPS_PUBLIC_ALBUMS=${SERVICE_URL_WEB_3002}
+    - ENTE_APPS_CAST=${SERVICE_URL_WEB_3004}
+    - ENTE_APPS_ACCOUNTS=${SERVICE_URL_WEB_3001}
+    - ENTE_PHOTOS_ORIGIN=${SERVICE_URL_WEB}
+    - ENTE_DB_HOST=${ENTE_DB_HOST:-postgres}
+    - ENTE_DB_PORT=${ENTE_DB_PORT:-5432}
+    - ENTE_DB_NAME=${ENTE_DB_NAME:-ente_db}
+    - ENTE_DB_USER=${SERVICE_USER_POSTGRES:-pguser}
+    - ENTE_DB_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - ENTE_KEY_ENCRYPTION=${SERVICE_REALBASE64_ENCRYPTION}
+    - ENTE_KEY_HASH=${SERVICE_REALBASE64_64_HASH}
+    - ENTE_JWT_SECRET=${SERVICE_REALBASE64_JWT}
+    - ENTE_INTERNAL_ADMIN=${ENTE_INTERNAL_ADMIN:-1580559962386438}
+    - ENTE_INTERNAL_DISABLE_REGISTRATION=${ENTE_INTERNAL_DISABLE_REGISTRATION:-false}
+    - ENTE_S3_B2_EU_CEN_ARE_LOCAL_BUCKETS=${PRIMARY_STORAGE_ARE_LOCAL_BUCKETS:-false}
+    - ENTE_S3_B2_EU_CEN_USE_PATH_STYLE_URLS=${PRIMARY_STORAGE_USE_PATH_STYLE_URLS:-true}
+    - ENTE_S3_B2_EU_CEN_KEY=
+    - ENTE_S3_B2_EU_CEN_SECRET=
+    - ENTE_S3_B2_EU_CEN_ENDPOINT=
+    - ENTE_S3_B2_EU_CEN_REGION=${S3_STORAGE_REGION:-us-east-1}
+    - ENTE_S3_B2_EU_CEN_BUCKET=
+    - ENTE_SMTP_HOST=${ENTE_SMTP_HOST}
+    - ENTE_SMTP_PORT=${ENTE_SMTP_PORT}
+    - ENTE_SMTP_USERNAME=${ENTE_SMTP_USERNAME}
+    - ENTE_SMTP_PASSWORD=${ENTE_SMTP_PASSWORD}
+    - ENTE_SMTP_EMAIL=${ENTE_SMTP_EMAIL}
+    - ENTE_SMTP_SENDER_NAME=${ENTE_SMTP_SENDER_NAME}
+    - ENTE_SMTP_ENCRYPTION=${ENTE_SMTP_ENCRYPTION}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -qO-
+      - http://127.0.0.1:8080/ping
+      timeout: 5s
+    image: ghcr.io/ente-io/server:latest
+    networks:
+      appnet:
+        aliases:
+        - ente-photos-coolify_museum_1
+    restart: unless-stopped
+    volumes:
+    - museum-data:/data
+    - museum-config:/config
+  postgres:
+    environment:
+    - POSTGRES_USER=${SERVICE_USER_POSTGRES:-pguser}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    - POSTGRES_DB=${SERVICE_DB_NAME:-ente_db}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      timeout: 5s
+    image: postgres:15
+    networks:
+      appnet:
+        aliases:
+        - ente-photos-coolify_postgres_1
+    restart: unless-stopped
+    volumes:
+    - postgres-data:/var/lib/postgresql/data
+  web:
+    environment:
+    - SERVICE_URL_WEB_3000=${SERVICE_URL_WEB_3000}
+    - ENTE_API_ORIGIN=${SERVICE_URL_MUSEUM}
+    - ENTE_ALBUMS_ORIGIN=${SERVICE_URL_WEB_3002}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - --fail
+      - http://127.0.0.1:3000
+      timeout: 5s
+    image: ghcr.io/ente-io/web
+    networks:
+      appnet:
+        aliases:
+        - ente-photos-coolify_web_1
+    restart: unless-stopped
+volumes:
+  museum-config:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/museum-config
+      o: bind
+      type: none
+  museum-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/museum-data
+      o: bind
+      type: none
+  postgres-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/postgres-data
+      o: bind
+      type: none
