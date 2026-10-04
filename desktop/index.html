@@ -6,7 +6,7 @@
   <title>AgentVerse OS</title>
   <meta name="theme-color" content="#121416">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* Экран загрузки: показывается сразу, снимается оболочкой после первого ответа ядра (src/lib/boot.ts) */
     #boot { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: #0E1018; color: #F4F7FF; font-family: 'Space Grotesk', system-ui, sans-serif; transition: opacity .6s ease; overflow: hidden; }
@@ -23,6 +23,11 @@
     #boot .msg { font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: #8E97B8; min-height: 1.2em; }
     #boot .msg.err { color: #F2A3A3; letter-spacing: 0; text-transform: none; font-size: 14px; max-width: 420px; text-align: center; line-height: 1.5; }
     @media (prefers-reduced-motion: reduce) { #boot .glow, #boot svg { animation: none; } }
+    /* облик umbrel (тема «Umbrel»): тёплый пейзажный градиент вместо космоса, Inter; класс ставит скрипт ниже по сохранённому оформлению */
+    #boot.umbrel { background: linear-gradient(180deg, #1B1030 0%, #7A2F63 40%, #E5643F 70%, #F5A05A 100%); font-family: Inter, system-ui, sans-serif; }
+    #boot.umbrel .glow { display: none; }
+    #boot.umbrel .name b { color: #fff; }
+    #boot.umbrel .msg { color: rgba(255,255,255,.7); }
   </style>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -65,6 +70,7 @@
       if (!m[l]) { l = ''; var ls = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]; for (var i = 0; i < ls.length; i++) { var p = (ls[i] || '').slice(0, 2).toLowerCase(); if (m[p]) { l = p; break; } } }
       if (!m[l]) l = 'en';
       document.documentElement.lang = l; document.getElementById('boot-msg').textContent = m[l];
+      if (a.look === 'umbrel') document.getElementById('boot').classList.add('umbrel');
     } catch (e) {} })();
   </script>
   <div id="app"></div>

@@ -2,8 +2,9 @@
   import { i18n } from './i18n.svelte';
   // Заставка по бездействию: знак Monolith, часы и дата на тёмном фоне с медленным свечением. Любое действие снимает.
   // Внутри iframe-окон события не видны, поэтому пока фокус в iframe (code-server, приложения) заставка не включается.
+  // Облик umbrel: текущие обои под тёмной вуалью, крупные часы Inter — как экран блокировки umbrelOS.
   import Mark from './Mark.svelte';
-  let { minutes, statusText = '' }: { minutes: number; statusText?: string } = $props();
+  let { minutes, statusText = '', look = 'default' }: { minutes: number; statusText?: string; look?: 'default' | 'umbrel' } = $props();
   let on = $state(false);
   let now = $state(new Date());
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -27,10 +28,14 @@
 </script>
 
 {#if on}
-  <div class="saver" role="presentation" onpointerdown={wake} onkeydown={wake} tabindex="-1">
-    <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
+  <div class="saver" class:umbrel={look === 'umbrel'} role="presentation" onpointerdown={wake} onkeydown={wake} tabindex="-1">
+    {#if look === 'umbrel'}
+      <div class="wall"></div><div class="veil"></div>
+    {:else}
+      <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
+    {/if}
     <div class="scene">
-      <div class="mark"><Mark size={240} /></div>
+      <div class="mark"><Mark size={look === 'umbrel' ? 96 : 240} /></div>
       <div class="time">{hh}</div>
       <div class="date">{dd}</div>
       {#if statusText}<div class="status">{statusText}</div>{/if}
@@ -40,7 +45,7 @@
 {/if}
 
 <style>
-  .saver { position: fixed; inset: 0; z-index: 6000; background: url('/wallpaper-monolith-quiet.png') center / cover no-repeat #0B0D14; color: #F4F7FF; overflow: hidden; cursor: none; font-family: 'Space Grotesk', system-ui, sans-serif; animation: fadein .8s ease; }
+  .saver { position: fixed; inset: 0; z-index: 6000; background: url('/wallpaper-monolith-quiet.png') center / cover no-repeat #0B0D14; color: #F4F7FF; overflow: hidden; cursor: none; font-family: 'Space Grotesk', system-ui, sans-serif; animation: fadein .8s ease-out both; }
   @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
   .glow { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55; animation: drift 26s ease-in-out infinite alternate; }
   .g1 { width: 55vw; height: 55vw; left: 50%; top: -15%; background: rgba(91, 140, 255, .32); }
@@ -56,4 +61,16 @@
   .brand { position: absolute; left: 32px; bottom: 28px; display: flex; align-items: center; gap: 10px; font-size: 14px; color: #8E97B8; }
   .brand b { color: #A2B4FF; font-weight: 600; }
   @media (prefers-reduced-motion: reduce) { .glow, .mark { animation: none; } }
+
+  .saver.umbrel { background: #000; font-family: Inter, system-ui, sans-serif; color: rgb(255 255 255 / .92); }
+  .umbrel .wall { position: absolute; inset: -4%; background: var(--wallpaper); filter: blur(12px) saturate(1.1); transform: scale(1.02); animation: breathe 40s ease-in-out infinite alternate; }
+  .umbrel .veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 0 0 / .35), rgb(0 0 0 / .55)); }
+  @keyframes breathe { from { transform: scale(1.02); } to { transform: scale(1.08); } }
+  .umbrel .mark { animation: none; filter: drop-shadow(0 12px 30px rgb(0 0 0 / .5)); }
+  .umbrel .time { margin-top: 18px; font-weight: 700; letter-spacing: -.04em; text-shadow: 0 4px 24px rgb(0 0 0 / .5); }
+  .umbrel .date { color: rgb(255 255 255 / .7); font-weight: 500; }
+  .umbrel .status { color: rgb(255 255 255 / .45); letter-spacing: .12em; }
+  .umbrel .brand { color: rgb(255 255 255 / .55); }
+  .umbrel .brand b { color: #fff; }
+  @media (prefers-reduced-motion: reduce) { .umbrel .wall { animation: none; } }
 </style>

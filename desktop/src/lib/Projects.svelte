@@ -10,7 +10,7 @@
   let busy = $state<Record<string, string>>({});
   let error = $state('');
   let creating = $state(false);
-  let form = $state({ project: '', runtime: 'incus-nesting' as Runtime, cpu: 2, memory: 4, home: 50, capabilities: [] as string[] });
+  let form = $state({ project: '', description: '', runtime: 'incus-nesting' as Runtime, cpu: 2, memory: 4, home: 50, capabilities: [] as string[] });
 
   async function load() {
     try { [projects, apps] = await Promise.all([api.projects(), api.apps()]); error = ''; } catch (e) { error = e instanceof Error ? e.message : String(e); }
@@ -24,8 +24,8 @@
   const capabilitiesAvailable = $derived([...new Set(apps.filter(a => a.installed).flatMap(a => a.manifest.provides))]);
   function create() {
     run('new', t('project.creating'), async () => {
-      await api.applyProject({ schema: 1, project: form.project.trim(), workspace: { runtime: form.runtime, cpu: form.cpu, memory: form.memory, home: form.home }, agents: ['claude-code', 'codex'], capabilities: form.capabilities });
-      creating = false; form.project = ''; form.capabilities = [];
+      await api.applyProject({ schema: 1, project: form.project.trim(), description: form.description.trim() || undefined, workspace: { runtime: form.runtime, cpu: form.cpu, memory: form.memory, home: form.home }, agents: ['claude-code', 'codex'], capabilities: form.capabilities });
+      creating = false; form.project = ''; form.description = ''; form.capabilities = [];
     });
   }
 </script>
@@ -45,6 +45,7 @@
       <label>RAM GiB <input type="number" min="2" max="128" bind:value={form.memory} style="width:5em" /></label>
       <label>Home GiB <input type="number" min="0" max="2000" bind:value={form.home} style="width:6em" /></label>
     </div>
+    <textarea class="desc" rows="2" aria-label={t('project.description')} placeholder={t('project.descriptionPlaceholder')} bind:value={form.description}></textarea>
     <div class="row" style="margin-top: 8px;">
       <span class="muted">capabilities:</span>
       {#each capabilitiesAvailable as cap}
@@ -61,13 +62,21 @@
 <div class="grid">
   {#each projects as p (p.name)}
     <div class="stack">
-      <button class="open" title={t('project.openWindow')} onclick={() => wm.openSys('project', { name: p.name }, p.name)}>🧩 {p.name} ↗</button>
+      <button class="open" title={t('project.openWindow')} onclick={() => wm.openSys('project', { name: p.name }, p.name)}><span class="lbl">🧩 {p.name} ↗</span></button>
       <ProjectCard {p} {showIps} {capabilitiesAvailable} onchange={load} />
     </div>
   {/each}
   {#if !projects.length}<div class="card muted">{t('project.none')}</div>{/if}
 </div>
 <style>
+  .desc { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; resize: vertical; }
   .stack { position: relative; }
   .stack .open { position: absolute; right: 10px; top: -12px; z-index: 1; font-size: .78rem; padding: 2px 8px; background: var(--panel-2); }
+  /* облик umbrel: ярлык на кромке на полупрозрачной карточке читается как выпавшая кнопка — вместо него круглая кнопка «↗»
+     внутри карточки (имя проекта и так в заголовке), шапка карточки уступает ей место справа */
+  :global(:root[data-look="umbrel"]) .stack .open { top: 10px; right: 10px; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgb(255 255 255 / .1); border: .5px solid rgb(255 255 255 / .16); box-shadow: inset 0 .5px 0 rgb(255 255 255 / .2); color: rgb(255 255 255 / .85); }
+  :global(:root[data-look="umbrel"]) .stack .open .lbl { display: none; }  /* текст ярлыка скрыт целиком, иначе он занимает место рядом со стрелкой */
+  :global(:root[data-look="umbrel"]) .stack .open::after { content: '↗'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; line-height: 1; }
+  :global(:root[data-look="umbrel"]) .stack .open:hover { background: rgb(255 255 255 / .18); }
+  :global(:root[data-look="umbrel"]) .stack :global(.card > .row:has(> h3)) { padding-right: 36px; }
 </style>

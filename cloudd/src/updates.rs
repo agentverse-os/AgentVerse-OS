@@ -280,7 +280,23 @@ fn extract_package(path: &Path, dest: &Path) -> Result<()> {
 }
 
 /// Рукописные манифесты из пакета → каталог Store (только файлы, что есть в пакете; compose.override.yaml и login.yaml не трогаем).
-fn copy_store(src: &Path, store_dir: &Path) -> Result<usize> {
+/// Файлы приложения, которые принадлежат установке, а не каталогу: пакет их не несёт и не перезаписывает.
+pub(crate) const USER_FILES: [&str; 3] = ["compose.override.yaml", "login.yaml", "user.env"];
+
+/// Каталог манифеста целиком (compose, описание, иконка, hooks/ и другие подкаталоги), кроме пользовательских файлов.
+fn copy_tree(src: &Path, dst: &Path) -> Result<()> {
+    std::fs::create_dir_all(dst)?;
+    for f in std::fs::read_dir(src)? {
+        let f = f?;
+        let name = f.file_name();
+        if USER_FILES.iter().any(|u| *u == name.to_string_lossy()) { continue; }
+        let p = f.path();
+        if p.is_dir() { copy_tree(&p, &dst.join(&name))?; } else if p.is_file() { std::fs::copy(&p, dst.join(&name))?; }
+    }
+    Ok(())
+}
+
+pub(crate) fn copy_store(src: &Path, store_dir: &Path) -> Result<usize> {
     let mut n = 0;
     for e in std::fs::read_dir(src)? {
         let e = e?;
@@ -290,12 +306,7 @@ fn copy_store(src: &Path, store_dir: &Path) -> Result<usize> {
             continue;
         }
         if !p.is_dir() || !p.join("manifest.yaml").exists() { continue; }
-        let dst = store_dir.join(e.file_name());
-        std::fs::create_dir_all(&dst)?;
-        for f in std::fs::read_dir(&p)? {
-            let f = f?;
-            if f.path().is_file() { std::fs::copy(f.path(), dst.join(f.file_name()))?; }
-        }
+        copy_tree(&p, &store_dir.join(e.file_name()))?;
         n += 1;
     }
     Ok(n)
@@ -555,6 +566,7 @@ impl Service {
         let states = self.komodo.states().await.unwrap_or_default();
         let mut out = vec![];
         for st in self.store.list_apps()? {
+            if st.manifest.kind == crate::model::AppKind::External { continue; } // нет стека — нечего сравнивать
             let cat = self.manifest(&st.name).ok();
             let installed_version = upstream_version(&st.manifest);
             let catalog_version = cat.as_ref().and_then(upstream_version);

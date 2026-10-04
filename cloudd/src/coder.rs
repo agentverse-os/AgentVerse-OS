@@ -19,6 +19,12 @@ pub struct Workspace {
     pub name: String,
     pub owner_name: String,
     pub latest_build: Build,
+    /// У шаблона есть новая активная версия после последней сборки (Coder `outdated`).
+    #[serde(default)]
+    pub outdated: bool,
+    /// Актуальная версия своего шаблона — на неё обновляем при start, без риска подсунуть версию чужого шаблона.
+    #[serde(default)]
+    pub template_active_version_id: Option<Uuid>,
 }
 #[derive(Debug, Clone, Deserialize)]
 pub struct Build {
@@ -153,6 +159,12 @@ impl Coder {
     /// Сборка `start` с новыми rich parameters (cpu, memory): провайдер Incus применит лимиты in-place.
     pub async fn build_with_params(&self, id: Uuid, transition: &str, params: &[RichParam<'_>]) -> Result<Build> {
         self.req(reqwest::Method::POST, &format!("/api/v2/workspaces/{id}/builds"), Some(json!({ "transition": transition, "rich_parameter_values": params }))).await
+    }
+    /// Сборка на заданной версии шаблона (обновление workspace до актуальной версии, как `coder update`); rich parameters — явно,
+    /// как при создании: Coder не переносит их сам при смене версии.
+    pub async fn build_on_version(&self, id: Uuid, transition: &str, version: Uuid, params: &[RichParam<'_>]) -> Result<Build> {
+        let body = json!({ "transition": transition, "template_version_id": version, "rich_parameter_values": params });
+        self.req(reqwest::Method::POST, &format!("/api/v2/workspaces/{id}/builds"), Some(body)).await
     }
 
     pub async fn build_status(&self, build_id: Uuid) -> Result<Build> {

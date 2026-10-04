@@ -21,6 +21,8 @@ pub struct EdgeInput<'a> {
     /// Дополнительные имена/IP того же Entry Point: те же маршруты и сертификат (internal CA умеет IP SAN).
     pub alt_hosts: &'a [String],
     pub cloudd_upstream: &'a str,
+    /// Сервис «Агенты» на хосте: `/agents/*` уходит ему, минуя ядро.
+    pub agents_upstream: &'a str,
     pub coder_upstream: &'a str,
     pub coder_port: u16,
     pub apps: &'a [AppState],
@@ -59,6 +61,11 @@ impl EdgeCaddy {
 
         // ---- Desktop + cloudd API (:443), плюс path-приложения под /apps/<name>/ ----
         let mut desktop_routes = Vec::new();
+        // приложение «Агенты» — отдельный сервис на том же хосте; префикс не срезаем, сервис сам живёт под /agents/
+        desktop_routes.push(json!({
+            "match": [{ "path": ["/agents", "/agents/*"] }],
+            "handle": [ { "handler": "encode", "encodings": { "gzip": {}, "zstd": {} }, "prefer": ["zstd", "gzip"], "minimum_length": 1024 }, reverse_proxy(input.agents_upstream) ]
+        }));
         for app in input.apps.iter().filter(|a| a.manifest.route.mode == RouteMode::Path) {
             let prefix = app.manifest.route.prefix.clone().unwrap_or_else(|| format!("/apps/{}/", app.name));
             let prefix = prefix.trim_end_matches('/').to_string();

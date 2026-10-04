@@ -16,6 +16,7 @@
   import { api, type AppView } from './api';
   import ProjectWindow from './ProjectWindow.svelte';
   import Files from './Files.svelte';
+  import Agents from './Agents.svelte';
   import type { Appearance } from './theme';
   let { appearance = $bindable() }: { appearance: Appearance } = $props();
   let drag: { id: string; kind: 'move' | 'resize'; x: number; y: number } | null = null;
@@ -106,7 +107,7 @@
     {#if w.kind === 'iframe'}
       <iframe src={w.url} title={winTitle(w)} allow="clipboard-read; clipboard-write; fullscreen; camera; microphone" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals"></iframe>
     {:else}
-      <div class="body">
+      <div class="body" class:flush={w.component === 'agents'}>
         {#if w.component === 'projects'}<Projects showIps={appearance.showWorkspaceIps} />
         {:else if w.component === 'store'}<Store />
         {:else if w.component === 'system'}<System />
@@ -119,6 +120,7 @@
         {:else if w.component === 'reader'}<Reader link={String(w.props?.link ?? '')} feed={w.props?.feed ? String(w.props.feed) : undefined} />
         {:else if w.component === 'project'}<ProjectWindow name={String(w.props?.name ?? '')} showIps={appearance.showWorkspaceIps} />
         {:else if w.component === 'files'}<Files root={String(w.props?.root ?? 'apps')} path={String(w.props?.path ?? '')} />
+        {:else if w.component === 'agents'}<Agents />
         {/if}
       </div>
     {/if}
@@ -166,5 +168,7 @@
   .mbar .close:hover { border-color: var(--bad); color: var(--bad); }
   iframe { flex: 1; border: 0; background: #fff; }
   .body { flex: 1; overflow: auto; padding: calc(14px * var(--sp)); }
+  .body.flush { padding: 0; overflow: hidden; display: flex; }
+  .body.flush > :global(.agents) { flex: 1; min-height: 0; }
   .grip { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, var(--line) 50%); touch-action: none; }
 </style>

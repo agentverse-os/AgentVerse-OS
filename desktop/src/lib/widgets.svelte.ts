@@ -8,7 +8,7 @@ export interface WidgetInst { id: string; type: WidgetType; x: number; y: number
 
 /** title и description — ключи словаря (i18n/messages/widgets.ts): показывать через t(...). */
 export const WIDGETS: Record<WidgetType, { title: string; icon: string; w: number; h: number; description: string; defaults: Record<string, any> }> = {
-  monitor: { title: 'widgets.monitor.title', icon: '📈', w: 420, h: 300, description: 'widgets.monitor.desc', defaults: { show: 'all' } },
+  monitor: { title: 'widgets.monitor.title', icon: '📈', w: 420, h: 400, description: 'widgets.monitor.desc', defaults: { show: 'all' } },
   news: { title: 'widgets.news.title', icon: '📰', w: 420, h: 380, description: 'widgets.news.desc', defaults: { interval: 15, images: true, compact: false, preset: 'ai', count: 10, feeds: [] as string[], lang: 'both' } },
   clock: { title: 'widgets.clock.title', icon: '🕒', w: 260, h: 140, description: 'widgets.clock.desc', defaults: { tz: '', seconds: false } },
   projects: { title: 'widgets.projects.title', icon: '🧩', w: 340, h: 220, description: 'widgets.projects.desc', defaults: {} },
@@ -45,6 +45,8 @@ const KEY = () => `cloudos.widgets.${deviceClass()}`;
 
 class WidgetStore {
   items = $state<WidgetInst[]>([]);
+  /** Идёт перетаскивание или изменение размера: сетка облика umbrel не пересчитывает отступы под виджеты, пока жест не закончен. */
+  dragging = $state(false);
   picker = $state(false);
   private timer: ReturnType<typeof setTimeout> | undefined;
   private loaded = false;
@@ -52,15 +54,29 @@ class WidgetStore {
   constructor() {
     // пустой список считается «настройкой» только если пользователь явно убрал все виджеты (маркер cleared)
     const cleared = () => { try { return localStorage.getItem(`${KEY()}.cleared`) === '1'; } catch { return false; } };
-    try { const local = JSON.parse(localStorage.getItem(KEY()) ?? 'null') as WidgetInst[] | null; this.items = local && (local.length || cleared()) ? local : this.defaults(); } catch { this.items = this.defaults(); }
-    api.desktopSettings().then(s => { const r = s?.widgets?.[deviceClass()] as WidgetInst[] | undefined; if (r && (r.length || cleared())) this.items = r; this.loaded = true; }).catch(() => { this.loaded = true; });
+    try { const local = JSON.parse(localStorage.getItem(KEY()) ?? 'null') as WidgetInst[] | null; this.items = local && (local.length || cleared()) ? this.migrate(local) : this.defaults(); } catch { this.items = this.defaults(); }
+    api.desktopSettings().then(s => { const r = s?.widgets?.[deviceClass()] as WidgetInst[] | undefined; if (r && (r.length || cleared())) { const before = JSON.stringify(r); this.items = this.migrate(r); this.loaded = true; if (JSON.stringify(this.items) !== before) this.persist(); } this.loaded = true; }).catch(() => { this.loaded = true; });
+  }
+  /** Монитор прежнего размера по умолчанию (420×300 — с прокруткой при шести датасетах) вырастает до 400, а виджеты в том же
+   *  столбике расталкиваются вниз, чтобы не наехать друг на друга; всё остальное (положение, свои размеры) не трогаем. */
+  private migrate(items: WidgetInst[]): WidgetInst[] {
+    let changed = false;
+    for (const w of items) if (w.type === 'monitor' && w.w === 420 && w.h === 300) { w.h = 400; changed = true; }
+    if (!changed) return items;
+    const col = [...items].sort((a, b) => a.y - b.y);
+    for (let i = 1; i < col.length; i++) {
+      const w = col[i];
+      for (let j = 0; j < i; j++) { const u = col[j]; if (w.x < u.x + u.w && u.x < w.x + w.w && w.y < u.y + u.h + 12) w.y = u.y + u.h + 12; }
+    }
+    return items;
   }
   defaults(): WidgetInst[] {
     const phone = deviceClass() === 'phone';
     return [
-      { id: 'w-monitor', type: 'monitor', x: innerWidth - 440, y: 20, w: 420, h: 300, config: { ...WIDGETS.monitor.defaults } },
-      { id: 'w-clock', type: 'clock', x: innerWidth - 440, y: 340, w: 260, h: 140, config: { ...WIDGETS.clock.defaults } },
-      ...(phone ? [] : [{ id: 'w-news', type: 'news' as WidgetType, x: innerWidth - 440, y: 500, w: 420, h: 340, config: { ...WIDGETS.news.defaults } }]),
+      // столбик справа сверху вниз: часы, монитор целиком (шесть датасетов без прокрутки), новости до панели задач на 900 px
+      { id: 'w-clock', type: 'clock', x: innerWidth - 440, y: 24, w: 260, h: 140, config: { ...WIDGETS.clock.defaults } },
+      { id: 'w-monitor', type: 'monitor', x: innerWidth - 440, y: 184, w: 420, h: 400, config: { ...WIDGETS.monitor.defaults } },
+      ...(phone ? [] : [{ id: 'w-news', type: 'news' as WidgetType, x: innerWidth - 440, y: 604, w: 420, h: 200, config: { ...WIDGETS.news.defaults } }]),
     ];
   }
   private persist() {

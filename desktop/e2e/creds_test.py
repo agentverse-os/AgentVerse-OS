@@ -1,7 +1,7 @@
 # e2e: где взять логин/пароль Coder — Настройки → Устройства и окно «Пароли и доступы»; статусы Store по-русски; страница вместо 502.
 import os, time
 from playwright.sync_api import sync_playwright
-HOST = os.environ.get("EDGE_HOST", "aios.tail0fe52f.ts.net")
+HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net")
 os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 with sync_playwright() as p:

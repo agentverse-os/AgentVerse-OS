@@ -1,0 +1,31 @@
+[package]
+name = "agentd"
+version = "0.1.0"
+edition = "2021"
+description = "AgentVerse OS: адаптер в workspace — PTY-демон, сессии агентов, файлы (ADR-006)"
+license = "MIT"
+
+[[bin]]
+name = "cloudos-agentd"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.8", features = ["ws", "macros"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4", features = ["derive", "env"] }
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["v4"] }
+bytes = "1"
+portable-pty = "0.9"
+libc = "0.2"
+
+[profile.release]
+strip = true
+lto = "thin"
+
+[dev-dependencies]
+serde_urlencoded = "0.7"

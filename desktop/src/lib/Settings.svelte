@@ -8,8 +8,26 @@
   async function runBk(label: string, f: () => Promise<unknown>) { bkBusy = label; bkMsg = ''; try { const r = await f() as Record<string, unknown>; bkMsg = r?.restic_error ? t('settings.bk.snapshotRestic', { error: String(r.restic_error) }) : t('common.ready'); } catch (e) { bkMsg = String(e); } finally { bkBusy = ''; await loadBk(); } }
   $effect(() => { loadBk(); });
   let coderPw = $state<string | null>(null);
+  // аккаунты агентов (ADR-006, решение 6): ключи и прокси — переменные, подписки — файлы входа, снятые с workspace
+  import type { Account } from './api';
+  let accs = $state<Account[]>([]);
+  let projs = $state<string[]>([]);
+  let accMsg = $state('');
+  let na = $state({ provider: 'claude', kind: 'api_key', label: '', key: '', token: '' });
+  let imp = $state({ provider: 'codex', project: '' });
+  async function loadAccs() { try { accs = (await api.accounts()).accounts; const ps = await api.projects(); projs = ps.filter(p => p.workspace?.status === 'running').map(p => p.name); if (!imp.project && projs.length) imp.project = projs[0]; } catch (e) { accMsg = String(e); } }
+  $effect(() => { loadAccs(); });
+  function accEnv(): Record<string, string> {
+    const anth = na.provider === 'claude' || na.provider === 'anthropic';
+    if (na.kind === 'proxy') return anth ? { ANTHROPIC_BASE_URL: na.key.trim(), ANTHROPIC_AUTH_TOKEN: na.token.trim() } : { OPENAI_BASE_URL: na.key.trim(), OPENAI_API_KEY: na.token.trim() };
+    if (na.provider === 'openrouter') return { OPENAI_API_KEY: na.key.trim(), OPENAI_BASE_URL: 'https://openrouter.ai/api/v1' };
+    return anth ? { ANTHROPIC_API_KEY: na.key.trim() } : { OPENAI_API_KEY: na.key.trim() };
+  }
+  async function addAcc() { accMsg = ''; try { await api.accountCreate({ provider: na.provider, kind: na.kind, label: na.label, env: accEnv() }); na = { ...na, label: '', key: '', token: '' }; await loadAccs(); } catch (e) { accMsg = String(e); } }
+  async function importAcc() { accMsg = ''; try { const a = await api.accountImport({ provider: imp.provider, project: imp.project }); accMsg = a.label; await loadAccs(); } catch (e) { accMsg = String(e); } }
+  async function delAcc(id: string) { if (!confirm(t('settings.accountDeleteConfirm'))) return; try { await api.accountDelete(id); await loadAccs(); } catch (e) { accMsg = String(e); } }
   import { wm } from './windows.svelte';
-  import { ACCENTS, BACKGROUNDS, DEFAULTS, THEMES, themeMatches, apply, saveLocal, saveRemote, type Appearance } from './theme';
+  import { ACCENTS, BACKGROUNDS, DEFAULTS, THEMES, themeMatches, backgroundBrand, apply, saveLocal, saveRemote, type Appearance } from './theme';
   import { api, type SystemStatus } from './api';
   import Dropdown from './Dropdown.svelte';
   import { t, tn, fmt, LANGS, LANG_NAMES } from './i18n.svelte';
@@ -27,7 +45,9 @@
   function reset() { appearance = { ...DEFAULTS }; }
   function set<K extends keyof Appearance>(k: K, v: Appearance[K]) { appearance = { ...appearance, [k]: v }; }
   function applyTheme(t: (typeof THEMES)[number]) { appearance = { ...appearance, ...t.set }; }
-  const previewBg = (t: (typeof THEMES)[number]) => { const b = BACKGROUNDS.find(x => x.id === t.set.background); const m = t.set.mode === 'light' ? 'light' : 'dark'; return b ? (b.id.startsWith('monolith') ? (m === 'light' ? '#dfe6ff' : '#0f1424') : b[m]) : (m === 'light' ? '#f4f6f7' : '#121416'); };
+  // облик umbrel: у сцен Umbrel есть brand-цвет, он становится акцентом вместе с обоями (как в umbrelOS)
+  function setBackground(id: string) { const brand = backgroundBrand(id); appearance = { ...appearance, background: id, ...(appearance.look === 'umbrel' && brand ? { accent: brand } : {}) }; }
+  const previewBg = (t: (typeof THEMES)[number]) => { const b = BACKGROUNDS.find(x => x.id === t.set.background); const m = t.set.mode === 'light' ? 'light' : 'dark'; return b ? (b.id.startsWith('umbrel') ? 'linear-gradient(180deg, #3b1a4e 0%, #d4553f 58%, #2e1b3a 100%)' : b.id.startsWith('monolith') ? (m === 'light' ? '#dfe6ff' : '#0f1424') : b[m]) : (m === 'light' ? '#f4f6f7' : '#121416'); };
 </script>
 
 <h2>{t('sys.settings')}</h2>
@@ -87,7 +107,7 @@
     <h3>{t('settings.background')}</h3>
     <div class="bgs">
       {#each BACKGROUNDS as b}
-        <button class="bg" class:active={appearance.background === b.id} onclick={() => set('background', b.id)}>
+        <button class="bg" class:active={appearance.background === b.id} onclick={() => setBackground(b.id)}>
           <span class="bg-preview" style="background:{b.id === 'custom' ? 'repeating-linear-gradient(45deg, var(--panel-2) 0 6px, transparent 6px 12px)' : (b.top ? b.top[appearance.mode === 'light' ? 'light' : 'dark'] + ', ' : '') + b[appearance.mode === 'light' ? 'light' : 'dark']}"></span>
           <span>{t(b.label)}</span>
         </button>
@@ -200,6 +220,33 @@
     <div class="muted" style="margin-top: 8px;">{t('settings.dev.stored')}</div>
   </section>
 
+  <section class="card">
+    <h3>{t('settings.accounts')}</h3>
+    <p class="muted" style="margin: 4px 0 8px;">{t('settings.accountsHint')}</p>
+    {#each accs as a (a.id)}
+      <div class="row" style="gap: 8px; align-items: center; margin: 4px 0;">
+        <b>{a.label}</b><span class="badge">{a.provider}</span><span class="muted">{a.kind}{a.files.length ? ' · ' + a.files.join(', ') : ''}{a.env_keys.length ? ' · ' + a.env_keys.join(', ') : ''}{a.imported_from ? ' · ' + a.imported_from : ''}</span>
+        <span style="flex:1"></span>
+        <button class="danger" onclick={() => delAcc(a.id)}>{t('common.delete')}</button>
+      </div>
+    {/each}
+    {#if !accs.length}<div class="muted">{t('settings.accountsNone')}</div>{/if}
+    <div class="row" style="gap: 6px; flex-wrap: wrap; margin-top: 10px; align-items: center;">
+      <select bind:value={na.provider} aria-label={t('settings.accountProvider')}><option value="claude">Claude Code</option><option value="codex">Codex</option><option value="anthropic">Anthropic API</option><option value="openai">OpenAI API</option><option value="openrouter">OpenRouter</option></select>
+      <select bind:value={na.kind} aria-label={t('settings.accountKind')}><option value="api_key">{t('settings.kindApiKey')}</option><option value="proxy">{t('settings.kindProxy')}</option></select>
+      <input placeholder={t('settings.accountLabel')} bind:value={na.label} />
+      <input placeholder={na.kind === 'proxy' ? 'https://…' : t('settings.accountKey')} bind:value={na.key} style="min-width: 16em" />
+      {#if na.kind === 'proxy'}<input placeholder={t('settings.accountToken')} bind:value={na.token} />{/if}
+      <button class="primary" disabled={!na.label.trim() || !na.key.trim()} onclick={addAcc}>{t('settings.accountAdd')}</button>
+    </div>
+    <div class="row" style="gap: 6px; flex-wrap: wrap; margin-top: 8px; align-items: center;">
+      <span class="muted">{t('settings.accountImport')}</span>
+      <select bind:value={imp.provider}><option value="codex">Codex (ChatGPT)</option><option value="claude">Claude (claude.ai)</option><option value="gate">gate</option></select>
+      <select bind:value={imp.project}>{#each projs as p}<option value={p}>{p}</option>{/each}</select>
+      <button disabled={!imp.project} onclick={importAcc}>{t('settings.accountImportBtn')}</button>
+      {#if accMsg}<span class="muted">{accMsg}</span>{/if}
+    </div>
+  </section>
   <section class="card">
     <h3>{t('settings.reset')}</h3>
     <div class="row"><button class="danger" onclick={reset}>{t('settings.resetBtn')}</button><span class="muted">{saved}</span></div>

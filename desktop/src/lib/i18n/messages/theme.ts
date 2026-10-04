@@ -3,8 +3,10 @@ import { defineMessages } from '../define';
 export default defineMessages({
   en: {
     'theme.bg.none': 'No wallpaper', 'theme.bg.black': 'Black', 'theme.bg.monolith': 'Monolith', 'theme.bg.monolithLockup': 'Monolith · logo', 'theme.bg.monolithQuiet': 'Monolith · quiet',
+    'theme.bg.umbrelSunset': 'Umbrel · sunset', 'theme.bg.umbrelDusk': 'Umbrel · tropical dusk', 'theme.bg.umbrelDunes': 'Umbrel · dunes', 'theme.bg.umbrelAurora': 'Umbrel · aurora',
     'theme.bg.nebula': 'Nebula', 'theme.bg.dusk': 'Dusk', 'theme.bg.forest': 'Forest', 'theme.bg.graphite': 'Graphite', 'theme.bg.custom': 'Custom image (URL)',
     'theme.t.monolith': 'Monolith', 'theme.t.monolith.hint': 'signature: glass, blue-violet accent, space',
+    'theme.t.umbrel': 'Umbrel', 'theme.t.umbrel.hint': 'like umbrelOS 2: dock, app grid, dark glass over a landscape, accent from the wallpaper',
     'theme.t.glassDark': 'Glass · dark', 'theme.t.glassDark.hint': 'translucent panels with strong blur and highlights',
     'theme.t.glassLight': 'Glass · light', 'theme.t.glassLight.hint': 'the same glass on a light background',
     'theme.t.classic': 'Classic', 'theme.t.classic.hint': 'flat panels, teal accent, nebula',
@@ -14,8 +16,10 @@ export default defineMessages({
   },
   ru: {
     'theme.bg.none': 'Без фона', 'theme.bg.black': 'Чёрный', 'theme.bg.monolith': 'Monolith', 'theme.bg.monolithLockup': 'Monolith · логотип', 'theme.bg.monolithQuiet': 'Monolith · тихий',
+    'theme.bg.umbrelSunset': 'Umbrel · закат', 'theme.bg.umbrelDusk': 'Umbrel · тропические сумерки', 'theme.bg.umbrelDunes': 'Umbrel · дюны', 'theme.bg.umbrelAurora': 'Umbrel · сияние',
     'theme.bg.nebula': 'Туманность', 'theme.bg.dusk': 'Сумерки', 'theme.bg.forest': 'Лес', 'theme.bg.graphite': 'Графит', 'theme.bg.custom': 'Своё изображение (URL)',
     'theme.t.monolith': 'Monolith', 'theme.t.monolith.hint': 'фирменная: стекло, сине-фиолетовый акцент, космос',
+    'theme.t.umbrel': 'Umbrel', 'theme.t.umbrel.hint': 'как umbrelOS 2: док, сетка приложений, тёмное стекло поверх пейзажа, акцент от обоев',
     'theme.t.glassDark': 'Стекло · тёмная', 'theme.t.glassDark.hint': 'прозрачные панели с сильным размытием и бликами',
     'theme.t.glassLight': 'Стекло · светлая', 'theme.t.glassLight.hint': 'то же стекло на светлом фоне',
     'theme.t.classic': 'Классика', 'theme.t.classic.hint': 'плоские панели, бирюзовый акцент, туманность',
@@ -25,8 +29,10 @@ export default defineMessages({
   },
   uk: {
     'theme.bg.none': 'Без тла', 'theme.bg.black': 'Чорний', 'theme.bg.monolith': 'Monolith', 'theme.bg.monolithLockup': 'Monolith · логотип', 'theme.bg.monolithQuiet': 'Monolith · тихий',
+    'theme.bg.umbrelSunset': 'Umbrel · захід', 'theme.bg.umbrelDusk': 'Umbrel · тропічні сутінки', 'theme.bg.umbrelDunes': 'Umbrel · дюни', 'theme.bg.umbrelAurora': 'Umbrel · сяйво',
     'theme.bg.nebula': 'Туманність', 'theme.bg.dusk': 'Сутінки', 'theme.bg.forest': 'Ліс', 'theme.bg.graphite': 'Графіт', 'theme.bg.custom': 'Власне зображення (URL)',
     'theme.t.monolith': 'Monolith', 'theme.t.monolith.hint': 'фірмова: скло, синьо-фіолетовий акцент, космос',
+    'theme.t.umbrel': 'Umbrel', 'theme.t.umbrel.hint': 'як umbrelOS 2: док, сітка застосунків, темне скло поверх пейзажу, акцент від шпалер',
     'theme.t.glassDark': 'Скло · темна', 'theme.t.glassDark.hint': 'прозорі панелі з сильним розмиттям і відблисками',
     'theme.t.glassLight': 'Скло · світла', 'theme.t.glassLight.hint': 'те саме скло на світлому тлі',
     'theme.t.classic': 'Класика', 'theme.t.classic.hint': 'пласкі панелі, бірюзовий акцент, туманність',
@@ -36,8 +42,10 @@ export default defineMessages({
   },
   es: {
     'theme.bg.none': 'Sin fondo', 'theme.bg.black': 'Negro', 'theme.bg.monolith': 'Monolith', 'theme.bg.monolithLockup': 'Monolith · logotipo', 'theme.bg.monolithQuiet': 'Monolith · tranquilo',
+    'theme.bg.umbrelSunset': 'Umbrel · atardecer', 'theme.bg.umbrelDusk': 'Umbrel · crepúsculo tropical', 'theme.bg.umbrelDunes': 'Umbrel · dunas', 'theme.bg.umbrelAurora': 'Umbrel · aurora',
     'theme.bg.nebula': 'Nebulosa', 'theme.bg.dusk': 'Crepúsculo', 'theme.bg.forest': 'Bosque', 'theme.bg.graphite': 'Grafito', 'theme.bg.custom': 'Imagen propia (URL)',
     'theme.t.monolith': 'Monolith', 'theme.t.monolith.hint': 'de la marca: cristal, acento azul violeta, cosmos',
+    'theme.t.umbrel': 'Umbrel', 'theme.t.umbrel.hint': 'como umbrelOS 2: dock, cuadrícula de aplicaciones, cristal oscuro sobre un paisaje, acento del fondo',
     'theme.t.glassDark': 'Cristal · oscuro', 'theme.t.glassDark.hint': 'paneles translúcidos con desenfoque intenso y reflejos',
     'theme.t.glassLight': 'Cristal · claro', 'theme.t.glassLight.hint': 'el mismo cristal sobre fondo claro',
     'theme.t.classic': 'Clásico', 'theme.t.classic.hint': 'paneles planos, acento turquesa, nebulosa',

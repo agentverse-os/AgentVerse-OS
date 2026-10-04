@@ -2,7 +2,7 @@
 # Chromium обрывает текущие запросы (ERR_NETWORK_CHANGED) — поэтому Desktop повторяет install/remove и ждёт статус опросом.
 import os, time
 from playwright.sync_api import sync_playwright
-HOST = os.environ.get("EDGE_HOST", "aios.tail0fe52f.ts.net"); APP = "linkding-coolify"; SECOND = os.environ.get("SECOND_APP_NAME", "Hermes Agent")  # второе установленное приложение с генерируемым входом для проверки поповера
+HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); APP = "linkding-coolify"; SECOND = os.environ.get("SECOND_APP_NAME", "Hermes Agent")  # второе установленное приложение с генерируемым входом для проверки поповера
 os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 with sync_playwright() as p:
@@ -40,7 +40,7 @@ with sync_playwright() as p:
     pg.screenshot(path="shots/ac-ready-revealed.png")
     # Открыть → окно приложения с 🔑, поповер раскрыт сам при первом открытии
     ready.first.locator("button.primary", has_text="Открыть").click(); time.sleep(2.5)
-    appwin = pg.locator(".win", has=pg.locator("iframe[src*='aios.tail0fe52f.ts.net']")).filter(has_text="Linkding").first
+    appwin = pg.locator(".win", has=pg.locator(f"iframe[src*='{HOST}']")).filter(has_text="Linkding").first  # iframe приложения открыт по хосту Desktop
     ok("app window: 🔑 button in title bar", appwin.locator(".bar button.key").count() == 1)
     ok("app window: access popover auto-opened on first open", appwin.locator(".keypop .field[data-field=пароль]").count() == 1)
     pg.screenshot(path="shots/ac-app-key.png")

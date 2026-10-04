@@ -1,6 +1,6 @@
 //! Состояние ядра в SQLite (`tank/core`) и секрет-стор: зашифрованные age-blob'ы под мастер-ключом хоста (2.9, 3.5).
 
-use crate::model::{AppState, Grant, ProjectState};
+use crate::model::{AppState, Grant, ProjectState, UsageBucket, UsageRow, UsageSummary, UsageTotals};
 use anyhow::{anyhow, Context, Result};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::io::{Read, Write};
@@ -28,6 +28,11 @@ CREATE TABLE IF NOT EXISTS app_links (
   consumer TEXT NOT NULL, provider TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (consumer, provider));
 CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, kind TEXT NOT NULL, subject TEXT NOT NULL, message TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS llm_usage (
+  project TEXT NOT NULL, session TEXT NOT NULL, seq INTEGER NOT NULL, ts INTEGER NOT NULL, agent TEXT NOT NULL, model TEXT,
+  input INTEGER NOT NULL, output INTEGER NOT NULL, cache_read INTEGER NOT NULL, cache_create INTEGER NOT NULL,
+  cost_usd REAL NOT NULL, duration_ms INTEGER, num_turns INTEGER, source TEXT NOT NULL, PRIMARY KEY (project, session, seq));
+CREATE INDEX IF NOT EXISTS llm_usage_ts ON llm_usage(ts);
 "#;
 
 pub fn now() -> String {
@@ -255,6 +260,114 @@ impl Store {
             Ok(())
         })
     }
+    // ---- книга расходов LLM (ADR-006, решение 7) ----
+
+    /// INSERT OR IGNORE: повторный опрос agentd не задваивает строки. true — строка новая.
+    /// Одноразовый пересчёт книги расходов: до agentd с дельтами в `cost_usd` строк лежал накопительный `total_cost_usd`
+    /// сессии Claude Code (он растёт от хода к ходу), и суммы раздувались; превращаем каждую строку в разницу с предыдущей
+    /// строкой той же сессии. Отметка kv `usage.cost_deltas`, чтобы не пересчитывать новые, уже правильные строки.
+    pub fn fix_cumulative_costs(&self) -> Result<usize> {
+        if self.get_kv("usage.cost_deltas")?.is_some() { return Ok(0); }
+        let fixed = self.with(|c| {
+            let mut st = c.prepare("SELECT project, session, seq, cost_usd FROM llm_usage ORDER BY project, session, seq")?;
+            let rows: Vec<(String, String, i64, f64)> = st.query_map([], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)))?.collect::<rusqlite::Result<Vec<_>>>()?;
+            let mut prev: Option<(String, String, f64)> = None;
+            let mut fixed = 0usize;
+            let tx = c.unchecked_transaction()?;
+            for (p, s, seq, cost) in rows {
+                let last = match &prev { Some((pp, ss, l)) if pp == &p && ss == &s => *l, _ => 0.0 };
+                let delta = if cost >= last { cost - last } else { cost };
+                if (delta - cost).abs() > 1e-9 { tx.execute("UPDATE llm_usage SET cost_usd = ?1 WHERE project = ?2 AND session = ?3 AND seq = ?4", params![delta, p, s, seq])?; fixed += 1; }
+                prev = Some((p, s, cost));
+            }
+            tx.commit()?;
+            Ok(fixed)
+        })?;
+        self.put_kv("usage.cost_deltas", &serde_json::json!(crate::agents::now_ms()))?;
+        Ok(fixed)
+    }
+
+    /// У беседы, подхваченной с диска до перехода на дельты, первая строка книги — накопительный итог CLI, включающий ходы
+    /// до подхвата: вычитаем базу (`usage_base.cost_usd` из cost-state) один раз, только у строк старше пересчёта.
+    pub fn deduct_usage_base(&self, project: &str, session: &str, base: f64) -> Result<bool> {
+        // v2: первая версия ставила отметку и при неверном времени пересчёта (`1`), те отметки не считаются
+        let key = format!("usage.base_fixed2.{session}");
+        if self.get_kv(&key)?.is_some() { return Ok(false); }
+        // время перехода на дельты: первая версия отметки хранила `1`, тогда берём/заводим отдельную отметку времени
+        let mut migrated_at = self.get_kv("usage.cost_deltas")?.and_then(|v| v.as_u64()).unwrap_or(0) as i64;
+        if migrated_at < 1_000_000 {
+            migrated_at = match self.get_kv("usage.cost_deltas_at")?.and_then(|v| v.as_u64()) { Some(t) => t as i64, None => { let t = crate::agents::now_ms(); self.put_kv("usage.cost_deltas_at", &serde_json::json!(t))?; t as i64 } };
+        }
+        let changed = self.with(|c| {
+            let first: Option<(i64, i64, f64)> = c.query_row("SELECT seq, ts, cost_usd FROM llm_usage WHERE project = ?1 AND session = ?2 ORDER BY seq LIMIT 1", params![project, session], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?))).optional()?;
+            match first {
+                Some((seq, ts, cost)) if ts < migrated_at && cost > base => {
+                    c.execute("UPDATE llm_usage SET cost_usd = ?1 WHERE project = ?2 AND session = ?3 AND seq = ?4", params![cost - base, project, session, seq])?;
+                    Ok(true)
+                }
+                _ => Ok(false),
+            }
+        })?;
+        self.put_kv(&key, &serde_json::json!(1))?;
+        Ok(changed)
+    }
+
+    pub fn insert_usage(&self, r: &UsageRow) -> Result<bool> {
+        self.with(|c| {
+            let n = c.execute(
+                "INSERT OR IGNORE INTO llm_usage(project, session, seq, ts, agent, model, input, output, cache_read, cache_create, cost_usd, duration_ms, num_turns, source) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14)",
+                params![r.project, r.session, r.seq as i64, r.ts as i64, r.agent, r.model, r.input as i64, r.output as i64, r.cache_read as i64, r.cache_create as i64, r.cost_usd, r.duration_ms.map(|d| d as i64), r.num_turns.map(|d| d as i64), r.source],
+            )?;
+            Ok(n == 1)
+        })
+    }
+
+    /// Самая поздняя запись проекта — с неё продолжается опрос `/v1/usage?since=`.
+    pub fn usage_last_ts(&self, project: &str) -> Result<u64> {
+        self.with(|c| Ok(c.query_row("SELECT COALESCE(MAX(ts), 0) FROM llm_usage WHERE project = ?1", params![project], |r| r.get::<_, i64>(0))? as u64))
+    }
+
+    /// Строки книги расходов с `since_ts` (мс), по времени (срез 34: экспорт CSV).
+    pub fn usage_rows(&self, since_ts: u64) -> Result<Vec<UsageRow>> {
+        let c = self.conn.lock().map_err(|_| anyhow!("store mutex poisoned"))?;
+        let mut st = c.prepare("SELECT project, session, seq, ts, agent, model, input, output, cache_read, cache_create, cost_usd, duration_ms, num_turns, source FROM llm_usage WHERE ts >= ?1 ORDER BY ts")?;
+        let rows = st.query_map(params![since_ts as i64], |r| Ok(UsageRow {
+            project: r.get(0)?, session: r.get(1)?, seq: r.get::<_, i64>(2)? as u64, ts: r.get::<_, i64>(3)? as u64, agent: r.get(4)?, model: r.get(5)?,
+            input: r.get::<_, i64>(6)? as u64, output: r.get::<_, i64>(7)? as u64, cache_read: r.get::<_, i64>(8)? as u64, cache_create: r.get::<_, i64>(9)? as u64,
+            cost_usd: r.get(10)?, duration_ms: r.get::<_, Option<i64>>(11)?.map(|d| d as u64), num_turns: r.get::<_, Option<i64>>(12)?.map(|n| n as u64), source: r.get(13)?,
+        }))?.collect::<rusqlite::Result<Vec<_>>>()?;
+        Ok(rows)
+    }
+
+    pub fn usage_summary(&self, since_ts: u64) -> Result<UsageSummary> {
+        fn totals(r: &rusqlite::Row, o: usize) -> rusqlite::Result<UsageTotals> {
+            Ok(UsageTotals {
+                cost_usd: r.get::<_, Option<f64>>(o)?.unwrap_or(0.0),
+                input: r.get::<_, Option<i64>>(o + 1)?.unwrap_or(0) as u64,
+                output: r.get::<_, Option<i64>>(o + 2)?.unwrap_or(0) as u64,
+                cache_read: r.get::<_, Option<i64>>(o + 3)?.unwrap_or(0) as u64,
+                cache_create: r.get::<_, Option<i64>>(o + 4)?.unwrap_or(0) as u64,
+                turns: r.get::<_, Option<i64>>(o + 5)?.unwrap_or(0) as u64,
+            })
+        }
+        fn bucket(r: &rusqlite::Row) -> rusqlite::Result<UsageBucket> {
+            Ok(UsageBucket { key: r.get::<_, Option<String>>(0)?.unwrap_or_else(|| "?".into()), totals: totals(r, 1)? })
+        }
+        const AGG: &str = "SUM(cost_usd), SUM(input), SUM(output), SUM(cache_read), SUM(cache_create), COUNT(*)";
+        self.with(|c| {
+            let total = c.query_row(&format!("SELECT {AGG} FROM llm_usage WHERE ts > ?1"), params![since_ts as i64], |r| totals(r, 0))?;
+            let group = |expr: &str, order: &str| -> Result<Vec<UsageBucket>> {
+                let mut st = c.prepare(&format!("SELECT {expr} AS k, {AGG} FROM llm_usage WHERE ts > ?1 GROUP BY k ORDER BY {order}"))?;
+                let rows = st.query_map(params![since_ts as i64], bucket)?.collect::<rusqlite::Result<Vec<_>>>()?;
+                Ok(rows)
+            };
+            let by_project = group("project", "SUM(cost_usd) DESC")?;
+            let by_model = group("model", "SUM(cost_usd) DESC")?;
+            let by_day = group("strftime('%Y-%m-%d', ts / 1000, 'unixepoch')", "k ASC")?;
+            Ok(UsageSummary { since_ts, total, by_project, by_model, by_day })
+        })
+    }
+
     pub fn recent_events(&self, limit: u32) -> Result<Vec<Event>> {
         self.with(|c| {
             let mut st = c.prepare("SELECT at, kind, subject, message FROM events ORDER BY id DESC LIMIT ?1")?;

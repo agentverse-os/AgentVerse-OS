@@ -20,7 +20,7 @@ INSTALLED = {  # имя → (порт, состояние)
     "immich": (8465, "running"), "vaultwarden": (8466, "running"), "paperless-ngx": (8467, "running"),
     "litellm-coolify": (8458, "running"), "garage": (8452, "running"), "dozzle": (8450, "running"),
 }
-HOST = "agentverse.tail0fe52f.ts.net"
+HOST = "agentverse.tail1234.ts.net"
 
 def ws(name, running=True, ip="10.77.1.10"):
     return {"id": "00000000-0000-0000-0000-00000000000%d" % (1 if name == "alpha" else 2), "name": f"{name}.main",
@@ -109,7 +109,7 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         u = urlparse(self.path); p = u.path
         if p == "/api/status":
-            self.send_json({"edge_host": HOST, "edge_alt_hosts": ["100.69.48.34"], "coder_url": f"https://{HOST}:8444", "coder_user": "admin@agentverse.local", "coder_password_set": True,
+            self.send_json({"edge_host": HOST, "edge_alt_hosts": ["100.64.0.9"], "coder_url": f"https://{HOST}:8444", "coder_user": "admin@agentverse.local", "coder_password_set": True,
                             "components": STATUS_COMPONENTS, "version": "0.2.0", "build": "20260911-demo", "setup_done": True, "update_available": False, "app_updates": 2}); return
         if p == "/api/projects": self.send_json(PROJECTS); return
         if p.startswith("/api/projects/") and p.count("/") == 3:

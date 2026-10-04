@@ -1,6 +1,7 @@
 # projects/alpha/project.yaml — источник истины проекта (2.7); Desktop правит этот файл, cloudd применяет идемпотентно.
 schema: 1
 project: alpha
+description: витрина стенда — на ней проверяются capabilities, gate и обновления   # заметка для людей, ядро её не читает
 workspace:
   runtime: incus-nesting        # incus | incus-nesting (Docker внутри) | incus-vm
   cpu: 2

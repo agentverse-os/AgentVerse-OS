@@ -19,8 +19,18 @@ BUILD_ID="$(date -u +%Y%m%d)-$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null
 ARCH="$(uname -m)"
 DIST="$ROOT/dist"; PKG="$DIST/pkg"
 if [[ $BUILD -eq 1 ]]; then
+  # Воспроизводимые пути в бинарниках: без remap в cloudd/agentd/agents попадают пути сборочной машины (/home/<user>/.cargo/registry/…,
+  # каталог репозитория) — через debuginfo и Location::caller() паник. Переписываем их на /cargo и /src и снимаем символы (strip);
+  # смена RUSTFLAGS пересобирает зависимости, поэтому первый выпуск после этого дольше обычного.
+  export RUSTFLAGS="${RUSTFLAGS:-} --remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/cargo --remap-path-prefix=$ROOT=/src"
+  export CARGO_PROFILE_RELEASE_STRIP=true
   (cd "$ROOT/desktop" && npm run build >/dev/null) && echo "Desktop собран"
-  (cd "$ROOT/cloudd" && CLOUDD_BUILD="$BUILD_ID" cargo build --release 2>&1 | grep -E "^error" -A8 || true) && echo "cloudd собран ($BUILD_ID)"
+  # agentd раньше cloudd: cloudd встраивает его бинарь (build.rs). Ошибка любой сборки останавливает выпуск — иначе в пакет уедет старый бинарь.
+  (cd "$ROOT/agentd" && cargo build --release >/tmp/agentd-build.log 2>&1 || { grep -E "^error" -A8 /tmp/agentd-build.log; echo "сборка agentd не удалась"; exit 1; }) && echo "agentd собран"
+  # сервис «Агенты» (ADR-006, этап 2): веб-приложение agents/ui → встраивается в cloudos-agents → встраивается в cloudd
+  (cd "$ROOT/agents/ui" && npm run build >/tmp/agents-ui-build.log 2>&1 || { tail -20 /tmp/agents-ui-build.log; echo "сборка agents/ui не удалась"; exit 1; }) && echo "agents/ui собран"
+  (cd "$ROOT/agents" && cargo build --release >/tmp/agents-build.log 2>&1 || { grep -E "^error" -A8 /tmp/agents-build.log; echo "сборка cloudos-agents не удалась"; exit 1; }) && echo "cloudos-agents собран"
+  (cd "$ROOT/cloudd" && CLOUDD_BUILD="$BUILD_ID" cargo build --release >/tmp/cloudd-build.log 2>&1 || { grep -E "^error" -A8 /tmp/cloudd-build.log; echo "сборка cloudd не удалась"; exit 1; }) && echo "cloudd собран ($BUILD_ID)"
 fi
 [[ -x "$ROOT/cloudd/target/release/cloudd" ]] || { echo "нет cloudd/target/release/cloudd"; exit 1; }
 rm -rf "$PKG"; mkdir -p "$PKG/store"
@@ -29,7 +39,8 @@ n=0
 for d in "$ROOT"/store/*/; do
   [[ -f "$d/manifest.yaml" ]] && grep -q '^origin: manual' "$d/manifest.yaml" || continue
   name="$(basename "$d")"; mkdir -p "$PKG/store/$name"
-  for f in "$d"/*; do [[ -f "$f" && "$(basename "$f")" != "compose.override.yaml" && "$(basename "$f")" != "login.yaml" ]] && cp "$f" "$PKG/store/$name/"; done
+  # каталог целиком, включая hooks/ и другие подкаталоги; без файлов установки (переопределения, login.yaml, user.env)
+  for f in "$d"/*; do case "$(basename "$f")" in compose.override.yaml|login.yaml|user.env) continue ;; esac; cp -r "$f" "$PKG/store/$name/"; done
   n=$((n + 1))
 done
 [[ -f "$ROOT/store/recommended.yaml" ]] && cp "$ROOT/store/recommended.yaml" "$PKG/store/"

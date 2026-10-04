@@ -5,7 +5,7 @@ import { api } from './api';
 import { t } from './i18n.svelte';
 
 export type WinKind = 'iframe' | 'component';
-export type SysApp = 'projects' | 'store' | 'system' | 'settings' | 'appdetail' | 'project' | 'files' | 'appready' | 'vault' | 'reader' | 'setup' | 'updates';
+export type SysApp = 'projects' | 'store' | 'system' | 'settings' | 'appdetail' | 'project' | 'files' | 'appready' | 'vault' | 'reader' | 'setup' | 'updates' | 'agents';
 export interface Win {
   id: string;
   kind: WinKind;
@@ -42,6 +42,7 @@ export const SYS_APPS: Record<SysApp, { title: string; icon: string; w: number; 
   reader: { title: 'sys.reader', icon: '📰', w: 780, h: 680 },
   setup: { title: 'sys.setup', icon: '🧭', w: 860, h: 700 },
   updates: { title: 'sys.updates', icon: '⬆️', w: 1000, h: 740 },
+  agents: { title: 'sys.agents', icon: '🤖', w: 1180, h: 760 },  // ADR-006: сессии агентов и терминалы workspace'ов
 };
 /** Название системного приложения на текущем языке. */
 export function sysTitle(app: SysApp) { return t(SYS_APPS[app].title); }

@@ -1,0 +1,17 @@
+[Unit]
+Description=AgentVerse OS: сервис «Агенты» (cloudos-agents)
+After=network-online.target cloudd.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cloudos-agents
+Restart=always
+RestartSec=3
+Environment=RUST_LOG=agents=info,tower_http=warn
+Environment=AGENTS_LISTEN=127.0.0.1:7300,172.17.0.1:7300
+Environment=CLOUDD_URL=http://127.0.0.1:7100
+Environment=AGENTS_DATA=/var/lib/cloudos/agents
+
+[Install]
+WantedBy=multi-user.target

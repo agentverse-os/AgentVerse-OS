@@ -27,19 +27,23 @@ export interface Appearance {
   surface?: 'flat' | 'glass' | 'oled';
   /** Язык интерфейса Desktop (общий для всех устройств); auto — по языку браузера. */
   language?: LangSetting;
+  /** Облик оболочки: default — панель задач и окна как есть; umbrel — как umbrelOS 2 (док внизу, сетка приложений с приветствием,
+   *  окна-«листы», материал с тёмной тонировкой, акцент от обоев). Задаётся готовой темой, остальные настройки поверх. */
+  look?: 'default' | 'umbrel';
 }
 
 export const DEFAULTS: Appearance = {
   mode: 'dark', accent: '#5BBFCB', background: 'nebula', backgroundUrl: '', backgroundBlur: 0, textScale: 1, density: 'normal',
-  radius: 'normal', font: 'system', contrast: 'normal', reduceMotion: false, transparency: true, iconSize: 'medium', showWorkspaceIps: true, taskbarPinned: false, screensaver: 10, surface: 'flat', language: 'auto',
+  radius: 'normal', font: 'system', contrast: 'normal', reduceMotion: false, transparency: true, iconSize: 'medium', showWorkspaceIps: true, taskbarPinned: false, screensaver: 10, surface: 'flat', language: 'auto', look: 'default',
 };
 
 export const ACCENTS = ['#5BBFCB', '#4F8EF7', '#7C6CF6', '#D65DB1', '#EB5757', '#F2994A', '#F2C94C', '#6FCF97', '#2FB39B', '#9AA3A8'];
 type Layers = { dark: string; light: string; top?: { dark: string; light: string } };
 /** top — второй слой поверх, ползунок размытия трогает его впятеро слабее (знак остаётся резким); portrait — те же слои для вертикального экрана (телефон):
  *  альбомная картинка в режиме cover на телефоне обрезается до средней трети, и знак с надписью в кадр не попадают. */
-/** label — ключ словаря (i18n/messages/theme.ts): показывать через t(b.label). */
-export const BACKGROUNDS: ({ id: string; label: string; portrait?: Layers } & Layers)[] = [
+/** label — ключ словаря (i18n/messages/theme.ts): показывать через t(b.label). brand — цвет обоев для акцента (как brandColorHsl
+ *  у обоев umbrelOS): в облике umbrel выбор таких обоев подставляет и акцент. */
+export const BACKGROUNDS: ({ id: string; label: string; portrait?: Layers; brand?: string } & Layers)[] = [
   { id: 'none', label: 'theme.bg.none', dark: 'none', light: 'none' },
   { id: 'black', label: 'theme.bg.black', dark: '#000000', light: '#ffffff' },
   { id: 'monolith', label: 'theme.bg.monolith', dark: "url('/wallpaper-monolith-bg.webp') center / cover no-repeat #0B0D14", light: "url('/wallpaper-monolith-light-bg.webp') center / cover no-repeat #F4F7FF", top: { dark: "url('/wallpaper-monolith-mark.webp') center / cover no-repeat", light: "url('/wallpaper-monolith-mark.webp') center / cover no-repeat" },
@@ -47,6 +51,11 @@ export const BACKGROUNDS: ({ id: string; label: string; portrait?: Layers } & La
   { id: 'monolith-lockup', label: 'theme.bg.monolithLockup', dark: "url('/wallpaper-monolith-lockup-bg.webp') center / cover no-repeat #0B0D14", light: "url('/wallpaper-monolith-lockup-light-bg.webp') center / cover no-repeat #F4F7FF", top: { dark: "url('/wallpaper-monolith-lockup.webp') center / cover no-repeat", light: "url('/wallpaper-monolith-lockup-light.webp') center / cover no-repeat" },
     portrait: { dark: "url('/wallpaper-monolith-lockup-bg-portrait.webp') center / cover no-repeat #0B0D14", light: "url('/wallpaper-monolith-lockup-light-bg-portrait.webp') center / cover no-repeat #F4F7FF", top: { dark: "url('/wallpaper-monolith-lockup-portrait.webp') center / cover no-repeat", light: "url('/wallpaper-monolith-lockup-light-portrait.webp') center / cover no-repeat" } } },
   { id: 'monolith-quiet', label: 'theme.bg.monolithQuiet', dark: "url('/wallpaper-monolith-quiet.webp') center / cover no-repeat #0B0D14", light: "url('/wallpaper-monolith-light-bg.webp') center / cover no-repeat #F4F7FF" },
+  // сцены темы Umbrel (assets/scenes.py): пейзажи одинаковы для тёмного и светлого режима, как фотообои
+  { id: 'umbrel-sunset', label: 'theme.bg.umbrelSunset', brand: '#F2690D', dark: "url('/wallpaper-umbrel-sunset.webp') center / cover no-repeat #1B1030", light: "url('/wallpaper-umbrel-sunset.webp') center / cover no-repeat #1B1030" },
+  { id: 'umbrel-dusk', label: 'theme.bg.umbrelDusk', brand: '#DD1371', dark: "url('/wallpaper-umbrel-dusk.webp') center / cover no-repeat #3B1560", light: "url('/wallpaper-umbrel-dusk.webp') center / cover no-repeat #3B1560" },
+  { id: 'umbrel-dunes', label: 'theme.bg.umbrelDunes', brand: '#B86200', dark: "url('/wallpaper-umbrel-dunes.webp') center / cover no-repeat #2A2F63", light: "url('/wallpaper-umbrel-dunes.webp') center / cover no-repeat #2A2F63" },
+  { id: 'umbrel-aurora', label: 'theme.bg.umbrelAurora', brand: '#702EFF', dark: "url('/wallpaper-umbrel-aurora.webp') center / cover no-repeat #040713", light: "url('/wallpaper-umbrel-aurora.webp') center / cover no-repeat #040713" },
   { id: 'nebula', label: 'theme.bg.nebula', dark: 'radial-gradient(1200px 800px at 15% 10%, #1b2a33 0%, transparent 60%), radial-gradient(900px 600px at 85% 90%, #23202f 0%, transparent 55%), #121416', light: 'radial-gradient(1200px 800px at 15% 10%, #dbeef2 0%, transparent 60%), radial-gradient(900px 600px at 85% 90%, #ece8f7 0%, transparent 55%), #f4f6f7' },
   { id: 'dusk', label: 'theme.bg.dusk', dark: 'linear-gradient(160deg, #141a22 0%, #1c1630 60%, #0f1315 100%)', light: 'linear-gradient(160deg, #eef3f8 0%, #f3edf9 60%, #ffffff 100%)' },
   { id: 'forest', label: 'theme.bg.forest', dark: 'linear-gradient(180deg, #0f1a16 0%, #121416 70%)', light: 'linear-gradient(180deg, #e9f4ee 0%, #f6f8f7 70%)' },
@@ -98,6 +107,7 @@ export function apply(a: Appearance) {
   root.dataset.glass = a.transparency ? 'on' : 'off';
   root.dataset.icons = a.iconSize;
   root.dataset.surface = a.surface ?? 'flat';
+  root.dataset.look = a.look ?? 'default';
   root.style.setProperty('--accent', a.accent);
   root.style.setProperty('--on-accent', onAccent(a.accent));
   const [r, g, b] = hexToRgb(a.accent);
@@ -111,8 +121,11 @@ export function apply(a: Appearance) {
   root.style.setProperty('--wallpaper-blur', `${a.backgroundBlur}px`);
   root.style.setProperty('--wallpaper-top', a.background !== 'custom' && bg.top ? bg.top[mode] : 'none');
   root.style.colorScheme = mode;
-  document.querySelector('meta[name=theme-color]')?.setAttribute('content', a.surface === 'oled' ? '#000000' : mode === 'dark' ? '#121416' : '#f4f6f7');
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', a.surface === 'oled' || a.look === 'umbrel' ? '#000000' : mode === 'dark' ? '#121416' : '#f4f6f7');
 }
+
+/** Цвет обоев для акцента (облик umbrel): у сцен Umbrel есть brand, у остальных фонов — нет. */
+export function backgroundBrand(id: string): string | undefined { return BACKGROUNDS.find(b => b.id === id)?.brand; }
 
 /** Следить за системной темой (режим system) и поворотом экрана (портретные слои обоев). */
 export function watchSystem(get: () => Appearance) {
@@ -127,13 +140,15 @@ export function watchSystem(get: () => Appearance) {
 
 /** Готовые темы: набор настроек поверх текущего оформления. После выбора всё ниже можно крутить дальше. label и hint — ключи словаря. */
 export const THEMES: { id: string; label: string; hint: string; set: Partial<Appearance> }[] = [
-  { id: 'monolith', label: 'theme.t.monolith', hint: 'theme.t.monolith.hint', set: { mode: 'dark', accent: '#5B8CFF', background: 'monolith', backgroundBlur: 12, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
-  { id: 'glass-dark', label: 'theme.t.glassDark', hint: 'theme.t.glassDark.hint', set: { mode: 'dark', accent: '#7C6CF6', background: 'monolith-quiet', backgroundBlur: 8, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
-  { id: 'glass-light', label: 'theme.t.glassLight', hint: 'theme.t.glassLight.hint', set: { mode: 'light', accent: '#4F8EF7', background: 'monolith', backgroundBlur: 10, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
-  { id: 'classic', label: 'theme.t.classic', hint: 'theme.t.classic.hint', set: { mode: 'dark', accent: '#5BBFCB', background: 'nebula', backgroundBlur: 0, surface: 'flat', transparency: true, radius: 'normal', contrast: 'normal' } },
-  { id: 'oled', label: 'theme.t.oled', hint: 'theme.t.oled.hint', set: { mode: 'dark', accent: '#A2B4FF', background: 'black', backgroundBlur: 0, surface: 'oled', transparency: false, radius: 'normal', contrast: 'normal' } },
-  { id: 'contrast-dark', label: 'theme.t.contrastDark', hint: 'theme.t.contrastDark.hint', set: { mode: 'dark', accent: '#F2C94C', background: 'black', backgroundBlur: 0, surface: 'flat', transparency: false, radius: 'sharp', contrast: 'high', textScale: 1.1 } },
-  { id: 'contrast-light', label: 'theme.t.contrastLight', hint: 'theme.t.contrastLight.hint', set: { mode: 'light', accent: '#1F3FB5', background: 'black', backgroundBlur: 0, surface: 'flat', transparency: false, radius: 'sharp', contrast: 'high', textScale: 1.1 } },
+  { id: 'monolith', label: 'theme.t.monolith', hint: 'theme.t.monolith.hint', set: { look: 'default', mode: 'dark', accent: '#5B8CFF', background: 'monolith', backgroundBlur: 12, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
+  // как umbrelOS 2: тёмный материал поверх пейзажа, акцент от обоев, Inter, док и сетка приложений вместо панели задач
+  { id: 'umbrel', label: 'theme.t.umbrel', hint: 'theme.t.umbrel.hint', set: { look: 'umbrel', mode: 'dark', accent: '#F2690D', background: 'umbrel-sunset', backgroundBlur: 0, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal', font: 'grotesk' } },
+  { id: 'glass-dark', label: 'theme.t.glassDark', hint: 'theme.t.glassDark.hint', set: { look: 'default', mode: 'dark', accent: '#7C6CF6', background: 'monolith-quiet', backgroundBlur: 8, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
+  { id: 'glass-light', label: 'theme.t.glassLight', hint: 'theme.t.glassLight.hint', set: { look: 'default', mode: 'light', accent: '#4F8EF7', background: 'monolith', backgroundBlur: 10, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
+  { id: 'classic', label: 'theme.t.classic', hint: 'theme.t.classic.hint', set: { look: 'default', mode: 'dark', accent: '#5BBFCB', background: 'nebula', backgroundBlur: 0, surface: 'flat', transparency: true, radius: 'normal', contrast: 'normal' } },
+  { id: 'oled', label: 'theme.t.oled', hint: 'theme.t.oled.hint', set: { look: 'default', mode: 'dark', accent: '#A2B4FF', background: 'black', backgroundBlur: 0, surface: 'oled', transparency: false, radius: 'normal', contrast: 'normal' } },
+  { id: 'contrast-dark', label: 'theme.t.contrastDark', hint: 'theme.t.contrastDark.hint', set: { look: 'default', mode: 'dark', accent: '#F2C94C', background: 'black', backgroundBlur: 0, surface: 'flat', transparency: false, radius: 'sharp', contrast: 'high', textScale: 1.1 } },
+  { id: 'contrast-light', label: 'theme.t.contrastLight', hint: 'theme.t.contrastLight.hint', set: { look: 'default', mode: 'light', accent: '#1F3FB5', background: 'black', backgroundBlur: 0, surface: 'flat', transparency: false, radius: 'sharp', contrast: 'high', textScale: 1.1 } },
 ];
 export function themeMatches(a: Appearance, t: (typeof THEMES)[number]) {
   return Object.entries(t.set).every(([k, v]) => (a as unknown as Record<string, unknown>)[k] === v);

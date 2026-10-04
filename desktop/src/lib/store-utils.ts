@@ -26,4 +26,4 @@ export function baseName(a: AppView) { return a.name.replace(/-(coolify|umbrel)$
 /** Адрес приложения с тем же хостом, по которому открыт Desktop: если Desktop открыт по IP (телефон без MagicDNS), приложения тоже идут по IP —
  *  edge отдаёт один и тот же сертификат и маршруты для всех своих адресов. */
 export function sameHost(url: string): string { try { const u = new URL(url); if (location.hostname && u.hostname !== location.hostname && location.protocol === 'https:') u.hostname = location.hostname; return u.toString(); } catch { return url; } }
-export function openUrl(a: AppView): string { const p = a.manifest.login?.path?.replace(/^\//, '') ?? ''; return sameHost((a.url ?? '') + p); }
+export function openUrl(a: AppView): string { if (a.manifest.type === 'external') return a.url ?? ''; const p = a.manifest.login?.path?.replace(/^\//, '') ?? ''; return sameHost((a.url ?? '') + p); }  // внешний сервис живёт на своём хосте

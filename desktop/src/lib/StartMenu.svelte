@@ -14,7 +14,7 @@
   const s = $derived(q.trim().toLowerCase());
   const installed = $derived(apps.filter(a => a.installed && (!s || a.name.includes(s) || (a.manifest.title ?? '').toLowerCase().includes(s))));
   const catalog = $derived(s ? apps.filter(a => !a.installed && (a.name.includes(s) || (a.manifest.title ?? '').toLowerCase().includes(s))).slice(0, 8) : []);
-  const projs = $derived(projects.filter(p => !s || p.name.includes(s)));
+  const projs = $derived(projects.filter(p => !s || p.name.includes(s) || (p.spec.description ?? '').toLowerCase().includes(s)));  // заметка тоже ищется
   const sysShown = $derived(sys.filter(([, m]) => !s || t(m.title).toLowerCase().includes(s)));
   function icon(a: AppView) { return a.manifest.icon?.startsWith('./') ? `/api/apps/${a.name}/icon` : (a.manifest.icon ?? '📦'); }
   function isImg(i: string) { return i.startsWith('/') || i.startsWith('http'); }
@@ -37,7 +37,7 @@
         {/each}
         {#if !s || projs.length}<div class="muted h" style="margin-top: 10px;">{t('sys.projects')}</div>{/if}
         {#each projs as p}
-          <button class="item" onclick={() => wm.openSys('project', { name: p.name }, p.name)} title={t('shell.wsStatus', { status: p.workspace?.status ?? '—' })}><span class="emoji">🧩</span>{p.name} <span class="badge {p.workspace?.status === 'running' ? 'ok' : ''}">{p.workspace?.status ?? '—'}</span></button>
+          <button class="item" onclick={() => wm.openSys('project', { name: p.name }, p.name)} title={t('shell.wsStatus', { status: p.workspace?.status ?? '—' }) + (p.spec.description ? '\n' + p.spec.description : '')}><span class="emoji">🧩</span>{p.name} <span class="badge {p.workspace?.status === 'running' ? 'ok' : ''}">{p.workspace?.status ?? '—'}</span>{#if p.spec.description}<span class="muted note">{p.spec.description}</span>{/if}</button>
           {#each p.workspace?.apps ?? [] as a}
             {#if p.workspace?.status === 'running'}<button class="item sub" onclick={() => { wm.open(`ws:${p.name}:${a.slug}`, `${p.name} · ${a.display_name}`, a.url, '🧩'); wm.startOpen = false; }}>↳ {a.display_name}</button>{/if}
           {/each}
@@ -79,6 +79,7 @@
   .item { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: transparent; border-color: transparent; padding: 6px 8px; }
   .item:hover { background: var(--panel-2); border-color: var(--line); }
   .item.sub { padding-left: 28px; font-size: .85rem; color: var(--muted); }
+  .item .note { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
   .item img { width: 20px; height: 20px; border-radius: 4px; }
   .emoji { font-size: 16px; width: 20px; text-align: center; }
   .foot { border-top: 1px solid var(--line); padding-top: 8px; }

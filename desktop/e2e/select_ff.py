@@ -1,7 +1,7 @@
 import os
 import time
 from playwright.sync_api import sync_playwright
-HOST = os.environ.get("EDGE_HOST", "aios.tail0fe52f.ts.net")
+HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net")
 with sync_playwright() as p:
     for engine in ("firefox", "chromium"):
         b = getattr(p, engine).launch(); pg = b.new_context(locale="ru-RU", ignore_https_errors=True, viewport={"width": 1440, "height": 900}).new_page()

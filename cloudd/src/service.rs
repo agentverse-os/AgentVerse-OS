@@ -34,17 +34,20 @@ pub struct Service {
     catalog_cache: Arc<std::sync::Mutex<Option<(u128, Vec<AppManifest>)>>>,
     /// Идёт переимпорт каталога из upstream (updates.rs).
     pub(crate) importing: Arc<std::sync::atomic::AtomicBool>,
+    /// Agent Runtime: кэш сессий по workspace'ам и присутствие Desktop (agents.rs).
+    pub(crate) agents: Arc<crate::agents::AgentsState>,
 }
 
 impl Service {
     pub fn new(cfg: Config) -> Result<Self> {
         let store = Store::open(&cfg.db_path(), &cfg.age_key_path())?;
+        match store.fix_cumulative_costs() { Ok(0) => {} Ok(n) => tracing::info!("книга расходов: {n} строк пересчитаны из накопительных итогов в стоимость хода"), Err(e) => tracing::warn!("книга расходов: пересчёт не удался: {e:#}") }
         let incus = Incus::new(cfg.incus_socket.clone());
         let docker = DockerRt::new(&cfg.docker_socket)?;
         let coder = Coder::new(&cfg.coder_url, &cfg.coder_token);
         let komodo = Komodo::new(&cfg.komodo_url, &cfg.komodo_key, &cfg.komodo_secret, &cfg.komodo_server);
         let edge = EdgeCaddy::new(&cfg.caddy_admin);
-        Ok(Self { cfg: Arc::new(cfg), store, incus, docker, coder, komodo, edge, monitor: crate::monitor::Monitor::new(), feeds: crate::feeds::Feeds::default(), lock: Arc::new(tokio::sync::Mutex::new(())), backup_lock: Arc::new(tokio::sync::Mutex::new(())), backup_running: Arc::new(std::sync::atomic::AtomicBool::new(false)), catalog_cache: Default::default(), importing: Default::default() })
+        Ok(Self { cfg: Arc::new(cfg), store, incus, docker, coder, komodo, edge, monitor: crate::monitor::Monitor::new(), feeds: crate::feeds::Feeds::default(), lock: Arc::new(tokio::sync::Mutex::new(())), backup_lock: Arc::new(tokio::sync::Mutex::new(())), backup_running: Arc::new(std::sync::atomic::AtomicBool::new(false)), catalog_cache: Default::default(), importing: Default::default(), agents: Default::default() })
     }
 
     // =====================================================================
@@ -223,9 +226,20 @@ impl Service {
     pub async fn project_apply(&self, spec: ProjectSpec) -> Result<ProjectView> {
         let _g = self.lock.lock().await;
         validate_name(&spec.project)?;
+        let spec = ProjectSpec { description: normalize_description(spec.description)?, ..spec };
         let base = &self.cfg.project_subnet_base;
         let now = store::now();
         let previous = self.store.get_project(&spec.project)?;
+        // Смена одной лишь заметки не трогает сеть, gate и workspace: пишем спек и выходим. Полностью совпадающий спек
+        // идёт длинным путём — так `cloudd project apply` остаётся способом починить проект.
+        if let Some(p) = previous.as_ref().filter(|p| p.spec.description != spec.description && ProjectSpec { description: p.spec.description.clone(), ..spec.clone() } == p.spec) {
+            let mut st = p.clone();
+            st.spec = spec.clone();
+            self.write_project_spec(&spec)?;
+            self.store.upsert_project(&st)?;
+            self.store.event("project", &st.name, if spec.description.is_some() { "описание обновлено" } else { "описание удалено" })?;
+            return self.project_view(&st).await;
+        }
         let workspace_changed = previous.as_ref().map(|p| p.spec.workspace.cpu != spec.workspace.cpu || p.spec.workspace.memory != spec.workspace.memory).unwrap_or(false);
         if let Some(p) = &previous {
             if p.spec.workspace.runtime != spec.workspace.runtime {
@@ -253,6 +267,9 @@ impl Service {
         let gate_dir = self.cfg.gates_dir().join(&st.name);
         self.render_gate(&st).await?;
         self.docker.ensure_gate(&st.gate_name(), &st.macvlan_network(), &gate_ip, &gate_dir).await?;
+        if self.has_external_grants(&st.name)? {
+            self.ensure_egress(&st).await?;
+        }
         if let Err(e) = self.docker.reload_gate(&st.gate_name()).await {
             tracing::warn!("reload gate {}: {e}", st.gate_name());
         }
@@ -275,6 +292,7 @@ impl Service {
                         let params = self.rich_params(&st);
                         let b = self.coder.build_with_params(ws.id, "start", &params).await?;
                         self.store.event("workspace", &st.name, &format!("параметры изменены: {} CPU, {} GiB — build {}", st.spec.workspace.cpu, st.spec.workspace.memory, b.id))?;
+                        self.push_env_when_running(st.clone());
                         // инстанс не перезагружается, а токен агента у новой сборки другой: перезапускаем юнит агента,
                         // он перечитает user.coder_agent_token через guest API
                         let svc = self.clone();
@@ -295,6 +313,8 @@ impl Service {
                     let ws = self.coder.create_workspace(&me.username, &tpl, &st.name, &params).await?;
                     st.coder_workspace_id = Some(ws.id);
                     self.store.event("workspace", &st.name, &format!("создан workspace {} (build {})", ws.id, ws.latest_build.id))?;
+                    // инстанс ещё собирается: env capabilities ляжет, как только Incus сообщит running (push в конце apply его не застанет)
+                    self.push_env_when_running(st.clone());
                 }
             }
             self.store.upsert_project(&st)?;
@@ -307,7 +327,7 @@ impl Service {
             if current.iter().any(|g| &g.capability == cap) {
                 continue;
             }
-            if let Some(app) = apps.iter().find(|a| a.manifest.provides.contains(cap)) {
+            if let Some(app) = self.default_provider(cap, &apps)? {
                 self.grant_inner(&st, cap, app).await?;
             }
         }
@@ -340,7 +360,14 @@ impl Service {
     async fn render_gate(&self, st: &ProjectState) -> Result<()> {
         let grants = self.store.list_grants(Some(&st.name))?;
         let apps = self.store.list_apps()?;
-        let routes = gate::routes_for(&grants, &apps);
+        let mut externals = HashMap::new();
+        for a in apps.iter().filter(|a| a.manifest.kind == AppKind::External) {
+            match self.external_target(a) {
+                Ok(t) => { externals.insert(a.name.clone(), t); }
+                Err(e) => tracing::warn!("gate {}: внешний провайдер {}: {e:#}", st.name, a.name),
+            }
+        }
+        let routes = gate::routes_for(&grants, &apps, &externals);
         let text = gate::render_caddyfile(&st.name, &routes);
         let dir = self.cfg.gates_dir().join(&st.name);
         if gate::write_caddyfile(&dir, &text)? && self.docker.container_exists(&st.gate_name()).await? {
@@ -380,9 +407,41 @@ impl Service {
     pub async fn workspace_transition(&self, name: &str, transition: &str) -> Result<ProjectView> {
         let Some(st) = self.store.get_project(name)? else { bail!("проект {name} не найден") };
         let id = st.coder_workspace_id.ok_or_else(|| anyhow!("у проекта {name} нет workspace"))?;
-        let b = self.coder.build(id, transition).await?;
-        self.store.event("workspace", name, &format!("{transition}: build {}", b.id))?;
+        // start отстающего workspace — сразу на актуальной версии его шаблона (как `coder update`): новые расширения,
+        // раннер агента и cloud-init новых инстансов доезжают без отдельного шага. Параметры — из spec, как при создании.
+        let latest = match self.coder.workspace(id).await? {
+            Some(ws) if transition == "start" && ws.outdated => ws.template_active_version_id,
+            _ => None,
+        };
+        let b = match latest {
+            Some(v) => self.coder.build_on_version(id, transition, v, &self.rich_params(&st)).await?,
+            None => self.coder.build(id, transition).await?,
+        };
+        let note = if latest.is_some() { " (обновление до актуальной версии шаблона)" } else { "" };
+        self.store.event("workspace", name, &format!("{transition}: build {}{note}", b.id))?;
+        if transition == "start" {
+            self.push_env_when_running(st.clone());
+        }
         self.project_view(&st).await
+    }
+
+    /// Контейнер после start поднимается асинхронно, а grants могли смениться, пока workspace стоял (push при гранте
+    /// в остановленный инстанс невозможен): кладём env-контракт, как только Incus сообщит running.
+    fn push_env_when_running(&self, st: ProjectState) {
+        let s = self.clone();
+        tokio::spawn(async move {
+            let inst = s.workspace_instance(&st.name).await;
+            for _ in 0..90 {
+                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                if s.incus.instance_running(&inst).await.unwrap_or(false) {
+                    if s.push_workspace_env(&st).await {
+                        let _ = s.store.event("workspace", &st.name, "env capabilities записан после старта");
+                    }
+                    return;
+                }
+            }
+            tracing::warn!("{}: инстанс {inst} не поднялся за 3 минуты — env capabilities не записан", st.name);
+        });
     }
 
     pub async fn projects(&self) -> Result<Vec<ProjectView>> {
@@ -445,6 +504,11 @@ impl Service {
         let mut available: Vec<String> = apps.iter().flat_map(|a| a.manifest.provides.iter().cloned()).collect();
         available.sort();
         available.dedup();
+        let mut providers: std::collections::BTreeMap<String, Vec<String>> = Default::default();
+        for a in &apps {
+            for c in &a.manifest.provides { providers.entry(c.clone()).or_default().push(a.name.clone()); }
+        }
+        for v in providers.values_mut() { v.sort(); }
         Ok(ProjectView {
             name: st.name.clone(),
             spec: st.spec.clone(),
@@ -456,6 +520,8 @@ impl Service {
             missing_capabilities: missing,
             grant_env,
             available_capabilities: available,
+            providers,
+            agents: self.agents.cache.read().unwrap().get(&st.name).cloned(),
         })
     }
 
@@ -471,7 +537,11 @@ impl Service {
         let mut out = Vec::new();
         for m in self.catalog()? {
             let inst = installed.iter().find(|a| a.name == m.name);
-            let state = inst.and_then(|_| states.get(&m.name).cloned());
+            let state = match inst {
+                Some(a) if a.manifest.kind == AppKind::External => Some(self.external_state_cached(&m.name)),
+                Some(_) => states.get(&m.name).cloned(),
+                None => None,
+            };
             out.push(self.app_view_with(&m, inst, &grants, state)?);
         }
         Ok(out)
@@ -487,6 +557,7 @@ impl Service {
 
     async fn app_view(&self, m: &AppManifest, inst: Option<&AppState>, grants: &[Grant]) -> Result<AppView> {
         let state = match inst {
+            Some(a) if a.manifest.kind == AppKind::External => Some(self.external_state_probe(a).await),
             Some(_) => self.komodo.status(&m.name).await.ok().flatten().map(|s| s.state),
             None => None,
         };
@@ -502,6 +573,7 @@ impl Service {
         if let Some(v) = self.store.get_kv(&format!("app.open.{}", m.name))?.and_then(|v| v.as_str().map(|s| s.to_string())) {
             manifest.route.open = if v == "newtab" { OpenMode::Newtab } else { OpenMode::Iframe };
         }
+        if manifest.kind == AppKind::External { manifest.route.open = OpenMode::Newtab; } // чужой сайт в iframe не откроется
         let mut settings_values = std::collections::BTreeMap::new();
         for (k, spec) in &manifest.env {
             let secret = matches!(spec, EnvSpec::Generate { .. }) || manifest.settings.iter().any(|f| f.get("env").and_then(|e| e.as_str()) == Some(k) && matches!(f.get("type").and_then(|t| t.as_str()), Some("password" | "random")));
@@ -517,7 +589,7 @@ impl Service {
             links_to: links.iter().filter(|l| l.consumer == m.name).map(|l| l.provider.clone()).collect(),
             links_from: links.iter().filter(|l| l.provider == m.name).map(|l| l.consumer.clone()).collect(),
             shared_net: self.is_shared(&m.name)?,
-            internal_url: inst.map(internal_url),
+            internal_url: inst.filter(|a| a.manifest.kind != AppKind::External).map(internal_url),
             link_env,
             name: m.name.clone(),
             url: inst.map(|a| self.app_url(a)),
@@ -530,12 +602,75 @@ impl Service {
         })
     }
 
-    fn app_url(&self, a: &AppState) -> String {
+    pub(crate) fn app_url(&self, a: &AppState) -> String {
+        if a.manifest.kind == AppKind::External {
+            return self.external_target(a).map(|(u, _)| u).unwrap_or_default();
+        }
         match a.manifest.route.mode {
             RouteMode::Path => format!("https://{}{}", self.cfg.edge_host, a.manifest.route.prefix.clone().unwrap_or_else(|| format!("/apps/{}/", a.name))),
             RouteMode::Port => format!("https://{}:{}/", self.cfg.edge_host, a.port.unwrap_or(0)),
             RouteMode::Host => format!("https://{}.{}/", a.name, self.cfg.edge_host),
         }
+    }
+
+    /// Адрес и ключ внешнего провайдера из его настроек: `https://host[:port]` без пути (Caddy не принимает путь в upstream).
+    pub(crate) fn external_target(&self, a: &AppState) -> Result<(String, Option<String>)> {
+        let spec = a.manifest.external.as_ref().ok_or_else(|| anyhow!("{}: type external без раздела external", a.name))?;
+        let scope = format!("app:{}", a.name);
+        let raw = self
+            .store
+            .get_secret(&scope, &spec.url_env)?
+            .filter(|v| !v.trim().is_empty())
+            .or_else(|| match a.manifest.env.get(&spec.url_env) { Some(EnvSpec::Literal(s)) if !s.is_empty() => Some(s.clone()), _ => None })
+            .ok_or_else(|| anyhow!("{}: не задан адрес ({})", a.name, spec.url_env))?;
+        let url = normalize_external_url(&raw)?;
+        let key = match &spec.key_env { Some(k) => self.store.get_secret(&scope, k)?.filter(|v| !v.trim().is_empty()), None => None };
+        Ok((url, key))
+    }
+
+    /// Внешний провайдер отвечает? Любой HTTP-статус — «доступен» (401 без ключа тоже), ошибка соединения/TLS/DNS — нет.
+    async fn external_reachable(&self, a: &AppState) -> Result<String> {
+        let (url, key) = self.external_target(a)?;
+        let path = a.manifest.external.as_ref().and_then(|e| e.check_path.clone()).unwrap_or_else(|| "/".into());
+        let client = reqwest::Client::builder().timeout(std::time::Duration::from_secs(5)).build()?;
+        let mut req = client.get(format!("{url}{path}"));
+        if let Some(k) = &key { req = req.bearer_auth(k).header("x-api-key", k); }
+        let r = req.send().await.map_err(|e| anyhow!("{url}{path}: {e}"))?;
+        Ok(format!("HTTP {}", r.status().as_u16()))
+    }
+
+    /// Состояние внешнего провайдера для карточки: живая проверка, результат кешируется для списка Store.
+    async fn external_state_probe(&self, a: &AppState) -> String {
+        let state = match self.external_reachable(a).await {
+            Ok(_) => "running",
+            Err(e) => { tracing::warn!("внешний провайдер {}: {e:#}", a.name); "unreachable" }
+        };
+        let _ = self.store.put_kv(&format!("app.external.state.{}", a.name), &serde_json::Value::String(state.into()));
+        state.to_string()
+    }
+    fn external_state_cached(&self, name: &str) -> String {
+        self.store.get_kv(&format!("app.external.state.{name}")).ok().flatten().and_then(|v| v.as_str().map(String::from)).unwrap_or_else(|| "running".into())
+    }
+
+    /// Внешний провайдер: ничего не запускаем — проверяем адрес и доступность с сервера, записываем состояние, выдаём ожидающие гранты.
+    async fn external_install(&self, name: &str, m: &AppManifest) -> Result<AppView> {
+        let now = store::now();
+        let mut st = self.store.get_app(name)?.unwrap_or(AppState { name: name.to_string(), manifest: m.clone(), port: None, komodo_stack_id: None, installed_at: now });
+        st.manifest = m.clone();
+        let (url, key) = self.external_target(&st)?;
+        let probe = self.external_reachable(&st).await.with_context(|| format!("{name}: внешний адрес {url} недоступен с сервера"))?;
+        self.store.upsert_app(&st)?;
+        self.store.put_kv(&format!("app.external.state.{name}"), &serde_json::Value::String("running".into()))?;
+        self.store.event("app", name, &format!("внешний провайдер {url} ({probe}{})", if key.is_some() { ", ключ задан" } else { ", без ключа" }))?;
+        for p in self.store.list_projects()? {
+            for cap in &p.spec.capabilities {
+                if m.provides.contains(cap) && !self.store.list_grants(Some(&p.name))?.iter().any(|g| &g.capability == cap) {
+                    self.grant_inner(&p, cap, &st).await?;
+                    self.render_gate(&p).await?;
+                }
+            }
+        }
+        self.app(name).await
     }
 
     /// install(manifest, env): сеть ядра → env из секрет-стора → CreateStack/UpdateStack + DeployStack → маршрут edge.
@@ -547,6 +682,9 @@ impl Service {
             if !apps.iter().any(|a| a.manifest.provides.contains(req)) {
                 bail!("{name} требует capability {req}: установите приложение, которое её provides");
             }
+        }
+        if m.kind == AppKind::External {
+            return self.external_install(name, &m).await;
         }
         let now = store::now();
         let mut st = self.store.get_app(name)?.unwrap_or(AppState { name: name.to_string(), manifest: m.clone(), port: None, komodo_stack_id: None, installed_at: now });
@@ -617,6 +755,7 @@ impl Service {
     pub async fn app_remove(&self, name: &str, purge: bool) -> Result<()> {
         let _g = self.lock.lock().await;
         let Some(st) = self.store.get_app(name)? else { bail!("приложение {name} не установлено") };
+        let external = st.manifest.kind == AppKind::External;
         let dependents: Vec<String> = self
             .store
             .list_apps()?
@@ -627,7 +766,7 @@ impl Service {
         if !dependents.is_empty() {
             bail!("от {name} зависят: {} — удалите их сначала", dependents.join(", "));
         }
-        if self.backup_config().enabled {
+        if !external && self.backup_config().enabled {
             match crate::backup::snapshot_of(&["tank/apps"], &format!("pre-remove-{name}")).await { Ok(s) => self.store.event("app", name, &format!("снимок перед удалением: {s}"))?, Err(e) => tracing::warn!("снимок перед удалением {name}: {e:#}") }
         }
         let links = self.store.list_links()?;
@@ -645,18 +784,21 @@ impl Service {
                 self.render_gate(&p).await.ok();
             }
         }
-        self.docker.disconnect(&st.network(), &self.cfg.edge_container).await.ok();
-        if self.komodo.get_stack(name).await?.is_some() {
-            self.komodo.destroy(name).await?;
-            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-            if let Some(id) = &st.komodo_stack_id {
-                self.komodo.delete_stack(id).await?;
+        if !external {
+            self.docker.disconnect(&st.network(), &self.cfg.edge_container).await.ok();
+            if self.komodo.get_stack(name).await?.is_some() {
+                self.komodo.destroy(name).await?;
+                tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+                if let Some(id) = &st.komodo_stack_id {
+                    self.komodo.delete_stack(id).await?;
+                }
+            }
+            // сеть могла исчезнуть при прерванной прошлой попытке — удаление должно доводиться до конца
+            if let Err(e) = self.docker.remove_network(&st.network()).await {
+                tracing::warn!("сеть {}: {e:#}", st.network());
             }
         }
-        // сеть могла исчезнуть при прерванной прошлой попытке — удаление должно доводиться до конца
-        if let Err(e) = self.docker.remove_network(&st.network()).await {
-            tracing::warn!("сеть {}: {e:#}", st.network());
-        }
+        self.store.put_kv(&format!("app.external.state.{name}"), &serde_json::Value::Null)?;
         self.store.delete_app(name)?;
         self.reload_edge().await?;
         if purge {
@@ -705,6 +847,22 @@ impl Service {
             self.store.put_secret(&scope, k, v)?;
         }
         if let Some(st) = self.store.get_app(name)? {
+            if st.manifest.kind == AppKind::External {
+                let mut st = st;
+                st.manifest = m.clone();
+                let (url, _) = self.external_target(&st)?;
+                let probe = self.external_reachable(&st).await.with_context(|| format!("{name}: внешний адрес {url} недоступен с сервера"))?;
+                self.store.upsert_app(&st)?;
+                self.store.put_kv(&format!("app.external.state.{name}"), &serde_json::Value::String("running".into()))?;
+                for g in self.store.list_grants(None)?.into_iter().filter(|g| g.app == name) {
+                    if let Some(p) = self.store.get_project(&g.project)? {
+                        self.grant_inner(&p, &g.capability, &st).await?;
+                        self.render_gate(&p).await?;
+                    }
+                }
+                self.store.event("app", name, &format!("настройки применены: {url} ({probe}), гранты проектов обновлены"))?;
+                return self.app(name).await;
+            }
             let env_text = self.app_env(&m, st.port)?.into_iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("\n");
             if let (Some(id), Ok(Some(_))) = (&st.komodo_stack_id, self.komodo.get_stack(name).await) {
                 self.komodo.update_stack(id, &self.compose_text(&m)?, &env_text).await?;
@@ -723,6 +881,7 @@ impl Service {
 
     pub async fn app_logs(&self, name: &str, tail: u32) -> Result<String> {
         let st = self.store.get_app(name)?.ok_or_else(|| anyhow!("приложение {name} не установлено"))?;
+        if st.manifest.kind == AppKind::External { bail!("{name}: внешний сервис, логов у ядра нет"); }
         self.komodo.logs(name, &[st.manifest.endpoint.service.clone()], tail).await
     }
 
@@ -768,12 +927,37 @@ impl Service {
     // Grants
     // =====================================================================
 
-    pub async fn grant(&self, project: &str, capability: &str) -> Result<ProjectView> {
+    /// `app` — какой из установленных провайдеров использовать (по умолчанию — см. default_provider); у уже выданной capability
+    /// смена провайдера снимает старый грант (хук on_revoke, сеть) и выдаёт новый.
+    pub async fn grant(&self, project: &str, capability: &str, app: Option<&str>) -> Result<ProjectView> {
         let _g = self.lock.lock().await;
         let mut st = self.store.get_project(project)?.ok_or_else(|| anyhow!("проект {project} не найден"))?;
         let apps = self.store.list_apps()?;
-        let app = apps.iter().find(|a| a.manifest.provides.contains(&capability.to_string())).ok_or_else(|| anyhow!("нет установленного приложения, которое provides {capability}"))?;
-        self.grant_inner(&st, capability, app).await?;
+        let providers: Vec<&AppState> = apps.iter().filter(|a| a.manifest.provides.contains(&capability.to_string())).collect();
+        let app = match app {
+            Some(n) => providers.iter().copied().find(|a| a.name == n).ok_or_else(|| anyhow!("{n} не установлено или не provides {capability}"))?,
+            None => self.default_provider(capability, &apps)?.ok_or_else(|| anyhow!("нет установленного приложения, которое provides {capability}"))?,
+        };
+        let old = self.store.list_grants(Some(project))?.into_iter().find(|g| g.capability == capability && g.app != app.name);
+        if old.is_some() {
+            self.revoke_inner(&st, capability).await?;
+        }
+        if let Err(e) = self.grant_inner(&st, capability, app).await {
+            // смена провайдера не удалась (хук, сеть): вернуть прежнего, чтобы проект не остался без capability
+            if let Some(old) = &old {
+                if let Some(prev) = apps.iter().find(|a| a.name == old.app) {
+                    match self.grant_inner(&st, capability, prev).await {
+                        Ok(()) => { let _ = self.store.event("grant", project, &format!("{capability}: смена провайдера на {} не удалась, оставлен {}", app.name, prev.name)); }
+                        Err(e2) => tracing::error!("{project}/{capability}: откат к {} тоже не удался: {e2:#}", prev.name),
+                    }
+                    self.render_gate(&st).await.ok();
+                }
+            }
+            return Err(e);
+        }
+        if let Some(old) = &old {
+            self.store.event("grant", project, &format!("{capability}: провайдер {} → {}", old.app, app.name))?;
+        }
         if !st.spec.capabilities.iter().any(|c| c == capability) {
             st.spec.capabilities.push(capability.to_string());
             self.write_project_spec(&st.spec)?;
@@ -795,8 +979,23 @@ impl Service {
 
     /// grant = gate подключается к `<app>-net` + маршрут `<cap>.gate` (без рестартов — ADR-005) + хук provider'а `on_grant`,
     /// результат которого (KEY=VALUE) становится секретами проекта и env-контрактом capability в workspace (2.5).
+    /// Провайдер capability по умолчанию: при нескольких установленных — тот, через который эту capability уже получают
+    /// другие проекты (новый проект ведёт себя как остальные: «все через один внешний провайдер»), при равенстве — первый по имени.
+    fn default_provider<'a>(&self, capability: &str, apps: &'a [AppState]) -> Result<Option<&'a AppState>> {
+        let mut candidates: Vec<&AppState> = apps.iter().filter(|a| a.manifest.provides.iter().any(|c| c == capability)).collect();
+        if candidates.len() > 1 {
+            let grants = self.store.list_grants(None)?;
+            candidates.sort_by_key(|a| std::cmp::Reverse(grants.iter().filter(|g| g.capability == capability && g.app == a.name).count()));
+        }
+        Ok(candidates.into_iter().next())
+    }
+
     async fn grant_inner(&self, st: &ProjectState, capability: &str, app: &AppState) -> Result<()> {
-        self.docker.connect(&app.network(), &st.gate_name()).await?;
+        if app.manifest.kind != AppKind::External {
+            self.docker.connect(&app.network(), &st.gate_name()).await?;
+        } else {
+            self.ensure_egress(st).await?;
+        }
         let scope = format!("project:{}:{capability}", st.name);
         if let Some(hook) = &app.manifest.hooks.on_grant {
             let out = self.run_hook(app, hook, st, capability).await.with_context(|| format!("on_grant {} для {}", app.name, st.name))?;
@@ -822,8 +1021,12 @@ impl Service {
                 }
             }
             // отключать сеть можно только если другие grants этого проекта не идут через то же приложение
-            if !grants.iter().any(|o| o.capability != capability && o.app == g.app) {
+            if app.manifest.kind != AppKind::External && !grants.iter().any(|o| o.capability != capability && o.app == g.app) {
                 self.docker.disconnect(&app.network(), &st.gate_name()).await?;
+            }
+            // выход наружу нужен, пока у проекта есть хоть один внешний провайдер
+            if app.manifest.kind == AppKind::External && !grants.iter().any(|o| o.capability != capability && self.is_external_app(&o.app)) {
+                self.docker.disconnect(EGRESS_NET, &st.gate_name()).await?;
             }
         }
         self.store.delete_secrets(&format!("project:{}:{capability}", st.name))?;
@@ -831,6 +1034,19 @@ impl Service {
         self.store.event("revoke", &st.name, &format!("{capability} снят"))?;
         self.push_workspace_env(st).await;
         Ok(())
+    }
+
+    /// Внешний провайдер живёт вне сервера, а gate сидит на macvlan проекта, откуда в tailnet и интернет пути нет:
+    /// на время таких grants gate подключается к `cloudos-egress` (bridge, NAT хоста), и она становится его default-шлюзом.
+    async fn ensure_egress(&self, st: &ProjectState) -> Result<()> {
+        self.docker.ensure_bridge_network(EGRESS_NET, HashMap::from([("cloudos.kind".into(), "egress".into())])).await?;
+        self.docker.connect_gateway(EGRESS_NET, &st.gate_name(), 100).await.with_context(|| format!("{}: выход наружу для внешнего провайдера", st.gate_name()))
+    }
+    fn is_external_app(&self, name: &str) -> bool {
+        matches!(self.store.get_app(name), Ok(Some(a)) if a.manifest.kind == AppKind::External)
+    }
+    fn has_external_grants(&self, project: &str) -> Result<bool> {
+        Ok(self.store.list_grants(Some(project))?.iter().any(|g| self.is_external_app(&g.app)))
     }
 
     /// Хук provider'а: скрипт из каталога приложения в Store, выполняется на хосте (cloudd видит сети приложений напрямую)
@@ -850,8 +1066,10 @@ impl Service {
         env.push(("PROJECT".into(), project.to_string()));
         env.push(("CAPABILITY".into(), capability.to_string()));
         env.push(("GATE_URL".into(), gate_url.to_string()));
-        let ip = self.docker.container_ip(&format!("{}-{}-1", app.name, app.manifest.endpoint.service), &app.network()).await?;
-        env.push(("APP_IP".into(), ip));
+        if app.manifest.kind != AppKind::External {
+            let ip = self.docker.container_ip(&format!("{}-{}-1", app.name, app.manifest.endpoint.service), &app.network()).await?;
+            env.push(("APP_IP".into(), ip));
+        }
         let out = tokio::process::Command::new("bash")
             .arg(&script)
             .current_dir(&dir)
@@ -936,12 +1154,31 @@ impl Service {
         Ok(env)
     }
 
-    /// Env-контракт capabilities в workspace: /etc/cloudos/env.sh (source из /etc/bash.bashrc) — переживает stop/start (rootfs).
-    async fn push_workspace_env(&self, st: &ProjectState) {
-        let inst = format!("ws-admin-{}", st.name); // TODO: owner из Coder, когда пользователей станет больше одного
-        let inst = match self.coder_owner().await { Some(o) => format!("ws-{o}-{}", st.name), None => inst };
+    /// Имя инстанса Incus workspace проекта: `ws-<owner>-<project>`.
+    pub(crate) async fn workspace_instance(&self, project: &str) -> String {
+        // TODO: owner из Coder, когда пользователей станет больше одного
+        match self.coder_owner().await { Some(o) => format!("ws-{o}-{project}"), None => format!("ws-admin-{project}") }
+    }
+
+    const ENV_SH: &'static str = "/etc/cloudos/env.sh";
+    /// Хуки чтения env.sh: /etc/bash.bashrc для терминалов code-server (интерактивный bash без login — ~/.profile не читается,
+    /// поэтому и PATH к CLI агентов здесь), /etc/profile.d для login-оболочек. Печатает «profile.d created», если заглушки не было.
+    const ENV_HOOKS_SH: &'static str = r#"chmod 0644 /etc/cloudos/env.sh 2>/dev/null; grep -q cloudos/env.sh /etc/bash.bashrc || echo '[ -r /etc/cloudos/env.sh ] && . /etc/cloudos/env.sh' >> /etc/bash.bashrc
+grep -q npm-global/bin /etc/bash.bashrc || echo 'export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:$PATH"' >> /etc/bash.bashrc
+if [ ! -f /etc/profile.d/cloudos-env.sh ]; then
+  printf '%s\n' '# Cloud OS: env capabilities проекта для login-оболочек (агент Coder -> code-server, расширения, терминалы); кладёт cloudd' 'if [ -r /etc/cloudos/env.sh ]; then . /etc/cloudos/env.sh; fi' > /etc/profile.d/cloudos-env.sh
+  echo 'profile.d created'
+fi"#;
+
+    /// Env-контракт capabilities в workspace: /etc/cloudos/env.sh — переживает stop/start (rootfs). Его читают интерактивные
+    /// терминалы (/etc/bash.bashrc) и login-оболочки (/etc/profile.d/cloudos-env.sh): агент Coder стартует через `su - coder`,
+    /// так что code-server, расширения и скрипты агента наследуют переменные. Уже запущенный агент новых значений не увидит —
+    /// когда файл изменился (или заглушка profile.d только появилась) и юнит активен, он перезапускается; на первом boot юнит
+    /// ещё не активен (cloud-init), и агент просто стартует с готовым env. Возвращает, изменилось ли что-то в инстансе.
+    async fn push_workspace_env(&self, st: &ProjectState) -> bool {
+        let inst = self.workspace_instance(&st.name).await;
         if !self.incus.instance_running(&inst).await.unwrap_or(false) {
-            return;
+            return false;
         }
         let mut lines = vec!["# Cloud OS: env capabilities проекта — рендерит cloudd из grants, правки перезапишутся".to_string()];
         for g in self.store.list_grants(Some(&st.name)).unwrap_or_default() {
@@ -954,11 +1191,66 @@ impl Service {
             }
         }
         let content = lines.join("\n") + "\n";
-        if let Err(e) = self.incus.file_push(&inst, "/etc/cloudos/env.sh", content.as_bytes(), 0o644).await {
-            tracing::warn!("env в {inst}: {e}");
-            return;
+        let env_changed = self.incus.file_pull(&inst, Self::ENV_SH).await.ok().as_deref() != Some(content.as_bytes());
+        if env_changed {
+            if let Err(e) = self.incus.file_push(&inst, Self::ENV_SH, content.as_bytes(), 0o644).await {
+                tracing::warn!("env в {inst}: {e}");
+                return false;
+            }
         }
-        let _ = self.incus.exec(&inst, &["sh", "-c", "grep -q cloudos/env.sh /etc/bash.bashrc || echo '[ -r /etc/cloudos/env.sh ] && . /etc/cloudos/env.sh' >> /etc/bash.bashrc"]).await;
+        let hooks = self.incus.exec(&inst, &["sh", "-c", Self::ENV_HOOKS_SH]).await.unwrap_or_else(|e| {
+            tracing::warn!("хуки env в {inst}: {e}");
+            String::new()
+        });
+        let changed = env_changed || hooks.contains("profile.d created");
+        self.push_workspace_agentd(st, &inst).await;
+        if changed && self.incus.exec(&inst, &["systemctl", "is-active", "--quiet", "coder-agent"]).await.is_ok() {
+            match self.incus.exec(&inst, &["systemctl", "try-restart", "coder-agent"]).await {
+                Ok(_) => { let _ = self.store.event("workspace", &st.name, "env capabilities изменился — агент Coder перезапущен, code-server и терминалы переоткроются"); }
+                Err(e) => tracing::warn!("try-restart coder-agent в {inst}: {e}"),
+            }
+        }
+        changed
+    }
+
+    /// Адаптер agentd (ADR-006) едет в workspace вместе с env.sh: идемпотентно, событие только при изменениях.
+    async fn push_workspace_agentd(&self, st: &ProjectState, inst: &str) {
+        match crate::agentd::deploy(&self.incus, &self.store, inst, &st.name).await {
+            Ok(d) if d.changed() => {
+                let what = if d.binary { "agentd выложен" } else { "agentd настроен" };
+                let _ = self.store.event("workspace", &st.name, &format!("{what}{}", if d.restarted { " и запущен" } else { "" }));
+            }
+            Ok(_) => {}
+            Err(e) => tracing::warn!("agentd в {inst}: {e:#}"),
+        }
+    }
+
+    /// Политика обхода разрешений Claude Code — во все запущенные workspace'ы; возвращает имена тех, где файл поменялся.
+    pub async fn apply_agents_policy(&self) -> Result<Vec<String>> {
+        let running: std::collections::HashSet<String> = self.incus.instances().await?.into_iter().filter(|i| i.status == "Running").map(|i| i.name).collect();
+        let mut changed = Vec::new();
+        for st in self.store.list_projects()? {
+            let inst = self.workspace_instance(&st.name).await;
+            if !running.contains(&inst) { continue }
+            match crate::agentd::apply_policy(&self.incus, &self.store, &inst).await {
+                Ok(true) => { changed.push(st.name.clone()); let _ = self.store.event("workspace", &st.name, if crate::agentd::policy_bypass(&self.store) { "режим обхода разрешений Claude Code разрешён политикой" } else { "режим обхода разрешений Claude Code запрещён политикой" }); }
+                Ok(false) => {}
+                Err(e) => tracing::warn!("политика Claude Code в {inst}: {e:#}"),
+            }
+        }
+        Ok(changed)
+    }
+
+    /// Клиент к agentd запущенного workspace: адрес из Incus, токен из секрет-стора.
+    pub async fn agentd_client(&self, project: &str) -> Result<crate::agentd::AgentdClient> {
+        let inst = self.workspace_instance(project).await;
+        let info = self.incus.instances().await?.into_iter().find(|i| i.name == inst).ok_or_else(|| anyhow!("workspace {project} не найден"))?;
+        if info.status != "Running" {
+            bail!("workspace {project} не запущен");
+        }
+        let ip = info.ip.ok_or_else(|| anyhow!("у workspace {project} ещё нет IP"))?;
+        let token = self.store.get_secret(&crate::agentd::secret_scope(project), crate::agentd::TOKEN_KEY)?.ok_or_else(|| anyhow!("agentd в {project} ещё не выложен"))?;
+        Ok(crate::agentd::AgentdClient::new(&ip, token))
     }
 
     async fn coder_owner(&self) -> Option<String> {
@@ -979,6 +1271,7 @@ impl Service {
             host: &self.cfg.edge_host,
             alt_hosts: &alt,
             cloudd_upstream: &self.cfg.edge_cloudd_upstream,
+            agents_upstream: &self.cfg.edge_agents_upstream,
             coder_upstream: &self.cfg.edge_coder_upstream,
             coder_port: self.cfg.coder_port,
             apps: &apps,
@@ -1012,6 +1305,7 @@ impl Service {
     pub async fn reconcile_all(&self) -> Result<()> {
         // edge мог быть пересоздан (новый образ, новые тома): подключения к сетям приложений при этом теряются — восстанавливаем
         for st in self.store.list_apps()? {
+            if st.manifest.kind == AppKind::External { continue; }
             if let Err(e) = self.docker.connect(&st.network(), &self.cfg.edge_container).await {
                 let m = format!("{e:#}");
                 if !m.contains("already") { tracing::warn!("reconcile: edge → сеть {}: {m}", st.network()); }
@@ -1033,6 +1327,15 @@ impl Service {
     }
 }
 
+/// Заметка к проекту: пробелы по краям срезаются, пустая превращается в отсутствие, длиннее 2000 символов не принимается.
+pub fn normalize_description(d: Option<String>) -> Result<Option<String>> {
+    let d = d.map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
+    if let Some(n) = d.as_ref().map(|s| s.chars().count()).filter(|n| *n > 2000) {
+        bail!("описание проекта: до 2000 символов, получено {n}");
+    }
+    Ok(d)
+}
+
 pub fn validate_name(n: &str) -> Result<()> {
     if n.is_empty() || n.len() > 48 || !n.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') || n.starts_with('-') {
         bail!("имя {n:?}: только [a-z0-9-], до 48 символов");
@@ -1048,6 +1351,16 @@ pub fn parse_env(out: &str) -> Vec<(String, String)> {
         .filter_map(|l| l.split_once('=').map(|(k, v)| (k.trim().to_string(), v.trim().trim_matches('"').to_string())))
         .filter(|(k, _)| !k.is_empty() && k.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'))
         .collect()
+}
+
+/// `https://host[:port]/` → `https://host[:port]`: схема http(s), хост обязателен, путь запрещён — gate проксирует корень,
+/// пути (`/v1` и т.п.) добавляют клиенты.
+pub fn normalize_external_url(raw: &str) -> Result<String> {
+    let u = reqwest::Url::parse(raw.trim()).map_err(|e| anyhow!("адрес {raw:?}: {e}"))?;
+    if !matches!(u.scheme(), "http" | "https") { bail!("адрес {raw:?}: нужна схема http или https"); }
+    let host = u.host_str().ok_or_else(|| anyhow!("адрес {raw:?}: нет хоста"))?;
+    if !matches!(u.path(), "" | "/") || u.query().is_some() { bail!("адрес {raw:?}: укажите только схему и хост, без пути — /v1 и подобное добавляют клиенты"); }
+    Ok(match u.port() { Some(p) => format!("{}://{host}:{p}", u.scheme()), None => format!("{}://{host}", u.scheme()) })
 }
 
 /// `storage.s3` → `STORAGE_S3` (префикс переменных capability).
@@ -1153,6 +1466,9 @@ impl Service {
 }
 
 pub const SHARED_NET: &str = "cloudos-shared";
+/// Выход gate наружу для внешних провайдеров (bridge с NAT хоста → маршруты хоста, в т.ч. tailnet); подключается только
+/// на время grants с `type: external` и становится default-шлюзом gate.
+pub const EGRESS_NET: &str = "cloudos-egress";
 
 /// Адрес приложения внутри Cloud OS: имя главного сервиса резолвится в его сети (и в общей) для подключённых контейнеров.
 pub fn internal_url(a: &AppState) -> String {
@@ -1228,8 +1544,11 @@ impl Service {
     pub async fn app_link(&self, consumer: &str, provider: &str) -> Result<AppView> {
         let _g = self.lock.lock().await;
         if consumer == provider { bail!("приложение нельзя подключить к самому себе"); }
-        let Some(_c) = self.store.get_app(consumer)? else { bail!("приложение {consumer} не установлено") };
+        let Some(c) = self.store.get_app(consumer)? else { bail!("приложение {consumer} не установлено") };
         let Some(p) = self.store.get_app(provider)? else { bail!("провайдер {provider} не установлен") };
+        if p.manifest.kind == AppKind::External || c.manifest.kind == AppKind::External {
+            bail!("внешние провайдеры пока не участвуют в связях приложений: укажите их адрес и ключ в настройках потребителя");
+        }
         let scope = format!("link:{consumer}:{provider}");
         let gate_url = internal_url(&p);
         if let Some(hook) = &p.manifest.hooks.on_grant {
@@ -1265,6 +1584,7 @@ impl Service {
     pub async fn app_set_shared(&self, name: &str, shared: bool) -> Result<AppView> {
         let _g = self.lock.lock().await;
         self.manifest(name)?;
+        if self.store.get_app(name)?.is_some_and(|a| a.manifest.kind == AppKind::External) { bail!("{name}: внешний сервис, в общую сеть приложений не входит"); }
         if shared {
             self.docker.ensure_bridge_network(SHARED_NET, HashMap::from([("cloudos.kind".into(), "shared".into())])).await?;
         }

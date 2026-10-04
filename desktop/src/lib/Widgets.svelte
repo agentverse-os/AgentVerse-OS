@@ -1,6 +1,7 @@
 <script lang="ts">
   // Слой виджетов: между обоями/иконками и окнами. Перетаскивание за заголовок (появляется при наведении), размер за угол,
   // ⚙ настройки внутри виджета, ✕ удалить. На телефоне — столбец под иконками без перетаскивания.
+  // В облике umbrel слой тот же (виджеты по умолчанию столбиком справа сверху), а сетка приложений освобождает под них место.
   import { widgets, WIDGETS, type WidgetInst } from './widgets.svelte';
   import { t } from './i18n.svelte';
   import { deviceClass, TASKBAR_H } from './windows.svelte';
@@ -18,10 +19,10 @@
   let drag: { id: string; kind: 'move' | 'resize'; x: number; y: number } | null = null;
   function down(e: PointerEvent, w: WidgetInst, kind: 'move' | 'resize') {
     if (phone || (e.target as HTMLElement).closest('button, a, input, textarea')) return;
-    drag = { id: w.id, kind, x: e.clientX, y: e.clientY }; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    drag = { id: w.id, kind, x: e.clientX, y: e.clientY }; widgets.dragging = true; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }
   function move(e: PointerEvent) { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY; if (drag.kind === 'move') widgets.move(drag.id, dx, dy); else widgets.resize(drag.id, dx, dy); }
-  function up() { if (drag) { widgets.save(); drag = null; } }
+  function up() { if (drag) { widgets.save(); drag = null; widgets.dragging = false; } }
 </script>
 
 <div class="wlayer" class:phone style="--tb:{TASKBAR_H}px">
@@ -30,7 +31,7 @@
     {#if !widgets.items.length}<button class="empty" onclick={() => widgets.picker = true}>{t('widgets.emptyHint')}</button>{/if}
   {/if}
   {#each widgets.items as w (w.id)}
-    <section class="widget" style={phone ? '' : `transform: translate(${w.x}px, ${w.y}px); width:${w.w}px; height:${w.h}px`} aria-label={t(WIDGETS[w.type].title)}>
+    <section class="widget" data-id={w.id} style={phone ? '' : `transform: translate(${Math.min(w.x, innerWidth - 80)}px, ${Math.min(w.y, innerHeight - 60)}px); width:${w.w}px; height:${w.h}px`} aria-label={t(WIDGETS[w.type].title)}>  <!-- координаты с более широкого экрана зажимаются в кадр (не сохраняются) -->
       <header class="whead" role="toolbar" tabindex="-1" aria-label={t('widgets.headAria')} onpointerdown={(e) => down(e, w, 'move')} onpointermove={move} onpointerup={up}>
         <span class="wt">{WIDGETS[w.type].icon} {t(WIDGETS[w.type].title)}</span>
         <span class="spacer"></span>
@@ -68,7 +69,7 @@
 <style>
   .wlayer { position: fixed; inset: 0 0 var(--tb) 0; pointer-events: none; z-index: 1; }
   .wlayer.phone { position: static; inset: auto; display: flex; flex-direction: column; gap: 10px; padding: 0; pointer-events: auto; }
-  .widget { position: absolute; top: 0; left: 0; display: flex; flex-direction: column; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; pointer-events: auto; }
+  .widget { position: absolute; top: 0; left: 0; display: flex; flex-direction: column; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); pointer-events: auto; overflow: hidden; }
   .phone .widget { position: static; transform: none !important; width: auto !important; height: auto !important; min-height: 120px; }
   .whead { display: flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: .78rem; color: var(--muted); cursor: grab; user-select: none; touch-action: none; border-bottom: 1px solid transparent; }
   .widget:hover .whead { border-bottom-color: var(--line); background: color-mix(in srgb, var(--panel-2) 60%, transparent); }

@@ -3,7 +3,7 @@
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {
-    'settings.themes': 'Themes', 'settings.themesHint': 'Ready-made sets: mode, accent, wallpaper, surfaces. Pick a theme, then fine-tune the details below.',
+    'settings.accounts': 'Agent accounts', 'settings.accountsHint': 'Subscriptions (login files taken from a workspace where you already signed in), API keys and proxies. A session is pinned to its account at start; a project picks its default in Agents.', 'settings.accountsNone': 'No accounts yet — sessions go through the project gate.', 'settings.accountProvider': 'provider', 'settings.accountKind': 'kind', 'settings.kindApiKey': 'API key', 'settings.kindProxy': 'proxy (URL + token)', 'settings.accountLabel': 'name', 'settings.accountKey': 'API key', 'settings.accountToken': 'token', 'settings.accountAdd': 'Add', 'settings.accountImport': 'Import a login from a workspace:', 'settings.accountImportBtn': 'Import', 'settings.accountDeleteConfirm': 'Delete this account? Sessions pinned to it keep running until restarted.', 'settings.themes': 'Themes', 'settings.themesHint': 'Ready-made sets: mode, accent, wallpaper, surfaces. Pick a theme, then fine-tune the details below.',
     'settings.theme': 'Theme', 'settings.mode.dark': '🌙 Dark', 'settings.mode.light': '☀️ Light', 'settings.mode.system': '🖥 System',
     'settings.mode.systemHint': '“System” follows the device setting and changes with it.',
     'settings.accent': 'Accent color', 'settings.accentCustom': 'custom',
@@ -58,7 +58,7 @@ export default defineMessages({
     'settings.reset': 'Reset', 'settings.resetBtn': 'Restore default appearance',
   },
   ru: {
-    'settings.themes': 'Темы', 'settings.themesHint': 'Готовые наборы: режим, акцент, фон, поверхности. Выберите тему, а ниже подстройте детали.',
+    'settings.accounts': 'Аккаунты агентов', 'settings.accountsHint': 'Подписки (файлы входа, снятые с workspace, где ты уже вошёл), ключи API и прокси. Сессия прибивается к аккаунту при старте; умолчание проекта выбирается в «Агентах».', 'settings.accountsNone': 'Аккаунтов нет — сессии идут через gate проекта.', 'settings.accountProvider': 'провайдер', 'settings.accountKind': 'тип', 'settings.kindApiKey': 'ключ API', 'settings.kindProxy': 'прокси (адрес + токен)', 'settings.accountLabel': 'название', 'settings.accountKey': 'ключ API', 'settings.accountToken': 'токен', 'settings.accountAdd': 'Добавить', 'settings.accountImport': 'Импорт входа из workspace:', 'settings.accountImportBtn': 'Импортировать', 'settings.accountDeleteConfirm': 'Удалить аккаунт? Сессии, прибитые к нему, работают до перезапуска.', 'settings.themes': 'Темы', 'settings.themesHint': 'Готовые наборы: режим, акцент, фон, поверхности. Выберите тему, а ниже подстройте детали.',
     'settings.theme': 'Тема', 'settings.mode.dark': '🌙 Тёмная', 'settings.mode.light': '☀️ Светлая', 'settings.mode.system': '🖥 Как в системе',
     'settings.mode.systemHint': '«Как в системе» следует за настройкой устройства и меняется вместе с ней.',
     'settings.accent': 'Акцентный цвет', 'settings.accentCustom': 'свой',
@@ -113,7 +113,7 @@ export default defineMessages({
     'settings.reset': 'Сброс', 'settings.resetBtn': 'Вернуть оформление по умолчанию',
   },
   uk: {
-    'settings.themes': 'Теми', 'settings.themesHint': 'Готові набори: режим, акцент, тло, поверхні. Виберіть тему, а нижче підлаштуйте деталі.',
+    'settings.accounts': 'Акаунти агентів', 'settings.accountsHint': 'Підписки (файли входу, зняті з workspace, де ти вже увійшов), ключі API та проксі. Сесія прив’язується до акаунта при старті; умовчання проєкту обирається в «Агентах».', 'settings.accountsNone': 'Акаунтів немає — сесії йдуть через gate проєкту.', 'settings.accountProvider': 'провайдер', 'settings.accountKind': 'тип', 'settings.kindApiKey': 'ключ API', 'settings.kindProxy': 'проксі (адреса + токен)', 'settings.accountLabel': 'назва', 'settings.accountKey': 'ключ API', 'settings.accountToken': 'токен', 'settings.accountAdd': 'Додати', 'settings.accountImport': 'Імпорт входу з workspace:', 'settings.accountImportBtn': 'Імпортувати', 'settings.accountDeleteConfirm': 'Видалити акаунт? Прив’язані сесії працюють до перезапуску.', 'settings.themes': 'Теми', 'settings.themesHint': 'Готові набори: режим, акцент, тло, поверхні. Виберіть тему, а нижче підлаштуйте деталі.',
     'settings.theme': 'Тема', 'settings.mode.dark': '🌙 Темна', 'settings.mode.light': '☀️ Світла', 'settings.mode.system': '🖥 Як у системі',
     'settings.mode.systemHint': '«Як у системі» слідує за налаштуванням пристрою і змінюється разом із ним.',
     'settings.accent': 'Акцентний колір', 'settings.accentCustom': 'свій',
@@ -168,7 +168,7 @@ export default defineMessages({
     'settings.reset': 'Скидання', 'settings.resetBtn': 'Повернути оформлення за умовчанням',
   },
   es: {
-    'settings.themes': 'Temas', 'settings.themesHint': 'Conjuntos listos: modo, acento, fondo, superficies. Elija un tema y ajuste los detalles más abajo.',
+    'settings.accounts': 'Cuentas de agentes', 'settings.accountsHint': 'Suscripciones (archivos de inicio de sesión tomados de un workspace donde ya entraste), claves API y proxies. La sesión se fija a su cuenta al iniciar; el proyecto elige la suya por defecto en Agentes.', 'settings.accountsNone': 'Sin cuentas: las sesiones pasan por el gate del proyecto.', 'settings.accountProvider': 'proveedor', 'settings.accountKind': 'tipo', 'settings.kindApiKey': 'clave API', 'settings.kindProxy': 'proxy (URL + token)', 'settings.accountLabel': 'nombre', 'settings.accountKey': 'clave API', 'settings.accountToken': 'token', 'settings.accountAdd': 'Añadir', 'settings.accountImport': 'Importar un inicio de sesión desde un workspace:', 'settings.accountImportBtn': 'Importar', 'settings.accountDeleteConfirm': '¿Eliminar la cuenta? Las sesiones fijadas a ella siguen hasta reiniciarse.', 'settings.themes': 'Temas', 'settings.themesHint': 'Conjuntos listos: modo, acento, fondo, superficies. Elija un tema y ajuste los detalles más abajo.',
     'settings.theme': 'Tema', 'settings.mode.dark': '🌙 Oscuro', 'settings.mode.light': '☀️ Claro', 'settings.mode.system': '🖥 Como el sistema',
     'settings.mode.systemHint': '«Como el sistema» sigue el ajuste del dispositivo y cambia con él.',
     'settings.accent': 'Color de acento', 'settings.accentCustom': 'propio',

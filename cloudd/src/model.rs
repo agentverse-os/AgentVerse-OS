@@ -5,7 +5,7 @@ use utoipa::ToSchema;
 
 // ---------- project.yaml (2.7) ----------
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ToSchema)]
 pub struct ProjectSpec {
     #[serde(default = "one")]
     pub schema: u32,
@@ -18,9 +18,17 @@ pub struct ProjectSpec {
     /// и превращается в маршрут `http://<capability>.gate` на gate проекта.
     #[serde(default)]
     pub capabilities: Vec<String>,
+    /// Заметка владельца: что это за проект и что в нём происходит — чтобы кроме имени вроде `alpha` была человеческая
+    /// пометка. Ядро её не интерпретирует; до 2000 символов, пустая при применении превращается в отсутствие.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// Служебный проект (ADR-006: workspace `scratch` быстрых чатов): обслуживается как остальные, но в списке проектов
+    /// (`GET /api/projects`) показывается только по `?all=1` — Desktop и дерево «Рабочих мест» его не видят.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub hidden: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ToSchema)]
 pub struct WorkspaceSpec {
     #[serde(default = "default_runtime")]
     pub runtime: Runtime,
@@ -99,12 +107,14 @@ pub struct AppManifest {
     pub icon: Option<String>,
     #[serde(default, rename = "type")]
     pub kind: AppKind,
-    /// Путь к compose относительно каталога манифеста.
+    /// Путь к compose относительно каталога манифеста (у `type: external` пусто).
+    #[serde(default)]
     pub compose: String,
     #[serde(default)]
     pub provides: Vec<String>,
     #[serde(default)]
     pub requires: Vec<String>,
+    #[serde(default)]
     pub route: RouteSpec,
     #[serde(default)]
     pub auth: Option<String>,
@@ -118,9 +128,14 @@ pub struct AppManifest {
     #[serde(default)]
     pub health: Option<String>,
     /// Куда ведут маршруты: сервис и порт внутри `<app>-net` (для edge и gate).
+    #[serde(default)]
     pub endpoint: Endpoint,
     #[serde(default)]
     pub hooks: Hooks,
+    /// Внешний провайдер capability (`type: external`): сервис вне этого сервера. gate проекта проксирует `http://<cap>.gate`
+    /// на адрес из настройки `url_env` и подставляет ключ из `key_env`; хуки работают как у обычного провайдера.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub external: Option<ExternalSpec>,
     /// `manual` (рукописный) | `runtipi` (импортёр); импортёр не трогает manual.
     #[serde(default = "manual")]
     pub origin: String,
@@ -212,15 +227,28 @@ pub enum AppKind {
     #[default]
     App,
     System,
+    /// Внешний провайдер capability: сервис вне этого сервера, ядро ничего не запускает (см. `AppManifest::external`).
+    External,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, ToSchema)]
 pub struct Endpoint {
     pub service: String,
     pub port: u16,
 }
 
+/// Внешний провайдер: имена настроек манифеста с адресом (`https://host[:port]`, без пути) и ключом; путь проверки доступности.
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct ExternalSpec {
+    pub url_env: String,
+    #[serde(default)]
+    pub key_env: Option<String>,
+    /// Путь проверки при установке и в карточке (по умолчанию `/`): любой HTTP-ответ — «доступен», ошибка соединения — нет.
+    #[serde(default)]
+    pub check_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, ToSchema)]
 pub struct RouteSpec {
     pub mode: RouteMode,
     /// Для `path`: префикс `/apps/<name>/`; для `port`: желаемый порт (иначе выдаст ядро); для `host` — поддомен.
@@ -232,10 +260,11 @@ pub struct RouteSpec {
     pub open: OpenMode,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum RouteMode {
     Path,
+    #[default]
     Port,
     Host,
 }
@@ -345,6 +374,79 @@ pub struct ProjectView {
     /// Capabilities, которые можно выдать (есть установленный provider).
     #[serde(default)]
     pub available_capabilities: Vec<String>,
+    /// Установленные провайдеры по capability — для выбора, через кого выдавать грант.
+    #[serde(default)]
+    pub providers: std::collections::BTreeMap<String, Vec<String>>,
+    /// Сессии агентов в workspace (кэш ядра, обновляется опросом agentd раз в 10 с); None — workspace не запущен.
+    #[serde(default)]
+    pub agents: Option<AgentsSummary>,
+}
+
+/// Сводка по сессиям агентов одного workspace (agents.rs).
+#[derive(Debug, Clone, Default, Serialize, Deserialize, ToSchema)]
+pub struct AgentsSummary {
+    pub total: usize,
+    pub working: usize,
+    pub waiting: usize,
+    pub sessions: Vec<AgentSessionBrief>,
+    pub updated_at: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct AgentSessionBrief {
+    pub id: String,
+    pub title: String,
+    pub agent: String,
+    pub status: String,
+    pub alive: bool,
+    pub pending: usize,
+    pub last_text: Option<String>,
+    pub cost_usd: f64,
+}
+
+/// Строка книги расходов LLM: один `result` сессии агента (ADR-006, решение 7).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UsageRow {
+    pub project: String,
+    pub session: String,
+    pub seq: u64,
+    pub ts: u64,
+    pub agent: String,
+    pub model: Option<String>,
+    pub input: u64,
+    pub output: u64,
+    pub cache_read: u64,
+    pub cache_create: u64,
+    pub cost_usd: f64,
+    pub duration_ms: Option<u64>,
+    pub num_turns: Option<u64>,
+    pub source: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct UsageTotals {
+    pub cost_usd: f64,
+    pub input: u64,
+    pub output: u64,
+    pub cache_read: u64,
+    pub cache_create: u64,
+    pub turns: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UsageBucket {
+    pub key: String,
+    #[serde(flatten)]
+    pub totals: UsageTotals,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UsageSummary {
+    pub since_ts: u64,
+    pub total: UsageTotals,
+    pub by_project: Vec<UsageBucket>,
+    pub by_model: Vec<UsageBucket>,
+    pub by_day: Vec<UsageBucket>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]

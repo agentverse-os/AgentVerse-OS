@@ -114,6 +114,8 @@ locals {
   # не автоапдейтом (threat model): DISABLE_AUTOUPDATER ниже уже запрещает самообновление Claude Code.
   claude_code_version = "latest"
   codex_version       = "latest"
+  gemini_cli_version  = "latest"
+  pi_version          = "latest"
 }
 
 resource "coder_agent" "main" {
@@ -140,11 +142,17 @@ resource "coder_agent" "main" {
     mkdir -p "$HOME/.npm-global"
     npm config set prefix "$HOME/.npm-global" >/dev/null
     grep -q npm-global "$HOME/.profile" || echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> "$HOME/.profile"
+    # терминалы code-server — интерактивный bash без login (.profile не читается): PATH к CLI агентов кладём и в .bashrc
+    grep -q npm-global "$HOME/.bashrc" || echo 'export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
 
     # Claude Code и Codex — штатная авторизация по подписке внутри workspace (ADR-001);
     # auth-state лежит в ~/.claude и ~/.codex, то есть на persistent home volume.
     command -v claude >/dev/null 2>&1 || npm install -g "@anthropic-ai/claude-code@${local.claude_code_version}"
     command -v codex  >/dev/null 2>&1 || npm install -g "@openai/codex@${local.codex_version}"
+    # Gemini CLI и pi — движки по ACP (docs/agents-ux.md §4.3.8); pi-acp — адаптер ACP поверх pi --mode rpc
+    command -v gemini >/dev/null 2>&1 || npm install -g "@google/gemini-cli@${local.gemini_cli_version}"
+    command -v pi     >/dev/null 2>&1 || npm install -g --ignore-scripts "@earendil-works/pi-coding-agent@${local.pi_version}"
+    command -v pi-acp >/dev/null 2>&1 || npm install -g "pi-acp@latest"
 
     # Docker внутри (только incus-nesting): демон ставится cloud-init'ом при первом boot; здесь — проверка
     if [ "${local.nesting}" = "true" ]; then
@@ -183,6 +191,12 @@ module "code-server" {
   version  = "~> 1.0"
   agent_id = coder_agent.main.id
   folder   = "/home/coder"
+  # Расширения агентов из Open VSX при каждом старте: Claude Code и Codex (openai.chatgpt; вход — ChatGPT-подпиской, состояние
+  # в ~/.codex на persistent home). Установленное не перекачивается — use_cached_extensions, дальше обновляет сам code-server.
+  # Без интернета из workspace установка падает, и модуль не поднимает code-server.
+  # Окружение capabilities (ANTHROPIC_BASE_URL и ключи) расширения берут из процесса code-server — см. agent_runner ниже.
+  extensions            = ["anthropic.claude-code", "openai.chatgpt"]
+  use_cached_extensions = true
 }
 
 # Альтернатива установке через startup_script — официальные модули (v5+, без Tasks):
@@ -206,6 +220,11 @@ locals {
     #!/bin/sh
     # Запуск агента Coder на каждом boot. Токен и init-скрипт берутся из user.* конфигурации
     # инстанса через guest API Incus — Terraform обновляет их при каждом build.
+    # setpriv вместо `su -`: su открывает PAM-сессию, и logind уносит детей агента (code-server, расширения, терминалы)
+    # в session scope вне cgroup юнита — `systemctl restart coder-agent` их не убивает, новый code-server падает с EADDRINUSE.
+    # Без PAM всё дерево остаётся в cgroup юнита и перезапускается целиком (cloudd делает это при смене env capabilities).
+    # `bash -l` — login-оболочка: /etc/profile читает /etc/profile.d/cloudos-env.sh, который cloudd кладёт вместе с
+    # /etc/cloudos/env.sh, поэтому агент, code-server, расширения и терминалы наследуют env capabilities проекта.
     set -e
     SOCK=/dev/incus/sock
     for i in $(seq 1 60); do [ -S "$SOCK" ] && break; sleep 1; done
@@ -213,7 +232,7 @@ locals {
     mkdir -p /opt/coder
     curl -s --unix-socket "$SOCK" http://incus/1.0/config/user.coder_init_script | base64 -d > /opt/coder/init.sh
     chmod 0755 /opt/coder/init.sh
-    exec su - coder -c "CODER_AGENT_TOKEN='$TOKEN' /opt/coder/init.sh"
+    exec setpriv --reuid=coder --regid=coder --init-groups --reset-env env CODER_AGENT_TOKEN="$TOKEN" bash -lc 'cd "$HOME" && exec /opt/coder/init.sh'
   EOT
 
   agent_unit = <<-EOT

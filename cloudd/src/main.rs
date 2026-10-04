@@ -1,5 +1,9 @@
 //! `cloudd` — ядро Cloud OS: сервер API/Desktop и CLI поверх одного сервисного слоя.
 
+mod accounts;
+mod agentd;
+mod agents_svc;
+mod agents;
 mod api;
 mod caddy;
 mod coder;
@@ -8,9 +12,11 @@ mod docker;
 mod feeds;
 mod files;
 mod gate;
+mod gateauth;
 mod importer;
 mod incus;
 mod komodo;
+mod llm;
 mod model;
 mod monitor;
 mod appdata;
@@ -108,6 +114,9 @@ enum ProjectCmd {
         home: u32,
         #[arg(long = "cap")]
         capabilities: Vec<String>,
+        /// Заметка к проекту: что это и для чего
+        #[arg(long)]
+        description: Option<String>,
     },
     /// Применить существующий projects/<name>/project.yaml
     Apply { name: String },
@@ -196,9 +205,9 @@ async fn main() -> Result<()> {
                 Ok(())
             }
             ProjectCmd::Show { name } => print_json(&svc.project(&name).await?),
-            ProjectCmd::Create { name, runtime, cpu, memory, home, capabilities } => {
+            ProjectCmd::Create { name, runtime, cpu, memory, home, capabilities, description } => {
                 let runtime = serde_yaml_ng::from_str::<Runtime>(&runtime).map_err(|_| anyhow::anyhow!("runtime: incus | incus-nesting | incus-vm"))?;
-                let spec = ProjectSpec { schema: 1, project: name, workspace: WorkspaceSpec { runtime, cpu, memory, home, image: None }, agents: vec!["claude-code".into(), "codex".into()], capabilities };
+                let spec = ProjectSpec { schema: 1, project: name, workspace: WorkspaceSpec { runtime, cpu, memory, home, image: None }, agents: vec!["claude-code".into(), "codex".into()], capabilities, description, hidden: false };
                 print_json(&svc.project_apply(spec).await?)
             }
             ProjectCmd::Apply { name } => {
@@ -246,7 +255,7 @@ async fn main() -> Result<()> {
             AppCmd::Unlink { consumer, provider } => print_json(&svc.app_unlink(&consumer, &provider).await?),
             AppCmd::Shared { name, state } => print_json(&svc.app_set_shared(&name, matches!(state.as_str(), "on" | "true" | "1")).await?),
         },
-        Cmd::Grant { project, capability } => print_json(&svc.grant(&project, &capability).await?),
+        Cmd::Grant { project, capability } => print_json(&svc.grant(&project, &capability, None).await?),
         Cmd::Revoke { project, capability } => print_json(&svc.revoke(&project, &capability).await?),
         Cmd::Reconcile => {
             svc.reconcile_all().await?;
@@ -267,6 +276,10 @@ async fn serve(svc: Service, reconcile: bool) -> Result<()> {
     svc.start_monitor();
     svc.start_backup_scheduler();
     svc.start_update_checker();
+    svc.start_agents_poller();
+    tokio::spawn(async {
+        if let Err(e) = agents_svc::ensure_installed().await { tracing::warn!("сервис «Агенты» (cloudos-agents): {e:#}"); }
+    });
     if reconcile {
         let s = svc.clone();
         tokio::spawn(async move {

@@ -1,0 +1,25 @@
+# Юнит адаптера AgentVerse OS внутри workspace (ADR-006). Кладёт и включает cloudd вместе с бинарём и токеном —
+# как /etc/cloudos/env.sh; шаблон Coder его не знает. Работает от coder: терминалы и агенты — с правами владельца.
+# KillMode по умолчанию (control-group): рестарт юнита пока убивает и его PTY — отдельный scope для них (урок Orca)
+# появится вместе с сессиями агентов.
+[Unit]
+Description=AgentVerse OS workspace agent: PTY-демон, сессии агентов, файлы
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=coder
+Group=coder
+Environment=HOME=/home/coder
+Environment=USER=coder
+Environment=SHELL=/bin/bash
+Environment=RUST_LOG=info
+EnvironmentFile=-/etc/cloudos/agentd.env
+WorkingDirectory=/home/coder
+ExecStart=/usr/local/bin/cloudos-agentd --listen 0.0.0.0:7200 --token-file /etc/cloudos/agentd.token
+Restart=always
+RestartSec=2
+NoNewPrivileges=false
+
+[Install]
+WantedBy=multi-user.target

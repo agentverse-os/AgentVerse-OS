@@ -54,6 +54,73 @@
 :root[data-contrast="high"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 :root[data-contrast="high"] .badge, :root[data-contrast="high"] .muted { color: var(--ink); }
 
+/* Облик umbrel (тема «Umbrel», как umbrelOS 2): тёмный материал поверх пейзажа — тонировка чёрным 0.4, размытие 20 px, кромка
+   белым 0.1, блик сверху 0.2, тень 14/34; радиусы 16 (элементы) / 20 (карточки, меню) / 24 (окна); кнопки и поля — пилюли.
+   Токены и общие элементы — здесь; док, сетка приложений, окна и заставка дорисовывают себя по data-look в своих компонентах. */
+:root[data-look="umbrel"] {
+  --bg: #000; --panel: rgb(0 0 0 / .55); --panel-2: rgb(255 255 255 / .08); --ink: rgb(255 255 255 / .92); --muted: rgb(255 255 255 / .5); --line: rgb(255 255 255 / .1);
+  --glass: rgb(0 0 0 / .42); --shadow: 0 14px 34px rgb(0 0 0 / .5), inset 0 1px 0 rgb(255 255 255 / .2), inset 0 .5px 0 rgb(255 255 255 / .1);
+  --r: 20px; --r-sm: 14px; --dur: .2s; --ok: #51CB41; --warn: #F5A623; --bad: #F45A5A;
+  letter-spacing: -.01em; color-scheme: dark;
+}
+:root[data-look="umbrel"] body { -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
+:root[data-look="umbrel"] * { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / .25) transparent; }
+:root[data-look="umbrel"] .card, :root[data-look="umbrel"] .win, :root[data-look="umbrel"] .widget, :root[data-look="umbrel"] .menu, :root[data-look="umbrel"] .ctx,
+:root[data-look="umbrel"] .dd-list, :root[data-look="umbrel"] .picker, :root[data-look="umbrel"] .keypop, :root[data-look="umbrel"] .toast {
+  background: var(--glass); background-image: none; background-clip: padding-box; border: .5px solid rgb(255 255 255 / .1);
+  backdrop-filter: blur(20px) saturate(1.2) brightness(.85); -webkit-backdrop-filter: blur(20px) saturate(1.2) brightness(.85); box-shadow: var(--shadow);
+}
+:root[data-look="umbrel"] .card { border-radius: 20px; }
+:root[data-look="umbrel"] .menu, :root[data-look="umbrel"] .ctx, :root[data-look="umbrel"] .dd-list { border-radius: 20px; padding: 6px; }
+:root[data-look="umbrel"] .ctx button, :root[data-look="umbrel"] .dd-list li, :root[data-look="umbrel"] .menu .item { border-radius: 16px; }
+:root[data-look="umbrel"] .toast { border-left-width: .5px; border-radius: 18px; --shadow: 0 6px 16px rgb(0 0 0 / .3), inset 0 1px 0 rgb(255 255 255 / .2); backdrop-filter: blur(10px) saturate(1.2) brightness(.95); -webkit-backdrop-filter: blur(10px) saturate(1.2) brightness(.95); }
+/* окна — «листы» umbrelOS: сильнее тонировка и размытие, скругление 24, без полосы заголовка; развёрнутое окно парит с отступами */
+:root[data-look="umbrel"] .win { --glass: rgb(0 0 0 / .7); border-radius: 24px; border-color: rgb(255 255 255 / .08); backdrop-filter: blur(40px) saturate(1.5) brightness(.7); -webkit-backdrop-filter: blur(40px) saturate(1.5) brightness(.7); box-shadow: 0 10px 64px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .25), inset 0 .5px 0 rgb(255 255 255 / .12); }
+:root[data-look="umbrel"] .win.active { border-color: rgb(255 255 255 / .14); }
+:root[data-look="umbrel"] .win.max { inset: 14px 14px 96px 14px; border-radius: 24px; }
+:root[data-look="umbrel"] .win.mobile { inset: var(--status) 0 var(--tb) 0; border-radius: 0; }
+:root[data-look="umbrel"] .win .bar { background: transparent; border-bottom: 0; padding: 10px 14px 4px; }
+:root[data-look="umbrel"] .win .bar .title { font-size: 1.05rem; font-weight: 700; letter-spacing: -.02em; }
+:root[data-look="umbrel"] .win .bar img { border-radius: 6px; }
+:root[data-look="umbrel"] .bar .ctl { gap: 6px; }
+:root[data-look="umbrel"] .bar .ctl button, :root[data-look="umbrel"] .bar .ctl a.ext { width: 26px; height: 26px; background: rgb(255 255 255 / .1); border: .5px solid rgb(255 255 255 / .12); color: rgb(255 255 255 / .85); box-shadow: inset 0 .5px 0 rgb(255 255 255 / .2); }
+:root[data-look="umbrel"] .bar .ctl .tl svg { opacity: 1; width: 11px; height: 11px; }
+:root[data-look="umbrel"] .bar .ctl button:hover, :root[data-look="umbrel"] .bar .ctl a.ext:hover { background: rgb(255 255 255 / .18); filter: none; border-color: rgb(255 255 255 / .2); }
+:root[data-look="umbrel"] .bar .ctl .close:hover { background: #E22C2C; color: #fff; }
+:root[data-look="umbrel"] .win:not(.active) .bar .ctl .tl, :root[data-look="umbrel"] .win:not(.active) .bar .ctl .key:not(.on), :root[data-look="umbrel"] .win:not(.active) .bar .ctl a.ext { background: rgb(255 255 255 / .06); color: rgb(255 255 255 / .5); }
+:root[data-look="umbrel"] .win .body { padding: calc(10px * var(--sp)) calc(18px * var(--sp)) calc(18px * var(--sp)); }
+:root[data-look="umbrel"] .win .grip { background: linear-gradient(135deg, transparent 50%, rgb(255 255 255 / .18) 50%); border-bottom-right-radius: 24px; }
+/* кнопки и поля — пилюли с бликом сверху; основная — цветом обоев с белым текстом */
+/* пилюли — только обычные кнопки, и без смены размеров (padding остаётся базовым, иначе мелкие чипы раздуваются и съезжают).
+   Кнопки-поверхности сохраняют свои стили: прозрачный оверлей карточки Store (.hit), карточки тем и фонов, плитки, пункты меню,
+   иконки, кнопки окна, остров, образцы цвета и плитки внутри виджетов и Файлов (.gauge, .clock, .title, .a, .c, .name, .w, .pick,
+   .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link). */
+:root[data-look="umbrel"] button:not(.hit, .thm-card, .bg, .pitem, .icon, .item, .tile, .rc-open, .search, .empty, .start, .tl, .key, .close, .min, .max, .ib, .swatch, .mback, .gauge, .clock, .title, .a, .c, .name, .w, .pick, .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link) { border-radius: 999px; background: rgb(255 255 255 / .1); border: .5px solid rgb(255 255 255 / .2); box-shadow: inset 0 .5px 0 rgb(255 255 255 / .1); font-weight: 500; }
+:root[data-look="umbrel"] button:not(.hit, .thm-card, .bg, .pitem, .icon, .item, .tile, .rc-open, .search, .empty, .start, .tl, .key, .close, .min, .max, .ib, .swatch, .mback, .gauge, .clock, .title, .a, .c, .name, .w, .pick, .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link):hover { background: rgb(255 255 255 / .15); border-color: rgb(255 255 255 / .25); }
+/* плитки внутри виджетов — «углубления» в стекле, как glass-cell umbrelOS */
+:root[data-look="umbrel"] .gauge, :root[data-look="umbrel"] .c { border-radius: 14px; background: rgb(255 255 255 / .06); border: 0; box-shadow: inset 0 2px 3px -1px rgb(0 0 0 / .22), inset 0 -1px 0 rgb(255 255 255 / .09); }
+:root[data-look="umbrel"] .thm-card, :root[data-look="umbrel"] .bg, :root[data-look="umbrel"] .pitem { border-radius: 16px; background: rgb(255 255 255 / .06); border: .5px solid rgb(255 255 255 / .1); }
+:root[data-look="umbrel"] .thm-card:hover, :root[data-look="umbrel"] .bg:hover, :root[data-look="umbrel"] .pitem:hover { background: rgb(255 255 255 / .1); }
+:root[data-look="umbrel"] .thm-card.active, :root[data-look="umbrel"] .bg.active { border-color: rgb(255 255 255 / .6); box-shadow: 0 0 0 1px rgb(255 255 255 / .6) inset; }
+:root[data-look="umbrel"] button.primary { background: var(--accent); border-color: transparent; color: #fff; box-shadow: inset 0 .5px 0 rgb(255 255 255 / .3); }
+:root[data-look="umbrel"] button.primary:hover { filter: brightness(1.1); }
+:root[data-look="umbrel"] button.danger { background: rgb(226 44 44 / .14); border-color: rgb(226 44 44 / .4); color: #F45A5A; }
+:root[data-look="umbrel"] input, :root[data-look="umbrel"] select, :root[data-look="umbrel"] .dd-btn { border-radius: 999px; background: rgb(255 255 255 / .04); border: .5px solid rgb(255 255 255 / .1); padding-left: calc(14px * var(--sp)); padding-right: calc(14px * var(--sp)); }
+:root[data-look="umbrel"] input:hover, :root[data-look="umbrel"] .dd-btn:hover { background: rgb(255 255 255 / .06); }
+:root[data-look="umbrel"] input[type=checkbox], :root[data-look="umbrel"] input[type=radio], :root[data-look="umbrel"] input[type=range] { border-radius: 4px; padding: 0; background: transparent; border: 0; }
+:root[data-look="umbrel"] textarea { border-radius: 16px; background: rgb(255 255 255 / .04); border: .5px solid rgb(255 255 255 / .1); }
+:root[data-look="umbrel"] .badge { background: rgb(255 255 255 / .08); border-color: rgb(255 255 255 / .06); }
+:root[data-look="umbrel"] code, :root[data-look="umbrel"] pre, :root[data-look="umbrel"] .skeleton { background: rgb(255 255 255 / .06); }
+:root[data-look="umbrel"] :focus-visible { outline: 2px solid rgb(255 255 255 / .25); outline-offset: 0; }
+/* оболочка: виджеты и уведомления над доком, меню запуска по центру */
+:root[data-look="umbrel"] .wlayer { inset: 0 0 100px 0; }
+:root[data-look="umbrel"] .toasts { bottom: 100px; }
+:root[data-look="umbrel"] .certwarn { bottom: 104px; }
+:root[data-look="umbrel"] .menu { bottom: 98px !important; left: 50%; transform: translateX(-50%); }
+:root[data-look="umbrel"] .widget { border-radius: 20px; }
+:root[data-look="umbrel"] .whead { color: rgb(255 255 255 / .55); }
+@media (prefers-reduced-transparency: reduce) { :root[data-look="umbrel"] { --glass: rgb(20 20 24 / .96); } :root[data-look="umbrel"] .win { --glass: rgb(16 16 20 / .98); } }
+
 * { box-sizing: border-box; }
 html { font-size: calc(15px * var(--scale)); }
 body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 1rem/1.5 var(--font); position: relative; }
@@ -67,7 +134,7 @@ button:active { transform: translateY(1px); }
 button.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
 button.danger { border-color: var(--bad); color: var(--bad); }
 button:disabled { opacity: .5; cursor: progress; }
-input, select { font: inherit; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(10px * var(--sp)); }
+input, select, textarea { font: inherit; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(10px * var(--sp)); }
 input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 input[type=range] { padding: 0; accent-color: var(--accent); }
 input[type=checkbox], input[type=radio] { accent-color: var(--accent); }

@@ -7,15 +7,16 @@ license = "Apache-2.0"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-axum = { version = "0.8", features = ["macros"] }
+axum = { version = "0.8", features = ["macros", "ws"] }
 tower-http = { version = "0.6", features = ["trace", "cors"] }
 hyper = { version = "1", features = ["client", "http1"] }
 hyper-util = { version = "0.1", features = ["client", "client-legacy", "http1", "tokio"] }
 hyperlocal = "0.9"
 http-body-util = "0.1"
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 bollard = "0.19"
 futures-util = "0.3"
+tokio-tungstenite = "0.29"   # WebSocket-клиент к agentd в workspace (та же версия, что у axum ws)
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml_ng = "0.10"

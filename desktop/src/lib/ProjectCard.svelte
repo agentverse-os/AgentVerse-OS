@@ -3,18 +3,19 @@
   import { api, type ProjectView } from './api';
   import { wm } from './windows.svelte';
   import { t, tn } from './i18n.svelte';
+  import Dropdown from './Dropdown.svelte';
   let { p, showIps = true, capabilitiesAvailable = [], onchange, compact = false }: { p: ProjectView; showIps?: boolean; capabilitiesAvailable?: string[]; onchange?: () => void; compact?: boolean } = $props();
   let busy = $state('');
   let error = $state('');
   let editing = $state(false);
-  let edit = $state({ cpu: 2, memory: 4 });
+  let edit = $state({ cpu: 2, memory: 4, description: '' });
   const ws = $derived(p.workspace);
   async function run(label: string, f: () => Promise<unknown>) {
     busy = label;
     try { await f(); error = ''; } catch (e) { error = e instanceof Error ? e.message : String(e); } finally { busy = ''; onchange?.(); }
   }
   function statusClass(s?: string | null) { return s === 'running' ? 'ok' : s === 'stopped' ? '' : s?.startsWith('fail') || s?.startsWith('unknown') ? 'bad' : 'warn'; }
-  function startEdit() { editing = true; edit = { cpu: p.spec.workspace.cpu, memory: Number(String(p.spec.workspace.memory).replace(/GiB$/, '')) }; }
+  function startEdit() { editing = true; edit = { cpu: p.spec.workspace.cpu, memory: Number(String(p.spec.workspace.memory).replace(/GiB$/, '')), description: p.spec.description ?? '' }; }
   function terminalUrl() { return ws ? `${ws.url}/terminal` : ''; }
   const caps = $derived([...new Set([...capabilitiesAvailable, ...p.spec.capabilities])].sort());
 </script>
@@ -25,7 +26,9 @@
     <h3>{compact ? 'Workspace' : p.name}</h3>
     <span class="badge {statusClass(ws?.status)}">{ws?.status ?? t('project.noWorkspace')}</span>
   </div>
+  {#if p.spec.description}<div class="desc" title={p.spec.description}>{p.spec.description}</div>{/if}
   <div class="muted">{p.spec.workspace.runtime} · {p.spec.workspace.cpu} CPU · {p.spec.workspace.memory}{#if showIps} · {p.network} {p.subnet}{/if}</div>
+  {#if p.agents?.total}<div class="muted agents"><button class="link" onclick={() => wm.openSys('agents')}>🤖 {t('project.agentsLine', { total: p.agents.total, working: p.agents.working, waiting: p.agents.waiting })}</button>{#if p.agents.waiting}<span class="badge warn">✋ {p.agents.waiting}</span>{/if}</div>{/if}
   <div class="muted">gate {p.gate.name}: <span class="badge {p.gate.status==='running'?'ok':'bad'}">{p.gate.status}</span>{#if showIps} {p.gate.detail}{/if} · {t('project.agent')}: {ws?.agent_status ?? '—'}{#if ws?.ip && showIps} · {ws.ip}{/if}</div>
   <div class="row" style="margin-top: 10px;">
     {#if ws}
@@ -47,10 +50,11 @@
     <button class="danger" disabled={!!busy} onclick={() => { if (confirm(t('project.confirmDelete', { name: p.name }))) run(t('project.deleting'), () => api.deleteProject(p.name)); }}>{t('common.delete')}</button>
   </div>
   {#if editing}
+    <textarea class="desc-edit" rows="3" aria-label={t('project.description')} placeholder={t('project.descriptionPlaceholder')} bind:value={edit.description}></textarea>
     <div class="row" style="margin-top: 8px;">
       <label>CPU <input type="number" min="1" max="32" bind:value={edit.cpu} style="width:5em" /></label>
       <label>RAM GiB <input type="number" min="2" max="128" bind:value={edit.memory} style="width:5em" /></label>
-      <button class="primary" disabled={!!busy} onclick={() => run(t('project.applying'), async () => { await api.applyProject({ ...p.spec, workspace: { ...p.spec.workspace, cpu: edit.cpu, memory: edit.memory } }); editing = false; })}>{busy || t('project.apply')}</button>
+      <button class="primary" disabled={!!busy} onclick={() => run(t('project.applying'), async () => { await api.applyProject({ ...p.spec, description: edit.description.trim() || null, workspace: { ...p.spec.workspace, cpu: edit.cpu, memory: edit.memory } }); editing = false; })}>{busy || t('project.apply')}</button>
       <span class="muted">{t('project.editHint')}</span>
     </div>
   {/if}
@@ -64,6 +68,7 @@
           onchange={(e) => { const on = (e.currentTarget as HTMLInputElement).checked; run(on ? t('project.granting') : t('project.revoking'), () => on ? api.grant(p.name, c) : api.revoke(p.name, c)); }} />
         {c}{#if g} → {g.app}{/if}{#if missing}{' '}{t('project.noProviderBadge')}{/if}
       </label>
+      {#if g && (p.providers?.[c]?.length ?? 0) > 1}<Dropdown value={g.app} ariaLabel={t('project.provider')} options={(p.providers?.[c] ?? []).map(a => ({ value: a, label: a }))} onchange={(v) => { if (v !== g.app) run(t('project.granting'), () => api.grant(p.name, c, v)); }} style="min-width: 9em" />{/if}
     {/each}
     {#if !caps.length}<span class="muted">{t('project.installProvider')}</span>{/if}
   </div>
@@ -76,8 +81,14 @@
 </div>
 
 <style>
+  /* заметка владельца: в списке — до трёх строк (полный текст в подсказке), в окне проекта — целиком */
+  .desc { margin-top: 4px; white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .card.compact .desc { display: block; }
+  .desc-edit { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; resize: vertical; }
   .caps { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
   .caps label { cursor: pointer; }
   .caps input { vertical-align: -1px; }
+  .agents { display: flex; gap: 6px; align-items: center; }
+  .agents .link { background: none; border: 0; padding: 0; color: inherit; cursor: pointer; font: inherit; text-decoration: underline dotted; }
   .card.compact { background: transparent; border: 0; box-shadow: none; padding: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
 </style>

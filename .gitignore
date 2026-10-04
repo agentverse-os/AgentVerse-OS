@@ -1,5 +1,7 @@
 # rust
 /cloudd/target/
+/agentd/target/
+/agents/target/
 # node
 node_modules/
 /desktop/dist/

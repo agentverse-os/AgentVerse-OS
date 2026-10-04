@@ -80,6 +80,7 @@
         {#if app.manifest.upstream?.version}<span class="badge">v{app.manifest.upstream.version}</span>{/if}
         {#each app.manifest.upstream?.categories ?? [] as c}<span class="badge">{c}</span>{/each}
         {#if app.manifest.type === 'system'}<span class="badge">system</span>{/if}
+        {#if app.manifest.type === 'external'}<span class="badge" title={t('app.externalHint')}>{t('app.external')}</span>{/if}
         {#if app.manifest.provides.length}<span class="badge ok">provides {app.manifest.provides.join(', ')}</span>{/if}
         {#if app.manifest.requires.length}<span class="badge warn">requires {app.manifest.requires.join(', ')}</span>{/if}
         {#if app.manifest.host_docker_socket}<span class="badge warn" title={t('app.dockerSock')}>docker.sock</span>{/if}
@@ -93,8 +94,10 @@
       <div class="actions">
         {#if app.installed}
           {#if app.url}<button class="primary" onclick={() => open(app!)}>{t('common.open')}{app.manifest.route.open === 'newtab' ? ' ↗' : ''}</button>{/if}
+          {#if app.manifest.type !== 'external'}
           <button disabled={!!busy} onclick={() => { tab = 'tech'; api.logs(name, 200).then(t => logs = t).catch(e => error = String(e)); }}>{t('app.logs')}</button>
           <button onclick={() => wm.openSys('files', { root: 'apps', path: name }, `${t('sys.files')} · ${titleOf(app!)}`)}>{t('sys.files')}</button>
+          {/if}
           <button class="danger" disabled={!!busy} onclick={() => removing = true}>{#if busy}<span class="spin"></span> {busy}{:else}{t('app.remove')}{/if}</button>
         {:else}
           <button class="primary" disabled={!!busy} onclick={() => { if (app!.manifest.settings.some(s => s.required)) { installing = true; } else { run(t('app.busyInstall'), () => toast.track(t('app.installingTitle', { title: titleOf(app!) }), progress => api.installWait(name, s => { busy = s; progress(s); }), v => { wm.openSys('appready', { name }, `${t('sys.appready')} · ${titleOf(v)}`); return { text: t('app.installedBadge'), action: { label: t('common.open'), run: () => open(v) } }; })); } }}>{busy || t('common.install')}</button>
@@ -121,10 +124,10 @@
   <nav class="tabs">
     <button class:active={tab === 'about'} onclick={() => tab = 'about'}>{t('app.tabAbout')}</button>
     {#if app.manifest.settings.length}<button class:active={tab === 'settings'} onclick={() => tab = 'settings'}>{t('app.tabSettings', { n: app.manifest.settings.length })}</button>{/if}
-    <button class:active={tab === 'config'} onclick={() => { tab = 'config'; if (!ov) loadOv(); }}>{t('app.tabConfig')}</button>
+    {#if app.manifest.type !== 'external'}<button class:active={tab === 'config'} onclick={() => { tab = 'config'; if (!ov) loadOv(); }}>{t('app.tabConfig')}</button>{/if}
     <button class:active={tab === 'tech'} onclick={() => tab = 'tech'}>{t('app.tabTech')}</button>
-    {#if app.installed}<button class:active={tab === 'snapshots'} onclick={() => { tab = 'snapshots'; loadSnaps(); }}>{t('app.tabSnapshots')}</button>{/if}
-    {#if app.installed}<button class:active={tab === 'links'} onclick={() => tab = 'links'}>{t('app.tabLinks')}{#if app.links_to.length + app.links_from.length}<span class="badge" style="margin-left:6px">{app.links_to.length + app.links_from.length}</span>{/if}</button>{/if}
+    {#if app.installed && app.manifest.type !== 'external'}<button class:active={tab === 'snapshots'} onclick={() => { tab = 'snapshots'; loadSnaps(); }}>{t('app.tabSnapshots')}</button>{/if}
+    {#if app.installed && app.manifest.type !== 'external'}<button class:active={tab === 'links'} onclick={() => tab = 'links'}>{t('app.tabLinks')}{#if app.links_to.length + app.links_from.length}<span class="badge" style="margin-left:6px">{app.links_to.length + app.links_from.length}</span>{/if}</button>{/if}
   </nav>
 
   {#if tab === 'about'}

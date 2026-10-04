@@ -1,7 +1,7 @@
 import os
 import time
 from playwright.sync_api import sync_playwright
-HOST = os.environ.get("EDGE_HOST", "aios.tail0fe52f.ts.net"); res = []
+HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); res = []
 def ok(n, c, note=""): res.append(c); print(("PASS  " if c else "FAIL  ") + n, note)
 with sync_playwright() as p:
     for engine in ("firefox", "chromium"):

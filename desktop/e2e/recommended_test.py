@@ -1,7 +1,7 @@
 # e2e списка «Рекомендуем»: полка в Store, фильтр по источнику «Рекомендуем», плашка в карточках, причина в карточке приложения.
 import os, time
 from playwright.sync_api import sync_playwright
-HOST = os.environ.get("EDGE_HOST", "aios.tail0fe52f.ts.net"); os.makedirs("shots", exist_ok=True); res = []
+HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 with sync_playwright() as p:
     b = p.chromium.launch()

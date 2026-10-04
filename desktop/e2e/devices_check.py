@@ -4,7 +4,7 @@
 # темы применяются только в этой вкладке через атрибуты документа.
 import os
 from playwright.sync_api import sync_playwright
-H = os.environ.get("EDGE_HOST", "aios.tail0fe52f.ts.net"); os.makedirs("shots", exist_ok=True); res = []
+H = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(c); print(("PASS  " if c else "FAIL  ") + n, note)
 DEV = {"phone": dict(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True, device_scale_factor=2),
        "tablet": dict(viewport={"width": 820, "height": 1180}, has_touch=True),

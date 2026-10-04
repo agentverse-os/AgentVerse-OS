@@ -2,16 +2,32 @@
 import { t } from './i18n.svelte';
 export type Runtime = 'incus' | 'incus-nesting' | 'incus-vm';
 export interface WorkspaceSpec { runtime: Runtime; cpu: number; memory: string | number; home: string | number; image?: string | null }
-export interface ProjectSpec { schema: number; project: string; workspace: WorkspaceSpec; agents: string[]; capabilities: string[] }
+export interface ProjectSpec { schema: number; project: string; workspace: WorkspaceSpec; agents: string[]; capabilities: string[]; description?: string | null }  // description — заметка владельца, ядро её только хранит
 export interface Grant { project: string; capability: string; app: string; granted_at: string }
+export interface AgentdHealth { version: string; protocol: number; uptime_s: number; ptys: number; ptys_alive: number; user?: string | null; cgroup?: string | null; auth: boolean }
+export interface AgentSessionBrief { id: string; title: string; agent: string; status: string; alive: boolean; pending: number; last_text?: string | null; cost_usd: number }
+export interface AgentsSummary { total: number; working: number; waiting: number; sessions: AgentSessionBrief[]; updated_at: number }
+export interface UsageTotals { cost_usd: number; input: number; output: number; cache_read: number; cache_create: number; turns: number }
+export interface UsageBucket extends UsageTotals { key: string }
+export interface UsageSummary { since_ts: number; total: UsageTotals; by_project: UsageBucket[]; by_model: UsageBucket[]; by_day: UsageBucket[] }
+export interface Account { id: string; provider: string; kind: string; label: string; created_at: string; env_keys: string[]; files: string[]; imported_from?: string | null }
+export interface SessionUsage { input: number; output: number; cache_read: number; cache_create: number; cost_usd: number; turns: number }
+export interface SessionInfo { id: string; agent: string; cwd: string; title: string; created_at: number; provider_session_id?: string | null; model?: string | null; permission_mode?: string | null; account?: string | null; status: 'starting' | 'idle' | 'working' | 'waiting' | 'exited' | 'error'; alive: boolean; last_seq: number; pending: number; usage: SessionUsage; last_text?: string | null }
+export type SessionEvent = { seq: number; ts: number; kind: string } & Record<string, any>;
+export interface PtyInfo { id: string; title: string; cwd: string; cmd: string[]; cols: number; rows: number; pid?: number | null; alive: boolean; exit_code?: number | null; created_at: number; clients: number; session?: string | null }
+export interface FsEntry { name: string; kind: 'dir' | 'file'; link: boolean; size: number; mtime: number; mode: number }
+export interface FsList { path: string; home: string; entries: FsEntry[] }
+export interface GitEntry { path: string; x: string; y: string; staged: boolean; unstaged: boolean; kind: 'changed' | 'renamed' | 'unmerged' | 'untracked' | 'ignored' }
+export interface GitStatus { repo: boolean; cwd: string; reason?: string; head?: string; upstream?: string | null; ahead?: number; behind?: number; entries?: GitEntry[] }
+export interface GitCommit { hash: string; short: string; author: string; ts: number; subject: string }
 export interface ComponentHealth { name: string; status: string; detail?: string | null }
 export interface WorkspaceApp { slug: string; display_name: string; url: string; health: string }
 export interface WorkspaceView { id: string; name: string; status: string; agent_status?: string | null; instance?: string | null; ip?: string | null; apps: WorkspaceApp[]; url: string }
-export interface ProjectView { name: string; spec: ProjectSpec; network: string; subnet: string; gate: ComponentHealth; workspace?: WorkspaceView | null; grants: Grant[]; missing_capabilities: string[]; grant_env: Record<string, string[]>; available_capabilities: string[] }
+export interface ProjectView { name: string; spec: ProjectSpec; network: string; subnet: string; gate: ComponentHealth; workspace?: WorkspaceView | null; grants: Grant[]; missing_capabilities: string[]; grant_env: Record<string, string[]>; available_capabilities: string[]; providers?: Record<string, string[]>; agents?: AgentsSummary | null }
 export interface RouteSpec { mode: 'path' | 'port' | 'host'; prefix?: string | null; port?: number | null; open: 'iframe' | 'newtab' }
 /** Переводы текстов манифеста/рекомендации по языку интерфейса (store-utils: descOf, reasonOf). */
 export interface I18nText { description?: string | null; reason?: string | null }
-export interface AppManifest { name: string; title?: string | null; description?: string | null; i18n?: Record<string, I18nText>; icon?: string | null; type: 'app' | 'system'; provides: string[]; requires: string[]; route: RouteSpec; endpoint: { service: string; port: number }; origin: string; upstream?: { source?: string; author?: string; version?: string; categories?: string[]; tags?: string[]; website?: string; release_notes?: string; template?: string } | null; settings: AppSetting[]; env: Record<string, string | { generate: string }>; login: LoginSpec; recommended?: { rank: number; reason: string; i18n?: Record<string, I18nText> } | null; host_docker_socket: boolean; notes: string[]; gallery: string[]; readme?: string | null; website?: string | null; tags: string[] }
+export interface AppManifest { name: string; title?: string | null; description?: string | null; i18n?: Record<string, I18nText>; icon?: string | null; type: 'app' | 'system' | 'external'; external?: { url_env: string; key_env?: string | null; check_path?: string | null } | null; provides: string[]; requires: string[]; route: RouteSpec; endpoint: { service: string; port: number }; origin: string; upstream?: { source?: string; author?: string; version?: string; categories?: string[]; tags?: string[]; website?: string; release_notes?: string; template?: string } | null; settings: AppSetting[]; env: Record<string, string | { generate: string }>; login: LoginSpec; recommended?: { rank: number; reason: string; i18n?: Record<string, I18nText> } | null; host_docker_socket: boolean; notes: string[]; gallery: string[]; readme?: string | null; website?: string | null; tags: string[] }
 export interface LoginSpec { mode: 'generated' | 'default' | 'app' | 'none' | 'external'; user?: string | null; password?: string | null; path?: string | null; note?: string | null }
 export interface AppSetting { env: string; type: string; label?: string | null; hint?: string | null; required?: boolean; options?: { label: string; value: string }[] | null }
 export interface AppView { name: string; manifest: AppManifest; installed: boolean; port?: number | null; url?: string | null; state?: string | null; granted_to: string[]; settings_values: Record<string, string>; links_to: string[]; links_from: string[]; shared_net: boolean; internal_url?: string | null; link_env: Record<string, string>; has_note: boolean }
@@ -34,7 +50,7 @@ export interface Event { at: string; kind: string; subject: string; message: str
 export class OfflineError extends Error { constructor() { super(t('api.offline')); } }
 
 /** timeoutMs — предел на одну попытку (зависший запрос считается ошибкой сети), retries — сколько раз повторить GET (по умолчанию 3). */
-async function call<T>(method: string, path: string, body?: unknown, opts: { timeoutMs?: number; retries?: number } = {}): Promise<T> {
+async function call<T>(method: string, path: string, body?: unknown, opts: { timeoutMs?: number; retries?: number; headers?: Record<string, string> } = {}): Promise<T> {
   let r: Response | undefined;
   const retries = method === 'GET' ? (opts.retries ?? 3) : 0;
   // GET безопасно повторить: браузер на том же хосте рвёт запросы при смене docker-сетей (ERR_NETWORK_CHANGED), мобильная сеть моргает
@@ -42,7 +58,7 @@ async function call<T>(method: string, path: string, body?: unknown, opts: { tim
     const ctl = opts.timeoutMs ? new AbortController() : undefined;
     const timer = ctl ? setTimeout(() => ctl.abort(), opts.timeoutMs) : undefined;
     try {
-      r = await fetch(`/api${path}`, { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined, cache: 'no-store', signal: ctl?.signal });
+      r = await fetch(`/api${path}`, { method, headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(opts.headers ?? {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store', signal: ctl?.signal });
       break;
     } catch {
       if (attempt >= retries) throw new OfflineError();
@@ -61,7 +77,8 @@ async function call<T>(method: string, path: string, body?: unknown, opts: { tim
 }
 
 export const api = {
-  status: () => call<SystemStatus>('GET', '/status', undefined, { timeoutMs: 6000, retries: 1 }),  // опрос связи: коротко, чтобы следующий опрос не ждал зависший
+  // заголовок присутствия: ядро шлёт push на телефон, только если видимой вкладки Desktop не было полторы минуты
+  status: () => call<SystemStatus>('GET', '/status', undefined, { timeoutMs: 6000, retries: 1, headers: { 'X-Desktop-Presence': typeof document !== 'undefined' && document.visibilityState === 'visible' ? 'visible' : 'hidden' } }),  // опрос связи: коротко, чтобы следующий опрос не ждал зависший
   coderCredentials: () => call<{ url: string; user: string; password: string }>('GET', '/system/credentials/coder/reveal'),
   repair: (name: string) => call<string[]>('POST', `/apps/${name}/repair`),
   // мастер первого запуска
@@ -95,11 +112,55 @@ export const api = {
   appRestore: (name: string, snap: string) => call<AppView>('POST', `/apps/${name}/restore/${encodeURIComponent(snap)}`),
   events: () => call<Event[]>('GET', '/events'),
   projects: () => call<ProjectView[]>('GET', '/projects'),
+  // Agent Runtime (ADR-006): терминалы workspace'а через cloudos-agentd; поток — WebSocket ptyWsUrl
+  agentd: (name: string) => call<AgentdHealth>('GET', `/projects/${name}/agentd`),
+  ptys: (name: string) => call<PtyInfo[]>('GET', `/projects/${name}/ptys`),
+  ptyCreate: (name: string, body: { cmd?: string[]; cwd?: string; cols?: number; rows?: number; title?: string; session?: string }) => call<PtyInfo>('POST', `/projects/${name}/ptys`, body),
+  // файлы и git workspace'а (рендеринги Files и Git карточки сессии) — через agentd
+  fsList: (name: string, path: string) => call<FsList>('GET', `/projects/${name}/fs?path=${encodeURIComponent(path)}`),
+  fsFileUrl: (name: string, path: string, download = false) => `/api/projects/${name}/fs/file?path=${encodeURIComponent(path)}${download ? '&download=1' : ''}`,
+  fsReadText: async (name: string, path: string) => { const r = await fetch(api.fsFileUrl(name, path)); if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error ?? `HTTP ${r.status}`); return r.text(); },
+  fsWrite: async (name: string, path: string, body: Blob | string) => { const r = await fetch(`/api/projects/${name}/fs/file?path=${encodeURIComponent(path)}`, { method: 'PUT', body }); if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error ?? `HTTP ${r.status}`); return r.json() as Promise<{ path: string; size: number }>; },
+  fsMkdir: (name: string, path: string) => call<{ path: string }>('POST', `/projects/${name}/fs/mkdir`, { path }),
+  fsRename: (name: string, from: string, to: string) => call<{ path: string }>('POST', `/projects/${name}/fs/rename`, { from, to }),
+  fsDelete: (name: string, path: string, recursive = false) => call<void>('DELETE', `/projects/${name}/fs?path=${encodeURIComponent(path)}&recursive=${recursive}`),
+  gitStatus: (name: string, cwd: string) => call<GitStatus>('GET', `/projects/${name}/git/status?cwd=${encodeURIComponent(cwd)}`),
+  gitDiff: (name: string, cwd: string, path?: string, staged = false, untracked = false) => call<{ diff: string; truncated: boolean }>('GET', `/projects/${name}/git/diff?cwd=${encodeURIComponent(cwd)}${path ? `&path=${encodeURIComponent(path)}` : ''}&staged=${staged}&untracked=${untracked}`),
+  gitLog: (name: string, cwd: string, n = 30) => call<{ entries: GitCommit[] }>('GET', `/projects/${name}/git/log?cwd=${encodeURIComponent(cwd)}&n=${n}`),
+  ptyKill: (name: string, id: string) => call<void>('DELETE', `/projects/${name}/ptys/${id}`),
+  ptyWsUrl: (name: string, id: string) => `${location.origin.replace(/^http/, 'ws')}/api/projects/${name}/ptys/${id}/ws`,
+  // сессии агентов (Chat): журнал по WebSocket sessionWsUrl, ввод и ответы — HTTP
+  sessions: (name: string) => call<SessionInfo[]>('GET', `/projects/${name}/sessions`),
+  sessionCreate: (name: string, body: { agent?: string; cwd?: string; title?: string; resume?: string; model?: string; permission_mode?: string }) => call<SessionInfo>('POST', `/projects/${name}/sessions`, body),
+  sessionGet: (name: string, id: string) => call<{ info: SessionInfo; pending: unknown[] }>('GET', `/projects/${name}/sessions/${id}`),
+  sessionEvents: (name: string, id: string, since = 0) => call<SessionEvent[]>('GET', `/projects/${name}/sessions/${id}/events?since=${since}&limit=5000`),
+  sessionPrompt: (name: string, id: string, content: unknown) => call<SessionEvent>('POST', `/projects/${name}/sessions/${id}/prompt`, { content }),
+  sessionPermission: (name: string, id: string, body: { request_id: string; behavior: 'allow' | 'deny'; updated_input?: unknown; message?: string; answers?: unknown; remember?: boolean }) => call<SessionEvent>('POST', `/projects/${name}/sessions/${id}/permission`, body),
+  sessionInterrupt: (name: string, id: string) => call<unknown>('POST', `/projects/${name}/sessions/${id}/interrupt`, {}),
+  sessionMode: (name: string, id: string, mode: string) => call<unknown>('POST', `/projects/${name}/sessions/${id}/mode`, { mode }),
+  sessionModel: (name: string, id: string, model: string | null) => call<unknown>('POST', `/projects/${name}/sessions/${id}/model`, { model }),
+  sessionDelete: (name: string, id: string) => call<void>('DELETE', `/projects/${name}/sessions/${id}`),
+  sessionWsUrl: (name: string, id: string, since = 0) => `${location.origin.replace(/^http/, 'ws')}/api/projects/${name}/sessions/${id}/ws?since=${since}`,
+  usage: (name: string, since = 0) => call<Record<string, unknown>[]>('GET', `/projects/${name}/usage?since=${since}`),
+  usageSummary: (days = 30) => call<UsageSummary>('GET', `/usage?days=${days}`),
+  // аккаунты агентов (ADR-006): реестр, импорт входа из workspace, аккаунт проекта по умолчанию, переназначение сессии
+  accounts: () => call<{ accounts: Account[]; defaults: Record<string, string> }>('GET', '/accounts'),
+  accountCreate: (body: { provider: string; kind: string; label: string; env?: Record<string, string>; files?: Record<string, string> }) => call<Account>('POST', '/accounts', body),
+  accountImport: (body: { provider: string; project: string; label?: string }) => call<Account>('POST', '/accounts/import', body),
+  accountDelete: (id: string) => call<void>('DELETE', `/accounts/${id}`),
+  projectAccount: (name: string, account: string | null) => call<void>('PUT', `/projects/${name}/account`, { account }),
+  sessionAccount: (name: string, id: string, account: string | null) => call<SessionInfo>('POST', `/projects/${name}/sessions/${id}/account`, { account }),
+  agentsAll: () => call<{ away: boolean; presence_seen_ms: number; projects: Record<string, AgentsSummary> }>('GET', '/agents'),
+  // подписка на уведомления ядра с телефона: сервер ntfy, тема, пользователь и пароль (секрет — только по запросу)
+  // раскладка холста «Агентов» — в ядре, общая для всех устройств владельца
+  agentsLayoutGet: () => call<{ cards?: { project: string; kind: 'pty' | 'session'; id: string; w: 1 | 2; h: 1 | 2 }[]; cols?: 0 | 1 | 2 | 3 } | null>('GET', '/agents/layout'),
+  agentsLayoutPut: (layout: unknown) => call<void>('PUT', '/agents/layout', layout),
+  agentsNotify: () => call<{ app: string | null; server: string | null; topic: string; user: string; password: string | null; token: string | null }>('GET', '/agents/notify'),
   applyProject: (spec: ProjectSpec) => call<ProjectView>('POST', '/projects', spec),
   deleteProject: (name: string) => call<void>('DELETE', `/projects/${name}`),
   wsStart: (name: string) => call<ProjectView>('POST', `/projects/${name}/workspace/start`),
   wsStop: (name: string) => call<ProjectView>('POST', `/projects/${name}/workspace/stop`),
-  grant: (name: string, capability: string) => call<ProjectView>('POST', `/projects/${name}/grants`, { capability }),
+  grant: (name: string, capability: string, app?: string) => call<ProjectView>('POST', `/projects/${name}/grants`, app ? { capability, app } : { capability }),  // app — какой провайдер, если их несколько
   revoke: (name: string, capability: string) => call<ProjectView>('DELETE', `/projects/${name}/grants/${capability}`),
   apps: () => call<AppView[]>('GET', '/apps'),
   install: (name: string) => call<AppView>('POST', `/apps/${name}/install`),

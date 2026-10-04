@@ -354,11 +354,31 @@ step_tailscale() {
   fi
 }
 
+# Coder, развёрнутый раньше под другим именем compose-проекта (например, спайком): проект и файл из меток контейнера.
+# Иначе `compose -p cloudos-coder up` поднял бы второй Coder и второй PostgreSQL на том же /srv/postgres/coder.
+existing_coder_project() {
+  local c; c="$(docker ps -q --filter ancestor=ghcr.io/coder/coder --filter status=running 2>/dev/null | head -1)"
+  [[ -z "$c" ]] && c="$(docker ps -q --filter name=coder --filter status=running 2>/dev/null | while read -r id; do docker inspect "$id" --format '{{.Config.Image}} {{.Id}}' | grep -E '^ghcr.io/coder/coder' | cut -d' ' -f2; done | head -1)"
+  [[ -n "$c" ]] || return 1
+  docker inspect "$c" --format '{{index .Config.Labels "com.docker.compose.project"}}|{{index .Config.Labels "com.docker.compose.project.config_files"}}|{{index .Config.Labels "com.docker.compose.project.working_dir"}}'
+}
 step_coder_compose() { # поднять/пересобрать compose Coder с текущим EDGE_HOST
   resolve_edge_host
   mkdir -p /srv/postgres/coder
   export EDGE_HOST INCUS_ADMIN_GID; INCUS_ADMIN_GID="$(getent group incus-admin | cut -d: -f3)"
-  docker compose -p cloudos-coder -f "$HERE/coder/docker-compose.yml" up -d
+  local proj="cloudos-coder" file="$HERE/coder/docker-compose.yml" dir="" ex
+  if ex="$(existing_coder_project)" && [[ -n "$ex" ]]; then
+    IFS='|' read -r eproj efile edir <<< "$ex"
+    if [[ -n "$eproj" && "$eproj" != "$proj" ]]; then
+      if [[ -n "$efile" && -f "${efile%%,*}" ]]; then
+        proj="$eproj"; file="${efile%%,*}"; dir="$edir"
+        warn "Coder уже развёрнут compose-проектом «$proj» ($file) — обновляю его, а не создаю второй"
+      else
+        die "Coder уже запущен проектом «$eproj», но его compose-файл ($efile) не найден: обновите CODER_ACCESS_URL в нём сами и перезапустите, иначе появится второй Coder и второй PostgreSQL на /srv/postgres/coder"
+      fi
+    fi
+  fi
+  docker compose -p "$proj" -f "$file" ${dir:+--project-directory "$dir"} up -d
   wait_for 120 "Coder /healthz" curl -fs -m 2 http://127.0.0.1:7080/healthz
 }
 

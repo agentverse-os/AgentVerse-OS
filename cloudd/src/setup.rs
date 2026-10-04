@@ -22,10 +22,10 @@ pub struct TailscaleInfo {
     pub state: String,
     /// Ссылка для входа, пока узел ждёт авторизации.
     pub auth_url: Option<String>,
-    /// MagicDNS-имя узла без точки на конце: `aios.tail0fe52f.ts.net`.
+    /// MagicDNS-имя узла без точки на конце: `box.tail1234.ts.net`.
     pub dns_name: Option<String>,
     pub ips: Vec<String>,
-    /// Суффикс tailnet: `tail0fe52f.ts.net`.
+    /// Суффикс tailnet: `tail1234.ts.net`.
     pub tailnet: Option<String>,
     pub magic_dns: bool,
     /// В tailnet включены HTTPS Certificates (у узла есть домены для сертификатов).

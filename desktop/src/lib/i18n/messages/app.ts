@@ -3,6 +3,7 @@
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {
+    'app.external': 'external service', 'app.externalHint': 'Runs outside this server: the core keeps only its address and key and routes projects to it',
     'app.notFound': 'app {name} was not found in the Store',
     'app.brokenTitle': 'The app is not running: state “{state}”.',
     'app.brokenText': 'Usual causes: it is waiting for a required setting, the image fails to start, or the data directory permissions were insufficient (the core checks and fixes permissions itself after deployment; you can also run the check manually).',
@@ -43,6 +44,7 @@ export default defineMessages({
     'app.readyHint': 'These details are always at hand: the 🔑 button in the app window’s title bar and the “Login details” block on its page. Every password reveal is written to the event feed.',
   },
   ru: {
+    'app.external': 'внешний сервис', 'app.externalHint': 'Работает вне этого сервера: ядро хранит только адрес и ключ и направляет к нему проекты',
     'app.notFound': 'приложение {name} не найдено в Store',
     'app.brokenTitle': 'Приложение не работает: состояние «{state}».',
     'app.brokenText': 'Обычные причины: ждёт обязательную настройку, образ не запускается, не хватило прав на каталог данных (ядро проверяет права само после выкатки и чинит их; можно запустить проверку и вручную).',
@@ -83,6 +85,7 @@ export default defineMessages({
     'app.readyHint': 'Эти данные всегда под рукой: кнопка 🔑 в заголовке окна приложения и блок «Данные для входа» в его карточке. Каждый показ пароля записывается в ленту событий.',
   },
   uk: {
+    'app.external': 'зовнішній сервіс', 'app.externalHint': 'Працює поза цим сервером: ядро зберігає лише адресу і ключ та спрямовує до нього проєкти',
     'app.notFound': 'застосунок {name} не знайдено в Store',
     'app.brokenTitle': 'Застосунок не працює: стан «{state}».',
     'app.brokenText': 'Звичайні причини: чекає на обов’язкове налаштування, образ не запускається, не вистачило прав на каталог даних (ядро перевіряє права саме після викочування і виправляє їх; перевірку можна запустити й вручну).',
@@ -123,6 +126,7 @@ export default defineMessages({
     'app.readyHint': 'Ці дані завжди під рукою: кнопка 🔑 в заголовку вікна застосунку і блок «Дані для входу» в його картці. Кожний показ пароля записується в стрічку подій.',
   },
   es: {
+    'app.external': 'servicio externo', 'app.externalHint': 'Funciona fuera de este servidor: el núcleo guarda solo su dirección y clave y dirige los proyectos hacia él',
     'app.notFound': 'la aplicación {name} no se encontró en Store',
     'app.brokenTitle': 'La aplicación no funciona: estado «{state}».',
     'app.brokenText': 'Causas habituales: espera un ajuste obligatorio, la imagen no arranca o faltaban permisos en el directorio de datos (el núcleo comprueba y corrige los permisos por sí mismo tras el despliegue; también puede lanzar la comprobación manualmente).',

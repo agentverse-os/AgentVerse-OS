@@ -19,6 +19,7 @@ fn manifest(name: &str, provides: &[&str], mode: RouteMode, port: Option<u16>) -
         title: None,
         description: None,
         i18n: Default::default(),
+        external: None,
         icon: None,
         kind: AppKind::App,
         compose: "./compose.yaml".into(),
@@ -58,12 +59,27 @@ fn project_yaml_parses_gib_and_defaults() {
     assert_eq!(p.workspace.memory, 8);
     assert_eq!(p.workspace.home, 50);
     assert_eq!(p.capabilities, vec!["storage.s3", "llm"]);
+    assert!(p.description.is_none(), "заметка необязательна");
     // числа без суффикса тоже принимаются, а обратно сериализуется с GiB
     let p2: ProjectSpec = serde_yaml_ng::from_str("project: b\nworkspace: { memory: 4, home: 10 }\n").unwrap();
     assert_eq!(p2.workspace.memory, 4);
     assert_eq!(p2.workspace.runtime, Runtime::IncusNesting, "runtime по умолчанию — incus-nesting (3.4)");
     let out = serde_yaml_ng::to_string(&p2).unwrap();
     assert!(out.contains("memory: 4GiB"), "{out}");
+    assert!(!out.contains("description"), "без заметки поле в project.yaml не пишется: {out}");
+    let p3: ProjectSpec = serde_yaml_ng::from_str("project: c\ndescription: |\n  бот поддержки\n  в работе: оплата\n").unwrap();
+    assert_eq!(p3.description.as_deref(), Some("бот поддержки\nв работе: оплата\n"));
+    assert!(serde_yaml_ng::to_string(&p3).unwrap().contains("description:"));
+}
+
+#[test]
+fn project_description_normalized() {
+    use crate::service::normalize_description as n;
+    assert_eq!(n(None).unwrap(), None);
+    assert_eq!(n(Some("   ".into())).unwrap(), None, "пустая заметка = нет заметки");
+    assert_eq!(n(Some("  магазин на Expo \n".into())).unwrap().as_deref(), Some("магазин на Expo"));
+    assert!(n(Some("я".repeat(2000))).is_ok(), "ровно 2000 символов (не байт) проходят");
+    assert!(n(Some("я".repeat(2001))).unwrap_err().to_string().contains("2000"));
 }
 
 #[test]
@@ -136,7 +152,7 @@ fn gate_caddyfile_routes_and_deny_all() {
         Grant { project: "alpha".into(), capability: "storage.s3".into(), app: "garage".into(), granted_at: store::now() },
         Grant { project: "alpha".into(), capability: "llm".into(), app: "bifrost".into(), granted_at: store::now() }, // приложение не установлено → маршрута нет
     ];
-    let routes = gate::routes_for(&grants, &apps);
+    let routes = gate::routes_for(&grants, &apps, &Default::default());
     assert_eq!(routes.len(), 2);
     let text = gate::render_caddyfile("alpha", &routes);
     assert!(text.contains("http://demo.http.gate, http://demo.http.gate:80 {\n  reverse_proxy whoami:80"));
@@ -164,7 +180,7 @@ fn edge_config_servers_and_tls() {
         app_state(manifest("grafana", &[], RouteMode::Path, None), None),
         app_state(manifest("noport", &[], RouteMode::Port, None), None), // без выданного порта — пропускается
     ];
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "host.docker.internal:7100", coder_upstream: "coder:7080", coder_port: 8444, apps: &apps, tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "host.docker.internal:7100", agents_upstream: "host.docker.internal:7300", coder_upstream: "coder:7080", coder_port: 8444, apps: &apps, tls_internal: true });
     let servers = cfg["apps"]["http"]["servers"].as_object().unwrap();
     let mut names: Vec<_> = servers.keys().cloned().collect();
     names.sort();
@@ -175,26 +191,54 @@ fn edge_config_servers_and_tls() {
     assert_eq!(servers["app-whoami"]["listen"][0], ":8450");
     // path-приложение — маршрут внутри desktop-сервера, раньше catch-all
     let routes = servers["desktop"]["routes"].as_array().unwrap();
-    assert_eq!(routes.len(), 2);
-    assert_eq!(routes[0]["match"][0]["path"][0], "/apps/grafana/*");
-    assert_eq!(routes[1]["handle"][1]["handler"], "encode"); // сжатие API/оболочки перед проксированием
-    assert_eq!(routes[1]["handle"][2]["upstreams"][0]["dial"], "host.docker.internal:7100");
+    assert_eq!(routes.len(), 3);
+    // сервис «Агенты» — первым: /agents/* уходит на его порт, минуя ядро
+    assert_eq!(routes[0]["match"][0]["path"][1], "/agents/*");
+    assert_eq!(routes[0]["handle"][1]["upstreams"][0]["dial"], "host.docker.internal:7300");
+    assert_eq!(routes[1]["match"][0]["path"][0], "/apps/grafana/*");
+    assert_eq!(routes[2]["handle"][1]["handler"], "encode"); // сжатие API/оболочки перед проксированием
+    assert_eq!(routes[2]["handle"][2]["upstreams"][0]["dial"], "host.docker.internal:7100");
     // Desktop нельзя фреймить; приложение с open: iframe можно только с origin Desktop
-    assert_eq!(routes[1]["handle"][0]["response"]["set"]["X-Frame-Options"][0], "DENY");
+    assert_eq!(routes[2]["handle"][0]["response"]["set"]["X-Frame-Options"][0], "DENY");
     assert_eq!(servers["app-whoami"]["routes"][0]["handle"][0]["response"]["set"]["Content-Security-Policy"][0], "frame-ancestors 'self' https://box.example");
     assert_eq!(cfg["apps"]["tls"]["automation"]["policies"][0]["issuers"][0]["module"], "internal");
-    let cfg2 = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", coder_upstream: "y", coder_port: 8444, apps: &[], tls_internal: false });
+    let cfg2 = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &[], tls_internal: false });
     assert!(cfg2["apps"].get("tls").is_none(), "без internal CA — обычная автоматизация Caddy");
 }
 
 // ---------- store ----------
 
 #[test]
+fn store_llm_usage_ledger_dedupes_and_summarizes() {
+    let d = tmp();
+    let s = Store::open(&d.path().join("db"), &d.path().join("age.key")).unwrap();
+    let row = |project: &str, session: &str, seq: u64, ts: u64, model: &str, cost: f64| UsageRow {
+        project: project.into(), session: session.into(), seq, ts, agent: "claude".into(), model: Some(model.into()),
+        input: 10, output: 5, cache_read: 100, cache_create: 0, cost_usd: cost, duration_ms: Some(1000), num_turns: Some(1), source: "agentd".into(),
+    };
+    assert!(s.insert_usage(&row("alpha", "s1", 1, 1_000_000, "claude-fable-5-1", 0.10)).unwrap());
+    assert!(!s.insert_usage(&row("alpha", "s1", 1, 1_000_000, "claude-fable-5-1", 0.10)).unwrap(), "повторный опрос не задваивает строку");
+    assert!(s.insert_usage(&row("alpha", "s1", 2, 2_000_000, "claude-fable-5-1", 0.20)).unwrap());
+    assert!(s.insert_usage(&row("beta", "s2", 1, 3_000_000, "gpt-6", 0.05)).unwrap());
+    assert_eq!(s.usage_last_ts("alpha").unwrap(), 2_000_000);
+    assert_eq!(s.usage_last_ts("nope").unwrap(), 0);
+    let sum = s.usage_summary(0).unwrap();
+    assert!((sum.total.cost_usd - 0.35).abs() < 1e-9);
+    assert_eq!((sum.total.turns, sum.total.input, sum.total.cache_read), (3, 30, 300));
+    assert_eq!(sum.by_project[0].key, "alpha", "самый дорогой проект первым");
+    assert!((sum.by_project[0].totals.cost_usd - 0.30).abs() < 1e-9);
+    assert_eq!(sum.by_model.iter().map(|b| b.key.as_str()).collect::<Vec<_>>(), vec!["claude-fable-5-1", "gpt-6"]);
+    assert_eq!(sum.by_day.len(), 1, "все три записи в один день 1970-01-01");
+    let recent = s.usage_summary(2_500_000).unwrap();
+    assert_eq!(recent.total.turns, 1, "since отсекает старые записи");
+}
+
+#[test]
 fn store_roundtrip_projects_apps_grants() {
     let d = tmp();
     let s = Store::open(&d.path().join("db"), &d.path().join("age.key")).unwrap();
     assert_eq!(s.next_subnet_index().unwrap(), 1);
-    let spec: ProjectSpec = serde_yaml_ng::from_str("project: alpha\ncapabilities: [demo.http]").unwrap();
+    let spec: ProjectSpec = serde_yaml_ng::from_str("project: alpha\ncapabilities: [demo.http]\ndescription: первый проект стенда").unwrap();
     s.upsert_project(&ProjectState { name: "alpha".into(), subnet_index: 1, coder_workspace_id: None, spec, created_at: store::now() }).unwrap();
     assert_eq!(s.next_subnet_index().unwrap(), 2);
     let a = app_state(manifest("whoami", &["demo.http"], RouteMode::Port, None), Some(8450));
@@ -204,6 +248,7 @@ fn store_roundtrip_projects_apps_grants() {
     assert_eq!(s.list_grants(Some("alpha")).unwrap().len(), 1);
     let p = s.get_project("alpha").unwrap().unwrap();
     assert_eq!(p.spec.capabilities, vec!["demo.http"]);
+    assert_eq!(p.spec.description.as_deref(), Some("первый проект стенда"), "заметка переживает store");
     let mut p2 = p.clone();
     p2.coder_workspace_id = Some(uuid::Uuid::new_v4());
     s.upsert_project(&p2).unwrap();
@@ -259,6 +304,8 @@ fn coder_status_mapping() {
         name: "a".into(),
         owner_name: "admin".into(),
         latest_build: crate::coder::Build { id: uuid::Uuid::nil(), transition: "start".into(), status: status.into(), job: Default::default(), resources: vec![] },
+        outdated: false,
+        template_active_version_id: None,
     };
     assert_eq!(ws("running").simple_status(), "running");
     assert_eq!(ws("stopped").simple_status(), "stopped");
@@ -299,8 +346,14 @@ fn all_store_manifests_parse_and_are_consistent() {
         if !mp.exists() { continue; }
         let m: AppManifest = serde_yaml_ng::from_str(&std::fs::read_to_string(&mp).unwrap()).unwrap_or_else(|err| panic!("{}: {err}", mp.display()));
         assert_eq!(Some(m.name.as_str()), p.file_name().and_then(|f| f.to_str()), "{}", mp.display());
-        assert!(p.join(&m.compose).exists(), "{}: compose {} отсутствует", m.name, m.compose);
-        assert!(m.endpoint.port > 0, "{}: endpoint.port", m.name);
+        if m.kind == AppKind::External {
+            // внешний провайдер: без compose и endpoint, но с разделом external и его настройками в env
+            let ext = m.external.as_ref().unwrap_or_else(|| panic!("{}: type external без external", m.name));
+            assert!(m.compose.is_empty() && m.env.contains_key(&ext.url_env), "{}: external.url_env должен быть объявлен в env", m.name);
+        } else {
+            assert!(p.join(&m.compose).exists(), "{}: compose {} отсутствует", m.name, m.compose);
+            assert!(m.endpoint.port > 0, "{}: endpoint.port", m.name);
+        }
         if let Some(icon) = &m.icon { if icon.starts_with("./") { assert!(p.join(icon).exists(), "{}: иконка {icon}", m.name); } }
         for h in [&m.hooks.on_grant, &m.hooks.on_revoke].into_iter().flatten() { assert!(p.join(h).exists(), "{}: хук {h}", m.name); }
         // login: при mode=generated пароль — переменная из env; логин — переменная из env или литерал
@@ -416,7 +469,7 @@ fn garage_manifest_provides_storage_s3_with_hooks() {
 
 #[test]
 fn edge_alt_hosts_share_routes_and_certificate() {
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &["100.64.0.9".to_string()], cloudd_upstream: "x", coder_upstream: "y", coder_port: 8444, apps: &[], tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &["100.64.0.9".to_string()], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &[], tls_internal: true });
     let text = serde_json::to_string(&cfg).unwrap();
     assert!(text.contains(r#"["box.example","100.64.0.9"]"#), "host-матчеры и subjects должны включать IP: {text}");
     assert!(text.contains("frame-ancestors 'self' https://box.example https://100.64.0.9"));
@@ -471,7 +524,7 @@ fn generate_rotation_yields_new_value_of_same_shape() {
 
 #[test]
 fn edge_no_h3_and_compresses_api() {
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", coder_upstream: "y", coder_port: 8444, apps: &[], tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &[], tls_internal: true });
     let text = serde_json::to_string(&cfg).unwrap();
     assert!(text.contains(r#""protocols":["h1","h2"]"#));
     assert!(text.contains(r#""handler":"encode""#));
@@ -480,7 +533,7 @@ fn edge_no_h3_and_compresses_api() {
 #[test]
 fn edge_app_servers_have_friendly_error_page() {
     let apps = vec![app_state(manifest("whoami", &[], RouteMode::Port, Some(8450)), Some(8450))];
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", coder_upstream: "y", coder_port: 8444, apps: &apps, tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &apps, tls_internal: true });
     let errs = &cfg["apps"]["http"]["servers"]["app-whoami"]["errors"]["routes"][0]["handle"];
     assert_eq!(errs[1]["handler"], "static_response");
     assert!(errs[1]["body"].as_str().unwrap().contains("#app=whoami"));
@@ -520,12 +573,12 @@ fn appdata_mounts_expand_and_owner_from_compose() {
 fn edge_tailscale_mode_leaves_ts_net_host_to_caddy_and_keeps_internal_ca_for_alt_hosts() {
     let apps = vec![app_state(manifest("whoami", &[], RouteMode::Port, Some(8450)), Some(8450))];
     let alts = vec!["100.101.102.103".to_string()];
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "aios.tail1234.ts.net", alt_hosts: &alts, cloudd_upstream: "x", coder_upstream: "y", coder_port: 8444, apps: &apps, tls_internal: false });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "aios.tail1234.ts.net", alt_hosts: &alts, cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &apps, tls_internal: false });
     let policies = cfg["apps"]["tls"]["automation"]["policies"].as_array().unwrap();
     assert_eq!(policies.len(), 1);
     assert_eq!(policies[0]["subjects"], serde_json::json!(["100.101.102.103"]));
     assert_eq!(policies[0]["issuers"][0]["module"], "internal");
-    let no_alts = EdgeCaddy::render(&EdgeInput { host: "aios.tail1234.ts.net", alt_hosts: &[], cloudd_upstream: "x", coder_upstream: "y", coder_port: 8444, apps: &apps, tls_internal: false });
+    let no_alts = EdgeCaddy::render(&EdgeInput { host: "aios.tail1234.ts.net", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &apps, tls_internal: false });
     assert!(no_alts["apps"].get("tls").is_none(), "без запасных имён политики TLS не нужны — Caddy сам обслужит .ts.net");
 }
 
@@ -557,16 +610,16 @@ fn backup_snapshot_names_and_prune_plan() {
 
 #[test]
 fn tailscale_status_running_parsed() {
-    let j = r#"{"Version":"1.102.3-t9329c3677-ga522f65e9","BackendState":"Running","AuthURL":"","MagicDNSSuffix":"tail0fe52f.ts.net",
-        "CertDomains":["aios.tail0fe52f.ts.net"],"Health":[],"Self":{"HostName":"aios","DNSName":"aios.tail0fe52f.ts.net.","TailscaleIPs":["100.69.48.34","fd7a:115c:a1e0::ea2e:3023"],"Online":true},
-        "CurrentTailnet":{"Name":"x.github","MagicDNSSuffix":"tail0fe52f.ts.net","MagicDNSEnabled":true}}"#;
+    let j = r#"{"Version":"1.102.3-t9329c3677-ga522f65e9","BackendState":"Running","AuthURL":"","MagicDNSSuffix":"tail1234.ts.net",
+        "CertDomains":["box.tail1234.ts.net"],"Health":[],"Self":{"HostName":"box","DNSName":"box.tail1234.ts.net.","TailscaleIPs":["100.64.0.9","fd7a:115c:a1e0::1"],"Online":true},
+        "CurrentTailnet":{"Name":"x.github","MagicDNSSuffix":"tail1234.ts.net","MagicDNSEnabled":true}}"#;
     let t = crate::setup::parse_status(j);
     assert_eq!(t.state, "Running");
-    assert_eq!(t.dns_name.as_deref(), Some("aios.tail0fe52f.ts.net"));
-    assert_eq!(t.ips, vec!["100.69.48.34", "fd7a:115c:a1e0::ea2e:3023"]);
+    assert_eq!(t.dns_name.as_deref(), Some("box.tail1234.ts.net"));
+    assert_eq!(t.ips, vec!["100.64.0.9", "fd7a:115c:a1e0::1"]);
     assert!(t.https_certs && t.magic_dns && t.installed);
     assert_eq!(t.version.as_deref(), Some("1.102.3"));
-    assert_eq!(t.tailnet.as_deref(), Some("tail0fe52f.ts.net"));
+    assert_eq!(t.tailnet.as_deref(), Some("tail1234.ts.net"));
     assert!(t.auth_url.is_none());
 }
 
@@ -673,4 +726,63 @@ fn compose_differs_is_semantic() {
     assert!(compose_differs("services:\n  x:\n    image: i:1\n", "services:\n  x:\n    image: i:2\n"));
     assert!(compose_differs("services:\n  x:\n    networks:\n    - appnet\n", "services:\n  x:\n    networks:\n      appnet:\n        aliases: [a]\n"));
     assert!(!compose_differs("plain text", "plain text\n"));
+}
+
+#[test]
+fn external_provider_manifest_and_gate() {
+    // type: external — без compose/route/endpoint, с разделом external
+    let m: AppManifest = serde_yaml_ng::from_str("name: x\ntype: external\nprovides: [llm]\nexternal: { url_env: U, key_env: K }\nenv: { U: '', K: '' }\n").unwrap();
+    assert_eq!(m.kind, AppKind::External);
+    assert!(m.compose.is_empty());
+    assert_eq!(m.external.as_ref().unwrap().url_env, "U");
+    // адрес: только схема и хост, путь запрещён
+    assert_eq!(crate::service::normalize_external_url("https://llm.example.ts.net/").unwrap(), "https://llm.example.ts.net");
+    assert_eq!(crate::service::normalize_external_url(" http://10.0.0.5:11434 ").unwrap(), "http://10.0.0.5:11434");
+    assert!(crate::service::normalize_external_url("https://openrouter.ai/api/v1").is_err());
+    assert!(crate::service::normalize_external_url("ftp://x").is_err());
+    assert!(crate::service::normalize_external_url("not a url").is_err());
+    // gate: внешний upstream с подстановкой Host и ключа (ключ экранируется), внутренний — как раньше
+    let routes = vec![
+        gate::GateRoute { capability: "llm", upstream: gate::Upstream::External { url: "https://p.example".into(), key: Some("k\"1".into()) } },
+        gate::GateRoute { capability: "notify", upstream: gate::Upstream::Internal("ntfy:80".into()) },
+    ];
+    let text = gate::render_caddyfile("alpha", &routes);
+    assert!(text.contains("http://llm.gate, http://llm.gate:80 {\n  reverse_proxy https://p.example {\n    header_up Host {upstream_hostport}\n"), "{text}");
+    assert!(text.contains("header_up Authorization \"Bearer k\\\"1\"\n"), "{text}");
+    assert!(text.contains("header_up x-api-key \"k\\\"1\"\n"), "{text}");
+    assert!(text.contains("reverse_proxy ntfy:80\n"), "{text}");
+    // без ключа заголовки не подставляются
+    let text = gate::render_caddyfile("beta", &[gate::GateRoute { capability: "llm", upstream: gate::Upstream::External { url: "http://ollama:11434".into(), key: None } }]);
+    assert!(text.contains("reverse_proxy http://ollama:11434 {") && !text.contains("Authorization"));
+    // routes_for: внешний провайдер берёт адрес из карты externals, обычный — endpoint
+    let ext = manifest("llm-external", &["llm"], RouteMode::Port, None);
+    let apps = vec![AppState { name: "llm-external".into(), manifest: AppManifest { kind: AppKind::External, ..ext }, port: None, komodo_stack_id: None, installed_at: "t".into() }];
+    let grants = vec![Grant { project: "alpha".into(), capability: "llm".into(), app: "llm-external".into(), granted_at: "t".into() }];
+    let externals = std::collections::HashMap::from([("llm-external".to_string(), ("https://p.example".to_string(), Some("k".to_string())))]);
+    let routes = gate::routes_for(&grants, &apps, &externals);
+    assert!(matches!(routes[0].upstream, gate::Upstream::External { ref url, .. } if url == "https://p.example"));
+    // манифест в каталоге
+    let y = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../store/llm-external/manifest.yaml")).unwrap();
+    let m: AppManifest = serde_yaml_ng::from_str(&y).unwrap();
+    assert_eq!(m.kind, AppKind::External);
+    assert_eq!(m.provides, vec!["llm"]);
+    assert!(m.hooks.on_grant.is_some() && m.external.as_ref().unwrap().key_env.as_deref() == Some("LLM_EXTERNAL_KEY"));
+}
+
+#[test]
+fn copy_store_keeps_hooks_and_skips_user_files() {
+    let tmp = std::env::temp_dir().join(format!("cloudd-copy-store-{}", std::process::id()));
+    let src = tmp.join("src/app1"); let dst = tmp.join("dst");
+    std::fs::create_dir_all(src.join("hooks")).unwrap();
+    std::fs::write(src.join("manifest.yaml"), "name: app1\n").unwrap();
+    std::fs::write(src.join("hooks/grant.sh"), "#!/bin/sh\n").unwrap();
+    std::fs::write(src.join("compose.override.yaml"), "user").unwrap();
+    std::fs::write(src.join("login.yaml"), "user").unwrap();
+    std::fs::write(tmp.join("src/recommended.yaml"), "items: []\n").unwrap();
+    let n = crate::updates::copy_store(&tmp.join("src"), &dst).unwrap();
+    assert_eq!(n, 1);
+    assert!(dst.join("app1/hooks/grant.sh").exists(), "hooks/ должен попасть в каталог");
+    assert!(dst.join("recommended.yaml").exists());
+    assert!(!dst.join("app1/compose.override.yaml").exists() && !dst.join("app1/login.yaml").exists(), "файлы установки не копируются");
+    let _ = std::fs::remove_dir_all(&tmp);
 }

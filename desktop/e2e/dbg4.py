@@ -6,7 +6,7 @@ with sync_playwright() as p:
         if engine == "chromium": kw.update(has_touch=True, is_mobile=True)
         pg = b.new_context(locale="ru-RU", **kw).new_page()
         pg.on("pageerror", lambda e: print(engine, "pageerror:", str(e)[:200]))
-        pg.goto("https://aios.tail0fe52f.ts.net/", wait_until="domcontentloaded"); pg.wait_for_selector(".mobile .grid .tile", timeout=30000); time.sleep(1)
+        pg.goto("https://box.tail1234.ts.net/", wait_until="domcontentloaded"); pg.wait_for_selector(".mobile .grid .tile", timeout=30000); time.sleep(1)
         pg.locator(".mobile .search").click(); pg.wait_for_selector(".menu", timeout=10000); time.sleep(0.5)
         btn = pg.locator(".menu button", has_text="Перезагрузить оболочку"); bb = btn.bounding_box(); print(engine, "button box:", bb)
         top = pg.evaluate(f"(() => {{ const e = document.elementFromPoint({bb['x']+20}, {bb['y']+10}); return e ? e.tagName + '.' + e.className + ' | ' + (e.textContent||'').trim().slice(0,30) : null; }})()")

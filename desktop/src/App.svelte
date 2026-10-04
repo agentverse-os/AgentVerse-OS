@@ -5,6 +5,7 @@
   import { bootDone, bootMessage, bootActive } from './lib/boot';
   // Оболочка AgentVerse OS (3.12): рабочий стол с обоями и иконками, окна поверх, панель задач с меню запуска.
   import Windows from './lib/Windows.svelte';
+  import Agents from './lib/Agents.svelte';
   import Taskbar from './lib/Taskbar.svelte';
   import StartMenu from './lib/StartMenu.svelte';
   import DesktopIcons from './lib/DesktopIcons.svelte';
@@ -62,7 +63,10 @@
   $effect(() => watchSystem(() => appearance));
 
   // глубокие ссылки: /#projects, /#store, /#system, /#settings, /#app=<name> открывают окно
-  const sysApps: SysApp[] = ['projects', 'store', 'system', 'settings', 'files', 'vault', 'setup', 'updates'];
+  const sysApps: SysApp[] = ['projects', 'agents', 'store', 'system', 'settings', 'files', 'vault', 'setup', 'updates'];
+  // отдельное веб-приложение без оболочки: /?app=agents — одно системное окно на весь экран (ставится на телефон своей иконкой)
+  const standalone = new URLSearchParams(location.search).get('app');
+  $effect(() => { if (standalone === 'agents') document.title = `${t('sys.agents')} · AgentVerse OS`; });
   function openFromHash() {
     const h = location.hash.slice(1);
     if (!h) return;
@@ -93,8 +97,13 @@
 
 <svelte:window onkeydown={keys} />
 {#if offlineSince && !bootActive()}<Offline since={offlineSince} attempts={failures} onretry={poll} />{/if}
-<Screensaver minutes={appearance.screensaver ?? 10} statusText={saverStatus} />
-{#if device.phone}
+<Screensaver minutes={appearance.screensaver ?? 10} statusText={saverStatus} look={appearance.look ?? 'default'} />
+{#if standalone === 'agents'}
+  <div class="standalone" role="application" aria-label="AgentVerse OS · {t('sys.agents')}">
+    <Agents />
+    <Toasts />
+  </div>
+{:else if device.phone}
   <div class="desktop" role="application" aria-label="AgentVerse OS">
     {#if certWarn && !wm.wins.some(w => !w.minimized)}<div class="certwarn phone"><span>{t('cert.phone')} <a href="/api/ca.crt">{t('cert.download')}</a> · <button class="link" onclick={() => wm.openSys('settings')}>{t('cert.how')}</button></span><button class="x" title={t('cert.hide')} onclick={dismissCert}>✕</button></div>{/if}
     <MobileShell bind:appearance {status} />
@@ -104,7 +113,7 @@
 {:else}
 <div class="desktop" role="application" aria-label="AgentVerse OS" oncontextmenu={(e) => { if ((e.target as HTMLElement).closest('.win, .taskbar, .menu, .widget, input, textarea, a')) return; e.preventDefault(); ctx = { x: e.clientX, y: e.clientY }; }} onclick={() => ctx = null}>
   {#if certWarn}<div class="certwarn"><span>{t('cert.desktop')} <a href="/api/ca.crt">{t('cert.download')}</a> · <button class="link" onclick={() => wm.openSys('settings')}>{t('cert.howLong')}</button></span><button class="x" title={t('cert.hide')} onclick={dismissCert}>✕</button></div>{/if}
-  <DesktopIcons />
+  <DesktopIcons look={appearance.look ?? 'default'} />
   <Widgets />
   <Windows bind:appearance />
   <Toasts />
@@ -122,6 +131,8 @@
 {/if}
 
 <style>
+  .standalone { position: fixed; inset: 0; padding: 0; box-sizing: border-box; display: flex; background: #0b0d12; }
+  .standalone > :global(.agents) { flex: 1; min-height: 0; }
   .certwarn { position: fixed; bottom: 58px; left: 50%; transform: translateX(-50%); z-index: 1900; width: max-content; max-width: min(92vw, 860px); display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: var(--r-sm, 8px); background: color-mix(in srgb, var(--bad, #c33) 18%, var(--panel, #222)); border: 1px solid var(--bad, #c33); color: var(--fg, #eee); font-size: .9rem; line-height: 1.35; }
   .certwarn.phone { bottom: 66px; z-index: 2100; }
   .certwarn a { color: inherit; text-decoration: underline; }

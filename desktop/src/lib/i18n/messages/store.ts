@@ -3,6 +3,7 @@
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {
+    'store.stateUnreachable': 'unreachable',
     'store.apps.one': '{n} app', 'store.apps.few': '{n} apps', 'store.apps.many': '{n} apps', 'store.apps.other': '{n} apps',
     'store.installedCount': '{n} installed', 'store.runningCount': '{n} running', 'store.onlyInstalled': 'installed only',
     'store.searchPlaceholder': 'search by name, tags, categories…',
@@ -25,6 +26,7 @@ export default defineMessages({
     'store.removedPurged': 'removed completely: data and passwords erased', 'store.removedKept': 'removed, data and passwords kept',
   },
   ru: {
+    'store.stateUnreachable': 'недоступен',
     'store.apps.one': '{n} приложение', 'store.apps.few': '{n} приложения', 'store.apps.many': '{n} приложений', 'store.apps.other': '{n} приложений',
     'store.installedCount': '{n} установлено', 'store.runningCount': '{n} работают', 'store.onlyInstalled': 'только установленные',
     'store.searchPlaceholder': 'поиск по названию, тегам, категориям…',
@@ -47,6 +49,7 @@ export default defineMessages({
     'store.removedPurged': 'удалено полностью: данные и пароли стёрты', 'store.removedKept': 'удалено, данные и пароли сохранены',
   },
   uk: {
+    'store.stateUnreachable': 'недоступний',
     'store.apps.one': '{n} застосунок', 'store.apps.few': '{n} застосунки', 'store.apps.many': '{n} застосунків', 'store.apps.other': '{n} застосунків',
     'store.installedCount': '{n} встановлено', 'store.runningCount': '{n} працюють', 'store.onlyInstalled': 'лише встановлені',
     'store.searchPlaceholder': 'пошук за назвою, тегами, категоріями…',
@@ -69,6 +72,7 @@ export default defineMessages({
     'store.removedPurged': 'видалено повністю: дані та паролі стерто', 'store.removedKept': 'видалено, дані та паролі збережено',
   },
   es: {
+    'store.stateUnreachable': 'inaccesible',
     'store.apps.one': '{n} aplicación', 'store.apps.few': '{n} aplicaciones', 'store.apps.many': '{n} aplicaciones', 'store.apps.other': '{n} aplicaciones',
     'store.installedCount': '{n} instaladas', 'store.runningCount': '{n} en ejecución', 'store.onlyInstalled': 'solo instaladas',
     'store.searchPlaceholder': 'buscar por nombre, etiquetas, categorías…',

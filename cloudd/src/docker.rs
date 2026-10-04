@@ -193,6 +193,17 @@ impl DockerRt {
             Err(e) => Err(e.into()),
         }
     }
+    /// Выход наружу для внешнего провайдера: bridge-сеть с NAT хоста становится default-шлюзом контейнера (gw_priority).
+    /// Без приоритета Docker берёт первую сеть по алфавиту — у gate это может оказаться macvlan проекта, откуда в tailnet пути нет.
+    pub async fn connect_gateway(&self, network: &str, container: &str, priority: i64) -> Result<()> {
+        let endpoint_config = EndpointSettings { gw_priority: Some(priority), ..Default::default() };
+        match self.docker.connect_network(network, ConnectNetworkOptions { container, endpoint_config }).await {
+            Ok(()) => Ok(()),
+            Err(bollard::errors::Error::DockerResponseServerError { status_code: 403, message }) if message.contains("already exists") => Ok(()),
+            Err(bollard::errors::Error::DockerResponseServerError { status_code: 409, .. }) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
+    }
     pub async fn disconnect(&self, network: &str, container: &str) -> Result<()> {
         match self.docker.disconnect_network(network, DisconnectNetworkOptions { container, force: true }).await {
             Ok(()) => Ok(()),

@@ -29,7 +29,7 @@
   const installedCount = $derived(apps.filter(a => a.installed).length);
   const runningCount = $derived(apps.filter(a => a.installed && a.state === 'running').length);
   const stateClass = (st?: string | null) => st === 'running' ? 'ok' : !st || st === 'unknown' || st === 'deploying' || st === 'starting' ? 'warn pulse' : st === 'restarting' ? 'bad pulse' : 'bad';
-  const STATE_KEY: Record<string, string> = { running: 'store.state.running', restarting: 'store.state.restarting', down: 'store.state.stopped', exited: 'store.state.stopped', dead: 'store.state.dead', unhealthy: 'store.state.unhealthy', deploying: 'store.state.deploying', starting: 'store.state.starting', unknown: 'store.state.unknown', paused: 'store.state.paused' };
+  const STATE_KEY: Record<string, string> = { unreachable: 'store.stateUnreachable', running: 'store.state.running', restarting: 'store.state.restarting', down: 'store.state.stopped', exited: 'store.state.stopped', dead: 'store.state.dead', unhealthy: 'store.state.unhealthy', deploying: 'store.state.deploying', starting: 'store.state.starting', unknown: 'store.state.unknown', paused: 'store.state.paused' };
   const stateLabel = (st?: string | null) => { const k = STATE_KEY[st ?? '']; return k ? t(k) : st ?? t('store.installed'); };
   const unhealthy = (st?: string | null) => !!st && ['restarting', 'down', 'exited', 'dead', 'unhealthy', 'paused'].includes(st);
   const s = $derived(q.trim().toLowerCase());
@@ -118,6 +118,7 @@
         {#if a.manifest.recommended}<span class="badge pickb" title={reasonOf(a)}>{t('store.recommendedBadge')}</span>{/if}
         {#if a.manifest.provides.length}<span class="badge ok">provides {a.manifest.provides.join(', ')}</span>{/if}
         {#if a.manifest.type === 'system'}<span class="badge">system</span>{/if}
+        {#if a.manifest.type === 'external'}<span class="badge" title={t('app.externalHint')}>{t('app.external')}</span>{/if}
         {#if a.manifest.host_docker_socket}<span class="badge warn" title={t('store.dockerSock')}>docker.sock</span>{/if}
         {#each (a.manifest.upstream?.categories ?? []).slice(0, 2) as c}<span class="badge">{c}</span>{/each}
         {#if a.manifest.gallery.length}<span class="badge" title={tn('store.screenshots', a.manifest.gallery.length)}>🖼 {a.manifest.gallery.length}</span>{/if}
@@ -127,7 +128,7 @@
       <div class="actions">
         {#if a.installed}
           {#if a.url}<button class="primary" onclick={() => open(a)}>{t('common.open')}{a.manifest.route.open === 'newtab' ? ' ↗' : ''}</button>{/if}
-          {#if unhealthy(a.state)}<button class="danger" title={t('store.unhealthyHint')} onclick={() => wm.openSys('appdetail', { name: a.name, tab: 'tech' }, titleOf(a))}>{t('store.logs')}</button>{/if}
+          {#if unhealthy(a.state) && a.manifest.type !== 'external'}<button class="danger" title={t('store.unhealthyHint')} onclick={() => wm.openSys('appdetail', { name: a.name, tab: 'tech' }, titleOf(a))}>{t('store.logs')}</button>{/if}
           <button onclick={() => details(a)}>{t('common.more')}</button>
                     <button class="danger" disabled={!!busy[a.name]} onclick={() => removing = a}>{#if busy[a.name]}<span class="spin"></span> {busy[a.name]}{:else}{t('store.remove')}{/if}</button>
         {:else}

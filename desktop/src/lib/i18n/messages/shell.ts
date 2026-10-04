@@ -21,6 +21,7 @@ export default defineMessages({
     'shell.failures.one': '{n} failure', 'shell.failures.few': '{n} failures', 'shell.failures.many': '{n} failures', 'shell.failures.other': '{n} failures',
     'shell.sysUpdate': 'System update available', 'shell.appUpdates': 'App updates: {n}', 'shell.toggleTheme': 'Toggle theme',
     // иконки рабочего стола
+    'shell.greetingMorning': 'Good morning', 'shell.greetingDay': 'Good afternoon', 'shell.greetingEvening': 'Good evening', 'shell.greetingNight': 'Good night', 'shell.dockAria': 'dock', 'shell.islandAria': 'status',
     'shell.desktopAria': 'desktop', 'shell.sysIconTitle': '{title} — part of AgentVerse OS', 'shell.projectIconTitle': 'project {name}: workspace {status}', 'shell.storeApps': 'Apps from Store',
   },
   ru: {
@@ -36,6 +37,7 @@ export default defineMessages({
     'shell.taskbarAria': 'панель задач', 'shell.startMenu': 'Меню запуска', 'shell.health': 'Здоровье ядра', 'shell.coreOk': 'ядро ok',
     'shell.failures.one': '{n} сбой', 'shell.failures.few': '{n} сбоя', 'shell.failures.many': '{n} сбоев', 'shell.failures.other': '{n} сбоев',
     'shell.sysUpdate': 'Доступно обновление системы', 'shell.appUpdates': 'Обновления приложений: {n}', 'shell.toggleTheme': 'Переключить тему',
+    'shell.greetingMorning': 'Доброе утро', 'shell.greetingDay': 'Добрый день', 'shell.greetingEvening': 'Добрый вечер', 'shell.greetingNight': 'Доброй ночи', 'shell.dockAria': 'док', 'shell.islandAria': 'состояние',
     'shell.desktopAria': 'рабочий стол', 'shell.sysIconTitle': '{title} — часть AgentVerse OS', 'shell.projectIconTitle': 'проект {name}: workspace {status}', 'shell.storeApps': 'Приложения из Store',
   },
   uk: {
@@ -51,6 +53,7 @@ export default defineMessages({
     'shell.taskbarAria': 'панель завдань', 'shell.startMenu': 'Меню запуску', 'shell.health': 'Здоров’я ядра', 'shell.coreOk': 'ядро ok',
     'shell.failures.one': '{n} збій', 'shell.failures.few': '{n} збої', 'shell.failures.many': '{n} збоїв', 'shell.failures.other': '{n} збоїв',
     'shell.sysUpdate': 'Доступне оновлення системи', 'shell.appUpdates': 'Оновлення застосунків: {n}', 'shell.toggleTheme': 'Перемкнути тему',
+    'shell.greetingMorning': 'Доброго ранку', 'shell.greetingDay': 'Доброго дня', 'shell.greetingEvening': 'Доброго вечора', 'shell.greetingNight': 'Доброї ночі', 'shell.dockAria': 'док', 'shell.islandAria': 'стан',
     'shell.desktopAria': 'робочий стіл', 'shell.sysIconTitle': '{title} — частина AgentVerse OS', 'shell.projectIconTitle': 'проєкт {name}: workspace {status}', 'shell.storeApps': 'Застосунки зі Store',
   },
   es: {
@@ -66,6 +69,7 @@ export default defineMessages({
     'shell.taskbarAria': 'barra de tareas', 'shell.startMenu': 'Menú de inicio', 'shell.health': 'Estado del núcleo', 'shell.coreOk': 'núcleo ok',
     'shell.failures.one': '{n} fallo', 'shell.failures.few': '{n} fallos', 'shell.failures.many': '{n} fallos', 'shell.failures.other': '{n} fallos',
     'shell.sysUpdate': 'Actualización del sistema disponible', 'shell.appUpdates': 'Actualizaciones de aplicaciones: {n}', 'shell.toggleTheme': 'Cambiar tema',
+    'shell.greetingMorning': 'Buenos días', 'shell.greetingDay': 'Buenas tardes', 'shell.greetingEvening': 'Buenas noches', 'shell.greetingNight': 'Buenas noches', 'shell.dockAria': 'dock', 'shell.islandAria': 'estado',
     'shell.desktopAria': 'escritorio', 'shell.sysIconTitle': '{title} — parte de AgentVerse OS', 'shell.projectIconTitle': 'proyecto {name}: espacio de trabajo {status}', 'shell.storeApps': 'Aplicaciones de Store',
   },
 });

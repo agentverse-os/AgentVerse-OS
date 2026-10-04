@@ -2,7 +2,7 @@
 # удаление через диалог с этапом и уведомлением, живой статус на карточке.
 import os, time, json, ssl, urllib.request
 from playwright.sync_api import sync_playwright
-HOST = os.environ.get("EDGE_HOST", "aios.tail0fe52f.ts.net"); APP = "linkding-coolify"; os.makedirs("shots", exist_ok=True); res = []
+HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); APP = "linkding-coolify"; os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 ctx_ssl = ssl.create_default_context(); ctx_ssl.check_hostname = False; ctx_ssl.verify_mode = ssl.CERT_NONE
 def api(path, method="GET"): r = urllib.request.urlopen(urllib.request.Request(f"https://{HOST}/api{path}", method=method), context=ctx_ssl); t = r.read(); return json.loads(t) if t else None

@@ -1,0 +1,41 @@
+# Внешний OpenAI-совместимый LLM — провайдер capability llm вне этого сервера: LiteLLM, Ollama, OpenAI.
+# Ядро ничего не запускает: хранит адрес и ключ, gate проекта проксирует http://llm.gate → адрес и подставляет ключ в заголовки,
+# хук on_grant кладёт в env workspace те же переменные, что и локальный провайдер llm.
+schema: 1
+name: llm-external
+title: External LLM endpoint
+type: external
+origin: manual
+icon: 🌐
+description: "An OpenAI-compatible LLM endpoint outside this server (LiteLLM, Ollama, OpenAI): projects get it as the llm capability, the gate adds the key"
+i18n:
+  ru: { description: "OpenAI-совместимый LLM вне этого сервера (LiteLLM, Ollama, OpenAI): проекты получают его как capability llm, ключ подставляет gate" }
+  uk: { description: "OpenAI-сумісний LLM поза цим сервером (LiteLLM, Ollama, OpenAI): проєкти отримують його як capability llm, ключ підставляє gate" }
+  es: { description: "Un LLM compatible con OpenAI fuera de este servidor (LiteLLM, Ollama, OpenAI): los proyectos lo reciben como la capability llm, el gate añade la clave" }
+provides: [llm]
+requires: []
+external:
+  url_env: LLM_EXTERNAL_URL
+  key_env: LLM_EXTERNAL_KEY
+  check_path: /v1/models
+env:
+  LLM_EXTERNAL_URL: ""
+  LLM_EXTERNAL_KEY: ""
+  LLM_EXTERNAL_MANAGEMENT_KEY: ""
+settings:
+  - { env: LLM_EXTERNAL_URL, type: text, label: адрес API, hint: "https://host[:port] без пути — /v1 клиенты добавляют сами; сервер должен доставать адрес (tailnet или интернет)", required: true, options: null }
+  - { env: LLM_EXTERNAL_KEY, type: password, label: ключ API, hint: "ключ клиента у провайдера; для Ollama без ключа оставьте пустым", required: false, options: null }
+  - { env: LLM_EXTERNAL_MANAGEMENT_KEY, type: password, label: ключ управления (Management API), hint: "ключ Management API вашего прокси, если он его поддерживает: тогда из «Агентов» можно входить в подписки провайдеров (Antigravity, Kimi, xAI, ChatGPT, Claude, плагины) прямо в этот прокси; пусто — только модели", required: false }
+hooks:
+  on_grant: ./hooks/grant.sh
+  on_revoke: ./hooks/revoke.sh
+login:
+  mode: none
+  note: "Панель провайдера открывается по его адресу; вход — как настроено у него"
+notes:
+  - "Адрес и ключ меняются на вкладке «Настройки»: гранты проектов и gate обновятся сами"
+  - "Связи приложений с внешним провайдером пока не поддерживаются: укажите адрес и ключ в настройках самого приложения"
+data: []
+health: null
+readme: ./description.md
+tags: [ai, llm]

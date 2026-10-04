@@ -1,6 +1,6 @@
 import os, time
 from playwright.sync_api import sync_playwright
-HOST = os.environ.get("EDGE_HOST", "aios.tail0fe52f.ts.net"); os.makedirs("shots", exist_ok=True)
+HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); os.makedirs("shots", exist_ok=True)
 with sync_playwright() as p:
     b = p.chromium.launch(); pg = b.new_context(locale="ru-RU", ignore_https_errors=True, viewport={"width": 1280, "height": 900}).new_page()
     pg.goto(f"https://{HOST}/#store", wait_until="networkidle"); pg.wait_for_selector("text=Store", timeout=15000); time.sleep(2)

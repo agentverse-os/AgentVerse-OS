@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ru" data-theme="dark" data-density="normal" data-accent="blue">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0a0c10">
+  <title>Агенты · AgentVerse OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    // тема до первого кадра: чтобы страница не мигала светлым/тёмным
+    try { var t = localStorage.getItem('agents.theme') || 'dark'; if (t === 'system') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; document.documentElement.dataset.theme = t; document.documentElement.style.colorScheme = t;
+      document.documentElement.dataset.density = localStorage.getItem('agents.density') || 'normal'; document.documentElement.dataset.accent = localStorage.getItem('agents.accent') || 'blue'; } catch (e) {}
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

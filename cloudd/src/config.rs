@@ -47,6 +47,8 @@ pub struct Config {
     pub edge_container: String,
     /// Upstream'ы изнутри контейнера edge: cloudd на хосте и Coder в coder-net.
     pub edge_cloudd_upstream: String,
+    /// Сервис «Агенты» (cloudos-agents) на хосте — маршрут /agents/* на edge.
+    pub edge_agents_upstream: String,
     pub edge_coder_upstream: String,
     /// Внутренний CA Caddy (NetBird) вместо сертификата от tailscaled/ACME.
     pub tls_internal: bool,
@@ -104,6 +106,7 @@ impl Config {
             edge_alt_hosts: env_or("CLOUDD_EDGE_ALT_HOSTS", "").split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect(),
             edge_container: env_or("CLOUDD_EDGE_CONTAINER", "cloudos-edge"),
             edge_cloudd_upstream: env_or("CLOUDD_EDGE_CLOUDD_UPSTREAM", "host.docker.internal:7100"),
+            edge_agents_upstream: env_or("CLOUDD_EDGE_AGENTS_UPSTREAM", "host.docker.internal:7300"),
             edge_coder_upstream: env_or("CLOUDD_EDGE_CODER_UPSTREAM", "coder:7080"),
             tls_internal: env_or("CLOUDD_TLS_INTERNAL", "true") == "true",
             admin_email: env_or("CLOUDOS_ADMIN_EMAIL", "admin@cloudos.local"),
