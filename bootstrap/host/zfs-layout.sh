@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Spike 0 · ZFS layout (раздел 2.8 документа, ADR: datasets фиксируются при установке, политика снапшотов — настройка).
+# Spike 0 · ZFS layout (section 2.8 of the document, ADR: the datasets are fixed at install, the snapshot policy is a
+# setting).
 #
-# Использование:
-#   DISKS="/dev/disk/by-id/nvme-A /dev/disk/by-id/nvme-B" sudo ./zfs-layout.sh create   # создать пул (зеркало из двух дисков)
-#   DISKS="/dev/disk/by-id/nvme-A"                        sudo ./zfs-layout.sh create   # один диск, без зеркала
-#   sudo ./zfs-layout.sh datasets                                                      # только datasets на существующем пуле tank
-#   sudo ./zfs-layout.sh verify                                                        # проверка
+# Usage:
+#   DISKS="/dev/disk/by-id/nvme-A /dev/disk/by-id/nvme-B" sudo ./zfs-layout.sh create   # create the pool (a mirror of two disks)
+#   DISKS="/dev/disk/by-id/nvme-A"                        sudo ./zfs-layout.sh create   # one disk, no mirror
+#   sudo ./zfs-layout.sh datasets                                                      # only the datasets on the existing tank pool
+#   sudo ./zfs-layout.sh verify                                                        # check
 #
-# Ничего не делает с диском без явного DISKS и подкоманды create. Скрипт идемпотентен для datasets.
+# Does nothing to a disk without an explicit DISKS and the create subcommand. The script is
+# idempotent for datasets.
 set -euo pipefail
 
 POOL="${POOL:-tank}"
@@ -36,7 +38,7 @@ ds() { # ds <name> <mountpoint|none> [zfs props...]
     zfs create -o mountpoint="$mp" "$@" "$POOL/$name"
     echo "создан $POOL/$name → $mp"
   else
-    # менять mountpoint только при расхождении: zfs set пытается перемонтировать занятый датасет (cloudd, docker)
+    # change the mountpoint only on a mismatch: zfs set tries to remount a busy dataset (cloudd, docker)
     [[ "$(zfs get -H -o value mountpoint "$POOL/$name")" == "$mp" ]] || zfs set mountpoint="$mp" "$POOL/$name"
     for p in "$@"; do [[ "$p" == "-o" ]] && continue; zfs set "$p" "$POOL/$name"; done
     echo "есть $POOL/$name (свойства проверены)"
@@ -44,23 +46,26 @@ ds() { # ds <name> <mountpoint|none> [zfs props...]
 }
 
 create_datasets() {
-  # tank/core — состояние cloudd, секрет-стор, репозиторий манифестов; маленький, бэкапится первым
+  # tank/core — cloudd state, the secret store, the manifest repository; small, backed up first
   ds core        /var/lib/cloudos    -o recordsize=128K
-  # tank/postgres — PostgreSQL для Coder и cloudd; 16K под страницы Postgres
+  # tank/postgres — PostgreSQL for Coder and cloudd; 16K for Postgres pages
   ds postgres    /srv/postgres       -o recordsize=16K -o logbias=throughput
-  # tank/apps — данные приложений Store, по child-dataset на приложение (bind-mount, не named volume)
+  # tank/apps — Store app data, a child dataset per app (bind mount, not a named volume)
   ds apps        /srv/apps           -o recordsize=128K
-  # tank/workspaces — storage pool Incus; mountpoint не нужен, Incus управляет сам
+  # tank/workspaces — the Incus storage pool; no mountpoint needed, Incus manages
+  # it itself
   ds workspaces  none
-  # tank/docker — data-root Docker: образы и overlay, одноразовое; снапшоты выключены
+  # tank/docker — the Docker data-root: images and overlay, disposable; snapshots off
   ds docker      /var/lib/docker     -o recordsize=128K -o com.sun:auto-snapshot=false
-  # tank/backups — локальный restic-репозиторий; отдельно от данных
+  # tank/backups — the local restic repository; separate from the
+  # data
   ds backups     /srv/backups        -o recordsize=1M   -o com.sun:auto-snapshot=false
 
-  # Пример child-dataset приложения (cloudd будет делать это при install):
+  # Example of an app child dataset (cloudd will do this at install):
   #   zfs create tank/apps/whoami   → /srv/apps/whoami
 
-  # Лимит ARC (память под кэш ZFS), применяется сразу и после перезагрузки
+  # ARC limit (memory for the ZFS cache), applied at once and after a
+  # reboot
   local bytes=$(( ARC_MAX_GB * 1024 * 1024 * 1024 ))
   echo "options zfs zfs_arc_max=${bytes}" > /etc/modprobe.d/zfs-arc.conf
   echo "$bytes" > /sys/module/zfs/parameters/zfs_arc_max || true

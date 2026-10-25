@@ -1,4 +1,4 @@
-// Класс устройства как реактивное состояние: телефон получает мобильную оболочку (всё на весь экран), планшет и десктоп — окна.
+// Device class as reactive state: the phone gets the mobile shell (everything full screen), tablet and desktop — windows.
 import { deviceClass, type DeviceClass } from './windows.svelte';
 class Device {
   klass = $state<DeviceClass>(deviceClass());

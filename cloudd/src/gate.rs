@@ -1,6 +1,6 @@
-//! Gate проекта (2.5, ADR-002/005): Caddy-контейнер на macvlan в `net-<project>`; отдаёт ровно выданные маршруты
-//! `http://<capability>.gate` → `<service>:<port>` в сети provider'а, а для внешних провайдеров (`type: external`) —
-//! на их https-адрес с подстановкой ключа; всё остальное — 403 «no grant».
+//! Project gate (2.5, ADR-002/005): a Caddy container on the macvlan in `net-<project>`; serves exactly the granted
+//! routes `http://<capability>.gate` → `<service>:<port>` in the provider's network, and for external providers
+//! (`type: external`) — to their https address with key insertion; everything else — 403 "no grant".
 
 use crate::model::{AppState, Grant};
 use anyhow::Result;
@@ -8,9 +8,10 @@ use std::collections::HashMap;
 use std::path::Path;
 
 pub enum Upstream {
-    /// `<service>:<port>` в сети приложения.
+    /// `<service>:<port>` in the app network.
     Internal(String),
-    /// Внешний адрес `https://host[:port]`; ключ подставляется в заголовки, Host — хост upstream.
+    /// External address `https://host[:port]`; the key is inserted into the headers, Host — the
+    /// upstream host.
     External { url: String, key: Option<String> },
 }
 
@@ -47,8 +48,8 @@ pub fn render_caddyfile(project: &str, routes: &[GateRoute<'_>]) -> String {
     out
 }
 
-/// Маршруты из grants: capability → приложение, которое её provides → endpoint в `<app>-net`, либо внешний адрес
-/// (`externals`: имя приложения → (url, ключ) для `type: external`).
+/// Routes from grants: capability → the app that provides it → the endpoint in `<app>-net`, or an external
+/// address (`externals`: app name → (url, key) for `type: external`).
 pub fn routes_for<'a>(grants: &'a [Grant], apps: &'a [AppState], externals: &HashMap<String, (String, Option<String>)>) -> Vec<GateRoute<'a>> {
     grants
         .iter()

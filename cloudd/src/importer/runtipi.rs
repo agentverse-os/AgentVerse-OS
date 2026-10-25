@@ -1,5 +1,5 @@
-//! Адаптер каталога Runtipi: динамический compose (docker-compose.json, schemaVersion 2) и статический (x-runtipi),
-//! form_fields → env/generate/settings, ${APP_DATA_DIR}, isMain/internalPort, addPorts. id — без суффикса (первичный источник).
+//! Runtipi catalog adapter: dynamic compose (docker-compose.json, schemaVersion 2) and static (x-runtipi), form_fields →
+//! env/generate/settings, ${APP_DATA_DIR}, isMain/internalPort, addPorts. id — without a suffix (the primary source).
 
 use super::{existing_origin, fetch_tarball, normalize_service, scalar_to_string, write_app, ImportReport, Imported, DOCKER_RO_HOST, RAW_DOCKER_SOCKET_APPS};
 use anyhow::{anyhow, Context, Result};
@@ -60,7 +60,7 @@ fn import_one(src: &Path, store_dir: &Path) -> Result<Outcome> {
     } else {
         return Ok(Outcome::Skip("нет compose".into()));
     };
-    // env из form_fields
+    // env from form_fields
     let mut env = Map::new();
     let mut settings = Vec::new();
     if let Some(ff) = cfg.get("form_fields").and_then(|v| v.as_array()) {
@@ -101,7 +101,7 @@ fn import_one(src: &Path, store_dir: &Path) -> Result<Outcome> {
 
 type Translated = (Value, String, u16, Vec<String>, bool, bool);
 
-/// Статический compose Runtipi v2: обычный compose + `x-runtipi: {is_main, internal_port}` у сервисов.
+/// Static Runtipi v2 compose: regular compose + `x-runtipi: {is_main, internal_port}` on services.
 fn translate_static(yml: &Value, cfg: &Value) -> Result<Translated> {
     let app_id = cfg.get("id").and_then(|v| v.as_str()).unwrap_or("");
     let services = yml.get("services").and_then(|v| v.as_object()).ok_or_else(|| anyhow!("services не объект"))?;
@@ -130,7 +130,7 @@ fn translate_static(yml: &Value, cfg: &Value) -> Result<Translated> {
     Ok((Value::Object(compose), main_name, main_port, notes, host_docker, uses_docker_ro))
 }
 
-/// Динамический compose Runtipi (docker-compose.json, schemaVersion 2).
+/// Dynamic Runtipi compose (docker-compose.json, schemaVersion 2).
 fn translate_dynamic(dc: &Value, cfg: &Value) -> Result<Translated> {
     let app_id = cfg.get("id").and_then(|v| v.as_str()).unwrap_or("");
     let services = dc.get("services").and_then(|v| v.as_array()).ok_or_else(|| anyhow!("services не массив"))?;
@@ -172,7 +172,7 @@ fn translate_dynamic(dc: &Value, cfg: &Value) -> Result<Translated> {
                     if RAW_DOCKER_SOCKET_APPS.contains(&app_id) {
                         host_docker = true;
                     } else {
-                        docker_ro = true; // вместо сокета — read-only прокси через DOCKER_HOST
+                        docker_ro = true; // instead of the socket — the read-only proxy via DOCKER_HOST
                         continue;
                     }
                 }

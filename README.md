@@ -15,7 +15,7 @@
 used from any device through the browser. It is built as a cross-platform vibe coding flow: the same desktop, workspaces and agents
 open on a laptop, a tablet or a phone, the workspace and its agents stay on the server, and the work continues where you left it.
 One command installs it on a clean Ubuntu; everything after that happens in the browser: a windowed desktop, isolated workspaces with
-VS Code and agents (Claude Code, Codex, Gemini CLI, pi), a store of 945 self-hosted apps, backups and updates. Nothing is exposed to the internet:
+VS Code and agents (Claude Code, Codex, Gemini CLI, pi, Antigravity CLI, Oh My Pi), a store of 945 self-hosted apps, backups and updates. Nothing is exposed to the internet:
 access goes through Tailscale with real certificates, no root CAs to install on your devices.
 
 > The project is in alpha and lives on a single test box. It works as a personal server for one person; there are no user accounts or
@@ -56,9 +56,9 @@ access goes through Tailscale with real certificates, no root CAs to install on 
 - **Projects and workspaces.** Every project gets its own network, its own gate and an isolated Incus container with Docker inside.
   Inside: VS Code in the browser, a terminal and agents; Claude Code and Codex log in with your subscriptions. Stop/start keeps the
   instance, resources are changed from the project card.
-- **Agents.** A separate app for working with coding agents from any device: Claude Code, Codex, Gemini CLI and pi run inside the
-  project's workspace, the conversation lives on the server and continues on the phone where the laptop left off. Tool calls and
-  permission prompts, a terminal, the files and git of the workspace, model menus (including the models of the project's LLM gate),
+- **Agents.** A separate app for working with coding agents from any device: Claude Code, Codex, Gemini CLI, pi, Antigravity CLI and
+  Oh My Pi run inside the project's workspace, the conversation lives on the server and continues on the phone where the laptop
+  left off. Tool calls and permission prompts, a terminal, the files and git of the workspace, model menus (including the models of the project's LLM gate),
   routines on a schedule, a ledger of spend, search and export of conversations, MCP servers and skills, diagrams and formulas in
   replies, and a simple chat straight to a model without a container. Conversations survive a restart of the daemon in the workspace.
 - **A Store of 945 apps.** The Runtipi, Coolify and Umbrel catalogs merged into one, with source badges. Guided install, login
@@ -84,13 +84,13 @@ flowchart LR
   end
 
   subgraph host["Server · Ubuntu · ZFS"]
-    E["edge Caddy<br/>TLS from tailscaled<br/>:443 Desktop · :8444 Coder · :8450+ apps"]
+    E["edge Caddy<br/>TLS from tailscaled<br/>:443 Desktop · :8444 Coder · :8445 Agents PWA · :8450+ apps"]
     C["cloudd (Rust)<br/>API · CLI · Desktop embedded<br/>projects · apps · capabilities · backups · updates"]
     A["cloudos-agents (Rust)<br/>Agents app · conversations · routines · ledger"]
     subgraph ws["Project alpha"]
       G["gate-alpha (Caddy)<br/>the only door into the workspace"]
       W["workspace · Incus<br/>Docker inside · VS Code"]
-      D["cloudos-agentd<br/>Claude Code · Codex · Gemini CLI · pi"]
+      D["cloudos-agentd<br/>Claude Code · Codex · Gemini CLI · pi · Antigravity · Oh My Pi"]
     end
     K["Komodo · App Runtime<br/>compose stacks of apps"]
     subgraph apps["Store apps · one network each"]
@@ -122,8 +122,8 @@ flowchart LR
 
 The core is small: seven entities (project, workspace, gate, app, capability, grant, route) and four contracts. Everything else is
 proven third-party software: Coder runs the workspaces, Incus isolates them, Komodo deploys compose stacks, Caddy holds the entry
-point, Tailscale provides the network and certificates. The agents are the agents' own CLIs: Claude Code and Codex run headless,
-Gemini CLI and pi speak the Agent Client Protocol; the daemon in the workspace keeps the journal and relays events to the app.
+point, Tailscale provides the network and certificates. The agents are the agents' own CLIs: Claude Code, Codex and Antigravity CLI run
+headless, Gemini CLI, pi and Oh My Pi speak the Agent Client Protocol; the daemon in the workspace keeps the journal and relays events to the app.
 
 ## Quick start
 
@@ -164,7 +164,7 @@ from the Updates window or `sudo agentverse-update`; the update channel is the `
 |---|---|
 | [`cloudd/`](cloudd/) | the core in Rust (axum, rusqlite, bollard): the `/api/*` API (OpenAPI at `/api/openapi.json`), CLI; embedded Desktop, agentd and Agents service; adapters for Incus, Docker, Coder, Komodo, Caddy; accounts and LLM routes; backups, updates, first-run wizard |
 | [`desktop/`](desktop/) | the Desktop in Svelte 5 and Vite, PWA: windows, widgets, Store, Files, Passwords, Settings; dictionaries for four languages in `src/lib/i18n/`; `npm run build` outputs to `cloudd/static/` |
-| [`agentd/`](agentd/) | `cloudos-agentd`, the daemon inside each workspace: runs Claude Code, Codex, Gemini CLI and pi, keeps conversation journals, serves the terminal, files and git of the workspace and the MCP server list; resumes live conversations after its own restart |
+| [`agentd/`](agentd/) | `cloudos-agentd`, the daemon inside each workspace: runs Claude Code, Codex, Gemini CLI, pi, Antigravity CLI and Oh My Pi, keeps conversation journals, serves the terminal, files and git of the workspace and the MCP server list; resumes live conversations after its own restart |
 | [`agents/`](agents/) | `cloudos-agents`, the Agents service on the host, and the Agents app in `agents/ui/` (Svelte 5, embedded into the service): conversations, routines, ledger, search and export, simple chat; Playwright e2e in `agents/e2e/` |
 | [`store/`](store/) | app manifests: `manifest.yaml` + `compose.yaml`; 938 imported from Runtipi, Coolify and Umbrel, 7 hand-written; `recommended.yaml` |
 | [`bootstrap/`](bootstrap/) | `install.sh`, `update.sh` (installed as `agentverse-update`), compose files for edge / Coder / Komodo / docker-proxy, host scripts, systemd units for the core and the Agents service, the agentd unit for workspaces |

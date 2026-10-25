@@ -1,6 +1,7 @@
-//! Правила инструментов Claude Code (`permissions.allow` / `deny` / `ask` в settings): область «пользователь» —
-//! `<CLAUDE_CONFIG_DIR|~/.claude>/settings.json`, «проект» — `<cwd>/.claude/settings.local.json`. Остальные ключи файла
-//! не трогаем; живой процесс читает файл при старте (правила через «запомнить» CLI применяет сам).
+//! Claude Code tool rules (`permissions.allow` / `deny` / `ask` in settings): the "user" scope is
+//! `<CLAUDE_CONFIG_DIR|~/.claude>/settings.json`, the "project" scope is `<cwd>/.claude/settings.local.json`. Other
+//! keys of the file are left alone; a live process reads the file at start (rules added via "remember" are applied by
+//! the CLI itself).
 use crate::ApiError;
 use axum::extract::Query;
 use axum::Json;
@@ -50,7 +51,8 @@ pub async fn get(Query(q): Query<PermQ>) -> Result<Json<Value>, ApiError> {
     Ok(Json(view(&path, &q.scope)))
 }
 
-/// Записать списки правил; пустой список убирает ключ. Файл создаётся вместе с каталогом `.claude`.
+/// Write the rule lists; an empty list removes the key. The file is created together with the
+/// `.claude` directory.
 pub async fn put(Query(q): Query<PermQ>, Json(b): Json<PermBody>) -> Result<Json<Value>, ApiError> {
     let path = path_for(&q.scope, &q.cwd)?;
     let mut v = read(&path);

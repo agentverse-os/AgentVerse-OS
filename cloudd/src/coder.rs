@@ -1,5 +1,5 @@
-//! Клиент Coder REST API (v2): workspace по `project.yaml` с явными rich parameters (ADR-005),
-//! builds start/stop/delete, состояние агента и приложений (code-server).
+//! Coder REST API client (v2): a workspace per `project.yaml` with explicit rich parameters
+//! (ADR-005), builds start/stop/delete, agent and app state (code-server).
 
 use anyhow::{anyhow, Context, Result};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -19,10 +19,11 @@ pub struct Workspace {
     pub name: String,
     pub owner_name: String,
     pub latest_build: Build,
-    /// У шаблона есть новая активная версия после последней сборки (Coder `outdated`).
+    /// The template has a new active version since the last build (Coder `outdated`).
     #[serde(default)]
     pub outdated: bool,
-    /// Актуальная версия своего шаблона — на неё обновляем при start, без риска подсунуть версию чужого шаблона.
+    /// Current version of its own template — we update to it at start, with no risk of slipping in another
+    /// template's version.
     #[serde(default)]
     pub template_active_version_id: Option<Uuid>,
 }
@@ -30,9 +31,10 @@ pub struct Workspace {
 pub struct Build {
     pub id: Uuid,
     pub transition: String,
-    /// Статус workspace после этой сборки (running | stopped | deleted | starting | …).
+    /// Workspace status after this build (running | stopped | deleted | starting | …).
     pub status: String,
-    /// Статус самой provisioner-job (pending | running | succeeded | failed | canceled).
+    /// Status of the provisioner job itself (pending | running | succeeded | failed |
+    /// canceled).
     #[serde(default)]
     pub job: Job,
     #[serde(default)]
@@ -141,7 +143,8 @@ impl Coder {
         }
     }
 
-    /// `POST /api/v2/users/{user}/workspaces` — все rich parameters явно.
+    /// `POST /api/v2/users/{user}/workspaces` — all rich parameters
+    /// explicitly.
     pub async fn create_workspace(&self, owner: &str, template: &Template, name: &str, params: &[RichParam<'_>]) -> Result<Workspace> {
         let body = json!({
             "name": name,
@@ -152,16 +155,18 @@ impl Coder {
         self.req(reqwest::Method::POST, &format!("/api/v2/users/{owner}/workspaces"), Some(body)).await
     }
 
-    /// `POST /api/v2/workspaces/{id}/builds` с transition start|stop|delete.
+    /// `POST /api/v2/workspaces/{id}/builds` with transition
+    /// start|stop|delete.
     pub async fn build(&self, id: Uuid, transition: &str) -> Result<Build> {
         self.req(reqwest::Method::POST, &format!("/api/v2/workspaces/{id}/builds"), Some(json!({ "transition": transition }))).await
     }
-    /// Сборка `start` с новыми rich parameters (cpu, memory): провайдер Incus применит лимиты in-place.
+    /// A `start` build with new rich parameters (cpu, memory): the Incus provider applies the limits in
+    /// place.
     pub async fn build_with_params(&self, id: Uuid, transition: &str, params: &[RichParam<'_>]) -> Result<Build> {
         self.req(reqwest::Method::POST, &format!("/api/v2/workspaces/{id}/builds"), Some(json!({ "transition": transition, "rich_parameter_values": params }))).await
     }
-    /// Сборка на заданной версии шаблона (обновление workspace до актуальной версии, как `coder update`); rich parameters — явно,
-    /// как при создании: Coder не переносит их сам при смене версии.
+    /// A build on the given template version (updating the workspace to the current version, like `coder update`); rich
+    /// parameters — explicitly, as at creation: Coder does not carry them over itself on a version change.
     pub async fn build_on_version(&self, id: Uuid, transition: &str, version: Uuid, params: &[RichParam<'_>]) -> Result<Build> {
         let body = json!({ "transition": transition, "template_version_id": version, "rich_parameter_values": params });
         self.req(reqwest::Method::POST, &format!("/api/v2/workspaces/{id}/builds"), Some(body)).await
@@ -171,7 +176,8 @@ impl Coder {
         self.req(reqwest::Method::GET, &format!("/api/v2/workspacebuilds/{build_id}"), None).await
     }
 
-    /// Ждать завершения build (succeeded|failed|canceled), до `timeout_s`.
+    /// Wait for the build to finish (succeeded|failed|canceled), up to
+    /// `timeout_s`.
     pub async fn wait_build(&self, build_id: Uuid, timeout_s: u64) -> Result<Build> {
         let start = std::time::Instant::now();
         loop {
@@ -190,8 +196,8 @@ impl Coder {
 }
 
 impl Workspace {
-    /// Статус для Desktop. `latest_build.status` у Coder — это уже статус workspace:
-    /// pending | starting | running | stopping | stopped | failed | canceling | canceled | deleting | deleted.
+    /// Status for Desktop. Coder's `latest_build.status` is already the workspace status: pending | starting |
+    /// running | stopping | stopped | failed | canceling | canceled | deleting | deleted.
     pub fn simple_status(&self) -> String {
         match self.latest_build.status.as_str() {
             "running" | "stopped" | "starting" | "stopping" | "pending" | "deleting" | "deleted" | "failed" => self.latest_build.status.clone(),
@@ -202,8 +208,8 @@ impl Workspace {
     pub fn agent(&self) -> Option<&Agent> {
         self.latest_build.resources.iter().flat_map(|r| r.agents.iter()).next()
     }
-    /// Имя инстанса Incus по формуле шаблона (`lower("ws-${owner}-${workspace}")`): в ресурсах Coder лежит имя
-    /// Terraform-ресурса («workspace»), а не инстанса.
+    /// Incus instance name by the template formula (`lower("ws-${owner}-${workspace}")`): the Coder resources
+    /// hold the Terraform resource name ("workspace"), not the instance name.
     pub fn instance_name(&self) -> Option<String> {
         self.latest_build.resources.iter().any(|r| r.kind == "incus_instance").then(|| format!("ws-{}-{}", self.owner_name, self.name).to_lowercase())
     }

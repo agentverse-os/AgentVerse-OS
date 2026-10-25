@@ -1,6 +1,6 @@
-//! Файловый API Desktop («Файлы» на схеме раздела 2): три корня — данные приложений (tank/apps), репозиторий Store
-//! (манифесты и overrides) и home workspace'ов через файловый API Incus. Ничего вне корней ядро не отдаёт:
-//! путь нормализуется, `..` и абсолютные пути отклоняются, символические ссылки не разрешаются наружу.
+//! Desktop file API ("Files" in the section 2 diagram): three roots — app data (tank/apps), the Store repository
+//! (manifests and overrides) and the workspaces' home via the Incus file API. The core serves nothing outside the
+//! roots: the path is normalized, `..` and absolute paths are rejected, symlinks are not resolved outwards.
 
 use crate::service::Service;
 use anyhow::{anyhow, bail, Result};
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Component, Path, PathBuf};
 use utoipa::ToSchema;
 
-pub const MAX_TEXT: u64 = 2 * 1024 * 1024; // редактор — до 2 MB
+pub const MAX_TEXT: u64 = 2 * 1024 * 1024; // the editor — up to 2 MB
 pub const MAX_UPLOAD: usize = 512 * 1024 * 1024;
 
 #[derive(Debug, Clone, Serialize, ToSchema)]
@@ -17,7 +17,7 @@ pub struct Entry {
     pub dir: bool,
     pub size: u64,
     pub modified: Option<String>,
-    /// текстовый ли файл по расширению — можно открыть в редакторе
+    /// is the file text by extension — can be opened in the editor
     pub text: bool,
 }
 
@@ -58,7 +58,7 @@ pub fn is_text(name: &str) -> bool {
     }
 }
 
-/// Безопасное соединение корня и относительного пути.
+/// Safe join of the root and a relative path.
 pub fn safe_join(root: &Path, rel: &str) -> Result<PathBuf> {
     let rel = rel.trim_start_matches('/');
     let mut out = root.to_path_buf();
@@ -69,7 +69,8 @@ pub fn safe_join(root: &Path, rel: &str) -> Result<PathBuf> {
             _ => bail!("недопустимый путь"),
         }
     }
-    // защита от symlink наружу: канонизируем существующую часть
+    // protection against a symlink outwards: canonicalize the
+    // existing part
     let mut probe = out.clone();
     while !probe.exists() {
         if !probe.pop() {
@@ -86,12 +87,13 @@ pub fn safe_join(root: &Path, rel: &str) -> Result<PathBuf> {
 
 pub enum RootKind {
     Host(PathBuf),
-    /// Incus-инстанс и базовый путь внутри него
+    /// Incus instance and the base path inside
+    /// it
     Instance(String, String),
 }
 
 impl Service {
-    /// Список корней: apps, store, по одному на проект с работающим workspace.
+    /// List of roots: apps, store, one per project with a running workspace.
     pub async fn file_roots(&self) -> Result<Vec<Root>> {
         let mut roots = vec![
             Root { id: "apps".into(), title: "Данные приложений (tank/apps)".into(), kind: "host".into() },
@@ -145,7 +147,7 @@ impl Service {
             }
             RootKind::Instance(inst, base) => {
                 let path = if rel_norm.is_empty() { base } else { format!("{base}/{rel_norm}") };
-                // ls через exec: имя, тип, размер, mtime — одной строкой на запись
+                // ls via exec: name, type, size, mtime — one line per entry
                 let out = self.incus.exec(&inst, &["sh", "-c", &format!("cd '{}' && for f in .* *; do [ \"$f\" = . ] || [ \"$f\" = .. ] || [ ! -e \"$f\" ] && continue; if [ -d \"$f\" ]; then t=d; else t=f; fi; printf '%s\\t%s\\t%s\\t%s\\n' \"$t\" \"$(stat -c %s \"$f\")\" \"$(stat -c %Y \"$f\")\" \"$f\"; done", path.replace('\'', "'\\''"))]).await?;
                 for line in out.lines() {
                     let parts: Vec<&str> = line.splitn(4, '\t').collect();
@@ -196,7 +198,8 @@ impl Service {
             RootKind::Instance(inst, base) => {
                 let path = format!("{base}/{}", rel.trim_start_matches('/'));
                 self.incus.file_push(&inst, &path, content, 0o644).await?;
-                // владелец — coder (uid 1000), иначе файл будет root'а
+                // the owner is coder (uid 1000), otherwise the file
+                // would belong to root
                 let _ = self.incus.exec(&inst, &["chown", "coder:coder", &path]).await;
             }
         }

@@ -1,7 +1,8 @@
 <script lang="ts">
-  // Терминал карточки сессии (ADR-006): xterm.js поверх PTY, который живёт в cloudos-agentd внутри workspace.
-  // Протокол v1: бинарные кадры — байты, текстовые — JSON (`hello`, `resize`, `ping`/`pong`, `exit`).
-  // Закрытие окна или вкладки процесс не трогает: при следующем подключении agentd проигрывает хвост вывода.
+  // Session card terminal (ADR-006): xterm.js over a PTY that lives in cloudos-agentd inside the workspace.
+  // Protocol v1: binary frames are bytes, text frames are JSON (`hello`, `resize`, `ping`/`pong`, `exit`).
+  // Closing the window or tab does not touch the process: on the next connection agentd replays the output
+  // tail.
   import { onMount } from 'svelte';
   import { Terminal } from '@xterm/xterm';
   import { FitAddon } from '@xterm/addon-fit';

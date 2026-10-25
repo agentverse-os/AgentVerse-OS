@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# on_grant llm (внешний провайдер): проект получает OpenAI-, Anthropic- и Gemini-совместимые точки через gate проекта,
-# ключ — из настройки LLM_EXTERNAL_KEY (gate подставляет его и сам, поэтому без ключа отдаём заглушку: клиенты требуют непустой). stdout → env проекта.
+# on_grant llm (an external provider): the project gets OpenAI-, Anthropic- and Gemini-compatible endpoints through the project gate, the key — from
+# the LLM_EXTERNAL_KEY setting (the gate inserts it itself too, so without a key we return a placeholder: clients require a non-empty one). stdout →
+# the project env.
 set -euo pipefail
 key="${LLM_EXTERNAL_KEY:-}"
 [[ -n "$key" ]] || key="none"

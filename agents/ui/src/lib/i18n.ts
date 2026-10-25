@@ -1,7 +1,8 @@
-// Строки приложения «Агенты» на четырёх языках (английский, русский, украинский, испанский). Словари — i18n/messages/*.ts: один
-// файл — одно пространство имён, четыре языка, ключи проверяются типом по английскому (i18n/define.ts). Русский — исходный
-// язык интерфейса (по нему же ищут элементы e2e-проверки). Текущий язык — реактивное состояние lang.svelte.ts: t() в разметке
-// пересчитывается при смене языка без перезагрузки. Тексты из ядра и сервиса (ошибки API, события) не переводятся.
+// Strings of the "Agents" app in four languages (English, Russian, Ukrainian, Spanish). Dictionaries — i18n/messages/*.ts: one
+// file is one namespace, four languages, keys are type-checked against English (i18n/define.ts). Russian is the source language
+// of the UI (the e2e checks look up elements by it too). The current language is the reactive state lang.svelte.ts: t() in
+// markup is recomputed on a language change without a reload. Texts from the core and the service (API errors, events) are not
+// translated.
 import { lang, LANGS, LANG_NAMES, LOCALES, type Lang, type LangSetting } from './lang.svelte';
 import type { Messages } from './i18n/define';
 export { lang, LANGS, LANG_NAMES, LOCALES, type Lang, type LangSetting };
@@ -19,14 +20,16 @@ for (const [file, m] of Object.entries(modules)) {
 function fmtStr(s: string, params?: Record<string, unknown>) {
   return params ? s.replace(/\{(\w+)\}/g, (m, k) => (k in params ? String(params[k] ?? '') : m)) : s;
 }
-/** Строка по ключу на текущем языке с подстановкой {name}; нет перевода — английский; нет ключа — сам ключ. */
+/** String by key in the current language with {name} substitution; no translation — English; no key — the key
+ *  itself. */
 export function t(key: string, params?: Record<string, unknown>): string {
   const s = DICTS[lang.lang][key] ?? DICTS.en[key];
   if (s === undefined) { if (import.meta.env.DEV) console.warn(`i18n: нет ключа ${key}`); return fmtStr(key, params); }
   return fmtStr(s, params);
 }
 const rules = new Map<string, Intl.PluralRules>();
-/** Множественное число: ключ `<key>.<one|few|many|other>` по Intl.PluralRules текущей локали, {n} подставляется сам. */
+/** Plural: the key `<key>.<one|few|many|other>` per Intl.PluralRules of the current locale, {n} is substituted
+ *  automatically. */
 export function tn(key: string, n: number, params?: Record<string, unknown>): string {
   const loc = lang.locale;
   let pr = rules.get(loc);
@@ -35,11 +38,12 @@ export function tn(key: string, n: number, params?: Record<string, unknown>): st
   const pick = [`${key}.${pr.select(n)}`, `${key}.other`, `${key}.many`, `${key}.one`].find(k => k in d || k in DICTS.en) ?? `${key}.many`;
   return t(pick, { n, ...(params ?? {}) });
 }
-/** Форматирование по локали текущего языка. */
+/** Formatting by the locale of the current
+ *  language. */
 export const fmt = {
   time: (d: Date | number) => new Date(d).toLocaleTimeString(lang.locale, { hour: '2-digit', minute: '2-digit' }),
   date: (d: Date | number, opts?: Intl.DateTimeFormatOptions) => new Date(d).toLocaleDateString(lang.locale, opts),
-  /** Сколько прошло (секунды unix): «только что», «5 мин», «3 ч», «2 дн». */
+  /** Elapsed time (unix seconds): "just now", "5 min", "3 h", "2 d". */
   ago(ts?: number | null): string {
     if (!ts) return ''; const s = Math.max(0, Math.floor(Date.now() / 1000 - ts));
     return s < 60 ? t('time.now') : s < 3600 ? t('time.min', { n: Math.floor(s / 60) }) : s < 86400 ? t('time.h', { n: Math.floor(s / 3600) }) : t('time.d', { n: Math.floor(s / 86400) });

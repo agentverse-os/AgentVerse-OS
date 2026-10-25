@@ -5,7 +5,8 @@
   let q = $state('');
   let found = $state<any[]>([]);
   let error = $state('');
-  // коды погоды WMO: значок и ключ словаря с описанием
+  // WMO weather codes: an icon and a dictionary key
+  // with the description
   const CODES: Record<number, [string, string]> = { 0: ['☀️', 'clear'], 1: ['🌤', 'mainlyClear'], 2: ['⛅', 'cloudy'], 3: ['☁️', 'overcast'], 45: ['🌫', 'fog'], 48: ['🌫', 'rime'], 51: ['🌦', 'drizzle'], 53: ['🌦', 'drizzle'], 55: ['🌧', 'drizzle'], 61: ['🌧', 'rain'], 63: ['🌧', 'rain'], 65: ['🌧', 'heavyRain'], 71: ['🌨', 'snow'], 73: ['🌨', 'snow'], 75: ['❄️', 'snowfall'], 80: ['🌦', 'showers'], 81: ['🌧', 'showers'], 82: ['⛈', 'showers'], 95: ['⛈', 'thunder'], 96: ['⛈', 'thunderHail'], 99: ['⛈', 'thunderHail'] };
   async function load() { if (!config.lat && !config.lon) return; try { data = await (await fetch(`/api/widgets/weather?lat=${config.lat}&lon=${config.lon}`)).json(); error = ''; } catch (e) { error = String(e); } }
   async function search() { try { const r = await (await fetch(`/api/widgets/geocode?q=${encodeURIComponent(q)}`)).json(); found = r.results ?? []; } catch (e) { error = String(e); } }

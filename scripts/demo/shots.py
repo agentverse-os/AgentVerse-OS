@@ -1,6 +1,6 @@
-# Скриншоты Desktop для README: десктоп с окнами Store и проекта, планшет, телефон; тёмная тема Monolith и светлая.
-# Запуск внутри контейнера Playwright против демо-прокси (scripts/demo/demo_proxy.py): python3 shots.py http://host:7300 /out [язык]
-# Язык интерфейса (по умолчанию en) задаётся и в оформлении (language), и локалью контекста — демо-прокси по Accept-Language отдаёт события и новости на нём.
+# Desktop screenshots for the README: the desktop with the Store and project windows, tablet, phone; the dark Monolith theme and the light one. Run inside
+# the Playwright container against the demo proxy (scripts/demo/demo_proxy.py): python3 shots.py http://host:7300 /out [language]. The UI language (en by
+# default) is set both in the appearance (language) and as the context locale — the demo proxy serves events and news in it by Accept-Language.
 import sys, time
 from playwright.sync_api import sync_playwright
 
@@ -16,7 +16,7 @@ def appearance(mode, bg="monolith"):
     return a
 
 def prep(ctx, mode, widgets, windows):
-    """widgets и windows — словари по классу устройства (desktop | tablet | phone): ключи localStorage cloudos.widgets.<класс>, cloudos.windows.<класс>."""
+    """widgets and windows are dictionaries per device class (desktop | tablet | phone): the localStorage keys cloudos.widgets.<class>, cloudos.windows.<class>."""
     import json
     js = INIT + f"localStorage.setItem('cloudos.appearance.v1', {json.dumps(json.dumps(appearance(mode)))});"
     js += "".join(f"localStorage.setItem('cloudos.widgets.{k}', {json.dumps(json.dumps(v))}); localStorage.setItem('cloudos.widgets.{k}.cleared', '1');" for k, v in widgets.items())
@@ -25,7 +25,7 @@ def prep(ctx, mode, widgets, windows):
 
 SAVED = {}
 def set_remote_appearance(pg, mode):
-    """Оформление — в ядре (источник истины), поэтому его надо выставить и там; исходное запоминаем и в конце возвращаем."""
+    """The appearance lives in the core (the source of truth), so it must be set there too; the original is remembered and restored at the end."""
     if "settings" not in SAVED:
         try: SAVED["settings"] = pg.request.get(BASE + "/api/settings/desktop").json()
         except Exception: SAVED["settings"] = None
@@ -43,7 +43,7 @@ def shoot(pg, name):
 
 with sync_playwright() as p:
     b = p.chromium.launch()
-    # ---------------- десктоп 1600×1000, тёмная: Store + карточка проекта + виджеты
+    # ---------------- desktop 1600×1000, dark: Store + the project card + widgets
     W, H = 1600, 1000
     widgets = [{"id": "w-monitor", "type": "monitor", "x": W - 452, "y": 18, "w": 432, "h": 296, "config": {"show": "all"}},
                {"id": "w-clock", "type": "clock", "x": W - 452, "y": 330, "w": 270, "h": 140, "config": {"tz": "", "seconds": False}},
@@ -55,7 +55,7 @@ with sync_playwright() as p:
     pg.goto(BASE + "/", wait_until="domcontentloaded"); settle(pg, 5000)
     shoot(pg, "desktop-dark"); ctx.close()
 
-    # ---------------- десктоп, светлая: Проекты + Настройки (заголовки окон — по ключам словаря)
+    # ---------------- desktop, light: Projects + Settings (window titles by dictionary keys)
     wins2 = {"desktop": [
         {"id": "sys:projects", "kind": "component", "title": "Projects", "titleKey": "sys.projects", "icon": "🗂️", "component": "projects", "x": 60, "y": 48, "w": 980, "h": 640, "z": 20, "minimized": False, "maximized": False},
         {"id": "sys:settings", "kind": "component", "title": "Settings", "titleKey": "sys.settings", "icon": "⚙️", "component": "settings", "x": 520, "y": 200, "w": 940, "h": 720, "z": 21, "minimized": False, "maximized": False}]}
@@ -63,7 +63,7 @@ with sync_playwright() as p:
     pg.goto(BASE + "/", wait_until="domcontentloaded"); settle(pg, 4500)
     shoot(pg, "desktop-light"); ctx.close()
 
-    # ---------------- планшет 1024×1366 портрет
+    # ---------------- tablet 1024×1366 portrait
     tw = [{"id": "w-monitor", "type": "monitor", "x": 560, "y": 18, "w": 446, "h": 300, "config": {"show": "all"}},
           {"id": "w-clock", "type": "clock", "x": 560, "y": 334, "w": 270, "h": 140, "config": {"tz": "", "seconds": False}},
           {"id": "w-projects", "type": "projects", "x": 560, "y": 490, "w": 446, "h": 250, "config": {}}]
@@ -72,7 +72,8 @@ with sync_playwright() as p:
     pg.goto(BASE + "/", wait_until="domcontentloaded"); settle(pg, 4500)
     shoot(pg, "tablet-dark"); ctx.close()
 
-    # ---------------- телефон 390×844: домашний экран и окно Store
+    # ---------------- phone 390×844: the home screen and the Store
+    # window
     ctx = b.new_context(locale=LOCALE, viewport={"width": 390, "height": 844}, device_scale_factor=3, is_mobile=True, has_touch=True)
     prep(ctx, "dark", {"phone": [{"id": "w-monitor", "type": "monitor", "x": 0, "y": 0, "w": 360, "h": 260, "config": {"show": "all"}}]}, {"phone": []}); pg = ctx.new_page(); set_remote_appearance(pg, "dark")
     pg.goto(BASE + "/", wait_until="domcontentloaded"); settle(pg, 4000)

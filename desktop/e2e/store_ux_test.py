@@ -1,5 +1,5 @@
-# e2e UX Store: индикаторы установки (уведомление с этапами, прогресс-бар и спиннер на карточке), уведомление «готово» с действием,
-# удаление через диалог с этапом и уведомлением, живой статус на карточке.
+# Store UX e2e: install indicators (a notification with stages, a progress bar and a spinner on the card), the "done" notification
+# with an action, removal through a dialog with a stage and a notification, the live status on the card.
 import os, time, json, ssl, urllib.request
 from playwright.sync_api import sync_playwright
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); APP = "linkding-coolify"; os.makedirs("shots", exist_ok=True); res = []
@@ -31,7 +31,8 @@ with sync_playwright() as p:
     pg.screenshot(path="shots/ux-installed.png")
     okt.locator("button.act").click(); time.sleep(2)
     ok("toast action opens app window", pg.locator(".win iframe[src*='8']").count() >= 1)
-    # закрыть всё, кроме Store (окно «Готово» и окно приложения перекрывают карточку)
+    # close everything except Store (the "Done" window and the app window cover the
+    # card)
     for _ in range(6):
         others = pg.locator(".win").filter(has_not=pg.locator(".bar .title", has_text="Store"))
         if not others.count(): break
@@ -39,7 +40,7 @@ with sync_playwright() as p:
         except Exception: break
         time.sleep(0.3)
     ok("windows closed except Store", pg.locator(".win").count() == 1, str(pg.locator(".win").count()))
-    # удаление с этапами
+    # removal with stages
     card.locator("button.danger", has_text="Удалить").click(); time.sleep(0.5)
     dlg = pg.locator(".dlg"); dlg.locator("label", has_text="Удалить полностью").click(); dlg.locator("input.confirm").fill("delete"); dlg.locator("button.danger").click(); time.sleep(1.0)
     ok("remove: dialog spinner and progress toast", dlg.locator("button.danger .spin").count() == 1 and pg.locator(".toast.progress", has_text="Удаляю Linkding").count() == 1)

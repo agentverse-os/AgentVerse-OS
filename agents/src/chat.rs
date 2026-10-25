@@ -1,7 +1,7 @@
-//! Раздел «Чат» (ADR-006, этап 3; docs/agents-ux.md §6): быстрые беседы с инструментами без проекта — в служебном
-//! workspace `scratch` ядра (обычный проект с урезанными лимитами и `hidden: true`, создаётся сервисом при первом
-//! обращении). Каждый чат — сессия agentd в своём каталоге `/home/coder/chats/<id8>`; «перенести в workspace» — перенос
-//! сессии ядром (`POST /api/projects/scratch/sessions/{id}/move`).
+//! The "Chat" section (ADR-006, stage 3; docs/agents-ux.md §6): quick conversations with tools without a project — in
+//! the core's service workspace `scratch` (a regular project with reduced limits and `hidden: true`, created by the
+//! service on first access). Every chat is an agentd session in its own directory `/home/coder/chats/<id8>`; "move to a
+//! workspace" is a session move by the core (`POST /api/projects/scratch/sessions/{id}/move`).
 use crate::{App, ApiError};
 use anyhow::Result;
 use axum::extract::{Path, State};
@@ -19,7 +19,7 @@ fn spec() -> Value {
         "description": "Служебный контейнер быстрых чатов (раздел «Чат» приложения «Агенты»): вопросы с инструментами без проекта; чат можно перенести в workspace проекта.", "hidden": true })
 }
 
-/// Состояние scratch и его чаты.
+/// scratch state and its chats.
 pub async fn status_of(app: &App) -> Result<Value> {
     let busy = app.scratch_busy.load(Ordering::Relaxed);
     let err = app.scratch_error.lock().unwrap().clone();
@@ -40,7 +40,22 @@ pub async fn status_of(app: &App) -> Result<Value> {
 
 pub async fn status(State(app): State<Arc<App>>) -> Result<Json<Value>, ApiError> { Ok(Json(status_of(&app).await?)) }
 
-/// Создать scratch (в фоне — минуты) или запустить остановленный; повторный вызов при занятости — просто состояние.
+/// scratch status from the hub snapshot (no core requests): the project, its state, reachability, sessions and today's
+/// usage — all of it is already in the snapshot; `busy`/`error` are the service's own flags
+pub fn status_from(app: &App, projects: &[Value]) -> Value {
+    let busy = app.scratch_busy.load(Ordering::Relaxed);
+    let err = app.scratch_error.lock().unwrap().clone();
+    let Some(p) = projects.iter().find(|p| p.get("name").and_then(|n| n.as_str()) == Some(SCRATCH)) else {
+        return json!({ "project": SCRATCH, "exists": false, "status": if busy { "creating" } else { "none" }, "reachable": false, "sessions": [], "busy": busy, "error": err });
+    };
+    let ws_status = p.get("status").and_then(|s| s.as_str()).unwrap_or("none").to_string();
+    let reachable = ws_status == "running" && p.get("reachable").and_then(|r| r.as_bool()).unwrap_or(false);
+    let status = if busy && ws_status != "running" { "starting".to_string() } else { ws_status };
+    json!({ "project": SCRATCH, "exists": true, "status": status, "reachable": reachable, "sessions": if reachable { p.get("sessions").cloned().unwrap_or(json!([])) } else { json!([]) }, "cost_today": p.get("cost_today").cloned().unwrap_or(json!(0.0)), "busy": busy, "error": err })
+}
+
+/// Create scratch (in the background — minutes) or start a stopped one; a repeated call while busy — just the
+/// state.
 pub async fn ensure(State(app): State<Arc<App>>) -> Result<Json<Value>, ApiError> {
     let st = status_of(&app).await?;
     let exists = st.get("exists").and_then(|e| e.as_bool()).unwrap_or(false);
@@ -64,7 +79,8 @@ pub async fn ensure(State(app): State<Arc<App>>) -> Result<Json<Value>, ApiError
 pub struct NewChat { #[serde(default = "claude")] pub agent: String, pub model: Option<String>, pub permission_mode: Option<String>, pub cache_ttl: Option<String>, pub effort: Option<String> }
 fn claude() -> String { "claude".into() }
 
-/// Новый чат: сессия в своём каталоге; заголовок даст первое сообщение (agentd).
+/// New chat: a session in its own directory; the first message gives the title
+/// (agentd).
 pub async fn create(State(app): State<Arc<App>>, Json(b): Json<NewChat>) -> Result<Json<Value>, ApiError> {
     let id8 = uuid::Uuid::new_v4().simple().to_string()[..8].to_string();
     let mut body = json!({ "agent": b.agent, "cwd": format!("{CHATS_DIR}/{id8}") });
@@ -75,7 +91,8 @@ pub async fn create(State(app): State<Arc<App>>, Json(b): Json<NewChat>) -> Resu
 #[derive(Deserialize)]
 pub struct MoveBody { pub to: String }
 
-/// Перенести чат в workspace проекта («поднять в проект»).
+/// Move a chat into a project workspace ("promote to a
+/// project").
 pub async fn move_chat(State(app): State<Arc<App>>, Path(id): Path<String>, Json(b): Json<MoveBody>) -> Result<Json<Value>, ApiError> {
     if b.to.trim().is_empty() || b.to == SCRATCH { return Err(ApiError(axum::http::StatusCode::BAD_REQUEST, "укажите workspace проекта".into())); }
     Ok(Json(app.core_post(&format!("/projects/{SCRATCH}/sessions/{id}/move"), &json!({ "to": b.to })).await?))

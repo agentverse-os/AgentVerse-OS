@@ -1,5 +1,6 @@
-//! Минимальный клиент Incus REST API через unix-сокет: сети проектов и чтение инстансов.
-//! Workspace'ы создаёт Coder (через провайдер lxc/incus), ядро трогает только сети и читает состояние.
+//! Minimal Incus REST API client over the unix socket: project networks and reading instances.
+//! Workspaces are created by Coder (via the lxc/incus provider), the core touches only networks and
+//! reads state.
 
 use anyhow::{anyhow, Context, Result};
 use http_body_util::{BodyExt, Full};
@@ -48,7 +49,7 @@ impl Incus {
             return Err(anyhow!("incus {method} {path}: {} ({})", env.error, if env.status_code > 0 { env.status_code } else { status.as_u16() }));
         }
         if env.kind == "async" {
-            // дождаться операции
+            // wait for the operation
             let op_id = env.metadata.get("id").and_then(|v| v.as_str()).ok_or_else(|| anyhow!("incus: async без id"))?.to_string();
             let done: Envelope = self.call_raw("GET", &format!("/1.0/operations/{op_id}/wait?timeout=120")).await?;
             let st = done.metadata.get("status").and_then(|v| v.as_str()).unwrap_or("");
@@ -80,7 +81,7 @@ impl Incus {
         }
     }
 
-    /// Управляемый мост проекта: `ipv4.address=<gw>/24`, NAT, без IPv6 (как в спайке).
+    /// Managed project bridge: `ipv4.address=<gw>/24`, NAT, no IPv6 (as in the spike).
     pub async fn ensure_network(&self, name: &str, gateway_cidr: &str, dhcp_range: &str) -> Result<()> {
         if self.network_exists(name).await? {
             return Ok(());
@@ -90,7 +91,8 @@ impl Incus {
             "description": "Cloud OS project network (managed by cloudd)",
             "config": {
                 "ipv4.address": gateway_cidr, "ipv4.nat": "true", "ipv6.address": "none",
-                // адреса .240–.254 зарезервированы под gate (macvlan Docker) — DHCP их не выдаёт
+                // the addresses .240–.254 are reserved for the gate (Docker macvlan) — DHCP does
+                // not hand them out
                 "ipv4.dhcp.ranges": dhcp_range,
             }
         });
@@ -98,7 +100,8 @@ impl Incus {
         Ok(())
     }
 
-    /// PATCH конфигурации сети (например, `raw.dnsmasq` для `*.gate`).
+    /// PATCH of the network configuration (e.g. `raw.dnsmasq` for
+    /// `*.gate`).
     pub async fn patch_network(&self, name: &str, config: Value) -> Result<()> {
         let current: Value = self.call("GET", &format!("/1.0/networks/{name}"), None).await?;
         let mut cfg = current.get("config").cloned().unwrap_or_else(|| json!({}));
@@ -133,7 +136,8 @@ impl Incus {
         }
     }
 
-    /// Записать файл в инстанс (`POST /1.0/instances/{name}/files?path=`), создавая каталоги.
+    /// Write a file into the instance (`POST /1.0/instances/{name}/files?path=`), creating
+    /// directories.
     pub async fn file_push(&self, instance: &str, path: &str, content: &[u8], mode: u32) -> Result<()> {
         if let Some(dir) = std::path::Path::new(path).parent() {
             self.exec(instance, &["mkdir", "-p", &dir.to_string_lossy()]).await?;
@@ -144,7 +148,8 @@ impl Incus {
             .uri(uri)
             .header("Content-Type", "application/octet-stream")
             .header("X-Incus-type", "file")
-            // с ведущим нулём: Incus разбирает заголовок с автоопределением базы, и «644» без нуля — десятичное 644 (= 0o1204)
+            // with a leading zero: Incus parses the header with base auto-detection, and "644" without the zero is decimal 644
+            // (= 0o1204)
             .header("X-Incus-mode", format!("{mode:04o}"))
             .header("X-Incus-uid", "0")
             .header("X-Incus-gid", "0")
@@ -159,7 +164,8 @@ impl Incus {
         Ok(())
     }
 
-    /// Прочитать файл из инстанса (`GET /1.0/instances/{name}/files?path=`).
+    /// Read a file from the instance (`GET
+    /// /1.0/instances/{name}/files?path=`).
     pub async fn file_pull(&self, instance: &str, path: &str) -> Result<Vec<u8>> {
         let uri: hyper::Uri = Uri::new(&self.socket, &format!("/1.0/instances/{instance}/files?path={}", urlenc(path))).into();
         let req = hyper::Request::builder().method("GET").uri(uri).body(Full::new(Bytes::new()))?;
@@ -176,7 +182,8 @@ impl Incus {
         Ok(bytes.to_vec())
     }
 
-    /// Выполнить команду в инстансе без websocket; возвращает stdout (record-output).
+    /// Run a command in the instance without a websocket; returns stdout
+    /// (record-output).
     pub async fn exec(&self, instance: &str, cmd: &[&str]) -> Result<String> {
         let body = json!({ "command": cmd, "wait-for-websocket": false, "record-output": true, "interactive": false });
         let meta: Value = self.call("POST", &format!("/1.0/instances/{instance}/exec"), Some(body)).await?;
@@ -196,7 +203,7 @@ impl Incus {
         Ok(out)
     }
 
-    /// Инстансы с состоянием (recursion=2) — для health workspace'ов.
+    /// Instances with state (recursion=2) — for workspace health.
     pub async fn instances(&self) -> Result<Vec<InstanceInfo>> {
         let v: Vec<Value> = self.call("GET", "/1.0/instances?recursion=2", None).await?;
         Ok(v.into_iter()
@@ -229,7 +236,8 @@ pub struct InstanceFull {
 }
 
 impl Incus {
-    /// Инстансы с метриками для монитора: память, cpu usage (ns), диск root, процессы.
+    /// Instances with metrics for the monitor: memory, cpu usage (ns), root disk,
+    /// processes.
     pub async fn instances_full(&self) -> Result<Vec<InstanceFull>> {
         let v: Vec<Value> = self.call("GET", "/1.0/instances?recursion=2", None).await?;
         Ok(v.into_iter()

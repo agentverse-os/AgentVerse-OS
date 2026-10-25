@@ -1,13 +1,15 @@
 <script lang="ts">
-  // Лист «Ещё» на телефоне: разделы, не поместившиеся в нижнюю панель, тема, палитра.
+  // The "More" sheet on the phone: sections that did not fit into the bottom bar,
+  // theme, palette.
   import { ui } from '../state.svelte';
   import { prefs } from '../prefs.svelte';
   import { t } from '../i18n';
+  import { dialog } from './dialog';
   import Icon from '../Icon.svelte';
   let { onclose, onpalette }: { onclose: () => void; onpalette: () => void } = $props();
 </script>
 
-<div class="sheet" role="dialog" onclick={(e) => { if (e.target === e.currentTarget) onclose(); }}>
+<div class="sheet" use:dialog={onclose} role="dialog" aria-modal="true" aria-label={t('sec.more')} tabindex="-1" onkeydown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onclose(); } }} onclick={(e) => { if (e.target === e.currentTarget) onclose(); }}>
   <div class="box">
     <div class="grab"></div>
     <button class="mi" onclick={() => { ui.section = 'routines'; onclose(); }}><Icon name="repeat" /> {t('sec.routines')}</button>

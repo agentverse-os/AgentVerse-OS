@@ -1,4 +1,5 @@
-//! Состояние ядра в SQLite (`tank/core`) и секрет-стор: зашифрованные age-blob'ы под мастер-ключом хоста (2.9, 3.5).
+//! Core state in SQLite (`tank/core`) and the secret store: encrypted age blobs under the host master key (2.9,
+//! 3.5).
 
 use crate::model::{AppState, Grant, ProjectState, UsageBucket, UsageRow, UsageSummary, UsageTotals};
 use anyhow::{anyhow, Context, Result};
@@ -89,7 +90,7 @@ impl Store {
             Ok(())
         })
     }
-    /// Свободный третий октет подсети проекта (1..=254).
+    /// Free third octet of a project subnet (1..=254).
     pub fn next_subnet_index(&self) -> Result<u8> {
         self.with(|c| {
             let mut st = c.prepare("SELECT subnet_index FROM projects")?;
@@ -123,8 +124,8 @@ impl Store {
             Ok(())
         })
     }
-    /// Удаление записи об установке. Секреты приложения (`app:<name>`) сохраняются намеренно: переустановка возвращает
-    /// те же пароли (docs/userflow-apps.md, шаг 4); полностью их стирает только purge в Service::app_remove.
+    /// Removal of the install record. App secrets (`app:<name>`) are kept deliberately: a reinstall brings back the
+    /// same passwords (docs/userflow-apps.md, step 4); only purge in Service::app_remove wipes them completely.
     pub fn delete_app(&self, name: &str) -> Result<()> {
         self.with(|c| {
             c.execute("DELETE FROM grants WHERE app=?1", [name])?;
@@ -179,7 +180,7 @@ impl Store {
         })
     }
 
-    // ---- связи приложений (потребитель → провайдер) ----
+    // ---- app links (consumer → provider) ----
     pub fn list_links(&self) -> Result<Vec<crate::model::AppLink>> {
         self.with(|c| {
             let mut out = Vec::new();
@@ -240,7 +241,14 @@ impl Store {
         })
     }
 
-    // ---- kv: настройки Desktop и прочие небольшие JSON-документы ядра ----
+    // ---- kv: Desktop settings and other small JSON documents of the core
+    // ----
+    /// Dev server previews (§4.9) — a list in kv
+    /// `previews`
+    pub fn previews(&self) -> Result<Vec<crate::model::Preview>> {
+        Ok(self.get_kv("previews")?.and_then(|v| serde_json::from_value(v).ok()).unwrap_or_default())
+    }
+    pub fn put_previews(&self, list: &[crate::model::Preview]) -> Result<()> { self.put_kv("previews", &serde_json::to_value(list)?) }
     pub fn get_kv(&self, key: &str) -> Result<Option<serde_json::Value>> {
         let v: Option<String> = self.with(|c| c.query_row("SELECT value FROM kv WHERE key=?1", [key], |r| r.get(0)).optional().map_err(Into::into))?;
         Ok(v.and_then(|s| serde_json::from_str(&s).ok()))
@@ -252,7 +260,7 @@ impl Store {
         })
     }
 
-    // ---- events (лента для Desktop) ----
+    // ---- events (the feed for Desktop) ----
     pub fn event(&self, kind: &str, subject: &str, message: &str) -> Result<()> {
         tracing::info!(kind, subject, "{message}");
         self.with(|c| {
@@ -260,12 +268,13 @@ impl Store {
             Ok(())
         })
     }
-    // ---- книга расходов LLM (ADR-006, решение 7) ----
+    // ---- LLM expense ledger (ADR-006, decision 7)
+    // ----
 
-    /// INSERT OR IGNORE: повторный опрос agentd не задваивает строки. true — строка новая.
-    /// Одноразовый пересчёт книги расходов: до agentd с дельтами в `cost_usd` строк лежал накопительный `total_cost_usd`
-    /// сессии Claude Code (он растёт от хода к ходу), и суммы раздувались; превращаем каждую строку в разницу с предыдущей
-    /// строкой той же сессии. Отметка kv `usage.cost_deltas`, чтобы не пересчитывать новые, уже правильные строки.
+    /// INSERT OR IGNORE: a repeated agentd poll does not duplicate rows. true — the row is new. One-time recalculation of
+    /// the expense ledger: before agentd with deltas, the `cost_usd` of rows held the cumulative `total_cost_usd` of the
+    /// Claude Code session (it grows from turn to turn) and the sums inflated; turn every row into the difference from the
+    /// previous row of the same session. The kv mark `usage.cost_deltas` prevents recalculating new, already correct rows.
     pub fn fix_cumulative_costs(&self) -> Result<usize> {
         if self.get_kv("usage.cost_deltas")?.is_some() { return Ok(0); }
         let fixed = self.with(|c| {
@@ -287,13 +296,16 @@ impl Store {
         Ok(fixed)
     }
 
-    /// У беседы, подхваченной с диска до перехода на дельты, первая строка книги — накопительный итог CLI, включающий ходы
-    /// до подхвата: вычитаем базу (`usage_base.cost_usd` из cost-state) один раз, только у строк старше пересчёта.
+    /// For a conversation picked up from disk before the move to deltas, the first ledger row is the CLI's cumulative
+    /// total including turns before pickup: subtract the base (`usage_base.cost_usd` from cost-state) once, only for rows
+    /// older than the recalculation.
     pub fn deduct_usage_base(&self, project: &str, session: &str, base: f64) -> Result<bool> {
-        // v2: первая версия ставила отметку и при неверном времени пересчёта (`1`), те отметки не считаются
+        // v2: the first version set the mark even with a wrong recalculation time (`1`), those marks do not
+        // count
         let key = format!("usage.base_fixed2.{session}");
         if self.get_kv(&key)?.is_some() { return Ok(false); }
-        // время перехода на дельты: первая версия отметки хранила `1`, тогда берём/заводим отдельную отметку времени
+        // time of the move to deltas: the first version of the mark stored `1`, then take/create a separate time
+        // mark
         let mut migrated_at = self.get_kv("usage.cost_deltas")?.and_then(|v| v.as_u64()).unwrap_or(0) as i64;
         if migrated_at < 1_000_000 {
             migrated_at = match self.get_kv("usage.cost_deltas_at")?.and_then(|v| v.as_u64()) { Some(t) => t as i64, None => { let t = crate::agents::now_ms(); self.put_kv("usage.cost_deltas_at", &serde_json::json!(t))?; t as i64 } };
@@ -322,12 +334,13 @@ impl Store {
         })
     }
 
-    /// Самая поздняя запись проекта — с неё продолжается опрос `/v1/usage?since=`.
+    /// The latest record of the project — the `/v1/usage?since=` poll continues
+    /// from it.
     pub fn usage_last_ts(&self, project: &str) -> Result<u64> {
         self.with(|c| Ok(c.query_row("SELECT COALESCE(MAX(ts), 0) FROM llm_usage WHERE project = ?1", params![project], |r| r.get::<_, i64>(0))? as u64))
     }
 
-    /// Строки книги расходов с `since_ts` (мс), по времени (срез 34: экспорт CSV).
+    /// Expense ledger rows from `since_ts` (ms), by time (slice 34: CSV export).
     pub fn usage_rows(&self, since_ts: u64) -> Result<Vec<UsageRow>> {
         let c = self.conn.lock().map_err(|_| anyhow!("store mutex poisoned"))?;
         let mut st = c.prepare("SELECT project, session, seq, ts, agent, model, input, output, cache_read, cache_create, cost_usd, duration_ms, num_turns, source FROM llm_usage WHERE ts >= ?1 ORDER BY ts")?;
@@ -448,7 +461,7 @@ fn decrypt(identity: &age::x25519::Identity, blob: &[u8]) -> Result<Vec<u8>> {
     Ok(out)
 }
 
-/// Случайный секрет: token (32 hex) или password (24 символа [A-Za-z0-9]).
+/// Random secret: token (32 hex) or password (24 characters [A-Za-z0-9]).
 pub fn generate(kind: crate::model::GenerateKind) -> String {
     use rand::Rng as _;
     let mut rng = rand::rng();

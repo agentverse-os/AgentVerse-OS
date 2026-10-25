@@ -1,8 +1,9 @@
 import os, re, time, json, ssl, urllib.request, random, string
 from playwright.sync_api import sync_playwright
-# Матрица устройств (docs/qa-plan.md §2): один сценарий на телефоне, планшете (две ориентации), ноутбуке и столе —
-# каркас без переполнения, все разделы, открытие беседы, композер и меню в экране, вкладки, поиск по сообщениям, экспорт в меню,
-# простой чат с диаграммами, агенты, модели (CSV), настройки (тема). Один ход модели — только на телефоне, в своей сессии.
+# Device matrix (docs/qa-plan.md §2): one scenario on the phone, tablet (two orientations), laptop and desktop — the frame
+# without overflow, all sections, opening a conversation, the composer and menus on screen, tabs, message search, export in the
+# menu, the simple chat with diagrams, agents, models (CSV), settings (theme). One model turn — only on the phone, in its own
+# session.
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); P = os.environ.get("PROJECT", "alpha"); os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note, f"[{time.strftime('%H:%M:%S')}]", flush=True)
 ctx_ssl = ssl.create_default_context(); ctx_ssl.check_hostname = False; ctx_ssl.verify_mode = ssl.CERT_NONE
@@ -30,23 +31,26 @@ def scenario(dev, pg, phone, touch):
             else: pg.locator(f".tabbar .tb:has-text('{name}')").click()
         else: pg.locator(f".rail .nav[data-tip='{name}']").click()
         time.sleep(0.9)
-    # панель — выдвижная не только на телефоне (до 1099px): определяем по вёрстке, а не по ширине
+    # the panel is a slide-out not only on the phone (up to 1099px): detect by the layout, not by
+    # the width
     def drawer(): return bool(pg.evaluate("(() => { const p = document.querySelector('.panel'); return p && getComputedStyle(p).position === 'absolute'; })()"))
     def panel_open():
         if drawer() and not pg.locator(".app.popen").count(): pg.locator(".top .burger").first.click(); time.sleep(0.5)
     def panel_close():
         if pg.locator(".app.popen").count(): pg.keyboard.press("Escape"); time.sleep(0.4)
-    pg.goto(f"https://{HOST}/agents/", wait_until="networkidle"); pg.wait_for_selector(".app", timeout=30000); time.sleep(2)
+    pg.goto(f"https://{HOST}/agents/", wait_until="load"); pg.wait_for_selector(".app", timeout=30000); time.sleep(2)
     v = vp()
     okd("shell: no horizontal overflow", v["sw"] <= v["w"] + 1, f"scrollWidth={v['sw']} innerWidth={v['w']}")
     if phone: okd("shell: bottom tab bar instead of the side rail", pg.locator(".tabbar .tb").count() == 5 and pg.locator(".tabbar").is_visible() and not pg.locator(".rail").is_visible())
     else: okd("shell: side rail with six sections", pg.locator(".rail .nav").count() >= 6 and pg.locator(".rail").is_visible() and not pg.locator(".tabbar").is_visible())
-    # --- рабочие места ---
+    # --- workplaces ---
     goto("Рабочие места"); panel_open()
     pg.wait_for_selector(".panel .ws", timeout=30000)
     pb = pg.locator(".panel").bounding_box() or {}; v = vp()
     okd("work: workspace tree in a visible panel that fits the screen", pg.locator(".panel .ws").count() >= 1 and pb and pb.get("x", -1) >= -1 and pb["x"] + pb["width"] <= v["w"] + 1, f"panel={pb} drawer={drawer()}")
     row = pg.locator(f".panel .ws:has(.wname:has-text('{P}')) .sess[data-id]").first
+    try: row.wait_for(state="attached", timeout=15000)
+    except Exception: pass
     sid = row.get_attribute("data-id") if row.count() else None
     if sid:
         row.click(); time.sleep(0.6); panel_close()
@@ -55,8 +59,11 @@ def scenario(dev, pg, phone, touch):
         except Exception: pass
         okd("work: a session opens in Thread with the composer fully on screen", pg.locator(".thread .chat .composer").count() == 1 and inside(".thread .chat .composer"), str(pg.locator(".thread .chat .composer").first.bounding_box()))
         okd("work: thread header fits (title, chips, buttons)", inside(".thread .t-head"))
-        if pg.locator(".thread .chat .tools .ctl").count():
-            pg.locator(".thread .chat .tools .ctl").first.click(); time.sleep(0.6)
+        if v["w"] >= 1800:
+            tb = pg.locator(".thread").first.bounding_box() or {"x": 0, "width": 0}; mb = pg.locator("main.main").first.bounding_box() or {"x": 0, "width": 0}
+            okd("work: on an ultra-wide screen the conversation is capped at 1600px and centered", tb["width"] <= 1601 and abs((tb["x"] - mb["x"]) - ((mb["x"] + mb["width"]) - (tb["x"] + tb["width"]))) < 40, f"thread={tb['width']:.0f} main={mb['width']:.0f}")
+        if pg.locator(".thread .chat .composer .ctl.model").count():
+            pg.locator(".thread .chat .composer .ctl.model").first.click(); time.sleep(0.6)
             okd("work: the model menu opens inside the viewport", pg.locator(".menu").count() == 1 and inside(".menu"), str(pg.locator(".menu").first.bounding_box()) if pg.locator(".menu").count() else "no menu"); pg.keyboard.press("Escape"); time.sleep(0.3)
         for tab in ("Файлы", "Git", "Чат"):
             t_ = pg.locator(f".thread .pane .tabs .tab:has-text('{tab}')")
@@ -70,44 +77,49 @@ def scenario(dev, pg, phone, touch):
             st_dl, body_dl = raw(f"/agents/api/core/projects/{P}/sessions/{sid}/download?format=md")
             okd("work: the Markdown export of the open session downloads", st_dl == 200 and (body_dl or b"").startswith(b"# "), f"{st_dl} {len(body_dl or b'')}B")
     else: print(f"SKIP  {dev}: no session in {P} to open", flush=True)
-    # поиск по сообщениям: слово, которое точно есть в беседах стенда
+    # message search: a word that is certainly in the stand's
+    # conversations
     panel_open(); pg.locator(".panel .search input").fill("Reply")
     try: pg.wait_for_selector(".panel .hits .hit", timeout=20000)
     except Exception: pass
     shot("search")
     okd("work: message search shows hits that fit the panel", pg.locator(".panel .hits .hit").count() >= 1 and inside(".panel .hits .hit"), f"hits={pg.locator('.panel .hits .hit').count()} first={pg.locator('.panel .hits .hit').first.bounding_box() if pg.locator('.panel .hits .hit').count() else None} vp={vp()}")
     if pg.locator(".panel .hits .hit").count():
-        pg.locator(".panel .hits .hit").first.click(); time.sleep(1.5)
+        (pg.locator(".panel .hits .hit[data-kind='session']").first if pg.locator(".panel .hits .hit[data-kind='session']").count() else pg.locator(".panel .hits .hit").first).click(); time.sleep(1.5)
         okd("work: a hit opens the conversation in Thread", pg.locator(".thread .chat").count() == 1 and (not phone or not pg.locator(".app.popen").count()))
     panel_open(); pg.locator(".panel .search input").fill(""); time.sleep(0.4); panel_close()
-    # --- чат ---
-    goto("Чат"); panel_open()
-    try: pg.wait_for_selector(".panel .engine button[data-engine='simple']", timeout=20000)
+    # --- chat ---
+    goto("Чат")
+    try: pg.wait_for_selector(".top .engine button[data-engine='simple']", timeout=20000)
     except Exception: pass
-    if pg.locator(".panel .engine button[data-engine='simple']").count():
-        pg.locator(".panel .engine button[data-engine='simple']").click(); time.sleep(0.8)
+    if pg.locator(".top .engine button[data-engine='simple']").count():
+        # the engine switch is in the header (slice 42): click before opening the panel, otherwise on narrow screens the
+        # backdrop covers it
+        pg.locator(".top .engine button[data-engine='simple']").click(); time.sleep(0.8); panel_open()
         c = pg.locator(".panel .sess[data-chat]").first
         if c.count():
             c.click(); time.sleep(0.5); panel_close()
-            try: pg.wait_for_selector(".thread .chat .m", timeout=20000)
+            try: pg.wait_for_selector(".thread .chat .m, .thread .chat .empty", timeout=20000)
             except Exception: pass
-            okd("chat: a simple chat opens with its messages and composer on screen", pg.locator(".thread .chat .m").count() >= 1 and inside(".thread .chat .composer"))
+            # the owner's first chat may be empty ("Ask anything") — what matters is that the conversation opened and the
+            # composer is on screen
+            okd("chat: a simple chat opens with its messages (or the empty state) and the composer on screen", (pg.locator(".thread .chat .m").count() >= 1 or pg.locator(".thread .chat .empty").count() == 1) and inside(".thread .chat .composer"))
             n_dg = pg.locator(".thread .chat .diagram svg").count()
             if n_dg:
                 fits = pg.evaluate("Array.from(document.querySelectorAll('.thread .chat .diagram')).every(d => d.getBoundingClientRect().right <= window.innerWidth + 1)")
                 okd("chat: diagram cards fit the width", fits, f"diagrams={n_dg}")
-            if pg.locator(".thread .chat .tools .ctl.mono").count():
-                pg.locator(".thread .chat .tools .ctl.mono").click(); time.sleep(0.6)
+            if pg.locator(".thread .chat .composer-model").count():
+                pg.locator(".thread .chat .composer-model").click(); time.sleep(0.6)
                 okd("chat: the model menu with search fits the viewport", pg.locator(".menu").count() == 1 and inside(".menu") and pg.locator(".menu input.ms").count() == 1); pg.keyboard.press("Escape"); time.sleep(0.3)
         else: print(f"SKIP  {dev}: no simple chats to open", flush=True)
         shot("chat")
-        panel_open(); pg.locator(".panel .engine button[data-engine='advanced']").click(); time.sleep(0.8)
+        panel_close(); pg.locator(".top .engine button[data-engine='advanced']").click(); time.sleep(0.8); panel_open()
         okd("chat: the advanced engine lists scratch sessions (or an empty state) inside the panel", (pg.locator(".panel .sess[data-id]").count() >= 1 or pg.locator(".panel .empty, .panel .muted").count() >= 1) and inside(".panel")); panel_close()
     else: okd("chat: engine switch present", False, "no engine switch")
-    # --- входящие ---
+    # --- inbox ---
     goto("Входящие"); time.sleep(0.8)
     okd("inbox: section renders without overflow", pg.locator("main.main").count() == 1 and vp()["sw"] <= vp()["w"] + 1); shot("inbox")
-    # --- агенты ---
+    # --- agents ---
     goto("Агенты"); panel_open(); time.sleep(0.8)
     a = pg.locator(".rt-item[data-agent]").first
     if a.count():
@@ -119,22 +131,38 @@ def scenario(dev, pg, phone, touch):
         seg.nth(3).click(); time.sleep(0.8)
         okd("agents: the runs tab renders", pg.locator("main.main").count() == 1 and vp()["sw"] <= vp()["w"] + 1)
     shot("agents")
-    # --- модели ---
+    # --- models ---
     goto("Модели"); time.sleep(1.2)
     okd("models: KPI cards and the CSV export button are present and fit", pg.locator(".card-s.kpi").count() >= 3 and pg.locator(".kpi .csv").count() == 1 and vp()["sw"] <= vp()["w"] + 1)
     st_csv, _ = raw("/agents/api/core/usage/export.csv?days=7")
     okd("models: the CSV export answers 200", st_csv == 200, str(st_csv)); shot("models")
-    # --- настройки ---
+    # --- settings ---
     goto("Настройки"); time.sleep(0.8)
     okd("settings: tabs render inside the screen", pg.locator(".subnav button").count() >= 7 and vp()["sw"] <= vp()["w"] + 1)
+    # the "Accounts" tab (§9.3): a card per account, each within the screen width, limit rows or a sign-in error, buttons on
+    # screen
+    pg.locator(".subnav button:has-text('Аккаунты')").first.click(); time.sleep(1.2)
+    try: pg.wait_for_selector(".acct-card .lrow, .acct-card .lerr", timeout=45000)
+    except Exception: pass
+    n_acc = len((get("/agents/api/core/accounts")[1] or {}).get("accounts", [])); cards = pg.locator(".acct-card"); n_cards = cards.count(); v = vp()
+    boxes = [cards.nth(i).bounding_box() for i in range(n_cards)]
+    fits = all(bx and bx["x"] >= -1 and bx["x"] + bx["width"] <= v["w"] + 1 for bx in boxes)
+    cols = len({round(bx["x"]) for bx in boxes if bx}) if boxes else 0
+    okd("settings: Accounts — a card per account, each within the screen width, no horizontal overflow, limit rows or a sign-in error, buttons reachable", n_cards == n_acc and n_cards >= 1 and fits and v["sw"] <= v["w"] + 1 and (pg.locator(".acct-card .lrow").count() >= 1 or pg.locator(".acct-card .lerr").count() >= 1) and inside(".acct-card .acts button"), f"cards={n_cards} accounts={n_acc} columns={cols} fits={fits} sw={v['sw']} w={v['w']}")
+    okd("settings: Accounts — card columns match the screen class (one on phone and tablets, two from laptop up)", (cols == 1) if v["w"] < 1100 else (cols == 2), f"columns={cols} w={v['w']}")
+    shot("settings-accounts")
     look = pg.locator(".subnav button:has-text('Вид')")
     if look.count():
-        look.click(); time.sleep(0.5); pg.locator("input[name='th'][value], .radios label:has-text('Светлая') input, .radios label:has-text('светлая') input").first.check(force=True) if pg.locator(".radios label:has-text('Светлая') input, .radios label:has-text('светлая') input").count() else None; time.sleep(0.6)
+        look.click(); time.sleep(0.5)
+        lt = pg.locator("label:has(input[name='appearance-mode']):has-text('Светлая') input, .radios label:has-text('Светлая') input").first
+        if lt.count(): lt.check(force=True); time.sleep(0.6)
         light = pg.evaluate("document.documentElement.dataset.theme") == "light"
         okd("settings: the light theme applies from the Look tab", light)
         shot("settings-light")
-        if pg.locator(".radios label:has-text('Тёмная') input, .radios label:has-text('тёмная') input").count(): pg.locator(".radios label:has-text('Тёмная') input, .radios label:has-text('тёмная') input").first.check(force=True); time.sleep(0.4)
-    # --- ход модели: только на телефоне, в своей сессии ---
+        dk = pg.locator("label:has(input[name='appearance-mode']):has-text('Тёмная') input, .radios label:has-text('Тёмная') input").first
+        if dk.count(): dk.check(force=True); time.sleep(0.4)
+    # --- a model turn: only on the phone, in its own
+    # session ---
     if phone:
         s = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "claude", "title": f"device probe {MARK}"}).encode())[1] or b"{}"); psid = s.get("id")
         if psid:
@@ -155,7 +183,7 @@ def scenario(dev, pg, phone, touch):
                 if raw(f"/agents/api/core/projects/{P}/sessions/{psid}", "DELETE")[0] in (204, 404): break
                 time.sleep(3)
 
-# временный агент без ходов модели — чтобы на каждом устройстве открылась карточка агента
+# a temporary agent without model turns — so the agent card opens on every device
 _st, _ag = raw("/agents/api/agents", "POST", json.dumps({"name": f"device probe {MARK}", "brief": "Тестовый агент для проверки экранов; ходов не делает.", "provider": "claude", "workspace": P, "mode": "ask"}).encode())
 PROBE_AGENT = (json.loads(_ag or b"{}") if _st == 200 else {}).get("id")
 with sync_playwright() as p:
@@ -166,6 +194,7 @@ with sync_playwright() as p:
         ("tablet-landscape", {**p.devices["iPad Mini landscape"]}),
         ("laptop", {"viewport": {"width": 1280, "height": 720}}),
         ("desktop", {"viewport": {"width": 1500, "height": 900}}),
+        ("wide", {"viewport": {"width": 2560, "height": 1200}}),
     ]
     for dev, opts in DEVICES:
         if ONLY and dev not in ONLY: continue

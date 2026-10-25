@@ -1,4 +1,5 @@
-// Названия пресетов фона и готовых тем (theme.ts хранит ключи, Настройки показывают t(ключ)).
+// Names of background presets and ready-made themes (theme.ts stores the keys, Settings show
+// t(key)).
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

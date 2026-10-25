@@ -1,9 +1,10 @@
-//! Этап 4 — бэкапы (docs/backups.md): снимки ZFS по расписанию и restic из снимка в tank/backups.
+//! Stage 4 — backups (docs/backups.md): scheduled ZFS snapshots and restic from a snapshot into
+//! tank/backups.
 //!
-//! По умолчанию ВЫКЛЮЧЕНО (kv `backup.config`, `enabled: false`): диск стенда небольшой, решение пользователя. Пока выключено, не работают
-//! расписание, чистка по политике и снимки перед удалением/перевыкаткой; ручные «снимок сейчас», «копия сейчас» и восстановление
-//! приложения доступны всегда. Имена снимков: `<dataset>@cloudos-<kind>-<ГГГГММДД-ЧЧММ>`, kind ∈ hourly | daily | weekly | manual |
-//! pre-<операция>-<приложение>. Снимки — защита «здесь и сейчас» (откат приложения из `.zfs/snapshot`), restic — от потери диска.
+//! OFF by default (kv `backup.config`, `enabled: false`): the stand disk is small, the user decides. While off, the schedule, policy
+//! cleanup and snapshots before removal/redeploy do not run; the manual "snapshot now", "copy now" and app restore are always available.
+//! Snapshot names: `<dataset>@cloudos-<kind>-<YYYYMMDD-HHMM>`, kind ∈ hourly | daily | weekly | manual | pre-<operation>-<app>. Snapshots
+//! protect "here and now" (app rollback from `.zfs/snapshot`), restic — against disk loss.
 use crate::service::Service;
 use crate::store;
 use anyhow::{bail, Context, Result};
@@ -12,9 +13,11 @@ use serde_json::{json, Value};
 use std::path::{Path, PathBuf};
 use time::OffsetDateTime;
 
-/// Что снимаем по расписанию (tank/docker — одноразовое, не снимается).
+/// What is snapshotted on schedule (tank/docker is disposable, not
+/// snapshotted).
 pub const DATASETS: &[&str] = &["tank/core", "tank/postgres", "tank/apps", "tank/workspaces"];
-/// Что уходит в restic: датасет → каталог в staging. Workspaces — только снимки ZFS: zvol'ы Incus как файлы не читаются.
+/// What goes to restic: dataset → directory in staging. Workspaces — ZFS snapshots only: Incus zvols cannot be read as
+/// files.
 pub const RESTIC_SETS: &[(&str, &str)] = &[("tank/core", "core"), ("tank/postgres", "postgres"), ("tank/apps", "apps")];
 pub const KV_CONFIG: &str = "backup.config";
 pub const KV_LAST: &str = "backup.last";
@@ -32,7 +35,8 @@ pub struct BackupConfig {
     pub daily: u32,
     #[serde(default = "d4")]
     pub weekly: u32,
-    /// Ночью после суточного снимка — restic в tank/backups.
+    /// At night after the daily snapshot — restic into
+    /// tank/backups.
     #[serde(default = "dtrue")]
     pub restic: bool,
     #[serde(default = "d7")]
@@ -41,7 +45,7 @@ pub struct BackupConfig {
     pub restic_keep_weekly: u32,
     #[serde(default = "d6")]
     pub restic_keep_monthly: u32,
-    /// Внешний репозиторий restic (`s3:…`, `sftp:…`, `rclone:…`); пусто — только локальный. Переменные доступа — секрет system/RESTIC_REMOTE_ENV.
+    /// External restic repository (`s3:…`, `sftp:…`, `rclone:…`); empty — local only. Access variables — the secret system/RESTIC_REMOTE_ENV.
     #[serde(default)]
     pub remote: String,
 }
@@ -68,12 +72,12 @@ pub struct BackupStatus {
     pub restic_repo: String,
     pub restic_snapshots: usize,
     pub restic_size: u64,
-    /// {"snapshot": {...последний снимок...}, "restic": {...последняя копия...}}
+    /// {"snapshot": {...the last snapshot...}, "restic": {...the last copy...}}
     pub last: Value,
     pub running: bool,
 }
 
-/// Точка восстановления приложения: снимок tank/apps, в котором есть каталог приложения.
+/// App restore point: a tank/apps snapshot that contains the app directory.
 #[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 pub struct RestorePoint { pub snapshot: String, pub kind: String, pub created: i64, pub path: String }
 
@@ -94,10 +98,12 @@ async fn run_env(cmd: &str, args: &[&str], env: &[(String, String)]) -> Result<S
 
 pub fn stamp(t: OffsetDateTime) -> String { format!("{:04}{:02}{:02}-{:02}{:02}{:02}", t.year(), t.month() as u8, t.day(), t.hour(), t.minute(), t.second()) }
 pub fn snap_name(kind: &str, t: OffsetDateTime) -> String { format!("cloudos-{kind}-{}", stamp(t)) }
-/// kind из имени снимка: `cloudos-hourly-2026…` → hourly, `cloudos-pre-remove-x-2026…` → pre.
+/// kind from the snapshot name: `cloudos-hourly-2026…` → hourly, `cloudos-pre-remove-x-2026…`
+/// → pre.
 pub fn kind_of(snap: &str) -> Option<String> { snap.strip_prefix("cloudos-")?.split('-').next().map(|s| s.to_string()) }
 
-/// Все снимки Cloud OS (по всем датасетам, включая дочерние tank/workspaces/*).
+/// All Cloud OS snapshots (across all datasets, including the child
+/// tank/workspaces/*).
 pub async fn list_snapshots() -> Result<Vec<SnapshotInfo>> {
     let out = run("zfs", &["list", "-t", "snapshot", "-H", "-p", "-o", "name,creation,used"]).await?;
     let mut v = Vec::new();
@@ -124,7 +130,8 @@ pub async fn datasets() -> Result<Vec<DatasetInfo>> {
     Ok(v)
 }
 
-/// Снимок указанных датасетов (рекурсивно — у tank/workspaces дочерние датасеты Incus). Возвращает короткое имя снимка.
+/// Snapshot of the given datasets (recursively — tank/workspaces has Incus child datasets). Returns the short snapshot
+/// name.
 pub async fn snapshot_of(datasets: &[&str], kind: &str) -> Result<String> {
     let mut name = snap_name(kind, OffsetDateTime::now_utc());
     let existing = list_snapshots().await.unwrap_or_default();
@@ -135,7 +142,7 @@ pub async fn snapshot_of(datasets: &[&str], kind: &str) -> Result<String> {
 
 pub async fn destroy(dataset: &str, snap: &str) -> Result<()> { run("zfs", &["destroy", "-r", &format!("{dataset}@{snap}")]).await.map(|_| ()) }
 
-/// Что удалить по политике: на каждый датасет верхнего уровня и kind оставляем N новейших (pre — 10, manual — все).
+/// What to delete by policy: per top-level dataset and kind keep the N newest (pre — 10, manual — all).
 pub fn prune_plan(snaps: &[SnapshotInfo], cfg: &BackupConfig) -> Vec<(String, String)> {
     let mut out = Vec::new();
     for ds in DATASETS {
@@ -163,7 +170,8 @@ impl Service {
         Ok(c.clone())
     }
 
-    /// Планировщик: раз в минуту смотрит на часы. Каждый час — hourly-снимок; в 03:00 UTC — daily (по воскресеньям weekly) и restic.
+    /// Scheduler: looks at the clock once a minute. Every hour — an hourly snapshot; at 03:00 UTC — daily (weekly on Sundays) and
+    /// restic.
     pub fn start_backup_scheduler(&self) {
         let me = self.clone();
         tokio::spawn(async move {
@@ -189,7 +197,8 @@ impl Service {
         });
     }
 
-    /// Снимок всех датасетов + чистка по политике (+ restic из этого снимка). Один цикл за раз.
+    /// Snapshot of all datasets + policy cleanup (+ restic from this snapshot). One cycle at a
+    /// time.
     pub async fn backup_cycle(&self, kind: &str, with_restic: bool) -> Result<Value> {
         let _g = self.backup_lock.lock().await;
         self.backup_running.store(true, std::sync::atomic::Ordering::Relaxed);
@@ -234,19 +243,20 @@ impl Service {
         Ok(env)
     }
 
-    /// restic из снимка: клоны датасетов в /srv/backups/.stage/<имя> (стабильные пути между запусками), дамп Postgres Coder,
-    /// `restic backup`, `forget --prune` по политике. Затем то же во внешний репозиторий, если задан.
+    /// restic from a snapshot: dataset clones in /srv/backups/.stage/<name> (stable paths between runs), a Coder Postgres
+    /// dump, `restic backup`, `forget --prune` by policy. Then the same into the external repository, if set.
     async fn restic_backup(&self, snap: &str, kind: &str, cfg: &BackupConfig) -> Result<Value> {
         if run("which", &["restic"]).await.is_err() { bail!("restic не установлен на хосте (apt install restic)"); }
         let stage = Path::new(STAGE);
         std::fs::create_dir_all(stage.join("dumps"))?;
-        // клоны снимков со стабильными путями
+        // snapshot clones with stable paths
         for (ds, sub) in RESTIC_SETS {
             let clone = format!("tank/backups/stage-{sub}");
             let _ = run("zfs", &["destroy", "-f", &clone]).await;
             run("zfs", &["clone", "-o", "readonly=on", "-o", &format!("mountpoint={STAGE}/{sub}"), &format!("{ds}@{snap}"), &clone]).await?;
         }
-        // дамп базы Coder (логическая копия рядом с файлами tank/postgres)
+        // Coder database dump (a logical copy next to the tank/postgres
+        // files)
         match self.docker.exec(&self.cfg.coder_pg_container, vec!["pg_dumpall", "-U", "coder"]).await {
             Ok(sql) if sql.len() > 100 => { std::fs::write(stage.join("dumps/coder.sql"), sql)?; }
             Ok(_) => { self.store.event("backup", "restic", "дамп Postgres Coder пустой — пропущен")?; }
@@ -291,7 +301,7 @@ impl Service {
 
     fn apps_snapdir(&self) -> PathBuf { self.cfg.apps_data_dir.join(".zfs").join("snapshot") }
 
-    /// Точки восстановления приложения: снимки tank/apps, где есть каталог приложения (новые сверху).
+    /// App restore points: tank/apps snapshots that have the app directory (newest first).
     pub async fn app_restore_points(&self, name: &str) -> Result<Vec<RestorePoint>> {
         self.manifest(name)?;
         let mut v: Vec<RestorePoint> = list_snapshots().await?.into_iter().filter(|s| s.dataset == "tank/apps").filter_map(|s| {
@@ -302,8 +312,8 @@ impl Service {
         Ok(v)
     }
 
-    /// Откат данных приложения к снимку: снимок текущего состояния (pre-restore), стек останавливается, каталог приложения
-    /// заменяется копией из снимка (rsync --delete), стек поднимается заново.
+    /// Roll the app data back to a snapshot: a snapshot of the current state (pre-restore), the stack is stopped, the app
+    /// directory is replaced with a copy from the snapshot (rsync --delete), the stack is brought up again.
     pub async fn app_restore(&self, name: &str, snap: &str) -> Result<crate::model::AppView> {
         let _g = self.lock.lock().await;
         let Some(_st) = self.store.get_app(name)? else { bail!("приложение {name} не установлено") };
@@ -313,14 +323,15 @@ impl Service {
         let live = self.cfg.apps_data_dir.join(name);
         let pre = snapshot_of(&["tank/apps"], &format!("pre-restore-{name}")).await?;
         self.store.event("app", name, &format!("восстановление из снимка {snap}; текущее состояние сохранено в {pre}"))?;
-        // DestroyStack в Komodo асинхронный: ждём, пока контейнеры стека исчезнут, и только потом трогаем файлы
+        // DestroyStack in Komodo is asynchronous: wait until the stack containers disappear, and only then
+        // touch the files
         self.komodo.destroy(name).await.context("остановка стека")?;
         for _ in 0..60 {
             if self.docker.stack_containers(name).await.map(|c| c.is_empty()).unwrap_or(false) { break; }
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         }
         run("rsync", &["-a", "--delete", &format!("{}/", src.display()), &format!("{}/", live.display())]).await?;
-        // деплой сразу после destroy может упереться в «Stack busy» — повторяем
+        // a deploy right after destroy may run into "Stack busy" — retry
         let mut deployed = Ok(());
         for i in 0..10 {
             deployed = self.komodo.deploy(name).await;

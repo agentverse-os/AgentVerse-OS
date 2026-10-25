@@ -1,8 +1,8 @@
 import json, os, sys, time, urllib.request
-# Сессии агентов в cloudos-agentd на живом workspace (провайдер Claude, родной stream-json через gate проекта):
-# создать сессию, спросить, дождаться result с usage; вызвать инструмент, который требует разрешения, ответить
-# «разрешить» с любого клиента, увидеть результат; остановить и возобновить с той же историей.
-# Запуск: AGENTD=http://10.77.7.146:7200 AGENTD_TOKEN=… python3 session_smoke.py
+# Agent sessions in cloudos-agentd on a live workspace (Claude provider, native stream-json through the project
+# gate): create a session, ask, wait for a result with usage; call a tool that needs permission, answer "allow"
+# from any client, see the result; stop and resume with the same history. Run: AGENTD=http://10.77.7.146:7200
+# AGENTD_TOKEN=… python3 session_smoke.py
 BASE = os.environ.get("AGENTD", "http://127.0.0.1:7200"); TOKEN = os.environ.get("AGENTD_TOKEN", ""); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 def api(path, method="GET", body=None):
@@ -29,7 +29,7 @@ init = next((e for e in evs if e["kind"] == "init"), None); ok("claude started (
 ok("answer streamed as assistant event", any(e["kind"] == "assistant" and MARK in json.dumps(e) for e in evs))
 ok("usage recorded", r is not None and (r.get("usage") or {}).get("output_tokens", 0) > 0 and r.get("total_cost_usd") is not None, json.dumps(r.get("usage") if r else None))
 st, info = api(f"/v1/sessions/{sid}"); ok("status idle, usage totals", info["info"]["status"] == "idle" and info["info"]["usage"]["turns"] == 1, json.dumps(info["info"]["usage"]))
-# разрешение инструмента
+# tool permission
 path = f"/home/coder/{MARK}.txt"
 api(f"/v1/sessions/{sid}/prompt", "POST", {"content": f"Create the file {path} containing the single word hello. Use the Write tool. Do not ask questions."})
 p, _ = wait_for(sid, lambda e: e["kind"] == "permission_request", 90)
@@ -39,7 +39,7 @@ st, _ = api(f"/v1/sessions/{sid}/permission", "POST", {"request_id": p["request_
 r2, evs = wait_for(sid, lambda e: e["kind"] == "result" and e["seq"] > (p or {}).get("seq", 0), 120)
 ok("turn finished after approval", r2 is not None and not r2.get("is_error"), json.dumps(r2)[:120] if r2 else "нет result")
 ok("tool_result observed", any(e["kind"] == "tool_result" for e in evs))
-# остановить и возобновить с историей
+# stop and resume with history
 st, _ = api(f"/v1/sessions/{sid}", "DELETE"); ok("stop accepted", st == 202)
 ex, _ = wait_for(sid, lambda e: e["kind"] == "exit", 30); ok("process exited", ex is not None)
 st, s2 = api("/v1/sessions", "POST", {"resume": sid}); ok("resumed same session id", st == 200 and s2 and s2["id"] == sid, json.dumps(s2)[:120] if s2 else str(st))

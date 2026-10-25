@@ -1,8 +1,9 @@
-// Типы — зеркало utoipa-схем cloudd (/api/openapi.json). Пока вручную; генерация — когда схема стабилизируется.
+// The types mirror the cloudd utoipa schemas (/api/openapi.json). By hand for now; generation — once the schema
+// stabilizes.
 import { t } from './i18n.svelte';
 export type Runtime = 'incus' | 'incus-nesting' | 'incus-vm';
 export interface WorkspaceSpec { runtime: Runtime; cpu: number; memory: string | number; home: string | number; image?: string | null }
-export interface ProjectSpec { schema: number; project: string; workspace: WorkspaceSpec; agents: string[]; capabilities: string[]; description?: string | null }  // description — заметка владельца, ядро её только хранит
+export interface ProjectSpec { schema: number; project: string; workspace: WorkspaceSpec; agents: string[]; capabilities: string[]; description?: string | null }  // description — the owner's note, the core only stores it
 export interface Grant { project: string; capability: string; app: string; granted_at: string }
 export interface AgentdHealth { version: string; protocol: number; uptime_s: number; ptys: number; ptys_alive: number; user?: string | null; cgroup?: string | null; auth: boolean }
 export interface AgentSessionBrief { id: string; title: string; agent: string; status: string; alive: boolean; pending: number; last_text?: string | null; cost_usd: number }
@@ -25,19 +26,19 @@ export interface WorkspaceApp { slug: string; display_name: string; url: string;
 export interface WorkspaceView { id: string; name: string; status: string; agent_status?: string | null; instance?: string | null; ip?: string | null; apps: WorkspaceApp[]; url: string }
 export interface ProjectView { name: string; spec: ProjectSpec; network: string; subnet: string; gate: ComponentHealth; workspace?: WorkspaceView | null; grants: Grant[]; missing_capabilities: string[]; grant_env: Record<string, string[]>; available_capabilities: string[]; providers?: Record<string, string[]>; agents?: AgentsSummary | null }
 export interface RouteSpec { mode: 'path' | 'port' | 'host'; prefix?: string | null; port?: number | null; open: 'iframe' | 'newtab' }
-/** Переводы текстов манифеста/рекомендации по языку интерфейса (store-utils: descOf, reasonOf). */
+/** Manifest/recommendation text translations by UI language (store-utils: descOf, reasonOf). */
 export interface I18nText { description?: string | null; reason?: string | null }
 export interface AppManifest { name: string; title?: string | null; description?: string | null; i18n?: Record<string, I18nText>; icon?: string | null; type: 'app' | 'system' | 'external'; external?: { url_env: string; key_env?: string | null; check_path?: string | null } | null; provides: string[]; requires: string[]; route: RouteSpec; endpoint: { service: string; port: number }; origin: string; upstream?: { source?: string; author?: string; version?: string; categories?: string[]; tags?: string[]; website?: string; release_notes?: string; template?: string } | null; settings: AppSetting[]; env: Record<string, string | { generate: string }>; login: LoginSpec; recommended?: { rank: number; reason: string; i18n?: Record<string, I18nText> } | null; host_docker_socket: boolean; notes: string[]; gallery: string[]; readme?: string | null; website?: string | null; tags: string[] }
 export interface LoginSpec { mode: 'generated' | 'default' | 'app' | 'none' | 'external'; user?: string | null; password?: string | null; path?: string | null; note?: string | null }
 export interface AppSetting { env: string; type: string; label?: string | null; hint?: string | null; required?: boolean; options?: { label: string; value: string }[] | null }
 export interface AppView { name: string; manifest: AppManifest; installed: boolean; port?: number | null; url?: string | null; state?: string | null; granted_to: string[]; settings_values: Record<string, string>; links_to: string[]; links_from: string[]; shared_net: boolean; internal_url?: string | null; link_env: Record<string, string>; has_note: boolean }
 export interface SystemStatus { edge_host: string; edge_alt_hosts?: string[]; coder_url: string; coder_user?: string; coder_password_set?: boolean; components: ComponentHealth[]; version: string; build?: string; setup_done?: boolean; update_available?: boolean; app_updates?: number }
-// мастер первого запуска (setup.rs)
+// first-run wizard (setup.rs)
 export interface TailscaleInfo { installed: boolean; state: string; auth_url?: string | null; dns_name?: string | null; ips: string[]; tailnet?: string | null; magic_dns: boolean; https_certs: boolean; cert_domains: string[]; health: string[]; version?: string | null; error?: string | null }
 export interface EdgeInfo { host: string; alt_hosts: string[]; tls_internal: boolean; matches_tailscale: boolean; reachable: boolean; dns_ok?: boolean | null; cert_ok?: boolean | null; error?: string | null; checked_at: string }
 export interface SetupState { done: boolean; tailscale: TailscaleInfo; edge: EdgeInfo; projects: number; apps_installed: number; backups_enabled: boolean; coder_ok: boolean; suggested_host?: string | null; tailscale_admin_url: string; version: string }
 export interface SwitchResult { host: string; url: string; alt_hosts: string[]; restart_in_s: number }
-// обновления (updates.rs)
+// updates (updates.rs)
 export interface ReleaseInfo { version: string; published?: string | null; notes?: string | null; url?: string | null; sha256?: string | null; size?: number | null }
 export interface PackageInfo { file: string; version: string; build?: string | null; arch?: string | null; size: number; sha256: string; store_apps: string[]; notes?: string | null; added_at: string; relation: 'newer' | 'same' | 'older'; arch_ok: boolean }
 export interface SystemUpdateInfo { version: string; build: string; arch: string; binary: string; channel_url?: string | null; latest?: ReleaseInfo | null; available: boolean; check_error?: string | null; checked_at?: string | null; packages: PackageInfo[]; can_rollback: boolean; prev_version?: string | null; last_applied?: Record<string, unknown> | null }
@@ -49,11 +50,12 @@ export interface Event { at: string; kind: string; subject: string; message: str
 
 export class OfflineError extends Error { constructor() { super(t('api.offline')); } }
 
-/** timeoutMs — предел на одну попытку (зависший запрос считается ошибкой сети), retries — сколько раз повторить GET (по умолчанию 3). */
+/** timeoutMs — the per-attempt limit (a hung request counts as a network error), retries — how many times to retry a GET (3 by default). */
 async function call<T>(method: string, path: string, body?: unknown, opts: { timeoutMs?: number; retries?: number; headers?: Record<string, string> } = {}): Promise<T> {
   let r: Response | undefined;
   const retries = method === 'GET' ? (opts.retries ?? 3) : 0;
-  // GET безопасно повторить: браузер на том же хосте рвёт запросы при смене docker-сетей (ERR_NETWORK_CHANGED), мобильная сеть моргает
+  // a GET is safe to retry: the browser on the same host drops requests when docker networks change (ERR_NETWORK_CHANGED), the mobile
+  // network flickers
   for (let attempt = 0; ; attempt++) {
     const ctl = opts.timeoutMs ? new AbortController() : undefined;
     const timer = ctl ? setTimeout(() => ctl.abort(), opts.timeoutMs) : undefined;
@@ -77,16 +79,17 @@ async function call<T>(method: string, path: string, body?: unknown, opts: { tim
 }
 
 export const api = {
-  // заголовок присутствия: ядро шлёт push на телефон, только если видимой вкладки Desktop не было полторы минуты
-  status: () => call<SystemStatus>('GET', '/status', undefined, { timeoutMs: 6000, retries: 1, headers: { 'X-Desktop-Presence': typeof document !== 'undefined' && document.visibilityState === 'visible' ? 'visible' : 'hidden' } }),  // опрос связи: коротко, чтобы следующий опрос не ждал зависший
+  // presence header: the core pushes to the phone only if there was no visible Desktop tab for a minute and a
+  // half
+  status: () => call<SystemStatus>('GET', '/status', undefined, { timeoutMs: 6000, retries: 1, headers: { 'X-Desktop-Presence': typeof document !== 'undefined' && document.visibilityState === 'visible' ? 'visible' : 'hidden' } }),  // connectivity poll: short, so the next poll does not wait for a hung one
   coderCredentials: () => call<{ url: string; user: string; password: string }>('GET', '/system/credentials/coder/reveal'),
   repair: (name: string) => call<string[]>('POST', `/apps/${name}/repair`),
-  // мастер первого запуска
+  // first-run wizard
   setup: () => call<SetupState>('GET', '/setup'),
   setupLogin: () => call<TailscaleInfo>('POST', '/setup/tailscale/login'),
   setupSwitchHost: (host: string) => call<SwitchResult>('POST', '/setup/edge-host', { host }),
   setupDone: (done: boolean) => call<SetupState>('PUT', '/setup/done', { done }),
-  // обновления
+  // updates
   updates: () => call<UpdatesView>('GET', '/updates'),
   updatesCheck: () => call<SystemUpdateInfo>('POST', '/updates/check'),
   updatesChannel: (url: string) => call<SystemUpdateInfo>('PUT', '/updates/channel', { url }),
@@ -97,7 +100,8 @@ export const api = {
   updatesCatalog: (source = 'all') => call<{ started: boolean }>('POST', '/updates/catalog', { source }),
   updateApp: (name: string) => call<AppView>('POST', `/apps/${name}/update`),
   updateComponent: (project: string) => call<{ project: string; changed: string[]; log: string }>('POST', `/updates/components/${encodeURIComponent(project)}`),
-  /** Пакет обновления файлом (tar.gz): тело запроса — сам файл. */
+  /** Update package as a file (tar.gz): the request body is the
+   *  file itself. */
   updatesUpload: async (f: File): Promise<PackageInfo> => {
     const r = await fetch(`/api/updates/upload?name=${encodeURIComponent(f.name)}`, { method: 'POST', body: f });
     const text = await r.text();
@@ -112,11 +116,13 @@ export const api = {
   appRestore: (name: string, snap: string) => call<AppView>('POST', `/apps/${name}/restore/${encodeURIComponent(snap)}`),
   events: () => call<Event[]>('GET', '/events'),
   projects: () => call<ProjectView[]>('GET', '/projects'),
-  // Agent Runtime (ADR-006): терминалы workspace'а через cloudos-agentd; поток — WebSocket ptyWsUrl
+  // Agent Runtime (ADR-006): workspace terminals via cloudos-agentd; the stream is the ptyWsUrl
+  // WebSocket
   agentd: (name: string) => call<AgentdHealth>('GET', `/projects/${name}/agentd`),
   ptys: (name: string) => call<PtyInfo[]>('GET', `/projects/${name}/ptys`),
   ptyCreate: (name: string, body: { cmd?: string[]; cwd?: string; cols?: number; rows?: number; title?: string; session?: string }) => call<PtyInfo>('POST', `/projects/${name}/ptys`, body),
-  // файлы и git workspace'а (рендеринги Files и Git карточки сессии) — через agentd
+  // workspace files and git (the Files and Git renderings of the session card) —
+  // via agentd
   fsList: (name: string, path: string) => call<FsList>('GET', `/projects/${name}/fs?path=${encodeURIComponent(path)}`),
   fsFileUrl: (name: string, path: string, download = false) => `/api/projects/${name}/fs/file?path=${encodeURIComponent(path)}${download ? '&download=1' : ''}`,
   fsReadText: async (name: string, path: string) => { const r = await fetch(api.fsFileUrl(name, path)); if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error ?? `HTTP ${r.status}`); return r.text(); },
@@ -129,7 +135,8 @@ export const api = {
   gitLog: (name: string, cwd: string, n = 30) => call<{ entries: GitCommit[] }>('GET', `/projects/${name}/git/log?cwd=${encodeURIComponent(cwd)}&n=${n}`),
   ptyKill: (name: string, id: string) => call<void>('DELETE', `/projects/${name}/ptys/${id}`),
   ptyWsUrl: (name: string, id: string) => `${location.origin.replace(/^http/, 'ws')}/api/projects/${name}/ptys/${id}/ws`,
-  // сессии агентов (Chat): журнал по WebSocket sessionWsUrl, ввод и ответы — HTTP
+  // agent sessions (Chat): the journal over the sessionWsUrl WebSocket, input and
+  // answers — HTTP
   sessions: (name: string) => call<SessionInfo[]>('GET', `/projects/${name}/sessions`),
   sessionCreate: (name: string, body: { agent?: string; cwd?: string; title?: string; resume?: string; model?: string; permission_mode?: string }) => call<SessionInfo>('POST', `/projects/${name}/sessions`, body),
   sessionGet: (name: string, id: string) => call<{ info: SessionInfo; pending: unknown[] }>('GET', `/projects/${name}/sessions/${id}`),
@@ -143,7 +150,8 @@ export const api = {
   sessionWsUrl: (name: string, id: string, since = 0) => `${location.origin.replace(/^http/, 'ws')}/api/projects/${name}/sessions/${id}/ws?since=${since}`,
   usage: (name: string, since = 0) => call<Record<string, unknown>[]>('GET', `/projects/${name}/usage?since=${since}`),
   usageSummary: (days = 30) => call<UsageSummary>('GET', `/usage?days=${days}`),
-  // аккаунты агентов (ADR-006): реестр, импорт входа из workspace, аккаунт проекта по умолчанию, переназначение сессии
+  // agent accounts (ADR-006): registry, sign-in import from the workspace, the project default account, session
+  // reassignment
   accounts: () => call<{ accounts: Account[]; defaults: Record<string, string> }>('GET', '/accounts'),
   accountCreate: (body: { provider: string; kind: string; label: string; env?: Record<string, string>; files?: Record<string, string> }) => call<Account>('POST', '/accounts', body),
   accountImport: (body: { provider: string; project: string; label?: string }) => call<Account>('POST', '/accounts/import', body),
@@ -151,8 +159,8 @@ export const api = {
   projectAccount: (name: string, account: string | null) => call<void>('PUT', `/projects/${name}/account`, { account }),
   sessionAccount: (name: string, id: string, account: string | null) => call<SessionInfo>('POST', `/projects/${name}/sessions/${id}/account`, { account }),
   agentsAll: () => call<{ away: boolean; presence_seen_ms: number; projects: Record<string, AgentsSummary> }>('GET', '/agents'),
-  // подписка на уведомления ядра с телефона: сервер ntfy, тема, пользователь и пароль (секрет — только по запросу)
-  // раскладка холста «Агентов» — в ядре, общая для всех устройств владельца
+  // subscription to core notifications from the phone: ntfy server, topic, user and password (the secret — only on
+  // request). The "Agents" canvas layout — in the core, shared across all of the owner's devices
   agentsLayoutGet: () => call<{ cards?: { project: string; kind: 'pty' | 'session'; id: string; w: 1 | 2; h: 1 | 2 }[]; cols?: 0 | 1 | 2 | 3 } | null>('GET', '/agents/layout'),
   agentsLayoutPut: (layout: unknown) => call<void>('PUT', '/agents/layout', layout),
   agentsNotify: () => call<{ app: string | null; server: string | null; topic: string; user: string; password: string | null; token: string | null }>('GET', '/agents/notify'),
@@ -160,21 +168,24 @@ export const api = {
   deleteProject: (name: string) => call<void>('DELETE', `/projects/${name}`),
   wsStart: (name: string) => call<ProjectView>('POST', `/projects/${name}/workspace/start`),
   wsStop: (name: string) => call<ProjectView>('POST', `/projects/${name}/workspace/stop`),
-  grant: (name: string, capability: string, app?: string) => call<ProjectView>('POST', `/projects/${name}/grants`, app ? { capability, app } : { capability }),  // app — какой провайдер, если их несколько
+  grant: (name: string, capability: string, app?: string) => call<ProjectView>('POST', `/projects/${name}/grants`, app ? { capability, app } : { capability }),  // app — which provider, if there are several
   revoke: (name: string, capability: string) => call<ProjectView>('DELETE', `/projects/${name}/grants/${capability}`),
   apps: () => call<AppView[]>('GET', '/apps'),
   install: (name: string) => call<AppView>('POST', `/apps/${name}/install`),
   app: (name: string) => call<AppView>('GET', `/apps/${name}`),
-  /** Установка устойчива к обрыву связи: ядро при развёртывании создаёт docker-сеть, и браузер на том же хосте может оборвать
-   *  запрос (ERR_NETWORK_CHANGED). Тогда повторяем запрос (install идемпотентен) и ждём статуса опросом карточки. */
-  /** Этапы операции над приложением — из ленты событий ядра (deploy запущен, стек running, health OK, маршрут…). */
+  /** The install is resilient to a connection drop: during deployment the core creates a docker network, and the browser on
+   *  the same host may abort
+   * the request (ERR_NETWORK_CHANGED). Then the request is retried (install is idempotent) and the status is awaited
+   * by polling the card. */
+  /** Stages of an app operation — from the core event feed (deploy started, stack running, health OK, route…). */
   stages: async (name: string, since: string): Promise<string[]> => {
     try { const ev = await call<{ at: string; subject: string; message: string }[]>('GET', '/events'); return ev.filter(e => e.subject === name && e.at > since).map(e => e.message).reverse(); } catch { return []; }
   },
   installWait: async (name: string, onProgress?: (s: string) => void): Promise<AppView> => {
     const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
     const since = new Date().toISOString();
-    // stopped: запрос этапов мог быть в полёте в момент завершения — иначе поздний onProgress снова пометит карточку занятой
+    // stopped: a stages request may have been in flight at the moment of completion — otherwise a late onProgress marks the
+    // card busy again
     let stopped = false;
     const timer = setInterval(async () => { if (stopped) return; const st = await api.stages(name, since); if (!stopped && st.length) onProgress?.(st[st.length - 1]); }, 2500);
     try { return await api.installWaitInner(name, s => { if (!stopped) onProgress?.(s); }); } finally { stopped = true; clearInterval(timer); }
@@ -190,7 +201,8 @@ export const api = {
         if (a?.installed) { attempt = 2; }
       }
     }
-    // запрос ушёл, но ответ потерян: ждём, пока стек поднимется
+    // the request went out but the answer was lost: wait until
+    // the stack comes up
     for (let i = 0; i < 100; i++) {
       await sleep(3000);
       const a = await call<AppView>('GET', `/apps/${name}`).catch(() => null);
@@ -200,7 +212,7 @@ export const api = {
     throw new Error(t('api.installTimeout'));
   },
   remove: (name: string, purge = false) => call<void>('DELETE', `/apps/${name}${purge ? '?purge=true' : ''}`),
-  /** Удаление с той же устойчивостью к обрыву связи, что и installWait: повтор запроса и ожидание, пока приложение исчезнет. */
+  /** Removal with the same resilience to a connection drop as installWait: retry the request and wait until the app disappears. */
   removeWait: async (name: string, purge = false, onProgress?: (s: string) => void): Promise<void> => {
     const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
     const since = new Date().toISOString();

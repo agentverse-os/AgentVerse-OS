@@ -1,5 +1,5 @@
 <script lang="ts">
-  // Собственный выпадающий список: нативный <select> в Firefox не принимает клик по пункту внутри transform-контейнера (окна).
+  // Own dropdown: a native <select> in Firefox does not accept a click on an item inside a transform container (a window).
   type Opt = { value: string; label: string };
   let { value = $bindable(''), options, placeholder = '', ariaLabel = '', onchange, style = '' }: { value?: string; options: Opt[]; placeholder?: string; ariaLabel?: string; onchange?: (v: string) => void; style?: string } = $props();
   let open = $state(false);
@@ -7,8 +7,9 @@
   let btn: HTMLButtonElement | undefined = $state();
   const current = $derived(options.find(o => o.value === value)?.label ?? placeholder);
   function pick(v: string) { value = v; open = false; onchange?.(v); btn?.focus(); }
-  // Список живёт в document.body: карточки с backdrop-filter и окна с transform создают свои stacking context, и абсолютный список
-  // перекрывался следующей карточкой или обрезался прокруткой окна. Координаты — от кнопки, пересчёт при прокрутке и ресайзе.
+  // The list lives in document.body: cards with backdrop-filter and windows with transform create their own stacking contexts, and
+  // an absolute list was covered by the next card or clipped by the window scroll. Coordinates — from the button, recomputed on
+  // scroll and resize.
   function portal(node: HTMLElement) {
     document.body.appendChild(node);
     const place = () => {

@@ -1,4 +1,5 @@
-# Сеть создаёт cloudd и помечает external (ADR-005, решение 3); порты наружу не публикуются.
+# The network is created by cloudd and marked external (ADR-005, decision 3); ports are not
+# published outside.
 services:
   whoami:
     image: traefik/whoami:v1.11

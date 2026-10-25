@@ -1,25 +1,32 @@
-//! Конфигурация `cloudd`: всё из переменных окружения или файла `/etc/cloudos/cloudd.env`.
-//! Секреты (токен Coder, ключ Komodo) — только через env/файл с правами 0600; в репозиторий не попадают.
+//! `cloudd` configuration: everything from environment variables or the file `/etc/cloudos/cloudd.env`.
+//! Secrets (the Coder token, the Komodo key) — only via env/a file with mode 0600; they never get into
+//! the repository.
 
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    /// Репозиторий манифестов: `projects/<name>/project.yaml`, `store/<app>/manifest.yaml` (+ compose рядом).
+    /// Manifest repository: `projects/<name>/project.yaml`, `store/<app>/manifest.yaml` (+ compose next to
+    /// it).
     pub repo_dir: PathBuf,
-    /// Состояние ядра (tank/core): SQLite, age-ключ, отрендеренные Caddyfile gate'ов.
+    /// Core state (tank/core): SQLite, the age key, rendered gate Caddyfiles.
     pub state_dir: PathBuf,
-    /// Адрес API/Desktop (edge Caddy проксирует сюда `/` и `/api/`).
+    /// API/Desktop address (the edge Caddy proxies `/` and `/api/`
+    /// here).
     pub listen: Vec<String>,
-    /// Имя хоста Entry Point (`aios.netbird.cloud` / `<box>.<tailnet>.ts.net`).
+    /// Entry Point host name (`box.netbird.cloud` / `<box>.<tailnet>.ts.net`).
     pub edge_host: String,
     /// Admin API edge-Caddy (`http://127.0.0.1:2019`).
     pub caddy_admin: String,
-    /// Порт Coder за edge (`route: port`) и внутренний URL Coder для API.
+    /// Coder port behind the edge (`route: port`) and the internal Coder
+    /// URL for the API.
     pub coder_url: String,
     pub coder_port: u16,
-    /// Контейнер Postgres Coder для дампа при бэкапе.
+    /// Port of "Agents" as a separate app behind the edge (`route: port`, docs/agents-ux.md §9.8): its own origin for the PWA
+    /// install.
+    pub agents_port: u16,
+    /// Coder Postgres container for the backup dump.
     pub coder_pg_container: String,
     pub coder_token: String,
     pub coder_template: String,
@@ -29,35 +36,40 @@ pub struct Config {
     pub komodo_key: String,
     pub komodo_secret: String,
     pub komodo_server: String,
-    /// Сокеты рантаймов.
+    /// Runtime sockets.
     pub incus_socket: PathBuf,
     pub docker_socket: PathBuf,
-    /// База подсетей проектов: `10.77.<n>.0/24`, где n выдаёт cloudd.
+    /// Base of the project subnets: `10.77.<n>.0/24`, where n is
+    /// assigned by cloudd.
     pub project_subnet_base: String,
-    /// Данные приложений (tank/apps/<app>) и корень Periphery (куда Komodo пишет стеки).
+    /// App data (tank/apps/<app>) and the Periphery root (where Komodo writes stacks).
     pub apps_data_dir: PathBuf,
-    /// Пул Incus и образ workspace по умолчанию.
+    /// Incus pool and the default workspace
+    /// image.
     pub incus_pool: String,
     pub workspace_image: String,
-    /// Первые порты для `route: port` приложений.
+    /// First ports for `route: port` apps.
     pub app_port_range: (u16, u16),
-    /// Контейнер edge-Caddy (его cloudd подключает к сетям приложений для path/port-маршрутов).
-    /// Дополнительные имена/IP Entry Point (например, NetBird-IP сервера для устройств без MagicDNS); IPv4 edge_host добавляется сам.
+    /// The edge Caddy container (cloudd joins it to app networks for path/port routes). Additional Entry Point names/IPs (e.g. the
+    /// server's NetBird IP for devices without MagicDNS); the edge_host IPv4 is added automatically.
     pub edge_alt_hosts: Vec<String>,
     pub edge_container: String,
-    /// Upstream'ы изнутри контейнера edge: cloudd на хосте и Coder в coder-net.
+    /// Upstreams from inside the edge container: cloudd on the host and Coder
+    /// in coder-net.
     pub edge_cloudd_upstream: String,
-    /// Сервис «Агенты» (cloudos-agents) на хосте — маршрут /agents/* на edge.
+    /// The "Agents" service (cloudos-agents) on the host — the /agents/*
+    /// route on the edge.
     pub edge_agents_upstream: String,
     pub edge_coder_upstream: String,
-    /// Внутренний CA Caddy (NetBird) вместо сертификата от tailscaled/ACME.
+    /// Caddy's internal CA (NetBird) instead of a certificate from
+    /// tailscaled/ACME.
     pub tls_internal: bool,
-    /// Администратор Coder (и Komodo) из bootstrap: показывается в Desktop как данные для входа в Coder.
+    /// Coder (and Komodo) administrator from bootstrap: shown in Desktop as the Coder sign-in data.
     pub admin_email: String,
     pub admin_password: Option<String>,
 }
 
-/// Файл переменных ядра (`CLOUDD_ENV_FILE`, по умолчанию /etc/cloudos/cloudd.env) — его правит мастер первого запуска.
+/// Core variables file (`CLOUDD_ENV_FILE`, default /etc/cloudos/cloudd.env) — edited by the first-run wizard.
 pub fn env_file_path() -> PathBuf {
     env("CLOUDD_ENV_FILE").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("/etc/cloudos/cloudd.env"))
 }
@@ -70,7 +82,8 @@ fn env_or(name: &str, default: &str) -> String {
 }
 
 impl Config {
-    /// Читает `/etc/cloudos/cloudd.env` (если есть, формат KEY=VALUE) в окружение, затем собирает Config.
+    /// Reads `/etc/cloudos/cloudd.env` (if present, KEY=VALUE format) into the environment, then builds
+    /// the Config.
     pub fn load() -> Result<Self> {
         let env_file = env_file_path();
         if env_file.exists() {
@@ -85,6 +98,7 @@ impl Config {
             caddy_admin: env_or("CLOUDD_CADDY_ADMIN", "http://127.0.0.1:2019"),
             coder_url,
             coder_port: env_or("CLOUDD_CODER_PORT", "8444").parse().context("CLOUDD_CODER_PORT")?,
+            agents_port: env_or("CLOUDD_AGENTS_PORT", "8445").parse().context("CLOUDD_AGENTS_PORT")?,
             coder_pg_container: env_or("CLOUDD_CODER_PG_CONTAINER", "01-coder-incus-postgres-1"),
             coder_token: env_or("CLOUDD_CODER_TOKEN", ""),
             coder_template: env_or("CLOUDD_CODER_TEMPLATE", "cloudos-incus"),
@@ -129,9 +143,13 @@ impl Config {
     pub fn store_dir(&self) -> PathBuf {
         self.repo_dir.join("store")
     }
-    /// Публичный URL Coder за edge.
+    /// Public Coder URL behind the edge.
     pub fn coder_public_url(&self) -> String {
         format!("https://{}:{}", self.edge_host, self.coder_port)
+    }
+    /// Address of "Agents" as a separate app (its own origin, §9.8).
+    pub fn agents_public_url(&self) -> String {
+        format!("https://{}:{}/agents/", self.edge_host, self.agents_port)
     }
 }
 

@@ -8,7 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Экран загрузки: показывается сразу, снимается оболочкой после первого ответа ядра (src/lib/boot.ts) */
+    /* Loading screen: shown right away, removed by the shell after the core's first answer (src/lib/boot.ts)
+    /* */
     #boot { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: #0E1018; color: #F4F7FF; font-family: 'Space Grotesk', system-ui, sans-serif; transition: opacity .6s ease; overflow: hidden; }
     #boot.out { opacity: 0; pointer-events: none; }
     #boot .glow { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .5; animation: bdrift 14s ease-in-out infinite alternate; }
@@ -23,7 +24,8 @@
     #boot .msg { font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: #8E97B8; min-height: 1.2em; }
     #boot .msg.err { color: #F2A3A3; letter-spacing: 0; text-transform: none; font-size: 14px; max-width: 420px; text-align: center; line-height: 1.5; }
     @media (prefers-reduced-motion: reduce) { #boot .glow, #boot svg { animation: none; } }
-    /* облик umbrel (тема «Umbrel»): тёплый пейзажный градиент вместо космоса, Inter; класс ставит скрипт ниже по сохранённому оформлению */
+    /* umbrel look (the "Umbrel" theme): a warm landscape gradient instead of space, Inter; the class is set by the script below from the
+    /* saved appearance */
     #boot.umbrel { background: linear-gradient(180deg, #1B1030 0%, #7A2F63 40%, #E5643F 70%, #F5A05A 100%); font-family: Inter, system-ui, sans-serif; }
     #boot.umbrel .glow { display: none; }
     #boot.umbrel .name b { color: #fff; }
@@ -65,7 +67,7 @@
     </div>
   </div>
   <script>
-    // Язык экрана загрузки до старта оболочки: из сохранённого оформления (cloudos.appearance.v1 → language) или языка браузера.
+    // Loading screen language before the shell starts: from the saved appearance (cloudos.appearance.v1 → language) or the browser language.
     (function () { try {
       var m = { en: 'loading', ru: 'загружаю', uk: 'завантажую', es: 'cargando' };
       var a = JSON.parse(localStorage.getItem('cloudos.appearance.v1') || '{}'); var l = a.language && a.language !== 'auto' ? a.language : '';

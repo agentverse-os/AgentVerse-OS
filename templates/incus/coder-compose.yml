@@ -1,11 +1,11 @@
-# Spike 0 · Coder server + PostgreSQL для стенда.
-# Coder получает сокет Incus напрямую — допущение спайка, не продукта (в продукте: ограниченный remote/проект Incus).
+# Spike 0 · Coder server + PostgreSQL for the stand. Coder gets the Incus socket directly — an assumption of the
+# spike, not the product (in the product: a restricted Incus remote/project).
 #
-#   export EDGE_HOST=aios.netbird.cloud             # имя хоста в overlay-сети (NetBird FQDN или <box>.<tailnet>.ts.net)
+#   export EDGE_HOST=box.netbird.cloud             # the host name in the overlay network (a NetBird FQDN or <box>.<tailnet>.ts.net)
 #   export INCUS_ADMIN_GID=$(getent group incus-admin | cut -d: -f3)
 #   docker compose -f coder-compose.yml up -d
-#   docker compose -f coder-compose.yml exec coder coder login https://$EDGE_HOST:8444   # первый пользователь создаётся в UI
-#   coder templates push spike-incus -d . -y                                              # из этого каталога
+#   docker compose -f coder-compose.yml exec coder coder login https://$EDGE_HOST:8444   # the first user is created in the UI
+#   coder templates push spike-incus -d . -y                                              # from this directory
 
 services:
   postgres:
@@ -24,7 +24,7 @@ services:
       retries: 20
 
   coder:
-    image: ghcr.io/coder/coder:latest                      # запинить конкретный stable после спайка
+    image: ghcr.io/coder/coder:latest                      # pin a specific stable after the spike
     restart: unless-stopped
     depends_on:
       postgres:
@@ -32,12 +32,13 @@ services:
     environment:
       CODER_PG_CONNECTION_URL: postgresql://coder:coder-spike-only@postgres/coder?sslmode=disable
       CODER_HTTP_ADDRESS: 0.0.0.0:7080
-      CODER_ACCESS_URL: https://${EDGE_HOST}:8444          # Caddy терминирует TLS (03-edge), Coder живёт на своём порту в корне
-      CODER_WILDCARD_ACCESS_URL: ""                        # без wildcard: только path-based apps
+      CODER_ACCESS_URL: https://${EDGE_HOST}:8444          # Caddy terminates TLS (03-edge), Coder lives on its own port at the root
+      CODER_WILDCARD_ACCESS_URL: ""                        # no wildcard: path-based apps only
       CODER_TELEMETRY_ENABLE: "false"
-      CODER_MAX_TOKEN_LIFETIME: 8760h                       # токен cloudd на год (по умолчанию 168h)
-      CODER_MAX_ADMIN_TOKEN_LIFETIME: 8760h                 # для владельца действует отдельный лимит
-      # провайдер lxc/incus внутри провижионера: локальный сокет
+      CODER_MAX_TOKEN_LIFETIME: 8760h                       # a one-year cloudd token (168h by default)
+      CODER_MAX_ADMIN_TOKEN_LIFETIME: 8760h                 # a separate limit applies to the owner
+      # the lxc/incus provider inside the provisioner: the local
+      # socket
       INCUS_SOCKET: /var/lib/incus/unix.socket
     group_add:
       - "${INCUS_ADMIN_GID}"
@@ -45,9 +46,9 @@ services:
       - /var/lib/incus/unix.socket:/var/lib/incus/unix.socket
       - coder-home:/home/coder
     ports:
-      - "127.0.0.1:7080:7080"                              # для SSH-туннеля при первом входе; наружу — только через Caddy
+      - "127.0.0.1:7080:7080"                              # for the SSH tunnel at the first sign-in; outside — only through Caddy
 
-# Именованная сеть: edge-Caddy из 03-edge подключается к ней и проксирует на `coder:7080` по имени
+# Named network: the edge Caddy from 03-edge joins it and proxies to `coder:7080` by name
 networks:
   default:
     name: coder-net

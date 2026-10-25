@@ -1,6 +1,6 @@
-//! Файлы и git workspace'а для рендерингов карточки сессии (ADR-006: Chat | Shell | Files | Git): список каталога, чтение и
-//! запись файла (загрузка с телефона), папка/переименование/удаление, статус, диф и лог git. Всё от пользователя coder
-//! внутри контейнера — границы задаёт сам контейнер, здесь только запрет «..» и лимиты размера.
+//! Workspace files and git for the session card renderings (ADR-006: Chat | Shell | Files | Git): directory listing, file
+//! read and write (upload from a phone), folder/rename/delete, git status, diff and log. Everything runs as the coder user
+//! inside the container — the container itself sets the boundaries; here only ".." is rejected and size limits apply.
 use crate::ApiError;
 use anyhow::anyhow;
 use axum::body::Bytes;
@@ -14,7 +14,8 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Component, Path, PathBuf};
 use std::process::Stdio;
 
-/// Предел одного файла на чтение и запись.
+/// Limit for a single file on read and
+/// write.
 pub const MAX_FILE: usize = 64 * 1024 * 1024;
 const MAX_DIFF: usize = 1024 * 1024;
 
@@ -22,7 +23,7 @@ pub fn home() -> PathBuf {
     std::env::var("HOME").map(PathBuf::from).unwrap_or_else(|_| PathBuf::from("/home/coder"))
 }
 
-/// Абсолютный путь, `~/…` или путь относительно home; «..» не принимаем — путь должен быть явным.
+/// Absolute path, `~/…` or a path relative to home; ".." is rejected — the path must be explicit.
 pub fn resolve(p: &str) -> Result<PathBuf, ApiError> {
     let p = p.trim();
     let raw = if p.is_empty() || p == "~" { home() } else if let Some(rest) = p.strip_prefix("~/") { home().join(rest) } else if p.starts_with('/') { PathBuf::from(p) } else { home().join(p) };
@@ -40,7 +41,8 @@ fn io_err(p: &Path, e: std::io::Error) -> ApiError {
     }
 }
 
-/// Флаг из query: `1`, `true`, `yes`, `on` (serde из коробки принимает только `true`/`false`).
+/// Flag from the query: `1`, `true`, `yes`, `on` (serde out of the box accepts only
+/// `true`/`false`).
 fn flag<'de, D: serde::Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
     let s = String::deserialize(d)?;
     Ok(matches!(s.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
@@ -67,8 +69,8 @@ pub struct FindQ {
 }
 fn find_limit() -> usize { 20 }
 
-/// Подсказки файлов для «@» в композере (у Codex; у Claude — `file_suggestions` самого CLI): обход каталога на 5 уровней,
-/// без `.git`, `node_modules`, `target` и прочих тяжёлых каталогов; ранг — префикс имени > подстрока пути > подпоследовательность.
+/// File suggestions for "@" in the composer (for Codex; Claude has the CLI's own `file_suggestions`): directory walk 5 levels
+/// deep, without `.git`, `node_modules`, `target` and other heavy directories; rank — name prefix > path substring > subsequence.
 pub async fn find(Query(q): Query<FindQ>) -> Result<Json<Value>, ApiError> {
     let root = resolve(&q.cwd)?;
     let needle = q.q.trim().to_lowercase();
@@ -118,7 +120,8 @@ pub async fn list(Query(q): Query<PathQ>) -> Result<Json<Value>, ApiError> {
     while let Some(e) = rd.next_entry().await.map_err(|er| io_err(&dir, er))? {
         let name = e.file_name().to_string_lossy().to_string();
         let link = e.file_type().await.map(|f| f.is_symlink()).unwrap_or(false);
-        // метаданные цели (за симлинком); битая ссылка — обычный файл нулевого размера
+        // target metadata (through the symlink); a broken link is a plain zero-size
+        // file
         let md = tokio::fs::metadata(e.path()).await.ok();
         let kind = if md.as_ref().map(|m| m.is_dir()).unwrap_or(false) { "dir" } else { "file" };
         let (size, mtime, mode) = md.map(|m| (m.len(), m.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs()).unwrap_or(0), m.permissions().mode() & 0o7777)).unwrap_or((0, 0, 0));
@@ -128,7 +131,8 @@ pub async fn list(Query(q): Query<PathQ>) -> Result<Json<Value>, ApiError> {
     Ok(Json(json!({ "path": dir.to_string_lossy(), "home": home().to_string_lossy(), "entries": entries })))
 }
 
-/// Тип содержимого по расширению, иначе по первым байтам (текст без NUL — text/plain).
+/// Content type by extension, otherwise by the first bytes (text without NUL —
+/// text/plain).
 pub fn content_type(p: &Path, data: &[u8]) -> &'static str {
     let ext = p.extension().and_then(|e| e.to_str()).map(|e| e.to_ascii_lowercase()).unwrap_or_default();
     match ext.as_str() {
@@ -216,7 +220,7 @@ async fn git(cwd: &Path, args: &[&str]) -> Result<(bool, String, String), ApiErr
 #[derive(Serialize, Debug, PartialEq)]
 pub struct GitEntry { pub path: String, pub x: String, pub y: String, pub staged: bool, pub unstaged: bool, pub kind: &'static str }
 
-/// Разбор `git status --porcelain=v2 --branch`.
+/// Parse `git status --porcelain=v2 --branch`.
 pub fn parse_status(out: &str) -> Value {
     let (mut head, mut upstream, mut ahead, mut behind) = (String::new(), None::<String>, 0i64, 0i64);
     let mut entries = Vec::new();
@@ -280,7 +284,8 @@ pub async fn git_log(Query(q): Query<GitQ>) -> Result<Json<Value>, ApiError> {
     Ok(Json(json!({ "entries": entries })))
 }
 
-// ---- git: индекс, коммит, ветки, remote, worktrees (docs/agents-ux.md §4.3.6) ----
+// ---- git: index, commit, branches, remote, worktrees (docs/agents-ux.md §4.3.6)
+// ----
 #[derive(Deserialize, Default)]
 pub struct GitBody {
     #[serde(default)] pub cwd: String,
@@ -300,7 +305,8 @@ pub struct GitBody {
     #[serde(default)] pub bare: bool,
 }
 
-/// git с проверкой кода выхода: stdout на успех, иначе 400 с последними строками stderr.
+/// git with an exit code check: stdout on success, otherwise 400 with the last stderr
+/// lines.
 async fn git_ok(cwd: &Path, args: &[&str]) -> Result<String, ApiError> {
     let (ok, out, err) = git(cwd, args).await?;
     if ok { Ok(out) } else {
@@ -309,7 +315,8 @@ async fn git_ok(cwd: &Path, args: &[&str]) -> Result<String, ApiError> {
     }
 }
 
-/// Коммит; без user.name/email в workspace — от имени AgentVerse.
+/// Commit; without user.name/email in the workspace — on behalf
+/// of AgentVerse.
 async fn git_commit_in(dir: &Path, msg: &str) -> Result<Value, ApiError> {
     let (ok, _, err) = git(dir, &["commit", "-q", "-m", msg]).await?;
     if !ok {
@@ -350,7 +357,8 @@ pub async fn git_stage(Json(b): Json<GitBody>) -> Result<Json<Value>, ApiError> 
 
 pub async fn git_unstage(Json(b): Json<GitBody>) -> Result<Json<Value>, ApiError> {
     let cwd = resolve(&b.cwd)?;
-    // до первого коммита HEAD нет: из индекса — rm --cached
+    // no HEAD before the first commit: from the index — rm
+    // --cached
     let has_head = git(&cwd, &["rev-parse", "--verify", "-q", "HEAD"]).await?.0;
     let mut a: Vec<&str> = if has_head { vec!["restore", "--staged", "--"] } else { vec!["rm", "--cached", "-r", "-q", "--"] };
     if b.all || b.paths.is_empty() { a.push("."); } else { a.extend(b.paths.iter().map(String::as_str)); }
@@ -358,7 +366,8 @@ pub async fn git_unstage(Json(b): Json<GitBody>) -> Result<Json<Value>, ApiError
     Ok(Json(json!({ "ok": true })))
 }
 
-/// Откат изменений файлов: отслеживаемые — к HEAD (индекс и рабочее дерево), новые — убрать из индекса и удалить.
+/// Revert file changes: tracked ones back to HEAD (index and working tree), new ones removed from the index and
+/// deleted.
 pub async fn git_discard(Json(b): Json<GitBody>) -> Result<Json<Value>, ApiError> {
     let cwd = resolve(&b.cwd)?;
     if b.paths.is_empty() { return Err(ApiError::BadRequest("нужны paths".into())); }
@@ -426,7 +435,7 @@ pub async fn git_push(Json(b): Json<GitBody>) -> Result<Json<Value>, ApiError> {
     Ok(Json(json!({ "ok": true, "set_upstream": !has_upstream, "out": format!("{out}{err}").trim() })))
 }
 
-/// Разбор `git worktree list --porcelain`: path, name, head, branch, bare/detached/locked.
+/// Parse `git worktree list --porcelain`: path, name, head, branch, bare/detached/locked.
 pub fn parse_worktrees(out: &str) -> Vec<Value> {
     let mut list = Vec::new(); let mut cur: Option<Value> = None;
     for line in out.lines().chain(std::iter::once("")) {
@@ -455,7 +464,7 @@ fn find_worktree<'a>(list: &'a [Value], name: &str) -> Option<&'a Value> {
 pub async fn git_worktrees(Query(q): Query<GitQ>) -> Result<Json<Value>, ApiError> {
     let cwd = resolve(&q.cwd)?;
     let mut list = worktree_list(&cwd).await?;
-    // текущий — самый длинный путь, который содержит cwd; изменения — по каждому каталогу
+    // current one is the longest path containing cwd; changes are counted per directory
     let cur = list.iter().enumerate().filter(|(_, w)| w["path"].as_str().map(|p| cwd.starts_with(p)).unwrap_or(false)).max_by_key(|(_, w)| w["path"].as_str().map(str::len).unwrap_or(0)).map(|(i, _)| i);
     for (i, w) in list.iter_mut().enumerate() {
         w["current"] = json!(Some(i) == cur);
@@ -476,7 +485,8 @@ pub async fn git_worktree_add(Json(b): Json<GitBody>) -> Result<Json<Value>, Api
     tokio::fs::create_dir_all(&dir).await.map_err(|e| io_err(&dir, e))?;
     let path = dir.join(name);
     if path.exists() { return Err(ApiError::BadRequest(format!("каталог уже есть: {}", path.display()))); }
-    // .worktrees/ — в локальный exclude репозитория (без правок в самом репозитории)
+    // .worktrees/ goes into the repository's local exclude (no edits inside the
+    // repository itself)
     if let Ok(common) = git_ok(&cwd, &["rev-parse", "--git-common-dir"]).await {
         let common = common.trim(); let common = if Path::new(common).is_absolute() { PathBuf::from(common) } else { main.join(common) };
         let ex = common.join("info").join("exclude");
@@ -507,7 +517,8 @@ pub async fn git_worktree_remove(Json(b): Json<GitBody>) -> Result<Json<Value>, 
     Ok(Json(json!({ "removed": path, "branch": branch, "branch_deleted": b.delete_branch })))
 }
 
-/// Слияние ветки worktree в основной worktree (squash по умолчанию); основной должен быть чистым, конфликт — откат и ошибка.
+/// Merge a worktree branch into the main worktree (squash by default); the main one must be clean, a conflict means rollback
+/// and an error.
 pub async fn git_worktree_merge(Json(b): Json<GitBody>) -> Result<Json<Value>, ApiError> {
     let cwd = resolve(&b.cwd)?;
     let name = b.name.as_deref().map(str::trim).filter(|n| !n.is_empty()).ok_or_else(|| ApiError::BadRequest("нужно имя worktree".into()))?;
@@ -544,7 +555,8 @@ pub async fn git_worktree_merge(Json(b): Json<GitBody>) -> Result<Json<Value>, A
     Ok(Json(json!({ "commit": commit, "branch": br, "squash": squash, "removed": removed })))
 }
 
-/// Сообщение коммита по дифу индекса (или рабочего дерева, если индекс пуст): headless Claude (haiku через gate) без сохранения сессии.
+/// Commit message from the index diff (or the working tree if the index is empty): headless Claude (haiku through the gate) without
+/// session persistence.
 pub async fn git_suggest(Json(b): Json<GitBody>) -> Result<Json<Value>, ApiError> {
     let cwd = resolve(&b.cwd)?;
     let (_, mut diff, _) = git(&cwd, &["diff", "--cached", "--no-color", "--stat=100", "--patch"]).await?;
@@ -570,7 +582,8 @@ pub async fn git_suggest(Json(b): Json<GitBody>) -> Result<Json<Value>, ApiError
         let err = String::from_utf8_lossy(&out.stderr); let last = err.trim().lines().last().unwrap_or("пустой ответ");
         return Err(ApiError::BadRequest(format!("claude: {}", last.chars().take(300).collect::<String>())));
     }
-    // трейлеры CLI (Co-Authored-By, «Generated with») — не наши: правило репозитория — без атрибуции в коммитах
+    // CLI trailers (Co-Authored-By, "Generated with") are not ours: the repository rule is no attribution in
+    // commits
     let message = text.trim().trim_start_matches("```").trim_end_matches("```").lines()
         .filter(|l| { let t = l.trim_start().to_ascii_lowercase(); !(t.starts_with("co-authored-by:") || t.starts_with("🤖 generated with") || t.starts_with("generated with [claude")) })
         .collect::<Vec<_>>().join("\n").trim().to_string();

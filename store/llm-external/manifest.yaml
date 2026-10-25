@@ -1,6 +1,6 @@
-# Внешний OpenAI-совместимый LLM — провайдер capability llm вне этого сервера: LiteLLM, Ollama, OpenAI.
-# Ядро ничего не запускает: хранит адрес и ключ, gate проекта проксирует http://llm.gate → адрес и подставляет ключ в заголовки,
-# хук on_grant кладёт в env workspace те же переменные, что и локальный провайдер llm.
+# External OpenAI-compatible LLM — a provider of the llm capability outside this server: LiteLLM, Ollama, OpenAI. The core
+# starts nothing: it stores the address and key, the project gate proxies http://llm.gate → the address and inserts the key into
+# the headers, the on_grant hook puts the same variables into the workspace env as a local llm provider.
 schema: 1
 name: llm-external
 title: External LLM endpoint

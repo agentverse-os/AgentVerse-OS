@@ -1,5 +1,5 @@
-//! Оркестрация (раздел 4 архитектуры): `cloudd` применяет `project.yaml` и манифесты идемпотентно,
-//! удаление откатывает артефакты в обратном порядке.
+//! Orchestration (architecture section 4): `cloudd` applies `project.yaml` and the manifests
+//! idempotently, deletion rolls the artifacts back in reverse order.
 
 use crate::caddy::{EdgeCaddy, EdgeInput};
 use crate::coder::{Coder, RichParam};
@@ -25,17 +25,22 @@ pub struct Service {
     pub edge: EdgeCaddy,
     pub monitor: crate::monitor::Monitor,
     pub feeds: crate::feeds::Feeds,
-    /// Один reconcile за раз: операции длинные и меняют общее состояние.
+    /// One reconcile at a time: operations are long and change shared
+    /// state.
     pub(crate) lock: Arc<tokio::sync::Mutex<()>>,
-    /// Один цикл бэкапа за раз и флаг «идёт» для UI.
+    /// One backup cycle at a time plus an "in
+    /// progress" flag for the UI.
     pub(crate) backup_lock: Arc<tokio::sync::Mutex<()>>,
     pub(crate) backup_running: Arc<std::sync::atomic::AtomicBool>,
-    /// Разобранный каталог (942 манифеста ≈ 1 с на разбор YAML) с отпечатком mtime файлов: перечитывается только после изменений.
+    /// Parsed catalog (942 manifests ≈ 1 s of YAML parsing) with a fingerprint of file mtimes: re-read only after changes.
     catalog_cache: Arc<std::sync::Mutex<Option<(u128, Vec<AppManifest>)>>>,
-    /// Идёт переимпорт каталога из upstream (updates.rs).
+    /// A catalog re-import from upstream is running
+    /// (updates.rs).
     pub(crate) importing: Arc<std::sync::atomic::AtomicBool>,
-    /// Agent Runtime: кэш сессий по workspace'ам и присутствие Desktop (agents.rs).
+    /// Agent Runtime: session cache per workspace and Desktop presence (agents.rs).
     pub(crate) agents: Arc<crate::agents::AgentsState>,
+    /// Spending limits (budgets.rs): when we warned last
+    pub(crate) budgets_st: Arc<crate::budgets::BudgetsState>,
 }
 
 impl Service {
@@ -47,11 +52,12 @@ impl Service {
         let coder = Coder::new(&cfg.coder_url, &cfg.coder_token);
         let komodo = Komodo::new(&cfg.komodo_url, &cfg.komodo_key, &cfg.komodo_secret, &cfg.komodo_server);
         let edge = EdgeCaddy::new(&cfg.caddy_admin);
-        Ok(Self { cfg: Arc::new(cfg), store, incus, docker, coder, komodo, edge, monitor: crate::monitor::Monitor::new(), feeds: crate::feeds::Feeds::default(), lock: Arc::new(tokio::sync::Mutex::new(())), backup_lock: Arc::new(tokio::sync::Mutex::new(())), backup_running: Arc::new(std::sync::atomic::AtomicBool::new(false)), catalog_cache: Default::default(), importing: Default::default(), agents: Default::default() })
+        let agents = Arc::new(crate::agents::AgentsState::load(&store)); let budgets_st = Arc::new(crate::budgets::BudgetsState::load(&store));
+        Ok(Self { cfg: Arc::new(cfg), store, incus, docker, coder, komodo, edge, monitor: crate::monitor::Monitor::new(), feeds: crate::feeds::Feeds::default(), lock: Arc::new(tokio::sync::Mutex::new(())), backup_lock: Arc::new(tokio::sync::Mutex::new(())), backup_running: Arc::new(std::sync::atomic::AtomicBool::new(false)), catalog_cache: Default::default(), importing: Default::default(), agents, budgets_st })
     }
 
     // =====================================================================
-    // Store: чтение манифестов из репозитория
+    // Store: reading manifests from the repository
     // =====================================================================
 
     pub fn catalog(&self) -> Result<Vec<AppManifest>> {
@@ -59,7 +65,8 @@ impl Service {
         if !dir.exists() {
             return Ok(Vec::new());
         }
-        // отпечаток: mtime и размер всех manifest.yaml / login.yaml и recommended.yaml (≈1000 stat ≈ миллисекунды)
+        // fingerprint: mtime and size of every manifest.yaml / login.yaml and recommended.yaml (≈1000 stats ≈
+        // milliseconds)
         let mut fp: u128 = 0;
         let mut paths = Vec::new();
         for e in std::fs::read_dir(&dir)? {
@@ -105,8 +112,8 @@ impl Service {
         }
         Ok(m)
     }
-    /// Compose приложения с пользовательским override (`store/<app>/compose.override.yaml`, семантика docker-compose.override:
-    /// глубокое слияние по сервисам). Override живёт отдельным файлом, поэтому переимпорт каталога его не трогает.
+    /// App compose with the user override (`store/<app>/compose.override.yaml`, docker-compose.override semantics: deep merge
+    /// by services). The override lives in a separate file, so a catalog re-import leaves it alone.
     pub(crate) fn compose_text(&self, m: &AppManifest) -> Result<String> {
         let dir = self.cfg.store_dir().join(&m.name);
         let base = std::fs::read_to_string(dir.join(&m.compose)).with_context(|| format!("compose {}", dir.join(&m.compose).display()))?;
@@ -114,7 +121,7 @@ impl Service {
         let ov_text = if ov.exists() { std::fs::read_to_string(&ov)? } else { String::new() };
         let has_links = self.is_shared(&m.name)? || self.store.list_links()?.iter().any(|l| l.consumer == m.name);
         if ov_text.trim().is_empty() && !has_links {
-            return Ok(base); // без изменений — исходный текст каталога с комментариями
+            return Ok(base); // unchanged — the original catalog text with comments
         }
         let mut a: serde_json::Value = serde_yaml_ng::from_str(&base).context("compose из каталога")?;
         if !ov_text.trim().is_empty() {
@@ -125,7 +132,8 @@ impl Service {
         Ok(serde_yaml_ng::to_string(&a)?)
     }
 
-    /// Связи и общая сеть в compose потребителя: сети провайдеров как external, переменные адресов как `${VAR}` (значения — в env стека).
+    /// Links and the shared network in the consumer's compose: provider networks as external, address variables as `${VAR}` (values are
+    /// in the stack env).
     fn inject_links(&self, m: &AppManifest, compose: &mut serde_json::Value) -> Result<()> {
         let providers: Vec<(String, String)> = self.store.list_links()?.into_iter().filter(|l| l.consumer == m.name).map(|l| (l.provider.clone(), format!("{}-net", l.provider))).collect();
         let shared = self.is_shared(&m.name)?;
@@ -141,7 +149,7 @@ impl Service {
         Ok(self.store.get_kv(&format!("app.shared.{name}"))?.and_then(|v| v.as_bool()).unwrap_or(false))
     }
 
-    /// Переменные от связей: `<ПРОВАЙДЕР>_URL` (адрес внутри Cloud OS) плюс вывод хуков провайдера, сохранённый при подключении.
+    /// Variables from links: `<PROVIDER>_URL` (the address inside Cloud OS) plus the provider hook output saved at link time.
     fn link_env(&self, m: &AppManifest) -> Result<Vec<(String, String)>> {
         let mut out: Vec<(String, String)> = Vec::new();
         for l in self.store.list_links()?.into_iter().filter(|l| l.consumer == m.name) {
@@ -158,7 +166,7 @@ impl Service {
         Ok(out)
     }
 
-    /// Пользовательские переопределения env (`store/<app>/user.env`, KEY=VALUE) — поверх манифеста и настроек.
+    /// User env overrides (`store/<app>/user.env`, KEY=VALUE) — on top of the manifest and settings.
     fn user_env(&self, name: &str) -> Vec<(String, String)> {
         std::fs::read_to_string(self.cfg.store_dir().join(name).join("user.env")).map(|t| parse_env(&t)).unwrap_or_default()
     }
@@ -173,7 +181,7 @@ impl Service {
         })
     }
 
-    /// Сохранить переопределения и, если приложение установлено, перевыкатить стек.
+    /// Save the overrides and, if the app is installed, redeploy the stack.
     pub async fn app_set_overrides(&self, name: &str, env: &str, compose: &str) -> Result<AppView> {
         let _g = self.lock.lock().await;
         let m = self.manifest(name)?;
@@ -222,7 +230,7 @@ impl Service {
     // Projects
     // =====================================================================
 
-    /// Применить `project.yaml`: сеть Incus + macvlan + gate; workspace в Coder; grants по capabilities.
+    /// Apply `project.yaml`: Incus network + macvlan + gate; workspace in Coder; grants by capabilities.
     pub async fn project_apply(&self, spec: ProjectSpec) -> Result<ProjectView> {
         let _g = self.lock.lock().await;
         validate_name(&spec.project)?;
@@ -230,8 +238,8 @@ impl Service {
         let base = &self.cfg.project_subnet_base;
         let now = store::now();
         let previous = self.store.get_project(&spec.project)?;
-        // Смена одной лишь заметки не трогает сеть, gate и workspace: пишем спек и выходим. Полностью совпадающий спек
-        // идёт длинным путём — так `cloudd project apply` остаётся способом починить проект.
+        // A change of the note alone does not touch the network, gate and workspace: write the spec and leave. A fully
+        // identical spec takes the long path — that way `cloudd project apply` remains the way to repair a project.
         if let Some(p) = previous.as_ref().filter(|p| p.spec.description != spec.description && ProjectSpec { description: p.spec.description.clone(), ..spec.clone() } == p.spec) {
             let mut st = p.clone();
             st.spec = spec.clone();
@@ -256,13 +264,15 @@ impl Service {
         self.write_project_spec(&spec)?;
         self.store.upsert_project(&st)?;
 
-        // 1. сеть проекта (Incus) с DNS *.gate → gate
+        // 1. project network (Incus) with DNS *.gate
+        // → gate
         let gw = st.gateway(base);
         let gate_ip = st.gate_ip(base);
         let dhcp = format!("{base}.{}.2-{base}.{}.239", st.subnet_index, st.subnet_index);
         self.incus.ensure_network(&st.incus_network(), &format!("{gw}/24"), &dhcp).await?;
         self.incus_set_gate_dns(&st.incus_network(), &gate_ip).await?;
-        // 2. macvlan Docker на мосту проекта + gate
+        // 2. Docker macvlan on the project bridge +
+        // gate
         self.docker.ensure_macvlan(&st.macvlan_network(), &st.incus_network(), &st.subnet(base), &gw, &st.gate_ip_range(base)).await?;
         let gate_dir = self.cfg.gates_dir().join(&st.name);
         self.render_gate(&st).await?;
@@ -275,7 +285,7 @@ impl Service {
         }
         self.store.event("project", &st.name, "сеть и gate готовы")?;
 
-        // 3. workspace через Coder
+        // 3. workspace via Coder
         if self.cfg.coder_token.is_empty() {
             self.store.event("project", &st.name, "CLOUDD_CODER_TOKEN не задан — workspace пропущен")?;
         } else {
@@ -288,13 +298,14 @@ impl Service {
                 Some(ws) if ws.simple_status() != "deleted" => {
                     st.coder_workspace_id = Some(ws.id);
                     if workspace_changed {
-                        // новые cpu/memory применяются сборкой start с параметрами (Incus обновит лимиты in-place)
+                        // new cpu/memory are applied by a start build with parameters (Incus updates the limits in
+                        // place)
                         let params = self.rich_params(&st);
                         let b = self.coder.build_with_params(ws.id, "start", &params).await?;
                         self.store.event("workspace", &st.name, &format!("параметры изменены: {} CPU, {} GiB — build {}", st.spec.workspace.cpu, st.spec.workspace.memory, b.id))?;
                         self.push_env_when_running(st.clone());
-                        // инстанс не перезагружается, а токен агента у новой сборки другой: перезапускаем юнит агента,
-                        // он перечитает user.coder_agent_token через guest API
+                        // the instance is not rebooted, yet the new build has a different agent token: restart the
+                        // agent unit, it re-reads user.coder_agent_token through the guest API
                         let svc = self.clone();
                         let (build_id, inst, name) = (b.id, format!("ws-{}-{}", ws.owner_name, ws.name).to_lowercase(), st.name.clone());
                         tokio::spawn(async move {
@@ -313,14 +324,16 @@ impl Service {
                     let ws = self.coder.create_workspace(&me.username, &tpl, &st.name, &params).await?;
                     st.coder_workspace_id = Some(ws.id);
                     self.store.event("workspace", &st.name, &format!("создан workspace {} (build {})", ws.id, ws.latest_build.id))?;
-                    // инстанс ещё собирается: env capabilities ляжет, как только Incus сообщит running (push в конце apply его не застанет)
+                    // the instance is still being built: the capabilities env lands as soon as Incus reports running (the push at the end
+                    // of apply will not catch it)
                     self.push_env_when_running(st.clone());
                 }
             }
             self.store.upsert_project(&st)?;
         }
 
-        // 4. grants по capabilities (что можем — выдаём; чего нет — в missing)
+        // 4. grants by capabilities (what we can — we grant; what is missing —
+        // into missing)
         let apps = self.store.list_apps()?;
         let current = self.store.list_grants(Some(&st.name))?;
         for cap in &spec.capabilities {
@@ -352,7 +365,8 @@ impl Service {
     }
 
     async fn incus_set_gate_dns(&self, network: &str, gate_ip: &str) -> Result<()> {
-        // dnsmasq сети проекта отвечает на *.gate адресом gate — так workspace видит http://s3.gate без /etc/hosts
+        // the project network's dnsmasq answers *.gate with the gate address — so the workspace sees
+        // http://s3.gate without /etc/hosts
         let v: serde_json::Value = serde_json::json!({ "raw.dnsmasq": format!("address=/.gate/{gate_ip}") });
         self.incus.patch_network(network, v).await
     }
@@ -381,7 +395,8 @@ impl Service {
     pub async fn project_delete(&self, name: &str) -> Result<()> {
         let _g = self.lock.lock().await;
         let Some(st) = self.store.get_project(name)? else { bail!("проект {name} не найден") };
-        // обратный порядок: revoke → workspace → gate → сети
+        // reverse order: revoke → workspace → gate →
+        // networks
         for g in self.store.list_grants(Some(name))? {
             self.revoke_inner(&st, &g.capability).await.ok();
         }
@@ -407,8 +422,9 @@ impl Service {
     pub async fn workspace_transition(&self, name: &str, transition: &str) -> Result<ProjectView> {
         let Some(st) = self.store.get_project(name)? else { bail!("проект {name} не найден") };
         let id = st.coder_workspace_id.ok_or_else(|| anyhow!("у проекта {name} нет workspace"))?;
-        // start отстающего workspace — сразу на актуальной версии его шаблона (как `coder update`): новые расширения,
-        // раннер агента и cloud-init новых инстансов доезжают без отдельного шага. Параметры — из spec, как при создании.
+        // start of a lagging workspace — right away on the current version of its template (like `coder update`): new
+        // extensions, the agent runner and cloud-init of new instances arrive without a separate step. Parameters — from
+        // the spec, as at creation.
         let latest = match self.coder.workspace(id).await? {
             Some(ws) if transition == "start" && ws.outdated => ws.template_active_version_id,
             _ => None,
@@ -425,8 +441,9 @@ impl Service {
         self.project_view(&st).await
     }
 
-    /// Контейнер после start поднимается асинхронно, а grants могли смениться, пока workspace стоял (push при гранте
-    /// в остановленный инстанс невозможен): кладём env-контракт, как только Incus сообщит running.
+    /// The container comes up asynchronously after start, and the grants may have changed while the workspace was
+    /// stopped (a push on grant into a stopped instance is impossible): place the env contract as soon as Incus
+    /// reports running.
     fn push_env_when_running(&self, st: ProjectState) {
         let s = self.clone();
         tokio::spawn(async move {
@@ -532,7 +549,7 @@ impl Service {
     pub async fn apps(&self) -> Result<Vec<AppView>> {
         let installed = self.store.list_apps()?;
         let grants = self.store.list_grants(None)?;
-        // состояния стеков — одним запросом к Komodo, а не по запросу на приложение
+        // stack states — one request to Komodo, not one per app
         let states = if installed.is_empty() { Default::default() } else { self.komodo.states().await.unwrap_or_default() };
         let mut out = Vec::new();
         for m in self.catalog()? {
@@ -547,7 +564,8 @@ impl Service {
         Ok(out)
     }
 
-    /// Одно приложение (карточка, 🔑 в окне) — без обхода всего каталога.
+    /// One app (card, 🔑 in the window) — without walking the whole
+    /// catalog.
     pub async fn app(&self, name: &str) -> Result<AppView> {
         let m = self.manifest(name)?;
         let inst = self.store.get_app(name)?;
@@ -566,14 +584,14 @@ impl Service {
 
     fn app_view_with(&self, m: &AppManifest, inst: Option<&AppState>, grants: &[Grant], state: Option<String>) -> Result<AppView> {
         let mut manifest = inst.map(|a| a.manifest.clone()).unwrap_or(m.clone());
-        // режим открытия и данные для входа — актуальные из каталога; поверх режима — выбор пользователя (kv app.open.<name>)
+        // open mode and login data — current ones from the catalog; the user's choice on top of the mode (kv app.open.<name>)
         manifest.route.open = m.route.open;
         manifest.login = m.login.clone();
         manifest.recommended = m.recommended.clone();
         if let Some(v) = self.store.get_kv(&format!("app.open.{}", m.name))?.and_then(|v| v.as_str().map(|s| s.to_string())) {
             manifest.route.open = if v == "newtab" { OpenMode::Newtab } else { OpenMode::Iframe };
         }
-        if manifest.kind == AppKind::External { manifest.route.open = OpenMode::Newtab; } // чужой сайт в iframe не откроется
+        if manifest.kind == AppKind::External { manifest.route.open = OpenMode::Newtab; } // a foreign site will not open in an iframe
         let mut settings_values = std::collections::BTreeMap::new();
         for (k, spec) in &manifest.env {
             let secret = matches!(spec, EnvSpec::Generate { .. }) || manifest.settings.iter().any(|f| f.get("env").and_then(|e| e.as_str()) == Some(k) && matches!(f.get("type").and_then(|t| t.as_str()), Some("password" | "random")));
@@ -613,7 +631,8 @@ impl Service {
         }
     }
 
-    /// Адрес и ключ внешнего провайдера из его настроек: `https://host[:port]` без пути (Caddy не принимает путь в upstream).
+    /// Address and key of an external provider from its settings: `https://host[:port]` without a path (Caddy does not accept
+    /// a path in an upstream).
     pub(crate) fn external_target(&self, a: &AppState) -> Result<(String, Option<String>)> {
         let spec = a.manifest.external.as_ref().ok_or_else(|| anyhow!("{}: type external без раздела external", a.name))?;
         let scope = format!("app:{}", a.name);
@@ -628,7 +647,8 @@ impl Service {
         Ok((url, key))
     }
 
-    /// Внешний провайдер отвечает? Любой HTTP-статус — «доступен» (401 без ключа тоже), ошибка соединения/TLS/DNS — нет.
+    /// Does the external provider answer? Any HTTP status means "available" (401 without a key too), a
+    /// connection/TLS/DNS error — no.
     async fn external_reachable(&self, a: &AppState) -> Result<String> {
         let (url, key) = self.external_target(a)?;
         let path = a.manifest.external.as_ref().and_then(|e| e.check_path.clone()).unwrap_or_else(|| "/".into());
@@ -639,7 +659,7 @@ impl Service {
         Ok(format!("HTTP {}", r.status().as_u16()))
     }
 
-    /// Состояние внешнего провайдера для карточки: живая проверка, результат кешируется для списка Store.
+    /// External provider state for the card: a live check, the result is cached for the Store list.
     async fn external_state_probe(&self, a: &AppState) -> String {
         let state = match self.external_reachable(a).await {
             Ok(_) => "running",
@@ -652,7 +672,8 @@ impl Service {
         self.store.get_kv(&format!("app.external.state.{name}")).ok().flatten().and_then(|v| v.as_str().map(String::from)).unwrap_or_else(|| "running".into())
     }
 
-    /// Внешний провайдер: ничего не запускаем — проверяем адрес и доступность с сервера, записываем состояние, выдаём ожидающие гранты.
+    /// External provider: nothing is started — check the address and reachability from the server, record the state, issue pending
+    /// grants.
     async fn external_install(&self, name: &str, m: &AppManifest) -> Result<AppView> {
         let now = store::now();
         let mut st = self.store.get_app(name)?.unwrap_or(AppState { name: name.to_string(), manifest: m.clone(), port: None, komodo_stack_id: None, installed_at: now });
@@ -673,7 +694,8 @@ impl Service {
         self.app(name).await
     }
 
-    /// install(manifest, env): сеть ядра → env из секрет-стора → CreateStack/UpdateStack + DeployStack → маршрут edge.
+    /// install(manifest, env): core network → env from the secret store → CreateStack/UpdateStack + DeployStack → edge
+    /// route.
     pub async fn app_install(&self, name: &str) -> Result<AppView> {
         let _g = self.lock.lock().await;
         let m = self.manifest(name)?;
@@ -692,25 +714,28 @@ impl Service {
         if m.route.mode == RouteMode::Port && st.port.is_none() {
             st.port = Some(self.alloc_port(m.route.port)?);
         }
-        // 1. сеть приложения — создаёт ядро (ADR-005 решение 3)
+        // 1. app network — created by the core (ADR-005
+        // decision 3)
         let net = st.network();
         self.docker.ensure_bridge_network(&net, HashMap::from([("cloudos.app".into(), name.to_string())])).await?;
-        // 1b. read-only docker-прокси: сеть создаём (сам прокси — из bootstrap/docker-proxy)
+        // 1b. read-only docker proxy: we create the network (the proxy itself comes from
+        // bootstrap/docker-proxy)
         if self.compose_text(&m)?.contains(crate::importer::DOCKER_RO_NET) {
             self.docker.ensure_bridge_network(crate::importer::DOCKER_RO_NET, HashMap::from([("cloudos.kind".into(), "docker-ro".into())])).await?;
             if !self.docker.container_exists("cloudos-docker-ro").await? {
                 self.store.event("app", name, "ВНИМАНИЕ: прокси cloudos-docker-ro не запущен (bootstrap/docker-proxy) — доступ к Docker у приложения не будет")?;
             }
         }
-        // 2. данные приложения
+        // 2. app data
         let data_dir = self.cfg.apps_data_dir.join(name);
         ensure_data_dir(&data_dir)?;
-        // 3. env: generated → секрет-стор (один раз), literal — как есть
+        // 3. env: generated → secret store (once), literal — as is
         let env_pairs = self.app_env(&m, st.port)?;
         let env_text = env_pairs.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("\n");
         let compose = self.compose_text(&m)?;
-        // каталоги под bind-тома (${APP_DATA_DIR}/…) должны существовать до `compose up` (Docker не создаёт device для driver_opts bind)
-        // и принадлежать пользователю контейнера (appdata.rs: user:/PUID/USER образа, иначе 1000:1000 как в Umbrel/Runtipi)
+        // directories under bind volumes (${APP_DATA_DIR}/…) must exist before `compose up` (Docker does not create the device for
+        // driver_opts bind) and belong to the container user (appdata.rs: the image's user:/PUID/USER, otherwise 1000:1000 as in
+        // Umbrel/Runtipi)
         for n in self.prepare_data_dirs(name, &compose, &env_pairs).await? { self.store.event("app", name, &format!("каталог данных {n}"))?; }
         // 4. Komodo
         match (&st.komodo_stack_id, self.komodo.get_stack(name).await?) {
@@ -728,16 +753,18 @@ impl Service {
         self.spawn_watch(name);
         let status = self.komodo.wait_running(name, 240).await?;
         self.store.event("app", name, &format!("стек running: {} сервисов", status.services.len()))?;
-        // Komodo считает стек running, даже если контейнер в crash-loop — проверяем health из манифеста с хоста
+        // Komodo considers the stack running even if the container is in a crash loop — check health from the
+        // manifest from the host
         if let Some(h) = &m.health {
             self.wait_health(&st, h, 90).await.with_context(|| format!("{name}: health {h} не прошёл; логи: cloudd app logs {name}"))?;
             self.store.event("app", name, "health OK")?;
         }
-        // 5. маршрут edge: edge-Caddy подключается к сети приложения и перечитывает конфиг
+        // 5. edge route: edge Caddy joins the app network and reloads its config
         self.docker.connect(&net, &self.cfg.edge_container).await?;
         self.reload_edge().await?;
         self.store.event("app", name, &format!("маршрут {}", self.app_url(&st)))?;
-        // 6. если проекты ждали эту capability — выдать
+        // 6. if projects were waiting for this
+        // capability — grant it
         for p in self.store.list_projects()? {
             for cap in &p.spec.capabilities {
                 if m.provides.contains(cap) && !self.store.list_grants(Some(&p.name))?.iter().any(|g| &g.capability == cap) {
@@ -749,9 +776,9 @@ impl Service {
         self.app(name).await
     }
 
-    /// uninstall: revoke у проектов → маршрут edge → DestroyStack/DeleteStack → сеть → запись (данные в tank/apps остаются).
-    /// Удалить приложение. `purge` — вместе с данными в tank/apps, секретами, заметками и переопределениями;
-    /// иначе всё это сохраняется и переустановка возвращает приложение с теми же паролями.
+    /// uninstall: revoke at the projects → edge route → DestroyStack/DeleteStack → network → record (the data in tank/apps
+    /// stays). Remove the app. `purge` — together with the data in tank/apps, secrets, notes and overrides; otherwise all of
+    /// it is kept and a reinstall brings the app back with the same passwords.
     pub async fn app_remove(&self, name: &str, purge: bool) -> Result<()> {
         let _g = self.lock.lock().await;
         let Some(st) = self.store.get_app(name)? else { bail!("приложение {name} не установлено") };
@@ -793,7 +820,8 @@ impl Service {
                     self.komodo.delete_stack(id).await?;
                 }
             }
-            // сеть могла исчезнуть при прерванной прошлой попытке — удаление должно доводиться до конца
+            // the network may have vanished during an interrupted previous attempt — deletion must be
+            // carried through
             if let Err(e) = self.docker.remove_network(&st.network()).await {
                 tracing::warn!("сеть {}: {e:#}", st.network());
             }
@@ -825,14 +853,14 @@ impl Service {
         Ok(())
     }
 
-    /// Как открывать приложение в Desktop: в окне (iframe) или в новой вкладке — выбор пользователя поверх манифеста.
+    /// How to open the app in Desktop: in a window (iframe) or a new tab — the user's choice over the manifest.
     pub fn app_set_open(&self, name: &str, open: &str) -> Result<()> {
         self.manifest(name)?;
         if !matches!(open, "iframe" | "newtab") { bail!("имя open: iframe | newtab"); }
         self.store.put_kv(&format!("app.open.{name}"), &serde_json::Value::String(open.into()))
     }
 
-    /// Настройки приложения (form_fields каталога): сохранить значения и, если установлено, перевыкатить стек.
+    /// App settings (the catalog's form_fields): save the values and, if installed, redeploy the stack.
     pub async fn app_configure(&self, name: &str, values: std::collections::BTreeMap<String, String>) -> Result<AppView> {
         let _g = self.lock.lock().await;
         let m = self.manifest(name)?;
@@ -885,7 +913,8 @@ impl Service {
         self.komodo.logs(name, &[st.manifest.endpoint.service.clone()], tail).await
     }
 
-    /// health из манифеста: `http://<service>:<port>/path` → тот же URL по IP контейнера в сети приложения (хост видит bridge напрямую).
+    /// health from the manifest: `http://<service>:<port>/path` → the same URL by the container IP in the app network (the host sees the
+    /// bridge directly).
     async fn wait_health(&self, st: &AppState, health: &str, timeout_s: u64) -> Result<()> {
         let url = reqwest::Url::parse(health).context("health URL")?;
         let service = url.host_str().unwrap_or(&st.manifest.endpoint.service).to_string();
@@ -913,22 +942,24 @@ impl Service {
     }
 
     pub(crate) fn alloc_port(&self, wanted: Option<u16>) -> Result<u16> {
-        let used = self.store.used_ports()?;
+        let mut used = self.store.used_ports()?;
+        used.extend(self.store.previews()?.iter().map(|p| p.edge_port));
         let (lo, hi) = self.cfg.app_port_range;
+        let reserved = |p: u16| p == self.cfg.coder_port || p == self.cfg.agents_port;
         if let Some(p) = wanted {
-            if !used.contains(&p) && p != self.cfg.coder_port {
+            if !used.contains(&p) && !reserved(p) {
                 return Ok(p);
             }
         }
-        (lo..=hi).find(|p| !used.contains(p) && *p != self.cfg.coder_port).ok_or_else(|| anyhow!("нет свободных портов для route: port"))
+        (lo..=hi).find(|p| !used.contains(p) && !reserved(*p)).ok_or_else(|| anyhow!("нет свободных портов для route: port"))
     }
 
     // =====================================================================
     // Grants
     // =====================================================================
 
-    /// `app` — какой из установленных провайдеров использовать (по умолчанию — см. default_provider); у уже выданной capability
-    /// смена провайдера снимает старый грант (хук on_revoke, сеть) и выдаёт новый.
+    /// `app` — which of the installed providers to use (default — see default_provider); for an already granted capability a
+    /// provider change removes the old grant (on_revoke hook, network) and issues a new one.
     pub async fn grant(&self, project: &str, capability: &str, app: Option<&str>) -> Result<ProjectView> {
         let _g = self.lock.lock().await;
         let mut st = self.store.get_project(project)?.ok_or_else(|| anyhow!("проект {project} не найден"))?;
@@ -943,7 +974,8 @@ impl Service {
             self.revoke_inner(&st, capability).await?;
         }
         if let Err(e) = self.grant_inner(&st, capability, app).await {
-            // смена провайдера не удалась (хук, сеть): вернуть прежнего, чтобы проект не остался без capability
+            // the provider change failed (hook, network): bring back the previous one so the project is not
+            // left without the capability
             if let Some(old) = &old {
                 if let Some(prev) = apps.iter().find(|a| a.name == old.app) {
                     match self.grant_inner(&st, capability, prev).await {
@@ -977,10 +1009,10 @@ impl Service {
         self.project_view(&st).await
     }
 
-    /// grant = gate подключается к `<app>-net` + маршрут `<cap>.gate` (без рестартов — ADR-005) + хук provider'а `on_grant`,
-    /// результат которого (KEY=VALUE) становится секретами проекта и env-контрактом capability в workspace (2.5).
-    /// Провайдер capability по умолчанию: при нескольких установленных — тот, через который эту capability уже получают
-    /// другие проекты (новый проект ведёт себя как остальные: «все через один внешний провайдер»), при равенстве — первый по имени.
+    /// grant = the gate joins `<app>-net` + the `<cap>.gate` route (no restarts — ADR-005) + the provider's `on_grant` hook,
+    /// whose result (KEY=VALUE) becomes project secrets and the capability's env contract in the workspace (2.5). Default
+    /// capability provider: with several installed — the one other projects already get this capability through (a new
+    /// project behaves like the rest: "everyone through one external provider"), on a tie — the first by name.
     fn default_provider<'a>(&self, capability: &str, apps: &'a [AppState]) -> Result<Option<&'a AppState>> {
         let mut candidates: Vec<&AppState> = apps.iter().filter(|a| a.manifest.provides.iter().any(|c| c == capability)).collect();
         if candidates.len() > 1 {
@@ -1003,7 +1035,8 @@ impl Service {
                 self.store.put_secret(&scope, &k, &v)?;
             }
         }
-        // адрес capability на gate — всегда, даже без хука
+        // the capability address on the gate — always,
+        // even without a hook
         self.store.put_secret(&scope, &format!("{}_URL", env_prefix(capability)), &format!("http://{capability}.gate"))?;
         self.store.put_grant(&Grant { project: st.name.clone(), capability: capability.to_string(), app: app.name.clone(), granted_at: store::now() })?;
         self.store.event("grant", &st.name, &format!("{capability} → {} (http://{capability}.gate)", app.name))?;
@@ -1020,11 +1053,13 @@ impl Service {
                     tracing::warn!("on_revoke {} для {}: {e:#}", app.name, st.name);
                 }
             }
-            // отключать сеть можно только если другие grants этого проекта не идут через то же приложение
+            // the network may be disconnected only if no other grants of this project go through the same
+            // app
             if app.manifest.kind != AppKind::External && !grants.iter().any(|o| o.capability != capability && o.app == g.app) {
                 self.docker.disconnect(&app.network(), &st.gate_name()).await?;
             }
-            // выход наружу нужен, пока у проекта есть хоть один внешний провайдер
+            // egress is needed while the project has at least one external
+            // provider
             if app.manifest.kind == AppKind::External && !grants.iter().any(|o| o.capability != capability && self.is_external_app(&o.app)) {
                 self.docker.disconnect(EGRESS_NET, &st.gate_name()).await?;
             }
@@ -1036,8 +1071,9 @@ impl Service {
         Ok(())
     }
 
-    /// Внешний провайдер живёт вне сервера, а gate сидит на macvlan проекта, откуда в tailnet и интернет пути нет:
-    /// на время таких grants gate подключается к `cloudos-egress` (bridge, NAT хоста), и она становится его default-шлюзом.
+    /// An external provider lives outside the server, while the gate sits on the project macvlan, from where there is no
+    /// path to the tailnet or the internet: for the duration of such grants the gate joins `cloudos-egress` (bridge, host
+    /// NAT), which becomes its default gateway.
     async fn ensure_egress(&self, st: &ProjectState) -> Result<()> {
         self.docker.ensure_bridge_network(EGRESS_NET, HashMap::from([("cloudos.kind".into(), "egress".into())])).await?;
         self.docker.connect_gateway(EGRESS_NET, &st.gate_name(), 100).await.with_context(|| format!("{}: выход наружу для внешнего провайдера", st.gate_name()))
@@ -1049,13 +1085,13 @@ impl Service {
         Ok(self.store.list_grants(Some(project))?.iter().any(|g| self.is_external_app(&g.app)))
     }
 
-    /// Хук provider'а: скрипт из каталога приложения в Store, выполняется на хосте (cloudd видит сети приложений напрямую)
-    /// с env приложения (в т.ч. сгенерированные секреты), PROJECT, CAPABILITY, APP_IP главного сервиса. stdout → KEY=VALUE.
+    /// Provider hook: a script from the app's Store directory, executed on the host (cloudd sees app networks directly)
+    /// with the app env (incl. generated secrets), PROJECT, CAPABILITY, APP_IP of the main service. stdout → KEY=VALUE.
     async fn run_hook(&self, app: &AppState, hook: &str, st: &ProjectState, capability: &str) -> Result<String> {
         self.run_hook_for(app, hook, &st.name, capability, &format!("http://{capability}.gate")).await
     }
 
-    /// Та же механика для связей приложений: PROJECT=`app-<потребитель>`, GATE_URL — адрес провайдера внутри Cloud OS.
+    /// The same mechanics for app links: PROJECT=`app-<consumer>`, GATE_URL — the provider address inside Cloud OS.
     async fn run_hook_for(&self, app: &AppState, hook: &str, project: &str, capability: &str, gate_url: &str) -> Result<String> {
         let dir = self.cfg.store_dir().join(&app.name);
         let script = dir.join(hook);
@@ -1084,7 +1120,8 @@ impl Service {
         Ok(String::from_utf8_lossy(&out.stdout).to_string())
     }
 
-    /// Env приложения для стека и хуков: служебные переменные + манифест (generated — из секрет-стора).
+    /// App env for the stack and hooks: service variables + manifest (generated — from the secret
+    /// store).
     pub(crate) fn app_env(&self, m: &AppManifest, port: Option<u16>) -> Result<Vec<(String, String)>> {
         let net = format!("{}-net", m.name);
         let data_dir = self.cfg.apps_data_dir.join(&m.name);
@@ -1098,7 +1135,8 @@ impl Service {
         if let Some(p) = port {
             env.push(("APP_PORT".into(), p.to_string()));
         }
-        // соглашения каталогов Runtipi/Coolify, чтобы их compose работал без правок
+        // Runtipi/Coolify directory conventions so their compose works without
+        // edits
         env.push(("APP_ID".into(), m.name.clone()));
         env.push(("APP_HOST".into(), self.cfg.edge_host.clone()));
         env.push(("APP_PROTOCOL".into(), "https".into()));
@@ -1110,7 +1148,7 @@ impl Service {
         env.push(("TIPI_VERSION".into(), "cloudos".into()));
         for (k, spec) in &m.env {
             let v = match spec {
-                // literal можно переопределить настройкой (хранится в секрет-сторе приложения)
+                // a literal can be overridden by a setting (stored in the app's secret store)
                 EnvSpec::Literal(s) => self.store.get_secret(&scope, k)?.unwrap_or_else(|| s.clone()),
                 EnvSpec::Generate { generate } => match self.store.get_secret(&scope, k)? {
                     Some(v) => v,
@@ -1123,7 +1161,8 @@ impl Service {
             };
             env.push((k.clone(), v));
         }
-        // связи: адрес провайдера всегда, ключи из хуков — только если у приложения значение пустое (свои настройки важнее)
+        // links: the provider address always, keys from hooks — only if the app's value is empty (its own settings matter
+        // more)
         for (k, v) in self.link_env(m)? {
             match env.iter_mut().find(|(ek, _)| *ek == k) {
                 Some(e) if e.1.is_empty() || k.ends_with("_URL") => e.1 = v,
@@ -1131,11 +1170,12 @@ impl Service {
                 None => env.push((k, v)),
             }
         }
-        // пользовательские переопределения (user.env) — поверх всего
+        // user overrides (user.env) — on top of everything
         for (k, v) in self.user_env(&m.name) {
             if let Some(e) = env.iter_mut().find(|(ek, _)| *ek == k) { e.1 = v; } else { env.push((k, v)); }
         }
-        // ссылки вида ${OTHER} внутри значений (каталоги Umbrel/Coolify): compose значения из .env не раскрывает — делаем сами
+        // ${OTHER} references inside values (Umbrel/Coolify catalogs): compose does not expand values from .env — we do it
+        // ourselves
         for _ in 0..3 {
             let snapshot = env.clone();
             let mut changed = false;
@@ -1154,15 +1194,17 @@ impl Service {
         Ok(env)
     }
 
-    /// Имя инстанса Incus workspace проекта: `ws-<owner>-<project>`.
+    /// Incus instance name of the project workspace:
+    /// `ws-<owner>-<project>`.
     pub(crate) async fn workspace_instance(&self, project: &str) -> String {
-        // TODO: owner из Coder, когда пользователей станет больше одного
+        // TODO: owner from Coder once there is more than one user
         match self.coder_owner().await { Some(o) => format!("ws-{o}-{project}"), None => format!("ws-admin-{project}") }
     }
 
     const ENV_SH: &'static str = "/etc/cloudos/env.sh";
-    /// Хуки чтения env.sh: /etc/bash.bashrc для терминалов code-server (интерактивный bash без login — ~/.profile не читается,
-    /// поэтому и PATH к CLI агентов здесь), /etc/profile.d для login-оболочек. Печатает «profile.d created», если заглушки не было.
+    /// Hooks that read env.sh: /etc/bash.bashrc for code-server terminals (an interactive non-login bash — ~/.profile is not read,
+    /// hence the PATH to the agent CLIs here too), /etc/profile.d for login shells. Prints "profile.d created" if the stub was
+    /// missing.
     const ENV_HOOKS_SH: &'static str = r#"chmod 0644 /etc/cloudos/env.sh 2>/dev/null; grep -q cloudos/env.sh /etc/bash.bashrc || echo '[ -r /etc/cloudos/env.sh ] && . /etc/cloudos/env.sh' >> /etc/bash.bashrc
 grep -q npm-global/bin /etc/bash.bashrc || echo 'export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:$PATH"' >> /etc/bash.bashrc
 if [ ! -f /etc/profile.d/cloudos-env.sh ]; then
@@ -1170,11 +1212,12 @@ if [ ! -f /etc/profile.d/cloudos-env.sh ]; then
   echo 'profile.d created'
 fi"#;
 
-    /// Env-контракт capabilities в workspace: /etc/cloudos/env.sh — переживает stop/start (rootfs). Его читают интерактивные
-    /// терминалы (/etc/bash.bashrc) и login-оболочки (/etc/profile.d/cloudos-env.sh): агент Coder стартует через `su - coder`,
-    /// так что code-server, расширения и скрипты агента наследуют переменные. Уже запущенный агент новых значений не увидит —
-    /// когда файл изменился (или заглушка profile.d только появилась) и юнит активен, он перезапускается; на первом boot юнит
-    /// ещё не активен (cloud-init), и агент просто стартует с готовым env. Возвращает, изменилось ли что-то в инстансе.
+    /// Capabilities env contract in the workspace: /etc/cloudos/env.sh — survives stop/start (rootfs). It is read by
+    /// interactive terminals (/etc/bash.bashrc) and login shells (/etc/profile.d/cloudos-env.sh): the Coder agent starts via
+    /// `su - coder`, so code-server, extensions and agent scripts inherit the variables. An already running agent will not see
+    /// new values — when the file changed (or the profile.d stub has only just appeared) and the unit is active, it is
+    /// restarted; on the first boot the unit is not active yet (cloud-init), and the agent simply starts with the env ready.
+    /// Returns whether anything changed in the instance.
     async fn push_workspace_env(&self, st: &ProjectState) -> bool {
         let inst = self.workspace_instance(&st.name).await;
         if !self.incus.instance_running(&inst).await.unwrap_or(false) {
@@ -1213,7 +1256,8 @@ fi"#;
         changed
     }
 
-    /// Адаптер agentd (ADR-006) едет в workspace вместе с env.sh: идемпотентно, событие только при изменениях.
+    /// The agentd adapter (ADR-006) travels into the workspace together with env.sh: idempotent, an event only
+    /// on changes.
     async fn push_workspace_agentd(&self, st: &ProjectState, inst: &str) {
         match crate::agentd::deploy(&self.incus, &self.store, inst, &st.name).await {
             Ok(d) if d.changed() => {
@@ -1225,7 +1269,8 @@ fi"#;
         }
     }
 
-    /// Политика обхода разрешений Claude Code — во все запущенные workspace'ы; возвращает имена тех, где файл поменялся.
+    /// Claude Code permission bypass policy — into every running workspace; returns the names of those where the file
+    /// changed.
     pub async fn apply_agents_policy(&self) -> Result<Vec<String>> {
         let running: std::collections::HashSet<String> = self.incus.instances().await?.into_iter().filter(|i| i.status == "Running").map(|i| i.name).collect();
         let mut changed = Vec::new();
@@ -1241,7 +1286,8 @@ fi"#;
         Ok(changed)
     }
 
-    /// Клиент к agentd запущенного workspace: адрес из Incus, токен из секрет-стора.
+    /// Client to the agentd of a running workspace: the address from Incus, the
+    /// token from the secret store.
     pub async fn agentd_client(&self, project: &str) -> Result<crate::agentd::AgentdClient> {
         let inst = self.workspace_instance(project).await;
         let info = self.incus.instances().await?.into_iter().find(|i| i.name == inst).ok_or_else(|| anyhow!("workspace {project} не найден"))?;
@@ -1267,6 +1313,7 @@ fi"#;
     pub async fn reload_edge(&self) -> Result<()> {
         let apps = self.store.list_apps()?;
         let alt = self.edge_alt_hosts();
+        let previews = self.preview_routes().await;
         let cfg = EdgeCaddy::render(&EdgeInput {
             host: &self.cfg.edge_host,
             alt_hosts: &alt,
@@ -1274,10 +1321,55 @@ fi"#;
             agents_upstream: &self.cfg.edge_agents_upstream,
             coder_upstream: &self.cfg.edge_coder_upstream,
             coder_port: self.cfg.coder_port,
+            agents_port: self.cfg.agents_port,
             apps: &apps,
+            previews: &previews,
             tls_internal: self.cfg.tls_internal,
         });
         self.edge.load(&cfg).await
+    }
+
+    /// Dev server previews (docs/agents-ux.md §4.9): routes for the edge render — upstream by the IP of the running
+    /// workspace
+    async fn preview_routes(&self) -> Vec<crate::caddy::PreviewRoute> {
+        let list = self.store.previews().unwrap_or_default();
+        if list.is_empty() { return Vec::new(); }
+        let instances = self.incus.instances().await.unwrap_or_default();
+        let mut out = Vec::new();
+        for p in list {
+            let inst = self.workspace_instance(&p.project).await;
+            let ip = instances.iter().find(|i| i.name == inst && i.status == "Running").and_then(|i| i.ip.clone());
+            out.push(crate::caddy::PreviewRoute { project: p.project.clone(), port: p.port, edge_port: p.edge_port, upstream: ip.map(|ip| format!("{ip}:{}", p.port)) });
+        }
+        out
+    }
+    pub fn preview_url(&self, edge_port: u16) -> String { format!("https://{}:{}/", self.cfg.edge_host, edge_port) }
+    pub fn previews(&self, project: &str) -> Result<Vec<crate::model::Preview>> { Ok(self.store.previews()?.into_iter().filter(|p| p.project == project).collect()) }
+    /// Enable a port preview: an existing route is returned as is, a new one takes a free edge port and re-renders the edge
+    pub async fn preview_add(&self, project: &str, port: u16) -> Result<crate::model::Preview> {
+        let _g = self.lock.lock().await;
+        self.store.get_project(project)?.ok_or_else(|| anyhow!("проект {project} не найден"))?;
+        if port == 0 { bail!("порт dev-сервера не задан"); }
+        let mut list = self.store.previews()?;
+        if let Some(p) = list.iter().find(|p| p.project == project && p.port == port) { return Ok(p.clone()); }
+        let edge_port = self.alloc_port(None)?;
+        let p = crate::model::Preview { project: project.to_string(), port, edge_port, created_at: crate::store::now() };
+        list.push(p.clone());
+        self.store.put_previews(&list)?;
+        if let Err(e) = self.reload_edge().await { tracing::warn!("edge после превью {project}:{port}: {e:#}"); }
+        let _ = self.store.event("workspace", project, &format!("превью dev-сервера :{port} опубликовано на порту {edge_port}"));
+        Ok(p)
+    }
+    pub async fn preview_remove(&self, project: &str, port: u16) -> Result<bool> {
+        let _g = self.lock.lock().await;
+        let mut list = self.store.previews()?;
+        let n = list.len();
+        list.retain(|p| !(p.project == project && p.port == port));
+        if list.len() == n { return Ok(false); }
+        self.store.put_previews(&list)?;
+        if let Err(e) = self.reload_edge().await { tracing::warn!("edge после снятия превью {project}:{port}: {e:#}"); }
+        let _ = self.store.event("workspace", project, &format!("превью dev-сервера :{port} снято"));
+        Ok(true)
     }
 
     pub async fn status(&self) -> Result<SystemStatus> {
@@ -1292,18 +1384,19 @@ fi"#;
         c.push(h("komodo", self.komodo.ping().await));
         c.push(h("caddy", self.edge.ping().await.map(|_| "admin api".into())));
         let (update_available, app_updates) = self.update_summary();
-        Ok(SystemStatus { edge_host: self.cfg.edge_host.clone(), edge_alt_hosts: self.edge_alt_hosts(), coder_url: self.cfg.coder_public_url(), coder_user: self.cfg.admin_email.clone(), coder_password_set: self.cfg.admin_password.is_some(), components: c, version: crate::updates::VERSION.into(), build: crate::updates::build_id().into(), setup_done: self.setup_done(), update_available, app_updates })
+        Ok(SystemStatus { edge_host: self.cfg.edge_host.clone(), edge_alt_hosts: self.edge_alt_hosts(), coder_url: self.cfg.coder_public_url(), agents_url: self.cfg.agents_public_url(), coder_user: self.cfg.admin_email.clone(), coder_password_set: self.cfg.admin_password.is_some(), components: c, version: crate::updates::VERSION.into(), build: crate::updates::build_id().into(), setup_done: self.setup_done(), update_available, app_updates })
     }
 
-    /// Запустить фоновый сборщик метрик (только в режиме serve).
+    /// Start the background metrics collector (serve mode only).
     pub fn start_monitor(&self) {
         let store = self.store.clone();
         self.monitor.clone().spawn(self.docker.clone(), self.incus.clone(), move || store.list_apps().map(|a| a.into_iter().map(|x| x.name).collect()).unwrap_or_default());
     }
 
-    /// Reconcile всего: перечитать репозиторий и применить каждый проект; поднять edge.
-    pub async fn reconcile_all(&self) -> Result<()> {
-        // edge мог быть пересоздан (новый образ, новые тома): подключения к сетям приложений при этом теряются — восстанавливаем
+    /// Join the edge to the app networks and upload its configuration: at start and when the edge container was
+    /// recreated (it comes up with the bootstrap config without our servers — without this the stand stays silent
+    /// until a core restart).
+    pub async fn restore_edge(&self) -> Result<()> {
         for st in self.store.list_apps()? {
             if st.manifest.kind == AppKind::External { continue; }
             if let Err(e) = self.docker.connect(&st.network(), &self.cfg.edge_container).await {
@@ -1311,7 +1404,33 @@ fi"#;
                 if !m.contains("already") { tracing::warn!("reconcile: edge → сеть {}: {m}", st.network()); }
             }
         }
-        self.reload_edge().await?;
+        self.reload_edge().await
+    }
+
+    /// Edge watchdog: every 20 s checks whether the live Caddy configuration has the `desktop` server; if not (container
+    /// recreated) — restores the networks and configuration itself.
+    pub fn start_edge_watch(&self) {
+        let me = self.clone();
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_secs(20)).await;
+                match me.edge.has_server("desktop").await {
+                    Ok(true) => {}
+                    Ok(false) => {
+                        tracing::warn!("edge: в конфигурации Caddy нет сервера desktop (контейнер пересоздан?) — заливаю заново");
+                        if let Err(e) = me.restore_edge().await { tracing::warn!("edge: восстановление не удалось: {e:#}"); } else { tracing::info!("edge: конфигурация восстановлена"); }
+                    }
+                    Err(_) => {}   // the admin API is unavailable — the container is still coming up; next check in 20 s
+                }
+            }
+        });
+    }
+
+    /// Reconcile everything: re-read the repository and apply every project; bring up
+    /// the edge.
+    pub async fn reconcile_all(&self) -> Result<()> {
+        // the edge may have been recreated (new image, new volumes): connections to app networks are lost then — restore them
+        self.restore_edge().await?;
         let dir = self.cfg.projects_dir();
         if dir.exists() {
             for e in std::fs::read_dir(&dir)? {
@@ -1327,7 +1446,8 @@ fi"#;
     }
 }
 
-/// Заметка к проекту: пробелы по краям срезаются, пустая превращается в отсутствие, длиннее 2000 символов не принимается.
+/// Project note: surrounding whitespace is trimmed, an empty one becomes absence, longer than 2000 characters is
+/// rejected.
 pub fn normalize_description(d: Option<String>) -> Result<Option<String>> {
     let d = d.map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
     if let Some(n) = d.as_ref().map(|s| s.chars().count()).filter(|n| *n > 2000) {
@@ -1343,7 +1463,7 @@ pub fn validate_name(n: &str) -> Result<()> {
     Ok(())
 }
 
-/// KEY=VALUE построчно; строки без `=` и комментарии пропускаются.
+/// KEY=VALUE per line; lines without `=` and comments are skipped.
 pub fn parse_env(out: &str) -> Vec<(String, String)> {
     out.lines()
         .map(str::trim)
@@ -1353,8 +1473,8 @@ pub fn parse_env(out: &str) -> Vec<(String, String)> {
         .collect()
 }
 
-/// `https://host[:port]/` → `https://host[:port]`: схема http(s), хост обязателен, путь запрещён — gate проксирует корень,
-/// пути (`/v1` и т.п.) добавляют клиенты.
+/// `https://host[:port]/` → `https://host[:port]`: http(s) scheme, host required, path forbidden — the gate proxies the
+/// root, paths (`/v1` etc.) are added by clients.
 pub fn normalize_external_url(raw: &str) -> Result<String> {
     let u = reqwest::Url::parse(raw.trim()).map_err(|e| anyhow!("адрес {raw:?}: {e}"))?;
     if !matches!(u.scheme(), "http" | "https") { bail!("адрес {raw:?}: нужна схема http или https"); }
@@ -1363,7 +1483,8 @@ pub fn normalize_external_url(raw: &str) -> Result<String> {
     Ok(match u.port() { Some(p) => format!("{}://{host}:{p}", u.scheme()), None => format!("{}://{host}", u.scheme()) })
 }
 
-/// `storage.s3` → `STORAGE_S3` (префикс переменных capability).
+/// `storage.s3` → `STORAGE_S3` (the capability variable
+/// prefix).
 pub fn env_prefix(capability: &str) -> String {
     capability.chars().map(|c| if c.is_ascii_alphanumeric() { c.to_ascii_uppercase() } else { '_' }).collect()
 }
@@ -1372,7 +1493,8 @@ fn shell_quote(v: &str) -> String {
     format!("'{}'", v.replace('\'', "'\\''"))
 }
 
-/// Подкаталоги `${APP_DATA_DIR}/<путь>` из compose (без «файловых» путей с расширением в последнем сегменте).
+/// `${APP_DATA_DIR}/<path>` subdirectories from compose (without "file" paths with an extension in the last
+/// segment).
 pub fn data_subdirs(compose: &str) -> Vec<String> {
     let re = regex_lite::Regex::new(r"\$\{APP_DATA_DIR\}/([A-Za-z0-9_./-]+)").unwrap();
     let mut out: Vec<String> = re.captures_iter(compose).map(|c| c[1].trim_end_matches('/').to_string()).filter(|p| !p.contains("..") && !p.rsplit('/').next().unwrap_or("").contains('.')).collect();
@@ -1387,7 +1509,7 @@ pub struct AppOverrides {
     pub effective_compose: String,
 }
 
-/// Глубокое слияние JSON-объектов (override поверх base); массивы заменяются целиком.
+/// Deep merge of JSON objects (override over base); arrays are replaced whole.
 pub fn merge_json(a: &mut serde_json::Value, b: &serde_json::Value) {
     match (a, b) {
         (serde_json::Value::Object(ao), serde_json::Value::Object(bo)) => {
@@ -1402,7 +1524,8 @@ pub fn merge_json(a: &mut serde_json::Value, b: &serde_json::Value) {
     }
 }
 
-/// Манифест из каталога плюс уточнение раздела `login` файлом `login.yaml` рядом (переимпорт каталога его не трогает).
+/// Manifest from the catalog plus a refinement of the `login` section by a `login.yaml` file next to it (a catalog
+/// re-import leaves it alone).
 pub fn load_manifest(p: &std::path::Path) -> Result<AppManifest> {
     let mut m: AppManifest = serde_yaml_ng::from_str(&std::fs::read_to_string(p)?).with_context(|| format!("манифест {}", p.display()))?;
     let lp = p.with_file_name("login.yaml");
@@ -1412,7 +1535,8 @@ pub fn load_manifest(p: &std::path::Path) -> Result<AppManifest> {
     Ok(m)
 }
 
-/// Список «Рекомендуем»: `store/recommended.yaml` — порядок задаёт место на полке.
+/// The "Recommended" list: `store/recommended.yaml` — the order sets the place on
+/// the shelf.
 #[derive(Debug, Default, serde::Deserialize)]
 pub struct RecommendedList {
     #[serde(default)]
@@ -1425,13 +1549,15 @@ pub struct RecommendedItem {
     pub app: String,
     #[serde(default)]
     pub reason: String,
-    /// Переводы причины: `i18n: { ru: { reason: … } }`.
+    /// Reason translations: `i18n: { ru: { reason: … }
+    /// }`.
     #[serde(default)]
     pub i18n: std::collections::BTreeMap<String, crate::model::I18nText>,
 }
 
 impl Service {
-    /// Имя приложения → место и причина. Ошибка разбора файла — предупреждение и пустой список, каталог от этого не ломается.
+    /// App name → place and reason. A file parse error is a warning and an empty list; the catalog does not break because of
+    /// it.
     pub fn recommended(&self) -> std::collections::BTreeMap<String, Recommended> {
         let p = self.cfg.store_dir().join("recommended.yaml");
         let Ok(text) = std::fs::read_to_string(&p) else { return Default::default() };
@@ -1446,8 +1572,9 @@ impl Service {
 }
 
 impl Service {
-    /// Альтернативные адреса Entry Point: из конфигурации плюс IPv4-адреса, в которые резолвится edge_host на самом сервере
-    /// (NetBird-IP). Нужны устройствам, у которых MagicDNS не работает: `https://<ip>/` открывает тот же Desktop с тем же CA.
+    /// Alternative Entry Point addresses: from the configuration plus the IPv4 addresses edge_host resolves to on the server
+    /// itself (the NetBird IP). Needed by devices where MagicDNS does not work: `https://<ip>/` opens the same Desktop with
+    /// the same CA.
     pub fn edge_alt_hosts(&self) -> Vec<String> {
         use std::net::ToSocketAddrs;
         let mut out: Vec<String> = self.cfg.edge_alt_hosts.clone();
@@ -1466,17 +1593,19 @@ impl Service {
 }
 
 pub const SHARED_NET: &str = "cloudos-shared";
-/// Выход gate наружу для внешних провайдеров (bridge с NAT хоста → маршруты хоста, в т.ч. tailnet); подключается только
-/// на время grants с `type: external` и становится default-шлюзом gate.
+/// Gate egress for external providers (a bridge with host NAT → host routes, incl. the tailnet); joined only for the
+/// duration of grants with `type: external` and becomes the gate's default gateway.
 pub const EGRESS_NET: &str = "cloudos-egress";
 
-/// Адрес приложения внутри Cloud OS: имя главного сервиса резолвится в его сети (и в общей) для подключённых контейнеров.
+/// App address inside Cloud OS: the main service name resolves in its network (and in the shared one) for connected
+/// containers.
 pub fn internal_url(a: &AppState) -> String {
     format!("http://{}:{}", a.manifest.endpoint.service, a.manifest.endpoint.port)
 }
 
-/// Подмешать в compose сети провайдеров и общую сеть, переменные связей — как `${VAR}` в environment каждого сервиса
-/// (значения живут в env стека, в файле compose секретов нет). Сервисы в `network_mode: host` и без `networks` не трогаем.
+/// Mix the provider networks and the shared network into compose, the link variables — as `${VAR}` in every service's
+/// environment (values live in the stack env, the compose file holds no secrets). Services in `network_mode: host` and
+/// without `networks` are left alone.
 pub fn inject_links(compose: &mut serde_json::Value, app: &str, endpoint_service: &str, providers: &[(String, String)], shared: bool, env_keys: &[String]) {
     use serde_json::{json, Value};
     let Some(obj) = compose.as_object_mut() else { return };
@@ -1522,7 +1651,7 @@ pub fn inject_links(compose: &mut serde_json::Value, app: &str, endpoint_service
 }
 
 impl Service {
-    /// Перевыкатить установленное приложение с актуальными compose и env (связи, общая сеть, настройки).
+    /// Redeploy an installed app with the current compose and env (links, shared network, settings).
     pub(crate) async fn redeploy(&self, name: &str) -> Result<()> {
         let m = self.manifest(name)?;
         let Some(st) = self.store.get_app(name)? else { return Ok(()) };
@@ -1540,7 +1669,8 @@ impl Service {
         Ok(())
     }
 
-    /// Подключить потребителя к провайдеру: сеть провайдера в compose потребителя, `<ПРОВАЙДЕР>_URL`, хуки провайдера (ключи) — и перевыкатка.
+    /// Link a consumer to a provider: the provider network in the consumer's compose, `<PROVIDER>_URL`, provider hooks (keys) — and a
+    /// redeploy.
     pub async fn app_link(&self, consumer: &str, provider: &str) -> Result<AppView> {
         let _g = self.lock.lock().await;
         if consumer == provider { bail!("приложение нельзя подключить к самому себе"); }
@@ -1580,7 +1710,8 @@ impl Service {
         self.app(consumer).await
     }
 
-    /// Общая сеть приложений: вторая сеть `cloudos-shared` и имя `<app>.apps` для всех, кто в ней.
+    /// Shared app network: a second network `cloudos-shared` and the name `<app>.apps` for
+    /// everyone in it.
     pub async fn app_set_shared(&self, name: &str, shared: bool) -> Result<AppView> {
         let _g = self.lock.lock().await;
         self.manifest(name)?;
@@ -1596,8 +1727,8 @@ impl Service {
 }
 
 impl Service {
-    /// Сменить сгенерированный секрет приложения (пароль, токен): новое значение той же формы, перевыкатка стека.
-    /// Работает для приложений, читающих env при старте; сохранившие пароль при инициализации нужно менять внутри них.
+    /// Rotate a generated app secret (password, token): a new value of the same shape, a stack redeploy. Works for
+    /// apps that read env at start; those that stored the password at initialization must be changed inside them.
     pub async fn app_rotate_secret(&self, name: &str, key: &str) -> Result<AppView> {
         let _g = self.lock.lock().await;
         let m = self.manifest(name)?;
@@ -1609,7 +1740,7 @@ impl Service {
         self.app(name).await
     }
 
-    /// Заметка пользователя к приложению (учётка из мастера первого запуска и т.п.) — хранится зашифрованной.
+    /// User note for the app (the account from the first-run wizard etc.) — stored encrypted.
     pub fn app_note(&self, name: &str) -> Result<String> {
         self.manifest(name)?;
         let t = self.store.get_secret(&format!("note:{name}"), "text")?.unwrap_or_default();
@@ -1624,8 +1755,8 @@ impl Service {
     }
 }
 
-/// Каталог данных приложения: создать недостающие уровни с владельцем по умолчанию (1000:1000, см. appdata.rs). Точный владелец
-/// по compose и образу выставляет `Service::prepare_data_dirs`; существующие каталоги здесь не трогаем.
+/// App data directory: create the missing levels with the default owner (1000:1000, see appdata.rs). The exact owner per
+/// compose and image is set by `Service::prepare_data_dirs`; existing directories are left alone here.
 pub fn ensure_data_dir(dir: &std::path::Path) -> Result<()> {
     let mut missing: Vec<std::path::PathBuf> = Vec::new();
     let mut p = dir.to_path_buf();

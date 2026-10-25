@@ -1,5 +1,6 @@
-// Проекты: список (Projects), карточка (ProjectCard) и окно проекта (ProjectWindow).
-// project.help1–help3 содержат <code> и выводятся через {@html} — подстановок в них нет, строки только из словаря.
+// Projects: the list (Projects), the card (ProjectCard) and the project window (ProjectWindow).
+// project.help1–help3 contain <code> and are output via {@html} — no substitutions in them, strings only from the
+// dictionary.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

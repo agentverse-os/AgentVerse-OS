@@ -1,6 +1,6 @@
-//! Маршруты к моделям для простого чата (docs/agents-ux.md §6.1): gate-приложения провайдера llm (локальные и внешние) и
-//! аккаунты с ключом (OpenRouter, OpenAI, Anthropic через OpenAI-совместимый адрес, свой адрес вроде Ollama). Ключи остаются
-//! в ядре: сервис «Агенты» видит только id маршрута, список моделей и потоковый прокси `chat/completions`.
+//! Model routes for the simple chat (docs/agents-ux.md §6.1): llm provider gate apps (local and external) and accounts with a
+//! key (OpenRouter, OpenAI, Anthropic via an OpenAI-compatible address, a custom address like Ollama). Keys stay in the
+//! core: the "Agents" service sees only the route id, the model list and the streaming `chat/completions` proxy.
 use crate::service::Service;
 use anyhow::{anyhow, bail, Result};
 use serde::Serialize;
@@ -14,13 +14,15 @@ pub struct LlmRoute {
     pub kind: &'static str,
     pub title: String,
     pub provider: String,
-    /// Хост базового адреса — для подписи в интерфейсе; сам адрес и ключ наружу не уходят
+    /// Host of the base address — for the label in the UI; the address itself and the key
+    /// are not exposed
     pub host: String,
     #[serde(skip)] pub base: String,
     #[serde(skip)] pub key: Option<String>,
 }
 
-/// База OpenAI-совместимого API: `…/v1` (OpenRouter — `https://openrouter.ai/api/v1`, gate — `http://<ip>:8317/v1`).
+/// Base of the OpenAI-compatible API: `…/v1` (OpenRouter — `https://openrouter.ai/api/v1`, the gate —
+/// `http://<ip>:8317/v1`).
 pub fn normalize_base(b: &str) -> String {
     let b = b.trim().trim_end_matches('/');
     if b.ends_with("/v1") { b.to_string() } else { format!("{b}/v1") }
@@ -45,7 +47,8 @@ impl Service {
                 (None, None, b, Some(k), _) | (None, None, b, None, Some(k)) => (b.unwrap_or_else(|| "https://api.anthropic.com".into()), Some(k)),
                 _ => continue,
             };
-            // адреса gate (`http://llm.gate`) доступны только из workspace — с хоста такой маршрут не работает
+            // gate addresses (`http://llm.gate`) are reachable only from a workspace — from the host such a
+            // route does not work
             if base.contains(".gate") || base.contains("localhost") || base.contains("127.0.0.1") { continue; }
             let base = normalize_base(&base);
             out.push(LlmRoute { id: format!("account:{}", a.id), kind: "key", title: a.label.clone(), provider: a.provider.clone(), host: host_of(&base), base, key });
@@ -57,11 +60,12 @@ impl Service {
         self.llm_routes().await?.into_iter().find(|r| r.id == id).ok_or_else(|| anyhow!("маршрут не найден: {id}"))
     }
 
-    /// Модели маршрута: `GET <base>/models` → {id, name, context, price_in, price_out} (цены — OpenRouter, $ за 1M токенов;
-    /// контекст — OpenRouter `context_length` или Anthropic-формат `max_input_tokens`).
+    /// Route models: `GET <base>/models` → {id, name, context, price_in, price_out} (prices — OpenRouter, $ per 1M tokens;
+    /// context — OpenRouter `context_length` or the Anthropic-format `max_input_tokens`).
     pub async fn llm_models(&self, id: &str) -> Result<Value> {
         let r = self.llm_route(id).await?;
-        // gate: настоящие id (прокси в Anthropic-списке маскирует не-Claude модели) и группы по каналам учёток
+        // gate: real ids (in the Anthropic list the proxy masks non-Claude models) and groups by account
+        // channels
         if let Some(app) = r.id.strip_prefix("gate:") {
             let t = self.gate_targets().await?.into_iter().map(|(t, _)| t).find(|t| t.app == app).ok_or_else(|| anyhow!("gate {app} не найден"))?;
             let list: Vec<Value> = self.gate_model_list(&t).await.into_iter().map(|m| json!({ "id": m.get("id"), "name": m.get("name").and_then(|n| n.as_str()).or_else(|| m.get("id").and_then(|i| i.as_str())),
@@ -80,7 +84,8 @@ impl Service {
             let mid = m.get("id").and_then(|i| i.as_str())?;
             let context = m.get("context_length").and_then(|c| c.as_u64()).or_else(|| m.get("max_input_tokens").and_then(|c| c.as_u64()));
             let pricing = m.get("pricing");
-            // OpenRouter и подобные: вендор — префикс id («anthropic/…»), иначе владелец или провайдер маршрута
+            // OpenRouter and the like: the vendor is the id prefix ("anthropic/…"), otherwise the owner or the
+            // route provider
             let vendor = mid.split_once('/').map(|(p, _)| p.to_string()).or_else(|| m.get("owned_by").and_then(|o| o.as_str()).map(str::to_string)).unwrap_or_else(|| r.provider.clone());
             Some(json!({ "id": mid, "name": m.get("name").or_else(|| m.get("display_name")).and_then(|n| n.as_str()).unwrap_or(mid), "context": context,
                 "price_in": per_m(pricing.and_then(|p| p.get("prompt"))), "price_out": per_m(pricing.and_then(|p| p.get("completion"))),
@@ -92,7 +97,8 @@ impl Service {
         Ok(json!({ "route": r.id, "title": r.title, "models": list }))
     }
 
-    /// Потоковый прокси `POST <base>/chat/completions`: тело как есть, ответ (SSE или JSON) — байтами наружу.
+    /// Streaming proxy `POST <base>/chat/completions`: the body as is, the answer (SSE or JSON) — as bytes
+    /// outwards.
     pub async fn llm_chat(&self, id: &str, body: &Value) -> Result<reqwest::Response> {
         let r = self.llm_route(id).await?;
         let http = reqwest::Client::builder().connect_timeout(std::time::Duration::from_secs(15)).timeout(std::time::Duration::from_secs(600)).build()?;
@@ -101,7 +107,8 @@ impl Service {
         req.send().await.map_err(|e| anyhow!("маршрут {}: {e}", r.title))
     }
 
-    /// Генерация картинки на маршруте (срез 37): `/images/generations` маршрута, ключ остаётся в ядре; ответ провайдера как есть.
+    /// Image generation on a route (slice 37): the route's `/images/generations`, the key stays in the core; the provider answer
+    /// as is.
     pub async fn llm_images(&self, id: &str, body: &Value) -> Result<Value> {
         let r = self.llm_route(id).await?;
         let http = reqwest::Client::builder().connect_timeout(std::time::Duration::from_secs(15)).timeout(std::time::Duration::from_secs(300)).build()?;

@@ -1,4 +1,5 @@
-# ntfy с включённой авторизацией: без токена ничего нельзя (deny-all). Пользователи и токены создаются хуками через CLI в контейнере.
+# ntfy with authorization enabled: nothing is allowed without a token (deny-all). Users and tokens are created by the hooks via the
+# CLI in the container.
 services:
   ntfy:
     image: binwiederhier/ntfy:v2.15.0

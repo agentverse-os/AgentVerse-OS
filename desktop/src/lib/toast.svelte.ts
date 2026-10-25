@@ -1,4 +1,5 @@
-// Уведомления Desktop: ход долгих операций (установка, удаление, связи), результат с действием, ошибки.
+// Desktop notifications: progress of long operations (install, removal, links), a result with an
+// action, errors.
 import { t } from './i18n.svelte';
 export type ToastKind = 'progress' | 'ok' | 'error' | 'info';
 export interface Toast { id: number; kind: ToastKind; title: string; text?: string; action?: { label: string; run: () => void }; until?: number }
@@ -18,7 +19,7 @@ class ToastStore {
     if (ttl) setTimeout(() => this.dismiss(id), ttl);
   }
   dismiss(id: number) { this.list = this.list.filter(t => t.id !== id); }
-  /** Обёртка долгой операции: прогресс с этапами → готово/ошибка. */
+  /** Wrapper of a long operation: progress with stages → done/error. */
   async track<T>(title: string, f: (progress: (stage: string) => void) => Promise<T>, done?: (v: T) => { text?: string; action?: Toast['action'] } | void): Promise<T> {
     const id = this.push({ kind: 'progress', title, text: t('common.starting') });
     try {

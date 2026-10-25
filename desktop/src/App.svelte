@@ -3,7 +3,8 @@
   import Offline from './lib/Offline.svelte';
   import Screensaver from './lib/Screensaver.svelte';
   import { bootDone, bootMessage, bootActive } from './lib/boot';
-  // Оболочка AgentVerse OS (3.12): рабочий стол с обоями и иконками, окна поверх, панель задач с меню запуска.
+  // The AgentVerse OS shell (3.12): a desktop with wallpaper and icons, windows on top, a taskbar with a start
+  // menu.
   import Windows from './lib/Windows.svelte';
   import Agents from './lib/Agents.svelte';
   import Taskbar from './lib/Taskbar.svelte';
@@ -20,16 +21,18 @@
 
   let status = $state<SystemStatus | null>(null);
   let ctx = $state<{ x: number; y: number } | null>(null);
-  // Доверяет ли браузер сертификату AgentVerse OS: Service Worker регистрируется только при полностью доверенном сертификате, «исключение»
-  // не считается. Без доверия не работают webview в code-server (панели расширений, в т.ч. Claude Code), PWA и приложения на других портах.
+  // Does the browser trust the AgentVerse OS certificate: the Service Worker is registered only with a fully trusted certificate, an
+  // "exception" does not count. Without trust the webviews in code-server (extension panels, incl. Claude Code), the PWA and apps on other
+  // ports do not work.
   let certWarn = $state(false);
   $effect(() => {
     if (!('serviceWorker' in navigator) || localStorage.getItem('cloudos.certwarn.until') && Number(localStorage.getItem('cloudos.certwarn.until')) > Date.now()) return;
     navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((e: unknown) => { const m = String(e); if (m.includes('SSL') || m.includes('certificate') || m.includes('SecurityError')) certWarn = true; });
   });
   function dismissCert() { certWarn = false; localStorage.setItem('cloudos.certwarn.until', String(Date.now() + 7 * 86400_000)); }
-  // связь с ядром: первый ответ снимает экран загрузки; без ответа дольше 25 с — оверлей «нет связи», ответ — снимает.
-  // Порог по времени, а не по числу промахов: один опрос с повторами может тянуться дольше интервала (в WebKit особенно).
+  // connection with the core: the first answer removes the loading screen; no answer for longer than 25 s — the "no
+  // connection" overlay, an answer removes it. The threshold is by time, not by the number of misses: one poll with
+  // retries may take longer than the interval (especially in WebKit).
   let failures = $state(0);
   let offlineSince = $state(0);
   let lastOk = Date.now();
@@ -53,7 +56,8 @@
   });
   const saverStatus = $derived(status ? t('saver.ok', { windows: tn('saver.windows', wm.wins.length) }) : t('common.noCore'));
 
-  // оформление: сразу из localStorage, затем из ядра (общее для всех устройств); изменения из панели задач — сохраняются
+  // appearance: right away from localStorage, then from the core (shared across all devices); changes from the taskbar
+  // are saved
   const initial = load();
   let appearance = $state<Appearance>(initial);
   apply(initial);
@@ -62,9 +66,10 @@
   $effect(() => { const a = $state.snapshot(appearance); apply(a); saveLocal(a); if (remoteLoaded) saveRemote(a); });
   $effect(() => watchSystem(() => appearance));
 
-  // глубокие ссылки: /#projects, /#store, /#system, /#settings, /#app=<name> открывают окно
+  // deep links: /#projects, /#store, /#system, /#settings, /#app=<name> open a window
   const sysApps: SysApp[] = ['projects', 'agents', 'store', 'system', 'settings', 'files', 'vault', 'setup', 'updates'];
-  // отдельное веб-приложение без оболочки: /?app=agents — одно системное окно на весь экран (ставится на телефон своей иконкой)
+  // a separate web app without the shell: /?app=agents — one system window full screen (installed on the phone with its own
+  // icon)
   const standalone = new URLSearchParams(location.search).get('app');
   $effect(() => { if (standalone === 'agents') document.title = `${t('sys.agents')} · AgentVerse OS`; });
   function openFromHash() {
@@ -76,8 +81,8 @@
     history.replaceState(null, '', location.pathname);
   }
   $effect(() => { openFromHash(); window.addEventListener('hashchange', openFromHash); return () => window.removeEventListener('hashchange', openFromHash); });
-  // первый визит из этого браузера: пока мастер первого запуска не пройден (ядро, kv setup.done) — открыть его на любом устройстве;
-  // иначе на десктопе — Проекты (телефон стартует с домашнего экрана). Решение принимается по первому ответу ядра.
+  // the first visit from this browser: while the first-run wizard is not done (the core, kv setup.done) — open it on any device;
+  // otherwise on desktop — Projects (the phone starts from the home screen). The decision is made on the core's first answer.
   const firstVisit = !location.hash && !localStorage.getItem('cloudos.firstrun');
   let firstOpened = false;
   $effect(() => {
@@ -87,7 +92,8 @@
     else if (!device.phone && !wm.wins.length) wm.openSys('projects');
   });
 
-  // клавиатура: Alt+Tab — следующее окно, Esc — закрыть меню, Meta/Ctrl+Space — меню запуска, Alt+F4/Ctrl+W не трогаем (браузер)
+  // keyboard: Alt+Tab — the next window, Esc — close the menu, Meta/Ctrl+Space — the start menu, Alt+F4/Ctrl+W are left alone
+  // (the browser)
   function keys(e: KeyboardEvent) {
     if (e.key === 'Tab' && e.altKey) { e.preventDefault(); wm.cycle(); }
     else if (e.key === 'Escape') { wm.startOpen = false; ctx = null; widgets.picker = false; }

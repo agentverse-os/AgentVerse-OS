@@ -1,9 +1,10 @@
-//! Простой чат (docs/agents-ux.md §6.1–6.3): беседы напрямую по OpenAI-совместимому API через маршруты ядра
-//! (`/api/llm/routes/{id}/chat` — gate проекта, OpenRouter и другие ключи; ключи остаются в ядре), без контейнера.
-//! Минимум инструментов: картинки и текстовые файлы на вход, `web_search` (SearXNG / Brave / Tavily из настроек) и
-//! `fetch_url` (страница текстом). История — таблицы `chats`/`chat_messages` в SQLite сервиса, вложения — файлами в
-//! каталоге данных; инкогнито-чаты живут только в памяти (TTL 2 ч, до 200 сообщений) и не пишутся на диск, в книгу расходов
-//! ядра уходит лишь строка с деньгами. Ответ отдаётся потоком SSE: delta · tool · done · error.
+//! Simple chat (docs/agents-ux.md §6.1–6.3): conversations directly over an OpenAI-compatible API through the core's routes
+//! (`/api/llm/routes/{id}/chat` — the project gate, OpenRouter and other keys; the keys stay in the core), without a
+//! container. A minimum of tools: images and text files as input, `web_search` (SearXNG / Brave / Tavily from the settings)
+//! and `fetch_url` (a page as text). History — the `chats`/`chat_messages` tables in the service SQLite, attachments — as
+//! files in the data directory; incognito chats live only in memory (TTL 2 h, up to 200 messages) and are never written to
+//! disk, only a row with the money goes to the core's expense ledger. The answer is served as an SSE stream: delta · tool ·
+//! done · error.
 use crate::{App, ApiError};
 use anyhow::{anyhow, bail, Result};
 use axum::extract::{Path, State};
@@ -26,10 +27,11 @@ const FETCH_MAX_CHARS: usize = 20_000;
 const FETCH_MAX_BYTES: usize = 2 * 1024 * 1024;
 const ATTACH_MAX: usize = 8 * 1024 * 1024;
 const TEXT_ATTACH_MAX: usize = 200 * 1024;
-/// Текст из PDF (срез 37): до 60 тысяч знаков на вложение
+/// Text from a PDF (slice 37): up to 60 thousand
+/// characters per attachment
 const PDF_TEXT_MAX: usize = 60_000;
 
-/// Текстовый слой PDF при загрузке (`pdf-extract`); сканы без текста дают пустую строку.
+/// PDF text layer at upload (`pdf-extract`); scans without text give an empty string.
 fn pdf_text(name: &str, mime: &str, bytes: &[u8]) -> String {
     if mime != "application/pdf" && !name.to_lowercase().ends_with(".pdf") { return String::new() }
     match pdf_extract::extract_text_from_mem(bytes) {
@@ -38,7 +40,8 @@ fn pdf_text(name: &str, mime: &str, bytes: &[u8]) -> String {
     }
 }
 
-/// `/img описание` — картинка вместо ответа модели (срез 37).
+/// `/img description` — an image instead of the model's
+/// answer (slice 37).
 pub fn img_prompt(text: &str) -> Option<String> {
     let t = text.trim();
     for p in ["/img ", "/картинка "] { if let Some(rest) = t.strip_prefix(p) { let r = rest.trim(); if !r.is_empty() { return Some(r.to_string()) } } }
@@ -72,7 +75,7 @@ pub struct Chat {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub struct Attachment { pub file: String, pub name: String, pub mime: String, pub size: u64, /// текстовый слой PDF (срез 37), у остальных пусто
+pub struct Attachment { pub file: String, pub name: String, pub mime: String, pub size: u64, // / the PDF text layer (slice 37), empty for the others
     #[serde(default)] pub text: String }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -95,7 +98,8 @@ pub struct Message {
     #[serde(default)] pub error: Option<String>,
 }
 
-/// Инкогнито-чат: всё в памяти, включая вложения.
+/// Incognito chat: everything in memory,
+/// attachments included.
 pub struct Incog { pub chat: Chat, pub msgs: Vec<Message>, pub files: HashMap<String, (String, Vec<u8>)>, pub touched: i64 }
 
 #[derive(Default)]
@@ -105,7 +109,8 @@ pub struct ChatState {
     pub models: Mutex<HashMap<String, (i64, Value)>>,
 }
 
-// ---------- хранение: SQLite для обычных, память для инкогнито ----------
+// ---------- storage: SQLite for regular chats, memory for incognito
+// ----------
 
 fn incog_get(app: &App, id: &str) -> Option<(Chat, Vec<Message>)> {
     let mut m = app.chat.incog.lock().unwrap();
@@ -119,6 +124,7 @@ pub fn load(app: &App, id: &str) -> Result<(Chat, Vec<Message>)> {
 }
 
 fn save_chat(app: &App, chat: &Chat) -> Result<()> {
+    app.hub.chats_changed();
     if chat.incognito {
         let mut m = app.chat.incog.lock().unwrap();
         match m.get_mut(&chat.id) { Some(e) => { e.chat = chat.clone(); e.touched = now(); }, None => { m.insert(chat.id.clone(), Incog { chat: chat.clone(), msgs: Vec::new(), files: HashMap::new(), touched: now() }); } }
@@ -127,6 +133,7 @@ fn save_chat(app: &App, chat: &Chat) -> Result<()> {
 }
 
 fn push_msg(app: &App, chat: &Chat, msg: &Message) -> Result<()> {
+    app.hub.chats_changed();
     if chat.incognito {
         let mut m = app.chat.incog.lock().unwrap();
         let e = m.get_mut(&chat.id).ok_or_else(|| anyhow!("инкогнито-чат исчез: {}", chat.id))?;
@@ -159,7 +166,7 @@ pub fn file_get(app: &App, chat_id: &str, file: &str) -> Option<(String, Vec<u8>
     Some((mime_guess::from_path(file).first_or_octet_stream().to_string(), bytes))
 }
 
-/// Убрать инкогнито-чаты, к которым не обращались дольше TTL (тик планировщика).
+/// Remove incognito chats not accessed for longer than the TTL (scheduler tick).
 pub fn sweep(app: &App) {
     let mut m = app.chat.incog.lock().unwrap();
     let cutoff = now() - INCOG_TTL;
@@ -167,7 +174,7 @@ pub fn sweep(app: &App) {
     for k in dead { m.remove(&k); tracing::info!("инкогнито-чат {k} истёк"); }
 }
 
-// ---------- настройки и маршруты ----------
+// ---------- settings and routes ----------
 
 #[derive(Deserialize, Clone, Debug, Default)]
 pub struct SearchCfg { #[serde(default)] pub kind: String, #[serde(default)] pub url: String, #[serde(default)] pub key: String }
@@ -183,7 +190,8 @@ async fn route_models(app: &App, route: &str) -> Result<Value> {
     Ok(v)
 }
 
-/// Цена модели, $ за 1M токенов (вход, выход): таблица `prices` сервиса, иначе цены маршрута (OpenRouter), иначе 0.
+/// Model price, $ per 1M tokens (input, output): the service's `prices` table, otherwise the route prices
+/// (OpenRouter), otherwise 0.
 async fn price_for(app: &App, route: &str, model: &str) -> (f64, f64, bool) {
     let prices = crate::api::settings_value(app).get("prices").cloned().unwrap_or(json!({}));
     if let Some(p) = prices.get(model).or_else(|| prices.get(model.split('/').last().unwrap_or(model))) {
@@ -197,7 +205,7 @@ async fn price_for(app: &App, route: &str, model: &str) -> (f64, f64, bool) {
     (0.0, 0.0, false)
 }
 
-// ---------- инструменты ----------
+// ---------- tools ----------
 
 fn tool_defs(tools: &Tools, search_ok: bool) -> Vec<Value> {
     let mut v = Vec::new();
@@ -217,7 +225,8 @@ fn url_allowed(url: &str) -> Result<()> {
     Ok(())
 }
 
-/// Текст страницы: без script/style/тегов, сжатые пробелы, заголовок из <title>.
+/// Page text: without script/style/tags, collapsed whitespace, the title from
+/// <title>.
 pub fn html_to_text(html: &str) -> (String, String) {
     let lower = html.to_lowercase();
     let title = lower.find("<title").and_then(|i| { let j = lower[i..].find('>')? + i + 1; let k = lower[j..].find("</title>")? + j; Some(html[j..k].trim().to_string()) }).unwrap_or_default();
@@ -297,7 +306,8 @@ async fn run_tool(app: &App, name: &str, args: &Value) -> Result<String> {
     }
 }
 
-// ---------- сообщения для провайдера ----------
+// ---------- messages for the provider
+// ----------
 
 fn system_prompt(chat: &Chat) -> String {
     let base = if chat.system.trim().is_empty() { "Ты полезный ассистент. Отвечай на языке собеседника, по делу, с markdown там, где он помогает (списки, таблицы, код). Если пользовался поиском или страницами, в конце дай короткий список источников с адресами.".to_string() } else { chat.system.trim().to_string() };
@@ -328,26 +338,54 @@ fn provider_messages(app: &App, chat: &Chat, msgs: &[Message]) -> Vec<Value> {
     out
 }
 
-// ---------- генерация ответа: потоковый вызов маршрута ядра, инструменты, итог ----------
+// ---------- answer generation: a streaming call of the core route, tools, result
+// ----------
 
 #[derive(Default)]
 struct Turn { text: String, tool_calls: Vec<(String, String, String)>, usage_in: u64, usage_out: u64, finish: String }
 
-/// Один вызов провайдера: чтение SSE (или JSON) → дельты в канал, вызовы инструментов и usage — в Turn.
+/// One provider call: reading SSE (or JSON) → deltas into the channel, tool calls and usage — into
+/// Turn.
 async fn call_provider(app: &App, chat: &Chat, messages: &[Value], tools: &[Value], tx: &tokio::sync::mpsc::Sender<Value>, stop: &AtomicBool) -> Result<Turn> {
     let mut body = json!({ "model": chat.model, "messages": messages, "stream": true, "stream_options": { "include_usage": true } });
     if !tools.is_empty() { body["tools"] = json!(tools); body["tool_choice"] = json!("auto"); }
     let url = format!("{}/api/llm/routes/{}/chat", app.cloudd, chat.route);
-    let resp = app.http.post(&url).json(&body).timeout(std::time::Duration::from_secs(600)).send().await.map_err(|e| anyhow!("ядро: {e}"))?;
+    // Transient failures — retry with a pause (3, 8, 15 s): the core restarts on an update (the connection drops), the provider
+    // behind the gate temporarily has no capacity (503) or quota (429); the answer headers are awaited for at most 3 minutes so a
+    // hung provider does not hold the turn for ten minutes. Retries — only while nothing has been sent into the stream and the turn
+    // is not stopped.
+    const WAITS: [u64; 3] = [3, 8, 15];
+    let mut attempt = 0usize;
+    let resp = loop {
+        let sent = tokio::time::timeout(std::time::Duration::from_secs(180), app.http.post(&url).json(&body).timeout(std::time::Duration::from_secs(600)).send()).await;
+        let (why, retry) = match sent {
+            Err(_) => bail!("провайдер не ответил за 3 минуты — попробуйте ещё раз или выберите другую модель"),
+            Ok(Err(e)) if e.is_connect() || e.is_request() => (format!("ядро недоступно: {e}"), true),
+            Ok(Err(e)) => bail!("ядро: {e}"),
+            Ok(Ok(r)) => {
+                let st = r.status().as_u16();
+                if matches!(st, 429 | 502 | 503 | 504) && attempt < WAITS.len() && !stop.load(Ordering::Relaxed) {
+                    let text = r.text().await.unwrap_or_default();
+                    (format!("{st} {}", short(&text, 200)), true)
+                } else { break r; }
+            }
+        };
+        if !retry || attempt >= WAITS.len() || stop.load(Ordering::Relaxed) { bail!("{why} — повторите через минуту (возможно, идёт обновление)"); }
+        let wait = WAITS[attempt]; attempt += 1;
+        tracing::warn!("чат {}: {why}; повтор {attempt} через {wait} с", chat.id);
+        let _ = tx.send(json!({ "kind": "tool_start", "name": format!("повтор {attempt} через {wait} с: {}", short(&why, 80)) })).await;
+        tokio::time::sleep(std::time::Duration::from_secs(wait)).await;
+    };
     let status = resp.status();
     let ctype = resp.headers().get("content-type").and_then(|v| v.to_str().ok()).unwrap_or("").to_lowercase();
     if !status.is_success() {
         let text = resp.text().await.unwrap_or_default();
         let msg = serde_json::from_str::<Value>(&text).ok().and_then(|v| v.pointer("/error/message").or_else(|| v.get("error")).and_then(|e| e.as_str().map(str::to_string).or_else(|| Some(e.to_string())))).unwrap_or_else(|| short(&text, 300));
-        bail!("{} {}", status.as_u16(), msg);
+        let hint = match status.as_u16() { 503 => " — у провайдера нет мощностей для этой модели: попробуйте позже или выберите другую модель в меню", 429 => " — лимит или квота провайдера: подождите или выберите другой маршрут", _ => "" };
+        bail!("{} {}{}", status.as_u16(), msg, hint);
     }
     let mut turn = Turn::default();
-    let mut calls: Vec<(String, String, String)> = Vec::new(); // (id, name, arguments) по index
+    let mut calls: Vec<(String, String, String)> = Vec::new(); // (id, name, arguments) by index
     let handle_chunk = |v: &Value, turn: &mut Turn, calls: &mut Vec<(String, String, String)>| -> Option<String> {
         if let Some(u) = v.get("usage").filter(|u| u.is_object()) { turn.usage_in = u.get("prompt_tokens").and_then(|x| x.as_u64()).unwrap_or(turn.usage_in); turn.usage_out = u.get("completion_tokens").and_then(|x| x.as_u64()).unwrap_or(turn.usage_out); }
         let ch = v.get("choices").and_then(|c| c.as_array()).and_then(|c| c.first())?;
@@ -406,7 +444,7 @@ async fn generate(app: Arc<App>, mut chat: Chat, mut msgs: Vec<Message>, tx: tok
             Ok(t) => t,
             Err(e) => {
                 let es = e.to_string();
-                // модель или маршрут без tool calling: повторить без инструментов
+                // a model or route without tool calling: retry without tools
                 if !tools.is_empty() && round == 0 && (es.contains("tool") || es.contains("function") || es.starts_with("400")) { tracing::info!("чат {}: без инструментов после ошибки: {es}", chat.id); tools.clear(); match call_provider(&app, &chat, &messages, &tools, &tx, &stop).await { Ok(t) => t, Err(e2) => { error = Some(e2.to_string()); break; } } }
                 else { error = Some(es); break; }
             }
@@ -414,7 +452,7 @@ async fn generate(app: Arc<App>, mut chat: Chat, mut msgs: Vec<Message>, tx: tok
         tin += turn.usage_in; tout += turn.usage_out;
         text.push_str(&turn.text);
         if turn.tool_calls.is_empty() || stop.load(Ordering::Relaxed) { break; }
-        // вызовы инструментов: ответ провайдера с tool_calls → результаты → следующий круг
+        // tool calls: the provider answer with tool_calls → results → the next round
         let calls_json: Vec<Value> = turn.tool_calls.iter().map(|(id, n, a)| json!({ "id": id, "type": "function", "function": { "name": n, "arguments": a } })).collect();
         messages.push(json!({ "role": "assistant", "content": if turn.text.is_empty() { Value::Null } else { json!(turn.text) }, "tool_calls": calls_json }));
         for (id, name, args_s) in &turn.tool_calls {
@@ -437,7 +475,8 @@ async fn generate(app: Arc<App>, mut chat: Chat, mut msgs: Vec<Message>, tx: tok
     chat.cost_usd += cost; chat.tokens_in += tin; chat.tokens_out += tout; chat.updated_at = now(); chat.messages = msgs.len() as u64;
     if chat.title.trim().is_empty() { if let Some(u) = msgs.iter().find(|m| m.role == "user") { let t: String = u.text.split_whitespace().collect::<Vec<_>>().join(" "); chat.title = short(if t.is_empty() { "Вложение" } else { &t }, TITLE_MAX); } }
     let _ = save_chat(&app, &chat);
-    // книга расходов ядра: только цифры, текста там нет и у инкогнито
+    // the core's expense ledger: numbers only, no text there even for
+    // incognito
     let rec = json!({ "project": PROJECT, "session": chat.id, "seq": seq, "agent": "api", "model": chat.model, "input": tin, "output": tout, "cost_usd": cost, "duration_ms": started.elapsed().as_millis() as u64, "source": if priced { "api" } else { "api-unpriced" } });
     if let Err(e) = app.core_post("/usage/record", &rec).await { tracing::debug!("usage/record: {e:#}"); }
     match &error {
@@ -468,7 +507,7 @@ pub async fn create(State(app): State<Arc<App>>, Json(b): Json<NewChat>) -> R {
     let route = if b.route.trim().is_empty() { cs.get("route").and_then(|r| r.as_str()).unwrap_or("").to_string() } else { b.route.trim().to_string() };
     let model = if b.model.trim().is_empty() { cs.get("model").and_then(|r| r.as_str()).unwrap_or("").to_string() } else { b.model.trim().to_string() };
     let (route, model) = if route.is_empty() || model.is_empty() {
-        // умолчаний нет: первый маршрут и первая его модель
+        // no defaults: the first route and its first model
         let routes = app.core_get("/llm/routes").await?;
         let first = routes.get("routes").and_then(|r| r.as_array()).and_then(|a| a.first()).and_then(|r| r.get("id").and_then(|i| i.as_str())).map(str::to_string).ok_or_else(|| anyhow!("нет ни одного маршрута к моделям: подключите gate или добавьте ключ в «Настройках → Аккаунты»"))?;
         let r = if route.is_empty() { first } else { route };
@@ -500,9 +539,10 @@ pub async fn update(State(app): State<Arc<App>>, Path(id): Path<String>, Json(pa
 }
 
 pub async fn delete(State(app): State<Arc<App>>, Path(id): Path<String>) -> Result<StatusCode, ApiError> {
-    if app.chat.incog.lock().unwrap().remove(&id).is_some() { return Ok(StatusCode::NO_CONTENT); }
+    if app.chat.incog.lock().unwrap().remove(&id).is_some() { app.hub.chats_changed(); return Ok(StatusCode::NO_CONTENT); }
     if !app.store.chat_delete(&id)? { return Err(ApiError(StatusCode::NOT_FOUND, "чат не найден".into())); }
     let _ = std::fs::remove_dir_all(files_dir(&app, &id));
+    app.hub.chats_changed();
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -511,10 +551,20 @@ pub struct AttachIn { pub name: String, #[serde(default)] pub mime: String, pub 
 #[derive(Deserialize)]
 pub struct SendBody { #[serde(default)] pub text: String, #[serde(default)] pub attachments: Vec<AttachIn>, #[serde(default)] pub model: Option<String>, #[serde(default)] pub tools: Option<Tools> }
 
-/// Сообщение пользователя → поток SSE с ответом (delta, tool_start, tool, done | error).
+/// User message → an SSE stream with the answer (delta, tool_start, tool, done | error). The
+/// refusal text if the "stop" limit for the simple chat (its project in the ledger) or the total
+/// one is exhausted
+async fn budget_block(app: &App) -> Option<String> {
+    let st = app.core_get("/agents/budgets/state").await.ok()?;
+    let b = st.as_array()?.iter().find(|b| b.get("blocked").and_then(|x| x.as_bool()) == Some(true) && matches!(b.get("scope").and_then(|x| x.as_str()), Some(sc) if sc == "total" || sc == PROJECT))?;
+    let who = if b.get("scope").and_then(|x| x.as_str()) == Some("total") { "всего".to_string() } else { format!("для {PROJECT}") };
+    Some(format!("дневной лимит ${:.2} {who} исчерпан (${:.2} за 24 ч): новые ходы остановлены, пока расход не снизится; лимит — в «Моделях»", b.get("per_day").and_then(|x| x.as_f64()).unwrap_or(0.0), b.get("spent").and_then(|x| x.as_f64()).unwrap_or(0.0)))
+}
 pub async fn send(State(app): State<Arc<App>>, Path(id): Path<String>, Json(b): Json<SendBody>) -> Result<Sse<impl futures_util::Stream<Item = Result<Event, std::convert::Infallible>>>, ApiError> {
     let (mut chat, mut msgs) = load(&app, &id).map_err(|e| ApiError(StatusCode::NOT_FOUND, e.to_string()))?;
     if b.text.trim().is_empty() && b.attachments.is_empty() { return Err(ApiError(StatusCode::BAD_REQUEST, "пустое сообщение".into())); }
+    // core spending limits (§8.3): the simple chat goes to the provider itself, so it checks the limit state here
+    if let Some(m) = budget_block(&app).await { return Err(ApiError(StatusCode::PAYMENT_REQUIRED, m)); }
     let stop = Arc::new(AtomicBool::new(false));
     {
         let mut busy = app.chat.busy.lock().unwrap();
@@ -550,8 +600,8 @@ pub async fn send(State(app): State<Arc<App>>, Path(id): Path<String>, Json(b): 
     Ok(Sse::new(stream).keep_alive(KeepAlive::new().interval(std::time::Duration::from_secs(15)).text("ping")))
 }
 
-/// Модель для картинок: из настроек чата (`image_model`), иначе первая `gpt-image-*` маршрута (gate принимает на
-/// `/images/generations` только их), иначе первая модель вида image.
+/// Model for images: from the chat settings (`image_model`), otherwise the route's first `gpt-image-*` (the gate
+/// accepts only those on `/images/generations`), otherwise the first model of kind image.
 async fn pick_image_model(app: &App, route: &str) -> Option<String> {
     let cfg = chat_settings(app).get("image_model").and_then(|v| v.as_str()).map(str::trim).filter(|s| !s.is_empty()).map(str::to_string);
     if cfg.is_some() { return cfg }
@@ -561,7 +611,8 @@ async fn pick_image_model(app: &App, route: &str) -> Option<String> {
     images.iter().find(|i| i.starts_with("gpt-image")).or_else(|| images.first()).cloned()
 }
 
-/// `/img`: картинка через ядро (`POST /llm/routes/{id}/images`), файл — во вложение сообщения модели; стоимость в книгу не идёт.
+/// `/img`: an image through the core (`POST /llm/routes/{id}/images`), the file — into the model message's attachment; the cost
+/// does not go to the ledger.
 async fn generate_image(app: Arc<App>, mut chat: Chat, msgs: Vec<Message>, prompt: String, tx: tokio::sync::mpsc::Sender<Value>) {
     let fail = |m: String| json!({ "kind": "error", "error": m, "message": Value::Null, "chat": Value::Null });
     let Some(model) = pick_image_model(&app, &chat.route).await else {
@@ -591,7 +642,7 @@ async fn generate_image(app: Arc<App>, mut chat: Chat, msgs: Vec<Message>, promp
     let _ = tx.send(json!({ "kind": "done", "message": msg, "chat": with_count(&app, &chat) })).await;
 }
 
-/// Пресеты системного промпта (срез 37): kv `chat.presets`, по умолчанию три заготовки.
+/// System prompt presets (slice 37): kv `chat.presets`, three templates by default.
 fn presets(app: &App) -> Vec<Value> {
     if let Some(v) = app.store.get_kv("chat.presets").ok().flatten().and_then(|v| v.as_array().cloned()) { return v }
     vec![
@@ -621,7 +672,8 @@ pub async fn stop(State(app): State<Arc<App>>, Path(id): Path<String>) -> R {
     Ok(Json(json!({ "stopped": stopped })))
 }
 
-/// Инкогнито → в историю: чат, сообщения и вложения переезжают на диск.
+/// Incognito → history: the chat, messages and attachments move to
+/// disk.
 pub async fn keep(State(app): State<Arc<App>>, Path(id): Path<String>) -> R {
     let e = app.chat.incog.lock().unwrap().remove(&id).ok_or_else(|| ApiError(StatusCode::NOT_FOUND, "инкогнито-чат не найден".into()))?;
     let mut chat = e.chat.clone(); chat.incognito = false; chat.updated_at = now();
@@ -640,7 +692,8 @@ pub async fn file(State(app): State<Arc<App>>, Path((id, file)): Path<(String, S
 pub struct HandoffBody { #[serde(default = "d_claude")] pub agent: String }
 fn d_claude() -> String { "claude".into() }
 
-/// Открыть в продвинутом чате: сессия Claude Code / Codex в scratch с историей первым сообщением.
+/// Open in the advanced chat: a Claude Code / Codex session in scratch with the history as the
+/// first message.
 pub async fn handoff(State(app): State<Arc<App>>, Path(id): Path<String>, Json(b): Json<HandoffBody>) -> R {
     let (chat, msgs) = load(&app, &id).map_err(|e| ApiError(StatusCode::NOT_FOUND, e.to_string()))?;
     if !matches!(b.agent.as_str(), "claude" | "codex" | "gemini" | "pi") { return Err(ApiError(StatusCode::BAD_REQUEST, "agent: claude | codex | gemini | pi".into())); }
@@ -655,7 +708,8 @@ pub async fn handoff(State(app): State<Arc<App>>, Path(id): Path<String>, Json(b
     Ok(Json(json!({ "session": s, "project": crate::chat::SCRATCH })))
 }
 
-/// Маршруты и их модели (через ядро, кэш 10 мин) + умолчания чата и готовность поиска.
+/// Routes and their models (through the core, 10 min cache) + chat defaults and search
+/// readiness.
 pub async fn routes(State(app): State<Arc<App>>) -> R {
     let rs = app.core_get("/llm/routes").await?;
     let mut out = Vec::new();

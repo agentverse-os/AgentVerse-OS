@@ -1,6 +1,6 @@
-//! Быстрый одноразовый вызов модели внутри workspace: `claude -p` дешёвой моделью без сохранения сессии (как подсказка
-//! сообщения коммита в fs.rs). Нужен сервису «Агенты» для служебных задач — рефлексии памяти агента и черновика брифа:
-//! бегает через gate/аккаунт workspace'а, ничего не знает о проекте и не пишет в него.
+//! Quick one-shot model call inside a workspace: `claude -p` with a cheap model and no session persistence (like the
+//! commit message hint in fs.rs). Needed by the "Agents" service for housekeeping: the agent memory reflection and the
+//! brief draft; runs through the workspace gate/account, knows nothing about the project and writes nothing into it.
 use crate::ApiError;
 use anyhow::anyhow;
 use axum::Json;
@@ -15,12 +15,12 @@ const PROMPT_MAX: usize = 60_000;
 pub struct QuickBody {
     pub prompt: String,
     #[serde(default)] pub model: Option<String>,
-    /// Каталог запуска (по умолчанию дом): от него зависят CLAUDE.md и настройки проекта, которые CLI подхватит
+    /// Launch directory (home by default): CLAUDE.md and the project settings the CLI picks up depend on it
     #[serde(default)] pub cwd: Option<String>,
     #[serde(default)] pub timeout_secs: Option<u64>,
 }
 
-/// POST /v1/llm/quick {prompt, model?, cwd?, timeout_secs?} → {text, model}. Один ход, без инструментов и сессии.
+/// POST /v1/llm/quick {prompt, model?, cwd?, timeout_secs?} → {text, model}. One turn, no tools and no session.
 pub async fn quick(Json(b): Json<QuickBody>) -> Result<Json<Value>, ApiError> {
     let prompt = b.prompt.trim();
     if prompt.is_empty() { return Err(ApiError::BadRequest("пустой запрос".into())); }

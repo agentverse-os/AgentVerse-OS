@@ -1,10 +1,11 @@
-//! Провайдеры по ACP — Agent Client Protocol (docs/agents-ux.md §4.3.8): JSON-RPC 2.0 построчно через stdio, один протокол
-//! для Gemini CLI (`gemini --experimental-acp`), pi (адаптер `pi-acp` поверх `pi --mode rpc`) и остальных агентов реестра
-//! ACP. Мы — клиент: `initialize` → (`authenticate`) → `session/new` | `session/load` → `session/prompt` (ответ приходит,
-//! когда ход закончен); агент шлёт уведомления `session/update` (куски текста и размышлений, вызовы инструментов и их
-//! итоги, план, команды, режим, заполненность контекста) и запросы `session/request_permission`. Всё это ложится в тот же
-//! журнал, что у Claude и Codex, — карточка Chat одна. Файловую систему и терминал по ACP не делегируем (агент работает
-//! с диском контейнера сам), MCP-серверов в `session/new` не передаём.
+//! Providers over ACP — the Agent Client Protocol (docs/agents-ux.md §4.3.8): line-delimited JSON-RPC 2.0 over stdio, one
+//! protocol for Gemini CLI (`gemini --experimental-acp`), pi (the `pi-acp` adapter on top of `pi --mode rpc`) and the
+//! other agents of the ACP registry. We are the client: `initialize` → (`authenticate`) → `session/new` | `session/load` →
+//! `session/prompt` (the answer arrives when the turn is over); the agent sends `session/update` notifications (text and
+//! thought chunks, tool calls and their results, plan, commands, mode, context usage) and `session/request_permission`
+//! requests. All of it lands in the same journal as for Claude and Codex — there is one Chat card. We do not delegate the
+//! file system and terminal over ACP (the agent works with the container disk itself) and pass no MCP servers in
+//! `session/new`.
 use crate::session::{Pending, Session, Status};
 use anyhow::{anyhow, bail, Result};
 use serde_json::{json, Value};
@@ -13,58 +14,78 @@ use std::sync::Arc;
 
 pub const PROTOCOL_VERSION: u64 = 1;
 
-/// Состояние ACP-сессии внутри нашей сессии.
+/// ACP session state inside our session.
 #[derive(Default)]
 pub struct AcpState {
     pub session_id: Option<String>,
-    /// Метка запуска процесса: id запросов начинаются с нуля при каждом старте, журнал — один на все запуски
+    /// Process start marker: request ids start from zero at every start, the journal is one for all starts
     pub epoch: u64,
-    /// Возобновление: история проигрывается агентом как `session/update`, в журнал её не кладём (она уже там)
+    /// Resume: the history is replayed by the agent as `session/update`, we do not put it into the journal
+    /// (it is already there)
     pub loading: bool,
-    /// Копим куски текста и размышлений: в журнал — при вызове инструмента и в конце хода
+    /// Accumulate text and thought chunks: into the journal on a tool call and at the end
+    /// of the turn
     pub text: String,
     pub thought: String,
-    /// Вызовы инструментов хода: id → (имя для карточки, заголовок агента, накопленный вывод)
+    /// Tool calls of the turn: id → (card name, agent title, accumulated output)
     pub tools: HashMap<String, (String, String, String)>,
     pub tool_order: Vec<String>,
-    /// `modes` из ответа session/new: { currentModeId, availableModes: [{id, name, description}] }
+    /// `modes` from the session/new answer: { currentModeId, availableModes: [{id, name,
+    /// description}] }
     pub modes: Value,
-    /// `models` (нестабильное поле ACP): { currentModelId, availableModels: [{modelId, name, description}] }
+    /// `models` (an unstable ACP field): { currentModelId, availableModels: [{modelId, name, description}] }
     pub models: Value,
     pub config_options: Value,
     /// `available_commands_update`: [{name, description, input}]
     pub commands: Vec<Value>,
-    /// `usage_update` (нестабильное): { used, size, cost? }
+    /// `usage_update` (unstable): { used, size, cost? }
     pub usage: Option<Value>,
     pub turn_started_ms: u64,
     pub turn_text: String,
     pub auth_methods: Vec<Value>,
     pub load_session: bool,
-    /// Текущая модель по данным агента (currentModelId или модель из init)
+    /// Current model according to the agent (currentModelId or the model
+    /// from init)
     pub model: Option<String>,
-    /// pi: сколько записей toolResult из файла сессии уже показано (вывод bash приходит только туда)
+    /// pi: how many toolResult records from the session file have already been shown (bash output
+    /// arrives only there)
     pub pi_tool_idx: usize,
-    /// идёт ли ход (между session/prompt и его ответом): текст агента вне хода — служебная заметка, а не ответ
+    /// is a turn in progress (between session/prompt and its answer): agent text outside a turn is a service
+    /// note, not an answer
     pub in_turn: bool,
-    /// после рестарта агент не смог поднять свою сессию (session/load) — первому промпту предпошлём пересказ журнала
+    /// after a restart the agent could not bring up its session (session/load) — the first prompt gets a retelling
+    /// of the journal prepended
     pub recap_pending: bool,
+    /// The agent's modes live in configOptions (`mode`) rather than in `modes` (omp): switch via
+    /// session/set_config_option
+    pub mode_via_config: bool,
+}
+
+/// `modes` from the configOptions entry with id `mode`: { currentModeId, availableModes: [{id, name,
+/// description}] }
+pub fn modes_from_config(config: &Value) -> Option<Value> {
+    let o = config.as_array()?.iter().find(|o| o.get("id").and_then(|i| i.as_str()) == Some("mode"))?;
+    let opts: Vec<Value> = o.get("options")?.as_array()?.iter().filter_map(|v| Some(json!({ "id": v.get("value")?.as_str()?, "name": v.get("name").and_then(|n| n.as_str()).unwrap_or(v.get("value")?.as_str()?), "description": v.get("description") }))).collect();
+    if opts.is_empty() { return None }
+    Some(json!({ "currentModeId": o.get("currentValue"), "availableModes": opts }))
 }
 
 fn now_ms() -> u64 { std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0) }
 
-/// Имя инструмента для карточки по виду ACP (`kind`) и заголовку: карточка Chat знает Bash/Edit/Read/Grep/WebFetch/Agent.
+/// Tool name for the card from the ACP kind (`kind`) and title: the Chat card knows Bash/Edit/Read/Grep/WebFetch/Agent.
 pub fn tool_name(kind: Option<&str>, title: &str, raw_input: &Value) -> String {
     match kind.unwrap_or("") {
         "execute" => "Bash", "edit" => "Edit", "delete" | "move" => "Bash", "read" => "Read", "search" => "Grep", "fetch" => "WebFetch", "think" => "Agent",
         _ => {
-            // pi-acp и Gemini кладут имя инструмента в rawInput или заголовок («run_shell_command», «bash», «edit»)
+            // pi-acp and Gemini put the tool name into rawInput or the title ("run_shell_command", "bash", "edit")
             let t = title.to_ascii_lowercase();
             if t.contains("shell") || t.contains("bash") || t.starts_with("run ") || raw_input.get("command").is_some() { "Bash" } else if t.contains("edit") || t.contains("write") || t.contains("replace") { "Edit" } else if t.contains("read") { "Read" } else if t.contains("search") || t.contains("grep") || t.contains("glob") || t.contains("find") { "Grep" } else if t.contains("fetch") || t.contains("http") { "WebFetch" } else { "Tool" }
         }
     }.to_string()
 }
 
-/// Текст из блоков содержимого ACP (ToolCallContent: `content` с ContentBlock, `diff`, `terminal`).
+/// Text from ACP content blocks (ToolCallContent: `content` with a ContentBlock, `diff`,
+/// `terminal`).
 pub fn content_text(content: &Value) -> String {
     let mut out = String::new();
     for c in content.as_array().cloned().unwrap_or_default() {
@@ -86,10 +107,11 @@ pub fn content_text(content: &Value) -> String {
     out
 }
 
-/// Режим сессии в терминах агента: наши имена (из Claude) и имена Codex переводятся в режимы Gemini; то, что агент
-/// перечислил в availableModes, принимается как есть.
+/// Session mode in the agent's terms: our names (from Claude) and Codex names are translated into Gemini modes;
+/// whatever the agent listed in availableModes is accepted as is.
 pub fn map_mode(engine: &str, mode: &str, available: &[String]) -> Option<String> {
-    // ACP-движки именуют режимы по-своему (Gemini: `autoEdit`, флаг CLI — `auto_edit`): сравниваем без регистра и `_`/`-`
+    // ACP engines name modes their own way (Gemini: `autoEdit`, the CLI flag — `auto_edit`): compare case-insensitively
+    // and ignoring `_`/`-`
     let norm = |s: &str| s.chars().filter(|c| *c != '_' && *c != '-').collect::<String>().to_ascii_lowercase();
     if let Some(a) = available.iter().find(|a| norm(a) == norm(mode)) { return Some(a.clone()); }
     let m = if engine == "gemini" {
@@ -99,8 +121,8 @@ pub fn map_mode(engine: &str, mode: &str, available: &[String]) -> Option<String
     available.iter().find(|a| norm(a) == norm(m)).cloned()
 }
 
-/// Вариант разрешения под ответ владельца: allow (+ запомнить) → allow_always, иначе allow_once; deny → reject_once /
-/// reject_always; нет подходящего — отмена.
+/// Permission option for the owner's answer: allow (+ remember) → allow_always, otherwise allow_once; deny →
+/// reject_once / reject_always; nothing suitable — cancel.
 pub fn pick_option(options: &Value, behavior: &str, remember: bool) -> Option<String> {
     let opts: Vec<(String, String)> = options.as_array().cloned().unwrap_or_default().iter().filter_map(|o| Some((o.get("optionId").and_then(|i| i.as_str())?.to_string(), o.get("kind").and_then(|k| k.as_str()).unwrap_or("").to_string()))).collect();
     let find = |kind: &str| opts.iter().find(|(_, k)| k == kind).map(|(id, _)| id.clone());
@@ -112,11 +134,12 @@ pub fn pick_option(options: &Value, behavior: &str, remember: bool) -> Option<St
     }
 }
 
-/// Имена, которые Gemini CLI подменяет своими «последними» моделями (resolveModel: gemini-3-flash → gemini-3.8-flash и т.п.);
-/// через gate такие не проходят — в выбор и список не попадают.
+/// Names that Gemini CLI replaces with its own "latest" models (resolveModel: gemini-3-flash → gemini-3.8-flash etc.); such
+/// names do not pass through the gate — they are left out of the choice and the list.
 const GEMINI_REMAPPED: &[&str] = &["gemini-3-flash", "gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "flash", "flash-lite", "pro", "auto"];
 
-/// Ранг модели Gemini для умолчания: номер версии (3.8 > 3.1), затем pro > flash, high > обычная > low.
+/// Rank of a Gemini model for the default: version number (3.8 > 3.1), then pro > flash, high > plain >
+/// low.
 fn gemini_rank(id: &str) -> f64 {
     let ver: f64 = id.trim_start_matches("gemini-").split('-').next().and_then(|v| v.parse().ok()).unwrap_or(0.0);
     let tier = if id.contains("pro") { 0.3 } else if id.contains("flash") { 0.2 } else { 0.1 };
@@ -124,19 +147,20 @@ fn gemini_rank(id: &str) -> f64 {
     ver * 10.0 + tier + think
 }
 
-/// Модели Gemini из каталога gate, которые CLI передаст как есть (без картинок, lite, чужих префиксов и подменяемых имён),
-/// от лучшей к худшей.
+/// Gemini models from the gate catalog that the CLI passes as is (no image, lite, foreign prefixes or replaced names),
+/// best to worst.
 pub fn gemini_gate_models(ids: &[String]) -> Vec<String> {
     let mut v: Vec<String> = ids.iter().filter(|s| s.starts_with("gemini-") && !s.contains("image") && !s.contains("lite") && !s.contains('/') && !GEMINI_REMAPPED.contains(&s.as_str())).cloned().collect();
     v.sort_by(|a, b| gemini_rank(b).partial_cmp(&gemini_rank(a)).unwrap_or(std::cmp::Ordering::Equal).then_with(|| a.cmp(b)));
     v
 }
 
-/// Модель Gemini по умолчанию через gate — лучшая из `gemini_gate_models`.
+/// Default Gemini model through the gate — the best of
+/// `gemini_gate_models`.
 pub fn pick_gemini_model(ids: &[String]) -> Option<String> { gemini_gate_models(ids).into_iter().next() }
 
-/// Модель pi по умолчанию через gate: самый новый Claude Sonnet без датированного суффикса (такие gate обычно уже не
-/// обслуживает), затем Opus, затем GPT, иначе первая из каталога.
+/// Default pi model through the gate: the newest Claude Sonnet without a dated suffix (the gate usually no longer
+/// serves those), then Opus, then GPT, otherwise the first one from the catalog.
 pub fn pick_pi_model(ids: &[String]) -> Option<String> {
     let ver = |s: &str, prefix: &str| -> Option<(u32, u32)> {
         let mut nums: Vec<u32> = Vec::new();
@@ -151,8 +175,9 @@ pub fn pick_pi_model(ids: &[String]) -> Option<String> {
     ids.first().cloned()
 }
 
-/// Провайдер gate для pi в `~/.pi/agent/models.json`: OpenAI-совместимый `/v1` gate'а с моделями из его каталога (без
-/// картинок и видео). Остальное содержимое файла не трогаем; при отсутствии своих настроек модели — умолчание на gate.
+/// Gate provider for pi in `~/.pi/agent/models.json`: the gate's OpenAI-compatible `/v1` with the models from its
+/// catalog (no image and video ones). The rest of the file is left alone; without the owner's own model settings — the
+/// default is on the gate.
 pub async fn pi_ensure_gate(env: &HashMap<String, String>) -> Option<String> {
     let base = env.get("OPENAI_BASE_URL")?.trim_end_matches('/').to_string();
     if !env.contains_key("OPENAI_API_KEY") { return None }
@@ -168,25 +193,83 @@ pub async fn pi_ensure_gate(env: &HashMap<String, String>) -> Option<String> {
     if !doc.get("providers").map(|p| p.is_object()).unwrap_or(false) { doc["providers"] = json!({}); }
     doc["providers"]["agentverse-gate"] = json!({ "baseUrl": base, "api": "openai-completions", "apiKey": "$OPENAI_API_KEY", "models": models });
     let _ = std::fs::write(&path, serde_json::to_vec_pretty(&doc).unwrap_or_default());
-    // умолчание модели: только если владелец ничего не настроил сам (нет defaultModel в settings.json)
+    // model default: only if the owner configured nothing themselves (no defaultModel in
+    // settings.json)
     let default = pick_pi_model(&ids);
     let spath = format!("{dir}/settings.json");
     let mut st: Value = std::fs::read(&spath).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or(json!({}));
     if !st.is_object() { st = json!({}); }
-    if st.get("defaultModel").is_none() { if let Some(d) = &default { st["defaultProvider"] = json!("agentverse-gate"); st["defaultModel"] = json!(d); } }
+    // …or if our provider's default disappeared from the gate catalog (otherwise every session without an explicit model
+    // ends in a 404)
+    let stale = st.get("defaultProvider").and_then(|p| p.as_str()) == Some("agentverse-gate") && st.get("defaultModel").and_then(|m| m.as_str()).map(|m| !ids.iter().any(|i| i == m)).unwrap_or(false);
+    if st.get("defaultModel").is_none() || stale { if let Some(d) = &default { st["defaultProvider"] = json!("agentverse-gate"); st["defaultModel"] = json!(d); } }
     if st.get("quietStartup").is_none() { st["quietStartup"] = json!(true); }
     let _ = std::fs::write(&spath, serde_json::to_vec_pretty(&st).unwrap_or_default());
     default.map(|d| format!("agentverse-gate/{d}"))
 }
 
-/// Файл сессии pi по id ACP-сессии (pi-acp ведёт карту `~/.pi/pi-acp/session-map.json`) — для TUI `pi --session <файл>`.
+/// Oh My Pi through the gate (docs/agents-ux.md §4.3.18): the `agentverse-gate` provider in `~/.omp/agent/models.yml` (on
+/// first start omp migrates models.json to models.yml and from then on reads only YAML — we write YAML right away via
+/// serde_yaml_ng, the owner's other providers are preserved), context windows per family. The default model as the `--model
+/// agentverse-gate/<id>` flag — we return it (omp does not read config.json with modelRoles).
+pub async fn omp_ensure_gate(env: &HashMap<String, String>) -> Option<String> {
+    let base = env.get("OPENAI_BASE_URL")?.trim_end_matches('/').to_string();
+    if !env.contains_key("OPENAI_API_KEY") { return None }
+    let ids = crate::codex::gate_model_ids(env).await;
+    let models: Vec<Value> = ids.iter().filter(|s| { let l = s.to_ascii_lowercase(); !l.contains("image") && !l.contains("imagine") && !l.contains("video") && !l.contains("-dd-") }).map(|id| {
+        let l = id.to_ascii_lowercase();
+        let (ctx, max) = if l.starts_with("gemini") || l.contains("/gemini") { (1_000_000u64, 65_536u64) } else if l.starts_with("gpt") || l.starts_with("o3") || l.starts_with("o4") { (400_000, 128_000) } else { (200_000, 32_000) };
+        json!({ "id": id, "name": id, "contextWindow": ctx, "maxTokens": max })
+    }).collect();
+    if models.is_empty() { return None }
+    let home = std::env::var("HOME").unwrap_or_else(|_| "/home/coder".into());
+    let dir = format!("{home}/.omp/agent");
+    let _ = std::fs::create_dir_all(&dir);
+    let path = format!("{dir}/models.yml");
+    let provider = json!({ "baseUrl": base, "api": "openai-completions", "apiKey": "$OPENAI_API_KEY", "models": models });
+    let existing = std::fs::read_to_string(&path).unwrap_or_default();
+    if let Some(y) = omp_models_yaml(&existing, provider) { let _ = std::fs::write(&path, y); }
+    // the first-run wizard (startup.setupWizard) is not needed in the TUI: the provider is already configured — turn it off in
+    // config.yml, leave the rest alone
+    let cpath = format!("{dir}/config.yml");
+    let ctext = std::fs::read_to_string(&cpath).unwrap_or_default();
+    let mut cfg: Value = if ctext.trim().is_empty() { json!({}) } else { serde_yaml_ng::from_str::<Value>(&ctext).unwrap_or(json!({})) };
+    if !cfg.is_object() { cfg = json!({}); }
+    if cfg.pointer("/startup/setupWizard") != Some(&json!(false)) {
+        if !cfg.get("startup").map(|v| v.is_object()).unwrap_or(false) { cfg["startup"] = json!({}); }
+        cfg["startup"]["setupWizard"] = json!(false);
+        if let Ok(y) = serde_yaml_ng::to_string(&cfg) { let _ = std::fs::write(&cpath, y); }
+    }
+    // models.json from the first version of the slice (omp migrates it to YAML at start): if only our provider is there
+    // — remove it
+    let jpath = format!("{dir}/models.json");
+    if let Some(j) = std::fs::read(&jpath).ok().and_then(|b| serde_json::from_slice::<Value>(&b).ok()) {
+        if j.get("providers").and_then(|p| p.as_object()).map(|p| p.len() == 1 && p.contains_key("agentverse-gate")).unwrap_or(false) { let _ = std::fs::remove_file(&jpath); }
+    }
+    pick_pi_model(&ids).map(|d| format!("agentverse-gate/{d}"))
+}
+
+/// omp models.yml with our provider: the other providers and other keys are preserved; None — nothing to
+/// change.
+pub fn omp_models_yaml(existing: &str, provider: Value) -> Option<String> {
+    let mut doc: Value = if existing.trim().is_empty() { json!({}) } else { serde_yaml_ng::from_str::<Value>(existing).unwrap_or(json!({})) };
+    if !doc.is_object() { doc = json!({}); }
+    if !doc.get("providers").map(|p| p.is_object()).unwrap_or(false) { doc["providers"] = json!({}); }
+    if doc["providers"].get("agentverse-gate") == Some(&provider) { return None }
+    doc["providers"]["agentverse-gate"] = provider;
+    match serde_yaml_ng::to_string(&doc) { Ok(y) => Some(y), Err(e) => { tracing::warn!("omp models.yml: {e}"); None } }
+}
+
+/// pi session file by ACP session id (pi-acp keeps the map `~/.pi/pi-acp/session-map.json`) — for the TUI `pi --session
+/// <file>`.
 pub fn pi_session_file(sid: &str) -> Option<String> {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/home/coder".into());
     let v: Value = serde_json::from_slice(&std::fs::read(format!("{home}/.pi/pi-acp/session-map.json")).ok()?).ok()?;
     v.pointer(&format!("/sessions/{sid}/sessionFile")).and_then(|f| f.as_str()).map(str::to_string)
 }
 
-/// pi-acp глотает ошибки pi (ход заканчивается end_turn без текста): смотрим последнюю запись ассистента в файле сессии pi.
+/// pi-acp swallows pi errors (the turn ends with end_turn and no text): look at the last assistant record in the pi session
+/// file.
 pub fn pi_last_error(sid: Option<&str>) -> Option<String> {
     let s = std::fs::read_to_string(pi_session_file(sid?)?).ok()?;
     let last = s.lines().rev().filter_map(|l| serde_json::from_str::<Value>(l).ok()).find(|v| v.get("type").and_then(|t| t.as_str()) == Some("message") && v.pointer("/message/role").and_then(|r| r.as_str()) == Some("assistant"))?;
@@ -194,8 +277,9 @@ pub fn pi_last_error(sid: Option<&str>) -> Option<String> {
     Some(last.pointer("/message/errorMessage").and_then(|e| e.as_str()).unwrap_or("ошибка модели").to_string())
 }
 
-/// pi-acp отдаёт для bash только ссылку на терминал (`{type: terminal}`), а не вывод; вывод лежит в файле сессии pi
-/// записью `toolResult`. Берём первую ещё не показанную запись после `skip` штук; возвращаем (текст, ошибка?, новый skip).
+/// For bash pi-acp returns only a terminal reference (`{type: terminal}`), not the output; the output lies in the pi
+/// session file as a `toolResult` record. Take the first not-yet-shown record after `skip` of them; return (text, error?,
+/// new skip).
 pub fn pi_tool_output(sid: Option<&str>, skip: usize) -> Option<(String, bool, usize)> {
     let s = std::fs::read_to_string(pi_session_file(sid?)?).ok()?;
     let mut seen = 0usize;
@@ -211,8 +295,9 @@ pub fn pi_tool_output(sid: Option<&str>, skip: usize) -> Option<(String, bool, u
     None
 }
 
-/// Gemini CLI: режимы autoEdit/yolo доступны только в «доверенной» папке (`setApprovalMode` иначе падает с Internal error);
-/// доверие хранится в `~/.gemini/trustedFolders.json` — добавляем cwd сессии как TRUST_FOLDER, остальное не трогаем.
+/// Gemini CLI: the autoEdit/yolo modes are available only in a "trusted" folder (`setApprovalMode` fails with Internal
+/// error otherwise); trust is stored in `~/.gemini/trustedFolders.json` — add the session cwd as TRUST_FOLDER, leave the
+/// rest alone.
 pub fn gemini_ensure_trust(cwd: &str) {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/home/coder".into());
     let dir = format!("{home}/.gemini");
@@ -225,9 +310,10 @@ pub fn gemini_ensure_trust(cwd: &str) {
     let _ = std::fs::write(&path, serde_json::to_vec_pretty(&doc).unwrap_or_default());
 }
 
-/// Gemini CLI по ACP не отдаёт вывод shell-команд (returnDisplay у него — объект терминала, `toToolCallContent` даёт
-/// null), но пишет его в запись беседы `~/.gemini/tmp/<проект>/chats/session-<дата>-<8 знаков id>.jsonl`: строка
-/// `{"type":"gemini","toolCalls":[{id, result:[{functionResponse:{response:{output}}}], resultDisplay:[[{text}]]}]}`.
+/// Gemini CLI over ACP does not return shell command output (its returnDisplay is a terminal object,
+/// `toToolCallContent` yields null), but writes it into the conversation record
+/// `~/.gemini/tmp/<project>/chats/session-<date>-<8 chars of id>.jsonl`: the line `{"type":"gemini","toolCalls":[{id,
+/// result:[{functionResponse:{response:{output}}}], resultDisplay:[[{text}]]}]}`.
 pub fn gemini_tool_output(sid: Option<&str>, tid: &str) -> Option<(String, bool)> {
     let sid = sid?; let short: String = sid.chars().take(8).collect();
     let home = std::env::var("HOME").unwrap_or_else(|_| "/home/coder".into());
@@ -245,7 +331,8 @@ pub fn gemini_tool_output(sid: Option<&str>, tid: &str) -> Option<(String, bool)
             for c in calls {
                 if c.get("id").and_then(|i| i.as_str()) != Some(tid) { continue }
                 let is_err = c.get("status").and_then(|s| s.as_str()).map(|s| s != "success").unwrap_or(false);
-                // resultDisplay — строки терминала (сегменты с пробелами до ширины окна); иначе — output функции без обёртки
+                // resultDisplay — terminal lines (segments padded with spaces to the window width); otherwise — the function
+                // output without a wrapper
                 let mut lines: Vec<String> = c.get("resultDisplay").and_then(|d| d.as_array()).map(|rows| rows.iter().map(|row| row.as_array().map(|segs| segs.iter().filter_map(|sg| sg.get("text").and_then(|t| t.as_str())).collect::<String>()).unwrap_or_default().trim_end().to_string()).collect()).unwrap_or_default();
                 while lines.last().map(|l| l.is_empty()).unwrap_or(false) { lines.pop(); }
                 if lines.is_empty() {
@@ -260,8 +347,8 @@ pub fn gemini_tool_output(sid: Option<&str>, tid: &str) -> Option<(String, bool)
     None
 }
 
-/// Токены хода pi — из файла сессии: сумма `usage` записей ассистента после последнего сообщения пользователя
-/// (pi-acp по ACP отдаёт только заполненность контекста).
+/// pi turn tokens — from the session file: the sum of `usage` of the assistant records after the last user
+/// message (over ACP pi-acp reports only the context usage).
 pub fn pi_turn_usage(sid: Option<&str>) -> Option<Value> {
     let s = std::fs::read_to_string(pi_session_file(sid?)?).ok()?;
     let (mut inp, mut out, mut cr, mut cw, mut n) = (0u64, 0u64, 0u64, 0u64, 0u32);
@@ -281,7 +368,8 @@ pub fn pi_turn_usage(sid: Option<&str>) -> Option<Value> {
     Some(json!({ "input_tokens": inp, "output_tokens": out, "cache_read_input_tokens": cr, "cache_creation_input_tokens": cw }))
 }
 
-/// Значение модели для агента: у pi это `провайдер/модель` — голое имя дополняем по его списку (сначала наш провайдер gate).
+/// Model value for the agent: for pi it is `provider/model` — a bare name is completed from its list (our gate provider
+/// first).
 pub fn acp_model_value(st: &AcpState, model: &str) -> String {
     if model.contains('/') { return model.to_string() }
     let mut candidates: Vec<String> = Vec::new();
@@ -295,7 +383,56 @@ pub fn acp_model_value(st: &AcpState, model: &str) -> String {
     candidates.iter().find(|c| c.as_str() == format!("agentverse-gate/{model}")).or_else(|| candidates.iter().find(|c| c.ends_with(&suffix))).cloned().unwrap_or_else(|| model.to_string())
 }
 
-/// Умеет ли агент менять модель на лету: через `configOptions` (id `model`, так у pi-acp) или `session/set_model` (Gemini).
+/// Antigravity through the gate (docs/agents-ux.md §4.3.17): `agy`'s own Gemini API key mode — `modelProvider: "gemini"` in
+/// `~/.gemini/antigravity-cli/settings.json` plus GEMINI_API_KEY and GOOGLE_GEMINI_BASE_URL from the gate environment; gate
+/// models are passed as `gemini-api://<id>` (that way agy sends the id as is; "known" names like gemini-3.8-flash-high it cuts
+/// down itself to gemini-3.8-flash with a thinking level, and the gate has no such id). Returns whether the gate mode is on
+/// (key and address in place).
+pub fn antigravity_gate(env: &HashMap<String, String>) -> bool {
+    env.contains_key("GEMINI_API_KEY") && (env.contains_key("GEMINI_BASE_URL") || env.contains_key("GOOGLE_GEMINI_BASE_URL"))
+}
+pub fn antigravity_ensure_gate(env: &HashMap<String, String>) -> bool {
+    if !antigravity_gate(env) { return false }
+    let home = std::env::var("HOME").unwrap_or_else(|_| "/home/coder".into());
+    let dir = format!("{home}/.gemini/antigravity-cli");
+    let _ = std::fs::create_dir_all(&dir);
+    let path = format!("{dir}/settings.json");
+    let mut st: Value = std::fs::read(&path).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or(json!({}));
+    if !st.is_object() { st = json!({}); }
+    if st.get("modelProvider").and_then(|v| v.as_str()) != Some("gemini") {
+        st["modelProvider"] = json!("gemini");
+        let _ = std::fs::write(&path, serde_json::to_vec_pretty(&st).unwrap_or_default());
+    }
+    true
+}
+/// Model for `agy` in gate mode: `gemini-api://<id>`; its own URL forms and the mode without a gate
+/// — as is.
+pub fn antigravity_model(model: &str, gate: bool) -> String {
+    let m = model.trim();
+    if gate && !m.contains("://") && !m.starts_with("blade:") && !m.starts_with("evergreen:") { format!("gemini-api://{m}") } else { m.to_string() }
+}
+/// Environment variables of the Antigravity adapter/TUI: the gate address in GOOGLE_GEMINI_BASE_URL (agy reads
+/// only that one).
+pub fn antigravity_env(env: &HashMap<String, String>) -> Vec<(String, String)> {
+    let mut v = Vec::new();
+    if !env.contains_key("GOOGLE_GEMINI_BASE_URL") { if let Some(b) = env.get("GEMINI_BASE_URL") { v.push(("GOOGLE_GEMINI_BASE_URL".to_string(), b.clone())); } }
+    v
+}
+
+/// Arguments of the google-antigravity-acp adapter (docs/agents-ux.md §4.3.17): model `-m`, effort `-e` (the adapter knows only
+/// low|medium|high — anything else is not passed, the model takes its default), permissions — the adapter approves everything
+/// itself by default, so in the "ask" modes we set `--no-skip-permissions`, and in auto/bypass we leave the auto-approval.
+pub fn antigravity_args(model: Option<&str>, effort: Option<&str>, mode: Option<&str>, gate: bool) -> Vec<String> {
+    let mut a = Vec::new();
+    if let Some(m) = model.filter(|m| !m.trim().is_empty()) { a.push("-m".into()); a.push(antigravity_model(m, gate)); }
+    if let Some(e) = effort.map(str::trim).filter(|e| ["low", "medium", "high"].contains(e)) { a.push("-e".into()); a.push(e.to_string()); }
+    let norm = mode.unwrap_or("default").chars().filter(|c| *c != '_' && *c != '-').collect::<String>().to_ascii_lowercase();
+    if !matches!(norm.as_str(), "auto" | "yolo" | "bypasspermissions" | "dontask" | "never" | "acceptedits" | "autoedit") { a.push("--no-skip-permissions".into()); }
+    a
+}
+
+/// Can the agent change the model on the fly: via `configOptions` (id `model`, as pi-acp does) or `session/set_model`
+/// (Gemini).
 pub fn acp_model_switchable(st: &AcpState) -> bool {
     st.config_options.as_array().map(|a| a.iter().any(|o| o.get("id").and_then(|i| i.as_str()) == Some("model"))).unwrap_or(false)
         || st.models.get("availableModels").and_then(|a| a.as_array()).map(|a| !a.is_empty()).unwrap_or(false)
@@ -308,7 +445,12 @@ impl Session {
         self.write(&json!({ "jsonrpc": "2.0", "id": id.parse::<u64>().map(Value::from).unwrap_or(Value::String(id.clone())), "method": method, "params": params })).await?;
         match tokio::time::timeout(std::time::Duration::from_secs(timeout_s), rx).await {
             Ok(Ok(v)) => {
-                if let Some(err) = v.get("error") { bail!("{method}: {} (код {})", err.get("message").and_then(|m| m.as_str()).unwrap_or("ошибка"), err.get("code").and_then(|c| c.as_i64()).unwrap_or(0)); }
+                if let Some(err) = v.get("error") {
+                    // error details (`data.details` of the adapters, e.g. "agy process exited before emitting init event") — into the text, otherwise only "Internal error"
+                    // is visible
+                    let details = err.get("data").map(|d| d.get("details").and_then(|x| x.as_str()).map(str::to_string).unwrap_or_else(|| if d.is_string() { d.as_str().unwrap_or("").to_string() } else { d.to_string() })).filter(|d| !d.is_empty() && d != "null").map(|d| format!(" — {}", d.chars().take(300).collect::<String>())).unwrap_or_default();
+                    bail!("{method}: {} (код {}){details}", err.get("message").and_then(|m| m.as_str()).unwrap_or("ошибка"), err.get("code").and_then(|c| c.as_i64()).unwrap_or(0));
+                }
                 Ok(v.get("result").cloned().unwrap_or(Value::Null))
             }
             Ok(Err(_)) => bail!("процесс завершился до ответа на {method}"),
@@ -326,8 +468,8 @@ impl Session {
         let _ = std::fs::write(self.dir().join("acp.json"), serde_json::to_vec(&v).unwrap_or_default());
     }
 
-    /// Старт: initialize → (authenticate) → session/load при возобновлении или session/new. Модель — у Gemini флагом при
-    /// запуске, у остальных `session/set_model`, если агент отдал список моделей.
+    /// Start: initialize → (authenticate) → session/load on resume or session/new. The model — for Gemini as a flag at
+    /// start, for the others `session/set_model` if the agent returned a model list.
     pub(crate) async fn acp_start(self: &Arc<Self>, resume: bool) -> Result<()> {
         let meta = self.meta.lock().unwrap().clone();
         let engine = crate::engines::get(&meta.agent).ok_or_else(|| anyhow!("неизвестный движок {}", meta.agent))?;
@@ -340,7 +482,8 @@ impl Session {
         }
         let env = crate::codex::effective_env(&meta);
         let gate = env.contains_key("OPENAI_BASE_URL") && !env.contains_key("CODEX_HOME");
-        // каталог моделей gate — на весь workspace (меню модели Gemini у остановленных сессий тоже)
+        // the gate model catalog — for the whole workspace (the Gemini model menu of stopped
+        // sessions too)
         if engine.id == "gemini" && gate { let ids = crate::codex::gate_model_ids(&env).await; if !ids.is_empty() { if let Some(parent) = self.dir().parent() { let _ = std::fs::write(parent.join("gate-models.json"), serde_json::to_vec(&ids).unwrap_or_default()); } } }
         let can_load = self.acp.lock().unwrap().load_session;
         let mut restarted = false;
@@ -356,7 +499,8 @@ impl Session {
             }
             _ => self.acp_call("session/new", json!({ "cwd": meta.cwd, "mcpServers": crate::mcp::acp_servers() }), 120).await,
         };
-        // нет входа: Gemini через gate — метод gateway (адрес из GOOGLE_GEMINI_BASE_URL), по ключу — gemini-api-key; затем ещё раз
+        // not signed in: Gemini through the gate — the gateway method (address from GOOGLE_GEMINI_BASE_URL), with a key —
+        // gemini-api-key; then once more
         if let Err(e) = &res {
             let msg = e.to_string();
             if msg.contains("-32000") || msg.to_ascii_lowercase().contains("auth") {
@@ -380,15 +524,36 @@ impl Session {
             if let Some(m) = r.get("modes").filter(|m| m.is_object()) { st.modes = m.clone(); }
             if let Some(m) = r.get("models").filter(|m| m.is_object()) { st.models = m.clone(); st.model = m.get("currentModelId").and_then(|c| c.as_str()).map(str::to_string); }
             if let Some(c) = r.get("configOptions").filter(|c| c.is_array()) { st.config_options = c.clone(); }
+            // modes only in configOptions (omp: `mode` default | plan) — bring them to the modes shape, switching —
+            // set_config_option
+            if st.modes.is_null() { if let Some(m) = modes_from_config(&st.config_options) { st.modes = m; st.mode_via_config = true; } }
         }
         {
             let mut m = self.meta.lock().unwrap();
             m.provider_session_id = Some(sid.clone());
-            // модель из ответа агента (pi: currentModelId), если сессия своей не задавала
+            // the model from the agent's answer (pi: currentModelId) if the session did
+            // not set its own
             if m.model.is_none() { if let Some(cur) = self.acp.lock().unwrap().model.clone() { m.model = Some(cur); } }
         }
         self.save_meta();
-        // модель сессии: у Gemini уже флагом при запуске; у остальных — session/set_model, если агент отдал список
+        // pi through the gate without an explicit model: the agent's current model may have disappeared from the gate catalog (404 on
+        // every turn) — check and change
+        if engine.id == "pi" && gate && meta.model.is_none() {
+            let cur = { let st = self.acp.lock().unwrap(); st.config_options.as_array().and_then(|a| a.iter().find(|o| o.get("id").and_then(|i| i.as_str()) == Some("model"))).and_then(|o| o.get("currentValue").and_then(|v| v.as_str()).map(str::to_string)) };
+            if let Some(cur) = cur { if let Some(bare) = cur.strip_prefix("agentverse-gate/") {
+                let ids = crate::codex::gate_model_ids(&env).await;
+                if !ids.is_empty() && !ids.iter().any(|i| i == bare) {
+                    if let Some(pick) = pick_pi_model(&ids) {
+                        match self.acp_apply_model(&sid, &pick).await {
+                            Ok(v) => { self.meta.lock().unwrap().model = Some(v.clone()); self.save_meta(); self.emit(json!({ "kind": "system", "subtype": "agent_note", "data": { "message": format!("модели {cur} в каталоге gate больше нет — сессия переключена на {v}") } })); }
+                            Err(e) => tracing::warn!("session {}: pi: смена устаревшей модели {cur}: {e:#}", &meta.id[..8]),
+                        }
+                    }
+                }
+            } }
+        }
+        // the session model: for Gemini already as a flag at start; for the others — session/set_model if the
+        // agent returned a list
         let switchable = acp_model_switchable(&self.acp.lock().unwrap());
         if let Some(model) = meta.model.clone() {
             let current = self.acp.lock().unwrap().model.clone();
@@ -396,13 +561,16 @@ impl Session {
                 if let Err(e) = self.acp_apply_model(&sid, &model).await { tracing::warn!("session {}: set_model {model}: {e:#}", &meta.id[..8]); self.emit(json!({ "kind": "system", "subtype": "provider_error", "data": { "message": format!("модель {model}: {e:#}") } })); }
             }
         }
-        // режим сессии (наш или Codex-овый) → режим агента, если он такие умеет
+        // the session mode (ours or Codex's) → the agent's mode, if it knows
+        // such
         let available: Vec<String> = self.acp.lock().unwrap().modes.get("availableModes").and_then(|a| a.as_array()).map(|a| a.iter().filter_map(|m| m.get("id").and_then(|i| i.as_str()).map(str::to_string)).collect()).unwrap_or_default();
         if let Some(mode) = meta.permission_mode.as_deref() {
             if let Some(target) = map_mode(engine.id, mode, &available) {
                 let cur = self.acp.lock().unwrap().modes.get("currentModeId").and_then(|c| c.as_str()).map(str::to_string);
                 if cur.as_deref() != Some(target.as_str()) {
-                    if let Err(e) = self.acp_call("session/set_mode", json!({ "sessionId": sid, "modeId": target }), 60).await { tracing::warn!("session {}: set_mode {target}: {e:#}", &meta.id[..8]); }
+                    let via_config = self.acp.lock().unwrap().mode_via_config;
+                    let r = if via_config { self.acp_call("session/set_config_option", json!({ "sessionId": sid, "configId": "mode", "value": target }), 60).await } else { self.acp_call("session/set_mode", json!({ "sessionId": sid, "modeId": target }), 60).await };
+                    if let Err(e) = r { tracing::warn!("session {}: set_mode {target}: {e:#}", &meta.id[..8]); }
                     else { self.acp.lock().unwrap().modes["currentModeId"] = json!(target); }
                 }
             }
@@ -416,8 +584,9 @@ impl Session {
         Ok(())
     }
 
-    /// Сообщение пользователя → session/prompt; ответ (stopReason) означает конец хода.
-    /// Пересказ беседы из журнала (срез 38): движок не поднял свою сессию после рестарта — отдаём ему историю первым сообщением.
+    /// User message → session/prompt; the answer (stopReason) means the end of the turn. Retelling the conversation from the
+    /// journal (slice 38): the engine did not bring up its session after a restart — we hand it the history as the first
+    /// message.
     fn journal_recap(&self, max_chars: usize) -> String {
         let events = self.events_since(0, 100_000);
         let mut lines: Vec<String> = Vec::new();
@@ -436,7 +605,8 @@ impl Session {
 
     pub(crate) async fn acp_prompt(self: &Arc<Self>, content: &Value) -> Result<()> {
         let sid = self.acp.lock().unwrap().session_id.clone().ok_or_else(|| anyhow!("ACP-сессия ещё не создана"))?;
-        // после рестарта без session/load: первый промпт получает пересказ истории (до 8 тысяч знаков), дальше — как обычно
+        // after a restart without session/load: the first prompt gets a retelling of the history (up to 8 thousand
+        // characters), then as usual
         let recap = if std::mem::replace(&mut self.acp.lock().unwrap().recap_pending, false) { let r = self.journal_recap(8000); if r.is_empty() { None } else { Some(r) } } else { None };
         let content: Value = match recap {
             Some(r) => { let mut arr = content.as_array().cloned().unwrap_or_default(); let prefix = format!("Это продолжение беседы после перезапуска; предыдущие сообщения:\n{r}\n---\n");
@@ -463,7 +633,7 @@ impl Session {
                     Some(e) => ("error".into(), Some(e.get("message").and_then(|m| m.as_str()).unwrap_or("ошибка").to_string()), None),
                     None => (v.pointer("/result/stopReason").and_then(|s| s.as_str()).unwrap_or("end_turn").to_string(), None, v.pointer("/result/_meta").cloned()),
                 },
-                Ok(Err(_)) => return, // процесс вышел — exit уже в журнале
+                Ok(Err(_)) => return, // the process exited — exit is already in the journal
                 Err(_) => { me.ctrl_forget(&id); ("error".into(), Some("нет ответа на ход за 4 часа".into()), None) }
             };
             me.acp_finish_turn(&stop, err, meta);
@@ -471,13 +641,15 @@ impl Session {
         Ok(())
     }
 
-    /// Конец хода: докладываем накопленное, пишем result (стоимости ACP не отдаёт — токены нулевые, ход учитывается).
+    /// End of turn: report what was accumulated, write result (ACP gives no costs — tokens are zero, the turn is
+    /// counted).
     fn acp_finish_turn(self: &Arc<Self>, stop: &str, err: Option<String>, meta: Option<Value>) {
         self.acp_flush();
         self.acp.lock().unwrap().in_turn = false;
         let (started, text, model, usage, sid) = { let st = self.acp.lock().unwrap(); (st.turn_started_ms, st.turn_text.clone(), st.model.clone(), st.usage.clone(), st.session_id.clone()) };
         let (meta_model, agent) = { let m = self.meta.lock().unwrap(); (m.model.clone(), m.agent.clone()) };
-        // pi-acp отдаёт end_turn и при ошибке модели (404/401 от gate) — без текста; правду берём из файла сессии pi
+        // pi-acp returns end_turn on a model error too (404/401 from the gate) — without text; the truth comes from
+        // the pi session file
         let mut stop = stop.to_string(); let mut err = err;
         if agent == "pi" && stop == "end_turn" && text.trim().is_empty() && err.is_none() {
             if let Some(e) = pi_last_error(sid.as_deref()) { stop = "error".into(); err = Some(e); }
@@ -486,7 +658,8 @@ impl Session {
         let is_error = stop == "error" || stop == "refusal";
         let subtype = match stop { "end_turn" => "success", "cancelled" => "interrupted", "max_tokens" => "max_tokens", "max_turn_requests" => "max_turns", "refusal" => "refusal", _ => "error_during_execution" };
         if let Some(e) = &err { self.emit(json!({ "kind": "error", "message": e })); }
-        // токены: Gemini кладёт их в `_meta.quota.token_count` ответа на prompt, pi — только в файл сессии
+        // tokens: Gemini puts them into `_meta.quota.token_count` of the prompt answer, pi — only into the
+        // session file
         let tokens: Value = if agent == "pi" { pi_turn_usage(sid.as_deref()).unwrap_or(Value::Null) } else {
             match meta.as_ref().and_then(|m| m.pointer("/quota/token_count")) {
                 Some(tc) => json!({ "input_tokens": tc.get("input_tokens").and_then(|x| x.as_u64()).unwrap_or(0), "output_tokens": tc.get("output_tokens").and_then(|x| x.as_u64()).unwrap_or(0) }),
@@ -501,11 +674,13 @@ impl Session {
         self.drain_queue();
     }
 
-    /// Накопленные размышления и текст — в журнал.
+    /// Accumulated thoughts and text — into the
+    /// journal.
     fn acp_flush(&self) {
         let (thought, text, model) = { let mut st = self.acp.lock().unwrap(); (std::mem::take(&mut st.thought), std::mem::take(&mut st.text), st.model.clone()) };
         if !thought.trim().is_empty() { self.emit(json!({ "kind": "assistant", "content": [{ "type": "thinking", "thinking": thought }] })); }
         if !text.trim().is_empty() { self.emit(json!({ "kind": "assistant", "content": [{ "type": "text", "text": text }], "model": model })); }
+        self.live_reset();
     }
 
     pub(crate) async fn acp_on_message(self: &Arc<Self>, v: Value) {
@@ -529,10 +704,11 @@ impl Session {
         let kind = u.get("sessionUpdate").and_then(|k| k.as_str()).unwrap_or("");
         match kind {
             "agent_message_chunk" => {
-                // вне хода (Gemini после session/set_mode шлёт уведомление текстом) — служебная строка, статус не трогаем
+                // outside a turn (Gemini sends a text notification after session/set_mode) — a service line, the status
+                // is untouched
                 let in_turn = self.acp.lock().unwrap().in_turn;
                 if !in_turn { if let Some(t) = u.pointer("/content/text").and_then(|t| t.as_str()).filter(|t| !t.trim().is_empty()) { self.emit(json!({ "kind": "system", "subtype": "agent_note", "data": { "message": t.trim() } })); } return }
-                if let Some(t) = u.pointer("/content/text").and_then(|t| t.as_str()) { let mut st = self.acp.lock().unwrap(); st.text.push_str(t); st.turn_text.push_str(t); }
+                if let Some(t) = u.pointer("/content/text").and_then(|t| t.as_str()) { { let mut st = self.acp.lock().unwrap(); st.text.push_str(t); st.turn_text.push_str(t); } self.live_push(t); }
                 if self.status() == Status::Idle { self.set_status(Status::Working); }
             }
             "agent_thought_chunk" => { if let Some(t) = u.pointer("/content/text").and_then(|t| t.as_str()) { self.acp.lock().unwrap().thought.push_str(t); } }
@@ -545,20 +721,23 @@ impl Session {
                 let name = tool_name(u.get("kind").and_then(|k| k.as_str()), &title, &raw);
                 let mut input = if raw.is_object() { raw.clone() } else { json!({}) };
                 if input.get("title").is_none() && !title.is_empty() { input["title"] = json!(title); }
-                // содержимое при старте вызова — описание (у Gemini: «[cwd] (зачем)»), а не вывод: в input.detail
+                // the content at call start is a description (Gemini: "[cwd] (why)"), not output: into
+                // input.detail
                 if let Some(c) = u.get("content").filter(|c| c.is_array()) { let txt = content_text(c); if !txt.trim().is_empty() && !txt.trim().starts_with("[terminal]") && input.get("detail").is_none() { input["detail"] = json!(txt.trim_end()); } }
                 if let Some(l) = u.get("locations").filter(|l| l.as_array().map(|a| !a.is_empty()).unwrap_or(false)) { input["locations"] = l.clone(); }
                 if name == "Bash" && input.get("command").is_none() && !title.is_empty() { input["command"] = json!(title); }
                 { let mut st = self.acp.lock().unwrap(); st.tools.insert(tid.clone(), (name.clone(), title.clone(), String::new())); st.tool_order.push(tid.clone()); }
                 self.emit(json!({ "kind": "assistant", "content": [{ "type": "tool_use", "id": tid, "name": name, "input": input }], "uuid": tid }));
-                // уже завершён (агент прислал итог сразу)
+                // already finished (the agent sent the
+                // result right away)
                 let status = u.get("status").and_then(|s| s.as_str()).unwrap_or("pending");
                 if matches!(status, "completed" | "failed") { self.acp_tool_done(&tid, status, &u); }
                 self.set_status(Status::Working);
             }
             "tool_call_update" => {
                 let tid = u.get("toolCallId").and_then(|t| t.as_str()).unwrap_or("").to_string();
-                // content в обновлении — полное состояние (не дельта): заменяем накопленный вывод
+                // content in an update is the full state (not a delta): replace the accumulated
+                // output
                 if let Some(c) = u.get("content").filter(|c| c.is_array()) { let txt = content_text(c); if let Some(t) = self.acp.lock().unwrap().tools.get_mut(&tid) { if !txt.trim().is_empty() { t.2 = txt; } } }
                 if let Some(status) = u.get("status").and_then(|s| s.as_str()) { if matches!(status, "completed" | "failed") { self.acp_tool_done(&tid, status, &u); } }
             }
@@ -584,8 +763,8 @@ impl Session {
         let _ = name;
         let agent = self.meta.lock().unwrap().agent.clone();
         if (agent == "pi" || agent == "gemini") && (text.trim().is_empty() || text.trim() == "[terminal]") {
-            // вывод инструмента — из записи беседы самого движка (pi: toolResult, Gemini: toolCalls[].resultDisplay);
-            // запись появляется чуть позже статуса completed, ждём до 3 с
+            // tool output — from the engine's own conversation record (pi: toolResult, Gemini:
+            // toolCalls[].resultDisplay); the record appears a little after the completed status, wait up to 3 s
             let (me, tid, status) = (Arc::clone(self), tid.to_string(), status.to_string());
             tokio::spawn(async move {
                 let mut got: Option<(String, bool)> = None;
@@ -626,13 +805,15 @@ impl Session {
                 self.set_status(Status::Waiting);
             }
             other => {
-                // файлы и терминал мы не делегируем (сказано в initialize) — агент работает с диском сам
+                // we do not delegate files and terminal (declared in initialize) — the agent works with
+                // the disk itself
                 let _ = self.write(&json!({ "jsonrpc": "2.0", "id": rid, "error": { "code": -32601, "message": format!("agentd: {other} не поддерживается") } })).await;
             }
         }
     }
 
-    /// Ответ на запрос разрешения: выбранный вариант агента или отмена.
+    /// Answer to a permission request: the agent's chosen option or
+    /// cancel.
     pub(crate) async fn acp_answer(&self, p: &Pending, rid: &Value, behavior: &str, remember: bool) -> Result<()> {
         let options = p.input.get("options").cloned().unwrap_or(json!([]));
         let result = match pick_option(&options, behavior, remember) {
@@ -648,7 +829,8 @@ impl Session {
         Ok(json!({ "ok": true }))
     }
 
-    /// Смена модели у агента: `session/set_config_option` (configId `model`), если он отдал такую опцию, иначе `session/set_model`.
+    /// Changing the agent's model: `session/set_config_option` (configId `model`) if it offered such an option, otherwise
+    /// `session/set_model`.
     async fn acp_apply_model(&self, sid: &str, model: &str) -> Result<String> {
         let (value, via_config) = { let st = self.acp.lock().unwrap(); (acp_model_value(&st, model), st.config_options.as_array().map(|a| a.iter().any(|o| o.get("id").and_then(|i| i.as_str()) == Some("model"))).unwrap_or(false)) };
         if via_config {
@@ -661,17 +843,23 @@ impl Session {
         Ok(value)
     }
 
-    /// Режим: session/set_mode, если агент его знает (с переводом наших имён); иначе — к следующему запуску.
+    /// Mode: session/set_mode if the agent knows it (translating our names); otherwise — at the next start.
     pub(crate) async fn acp_set_mode(&self, mode: &str) -> Result<Value> {
+        let via_config = self.acp.lock().unwrap().mode_via_config;
         let (sid, available, engine) = { let st = self.acp.lock().unwrap(); (st.session_id.clone(), st.modes.get("availableModes").and_then(|a| a.as_array()).map(|a| a.iter().filter_map(|m| m.get("id").and_then(|i| i.as_str()).map(str::to_string)).collect::<Vec<_>>()).unwrap_or_default(), self.meta.lock().unwrap().agent.clone()) };
         let Some(sid) = sid else { return Ok(json!({ "ok": true, "applied": "next_start" })) };
         match map_mode(&engine, mode, &available) {
-            Some(target) => { self.acp_call("session/set_mode", json!({ "sessionId": sid, "modeId": target }), 60).await?; self.acp.lock().unwrap().modes["currentModeId"] = json!(target); self.acp_persist(); Ok(json!({ "ok": true, "mode": target })) }
+            Some(target) => {
+                if via_config { let r = self.acp_call("session/set_config_option", json!({ "sessionId": sid, "configId": "mode", "value": target }), 60).await?; if let Some(c) = r.get("configOptions").filter(|c| c.is_array()) { self.acp.lock().unwrap().config_options = c.clone(); } }
+                else { self.acp_call("session/set_mode", json!({ "sessionId": sid, "modeId": target }), 60).await?; }
+                self.acp.lock().unwrap().modes["currentModeId"] = json!(target); self.acp_persist(); Ok(json!({ "ok": true, "mode": target }))
+            }
             None => Ok(json!({ "ok": true, "applied": "next_start", "note": "агент не знает такого режима" })),
         }
     }
 
-    /// Модель: session/set_model, если агент отдал список; иначе — при следующем запуске (Gemini берёт её флагом).
+    /// Model: session/set_model if the agent returned a list; otherwise — at the next start (Gemini takes it as a
+    /// flag).
     pub(crate) async fn acp_set_model(&self, model: Option<&str>) -> Result<Value> {
         let (sid, has) = { let st = self.acp.lock().unwrap(); (st.session_id.clone(), acp_model_switchable(&st)) };
         match (sid, has, model) {
@@ -680,7 +868,8 @@ impl Session {
         }
     }
 
-    /// Часть caps для ACP-движка: модели (агента или gate), режимы с подписями, команды, контекст.
+    /// The ACP engine part of caps: models (the agent's or the gate's), modes with labels,
+    /// commands, context.
     pub(crate) fn acp_caps(&self, meta: &crate::session::Meta, gate_models: &[String]) -> Value {
         let mut st = self.acp.lock().unwrap();
         if st.models.is_null() && st.modes.is_null() {
@@ -688,22 +877,31 @@ impl Session {
                 st.modes = v.get("modes").cloned().unwrap_or(Value::Null); st.models = v.get("models").cloned().unwrap_or(Value::Null);
                 st.commands = v.get("commands").and_then(|c| c.as_array()).cloned().unwrap_or_default(); st.config_options = v.get("config_options").cloned().unwrap_or(Value::Null);
                 if st.model.is_none() { st.model = v.get("model").and_then(|m| m.as_str()).map(str::to_string); }
+                if st.modes.is_null() { if let Some(m) = modes_from_config(&st.config_options) { st.modes = m; st.mode_via_config = true; } }
             }
         }
+        // the model only in configOptions (omp): current — currentValue, list — options
+        let cfg_model = st.config_options.as_array().and_then(|a| a.iter().find(|o| o.get("id").and_then(|i| i.as_str()) == Some("model")).cloned());
+        if st.model.is_none() { if let Some(cur) = cfg_model.as_ref().and_then(|o| o.get("currentValue")).and_then(|v| v.as_str()) { st.model = Some(cur.to_string()); } }
         let current = st.model.clone().or(meta.model.clone());
         let mut models: Vec<Value> = st.models.get("availableModels").and_then(|a| a.as_array()).cloned().unwrap_or_default().iter().filter_map(|m| {
             let id = m.get("modelId").and_then(|i| i.as_str())?;
             Some(json!({ "value": id, "label": m.get("name").and_then(|n| n.as_str()).unwrap_or(id), "description": m.get("description"), "default": current.as_deref() == Some(id) }))
         }).collect();
-        // pi через gate: из всех провайдеров pi показываем только наш (`agentverse-gate/…`), подпись — без префикса
+        if models.is_empty() { if let Some(opts) = cfg_model.as_ref().and_then(|o| o.get("options")).and_then(|o| o.as_array()) {
+            models = opts.iter().filter_map(|m| { let id = m.get("value").and_then(|i| i.as_str())?; Some(json!({ "value": id, "label": m.get("name").and_then(|n| n.as_str()).unwrap_or(id), "description": m.get("description"), "default": current.as_deref() == Some(id) })) }).collect();
+        } }
+        // pi through the gate: of all pi providers show only ours (`agentverse-gate/…`), the label without the
+        // prefix
         if models.iter().any(|m| m.get("value").and_then(|v| v.as_str()).map(|v| v.starts_with("agentverse-gate/")).unwrap_or(false)) {
             models.retain(|m| m.get("value").and_then(|v| v.as_str()).map(|v| v.starts_with("agentverse-gate/")).unwrap_or(false));
             for m in models.iter_mut() { if let Some(v) = m.get("value").and_then(|v| v.as_str()).map(str::to_string) { m["label"] = json!(v.trim_start_matches("agentverse-gate/")); } }
-            // порядок каталога gate случайный — семейства по рангу (Claude, GPT, Gemini, остальные, Devin), внутри по имени
+            // the gate catalog order is random — families by rank (Claude, GPT, Gemini, the rest, Devin), by name within
             let rank = |m: &Value| { let id = m.get("label").and_then(|l| l.as_str()).unwrap_or(""); (if id.starts_with("devin/") { 4 } else if id.starts_with("claude-") { 0 } else if id.starts_with("gpt-") { 1 } else if id.starts_with("gemini-") { 2 } else { 3 }, id.to_string()) };
             models.sort_by_key(rank);
         }
-        // Gemini через gate: собственный список CLI (auto, 2.5-pro, 3.8-flash…) gate не обслуживает — показываем Gemini из каталога gate
+        // Gemini through the gate: the CLI's own list (auto, 2.5-pro, 3.8-flash…) is not served by the gate — show the Gemini models
+        // from the gate catalog
         if meta.agent == "gemini" && !gate_models.is_empty() {
             let mut ids = gemini_gate_models(gate_models);
             if let Some(c) = &current { if !ids.contains(c) { ids.insert(0, c.clone()); } }
@@ -725,6 +923,24 @@ impl Session {
 mod tests {
     use super::*;
     #[test]
+    fn omp_models_yaml_keeps_other_providers() {
+        let existing = "providers:\n  mine:\n    baseUrl: http://x/v1\n    api: openai-completions\n    apiKey: k\n    models:\n      - id: m1\n        name: m1\nother: 7\n";
+        let prov = json!({ "baseUrl": "http://llm.gate/v1", "api": "openai-completions", "apiKey": "$OPENAI_API_KEY", "models": [{ "id": "a", "name": "a", "contextWindow": 200000, "maxTokens": 32000 }] });
+        let y = omp_models_yaml(existing, prov.clone()).unwrap();
+        let back: Value = serde_yaml_ng::from_str(&y).unwrap();
+        assert_eq!(back["providers"]["mine"]["baseUrl"], "http://x/v1"); assert_eq!(back["other"], 7);
+        assert_eq!(back["providers"]["agentverse-gate"]["apiKey"], "$OPENAI_API_KEY"); assert_eq!(back["providers"]["agentverse-gate"]["models"][0]["id"], "a");
+        assert!(omp_models_yaml(&y, prov).is_none(), "без изменений — не переписываем");
+        assert!(omp_models_yaml("", json!({ "baseUrl": "b" })).unwrap().contains("agentverse-gate"));
+    }
+    #[test]
+    fn modes_from_config_options() {
+        let cfg = json!([{ "id": "mode", "name": "Mode", "category": "mode", "type": "select", "currentValue": "default", "options": [{ "value": "default", "name": "Default", "description": "Standard" }, { "value": "plan", "name": "Plan", "description": "Read-only" }] }, { "id": "model", "options": [] }]);
+        let m = modes_from_config(&cfg).unwrap();
+        assert_eq!(m["currentModeId"], "default"); assert_eq!(m["availableModes"][1]["id"], "plan"); assert_eq!(m["availableModes"][1]["name"], "Plan");
+        assert!(modes_from_config(&json!([{ "id": "model" }])).is_none() && modes_from_config(&Value::Null).is_none());
+    }
+    #[test]
     fn mapping() {
         assert_eq!(tool_name(Some("execute"), "ls", &json!({})), "Bash");
         assert_eq!(tool_name(None, "run_shell_command", &json!({})), "Bash");
@@ -732,6 +948,15 @@ mod tests {
         assert_eq!(tool_name(Some("fetch"), "", &json!({})), "WebFetch");
         assert_eq!(tool_name(None, "Mystery", &json!({ "command": "x" })), "Bash");
         assert_eq!(content_text(&json!([{ "type": "content", "content": { "type": "text", "text": "hi" } }, { "type": "diff", "path": "/a", "oldText": "x", "newText": "y" }])), "hi\n--- /a\n- x\n+ y\n");
+        assert_eq!(antigravity_args(Some("gemini-3.5-pro"), Some("high"), Some("default"), false), vec!["-m", "gemini-3.5-pro", "-e", "high", "--no-skip-permissions"]);
+        assert_eq!(antigravity_args(Some("gemini-3.8-flash-high"), Some("low"), Some("auto"), true), vec!["-m", "gemini-api://gemini-3.8-flash-high", "-e", "low"], "через gate — id модели как есть под gemini-api://");
+        assert_eq!(antigravity_model("gemini-api://x", true), "gemini-api://x"); assert_eq!(antigravity_model("gemini-3-flash", false), "gemini-3-flash");
+        let mut genv = HashMap::new(); genv.insert("GEMINI_API_KEY".to_string(), "k".to_string());
+        assert!(!antigravity_gate(&genv), "без адреса gate режим ключа не включаем");
+        genv.insert("GEMINI_BASE_URL".to_string(), "http://llm.gate".to_string());
+        assert!(antigravity_gate(&genv) && antigravity_env(&genv) == vec![("GOOGLE_GEMINI_BASE_URL".to_string(), "http://llm.gate".to_string())]);
+        assert_eq!(antigravity_args(None, Some("xhigh"), Some("bypassPermissions"), true), Vec::<String>::new(), "xhigh адаптер не знает, в auto разрешения не спрашиваем");
+        assert_eq!(antigravity_args(None, None, Some("plan"), false), vec!["--no-skip-permissions"]);
         let g = ["default".to_string(), "autoEdit".into(), "yolo".into()];
         assert_eq!(map_mode("gemini", "acceptEdits", &g).as_deref(), Some("autoEdit"));
         assert_eq!(map_mode("gemini", "auto_edit", &g).as_deref(), Some("autoEdit"));

@@ -1,6 +1,6 @@
-// Окно «Обновления» (Updates.svelte): система (канал, пакеты, установка и откат), приложения из каталога, компоненты.
-// Тексты ядра (check_error, notes, note, last_applied, состояния контейнеров, ошибки API) не переводятся — вставляются подстановками как есть.
-// Фразы с <code> внутри разбиты на фрагменты (systemHint1..3, componentsHint1..2): разметка склеивает их вокруг кода.
+// The "Updates" window (Updates.svelte): the system (channel, packages, install and rollback), apps from the catalog, components. Core texts
+// (check_error, notes, note, last_applied, container states, API errors) are not translated — inserted by substitution as is. Phrases with
+// <code> inside are split into fragments (systemHint1..3, componentsHint1..2): the markup glues them around the code.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

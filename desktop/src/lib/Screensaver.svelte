@@ -1,8 +1,9 @@
 <script lang="ts">
   import { i18n } from './i18n.svelte';
-  // Заставка по бездействию: знак Monolith, часы и дата на тёмном фоне с медленным свечением. Любое действие снимает.
-  // Внутри iframe-окон события не видны, поэтому пока фокус в iframe (code-server, приложения) заставка не включается.
-  // Облик umbrel: текущие обои под тёмной вуалью, крупные часы Inter — как экран блокировки umbrelOS.
+  // Idle screensaver: the Monolith mark, the clock and date on a dark background with a slow glow. Any action removes
+  // it. Events inside iframe windows are invisible, so while the focus is in an iframe (code-server, apps) the
+  // screensaver does not turn on. The umbrel look: the current wallpaper under a dark veil, a large Inter clock — like
+  // the umbrelOS lock screen.
   import Mark from './Mark.svelte';
   let { minutes, statusText = '', look = 'default' }: { minutes: number; statusText?: string; look?: 'default' | 'umbrel' } = $props();
   let on = $state(false);

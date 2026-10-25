@@ -1,7 +1,7 @@
 <script lang="ts">
-  // Иконки системных приложений для облика umbrel: скруглённый квадрат с градиентом и белым глифом в мягкой тени —
-  // как «объёмные» иконки дока umbrelOS (файлы — тёплая папка, магазин — синяя сумка, настройки — тёмные ползунки).
-  // В обычном облике системные приложения показываются эмодзи (windows.svelte.ts → SYS_APPS.icon).
+  // System app icons for the umbrel look: a rounded square with a gradient and a white glyph in a soft shadow —
+  // like the "3D" umbrelOS dock icons (files — a warm folder, store — a blue bag, settings — dark sliders). In the
+  // regular look system apps are shown as emoji (windows.svelte.ts → SYS_APPS.icon).
   export type SysIconName = 'projects' | 'store' | 'files' | 'system' | 'settings' | 'project' | 'vault' | 'updates' | 'setup' | 'appdetail' | 'reader' | 'appready' | 'agents';
   let { name, size = 48 }: { name: SysIconName; size?: number } = $props();
   const uid = Math.random().toString(36).slice(2, 8);

@@ -6,14 +6,14 @@ with sync_playwright() as p:
     b = p.chromium.launch()
     for label, vp in [("desktop", {"width": 1440, "height": 900}), ("tablet", {"width": 900, "height": 1200}), ("phone", {"width": 390, "height": 844})]:
         ctx = b.new_context(locale="ru-RU", ignore_https_errors=True, viewport=vp, has_touch=(label != "desktop")); pg = ctx.new_page()
-        pg.add_init_script("localStorage.setItem('cloudos.certwarn.until', '9999999999999')")  # браузер тестов не доверяет сертификату — баннер не должен мешать кликам
+        pg.add_init_script("localStorage.setItem('cloudos.certwarn.until', '9999999999999')")  # the test browser does not trust the certificate — the banner must not interfere with clicks
         s0 = pg.request.get(f"https://{HOST}/api/settings/desktop").json(); s0.pop("session", None); pg.request.put(f"https://{HOST}/api/settings/desktop", data=s0)
         pg.goto(f"https://{HOST}/#store", wait_until="domcontentloaded"); pg.wait_for_selector(".card.app", timeout=30000); time.sleep(2)
         n = pg.locator(".card.app").count(); ok(f"{label}: store cards", n >= 30, f"{n} на первой странице")
         ok(f"{label}: source badges", pg.locator(".badge.src").count() >= 30)
         pg.fill("input.search", "hermes"); time.sleep(0.8)
         srcs = set(pg.locator(".badge.src").all_inner_texts())
-        ok(f"{label}: search hermes finds both sources", pg.locator(".card.app").count() >= 2 and {"Umbrel", "Coolify"} <= srcs, str(sorted(srcs)))  # плюс наш ручной hermes-agent
+        ok(f"{label}: search hermes finds both sources", pg.locator(".card.app").count() >= 2 and {"Umbrel", "Coolify"} <= srcs, str(sorted(srcs)))  # plus our hand-written hermes-agent
         pg.screenshot(path=f"shots/st-{label}-search.png")
         pg.locator(".card.app", has_text="Umbrel").first.locator("button", has_text="Подробнее").click(); time.sleep(3)
         det = pg.locator(".win", has_text="Описание").last

@@ -1,4 +1,4 @@
-/* Токены оформления. Тёмная тема — по умолчанию; светлая — data-theme=light. Акцент/масштаб/шрифт/фон приходят из theme.ts. */
+/* Appearance tokens. The dark theme is the default; light — data-theme=light. Accent/scale/font/background come from theme.ts. */
 :root {
   --accent: #5BBFCB; --on-accent: #0b1416; --accent-rgb: 91 191 203;
   --scale: 1; --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -27,7 +27,7 @@
 :root[data-glass="off"] { --glass: var(--panel); }
 :root[data-icons="small"] { --icon: 32px; } :root[data-icons="medium"] { --icon: 44px; } :root[data-icons="large"] { --icon: 60px; }
 
-/* Поверхности. glass — стекло: сильное размытие с насыщением, светлая кромка сверху (блик), полупрозрачные панели */
+/* Surfaces. glass — glass: strong blur with saturation, a light edge on top (a highlight), translucent panels */
 :root[data-surface="glass"] { --glass: rgb(20 24 34 / .58); --line: rgb(255 255 255 / .14); --shadow: 0 16px 48px rgb(0 0 0 / .45), inset 0 1px 0 rgb(255 255 255 / .16); }
 :root[data-surface="glass"][data-theme="light"] { --glass: rgb(255 255 255 / .55); --panel-2: rgb(255 255 255 / .45); --line: rgb(255 255 255 / .75); --shadow: 0 16px 48px rgb(20 30 40 / .16), inset 0 1px 0 rgb(255 255 255 / .9); }
 :root[data-surface="glass"][data-glass="off"] { --glass: var(--panel); }
@@ -40,23 +40,23 @@
 :root[data-surface="glass"] .win .bar { background: rgb(255 255 255 / .05); border-bottom-color: var(--line); }
 :root[data-surface="glass"][data-theme="light"] .win .bar { background: rgb(255 255 255 / .35); }
 :root[data-surface="glass"] .taskbar { border-top-color: var(--line); }
-/* нет backdrop-filter (старые браузеры, отключено в настройках) — стекло почти непрозрачное, иначе текст поверх обоев не читается */
+/* no backdrop-filter (old browsers, disabled in settings) — the glass is almost opaque, otherwise text over the wallpaper is unreadable */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root[data-surface="glass"] { --glass: rgb(20 24 34 / .94); }
   :root[data-surface="glass"][data-theme="light"] { --glass: rgb(255 255 255 / .94); --panel-2: rgb(255 255 255 / .9); }
 }
-/* системная настройка «уменьшить прозрачность» (macOS, iOS, Windows) — панели непрозрачные, как при выключенной прозрачности */
+/* the system "reduce transparency" setting (macOS, iOS, Windows) — the panels are opaque, as with transparency off */
 @media (prefers-reduced-transparency: reduce) { :root, :root[data-surface="glass"] { --glass: var(--panel); } }
-/* oled — чистый чёрный, панели почти чёрные, без прозрачности */
+/* oled — pure black, the panels almost black, no transparency */
 :root[data-surface="oled"] { --bg: #000; --panel: #0a0a0d; --panel-2: #131317; --line: #24242b; --glass: rgb(10 10 13 / .97); --shadow: 0 8px 30px rgb(0 0 0 / .7); }
-/* высокий контраст: без теней и полупрозрачности, заметный фокус */
+/* high contrast: no shadows or translucency, a visible focus */
 :root[data-contrast="high"] { --shadow: none; --glass: var(--panel); }
 :root[data-contrast="high"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 :root[data-contrast="high"] .badge, :root[data-contrast="high"] .muted { color: var(--ink); }
 
-/* Облик umbrel (тема «Umbrel», как umbrelOS 2): тёмный материал поверх пейзажа — тонировка чёрным 0.4, размытие 20 px, кромка
-   белым 0.1, блик сверху 0.2, тень 14/34; радиусы 16 (элементы) / 20 (карточки, меню) / 24 (окна); кнопки и поля — пилюли.
-   Токены и общие элементы — здесь; док, сетка приложений, окна и заставка дорисовывают себя по data-look в своих компонентах. */
+/* The umbrel look (the "Umbrel" theme, like umbrelOS 2): a dark material over a landscape — black tinting 0.4, 20 px blur, a white
+   0.1 edge, a 0.2 highlight on top, a 14/34 shadow; radii 16 (elements) / 20 (cards, menus) / 24 (windows); buttons and fields are pills.
+   Tokens and shared elements are here; the dock, the app grid, windows and the screensaver draw themselves by data-look in their own components. */
 :root[data-look="umbrel"] {
   --bg: #000; --panel: rgb(0 0 0 / .55); --panel-2: rgb(255 255 255 / .08); --ink: rgb(255 255 255 / .92); --muted: rgb(255 255 255 / .5); --line: rgb(255 255 255 / .1);
   --glass: rgb(0 0 0 / .42); --shadow: 0 14px 34px rgb(0 0 0 / .5), inset 0 1px 0 rgb(255 255 255 / .2), inset 0 .5px 0 rgb(255 255 255 / .1);
@@ -74,7 +74,7 @@
 :root[data-look="umbrel"] .menu, :root[data-look="umbrel"] .ctx, :root[data-look="umbrel"] .dd-list { border-radius: 20px; padding: 6px; }
 :root[data-look="umbrel"] .ctx button, :root[data-look="umbrel"] .dd-list li, :root[data-look="umbrel"] .menu .item { border-radius: 16px; }
 :root[data-look="umbrel"] .toast { border-left-width: .5px; border-radius: 18px; --shadow: 0 6px 16px rgb(0 0 0 / .3), inset 0 1px 0 rgb(255 255 255 / .2); backdrop-filter: blur(10px) saturate(1.2) brightness(.95); -webkit-backdrop-filter: blur(10px) saturate(1.2) brightness(.95); }
-/* окна — «листы» umbrelOS: сильнее тонировка и размытие, скругление 24, без полосы заголовка; развёрнутое окно парит с отступами */
+/* windows are umbrelOS "sheets": stronger tinting and blur, rounding 24, no title bar; a maximized window floats with margins */
 :root[data-look="umbrel"] .win { --glass: rgb(0 0 0 / .7); border-radius: 24px; border-color: rgb(255 255 255 / .08); backdrop-filter: blur(40px) saturate(1.5) brightness(.7); -webkit-backdrop-filter: blur(40px) saturate(1.5) brightness(.7); box-shadow: 0 10px 64px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .25), inset 0 .5px 0 rgb(255 255 255 / .12); }
 :root[data-look="umbrel"] .win.active { border-color: rgb(255 255 255 / .14); }
 :root[data-look="umbrel"] .win.max { inset: 14px 14px 96px 14px; border-radius: 24px; }
@@ -90,14 +90,14 @@
 :root[data-look="umbrel"] .win:not(.active) .bar .ctl .tl, :root[data-look="umbrel"] .win:not(.active) .bar .ctl .key:not(.on), :root[data-look="umbrel"] .win:not(.active) .bar .ctl a.ext { background: rgb(255 255 255 / .06); color: rgb(255 255 255 / .5); }
 :root[data-look="umbrel"] .win .body { padding: calc(10px * var(--sp)) calc(18px * var(--sp)) calc(18px * var(--sp)); }
 :root[data-look="umbrel"] .win .grip { background: linear-gradient(135deg, transparent 50%, rgb(255 255 255 / .18) 50%); border-bottom-right-radius: 24px; }
-/* кнопки и поля — пилюли с бликом сверху; основная — цветом обоев с белым текстом */
-/* пилюли — только обычные кнопки, и без смены размеров (padding остаётся базовым, иначе мелкие чипы раздуваются и съезжают).
+/* buttons and fields are pills with a highlight on top; the primary one — in the wallpaper color with white text */
+/* pills — only regular buttons, and without size changes (the padding stays base, otherwise small chips inflate and shift). */
    Кнопки-поверхности сохраняют свои стили: прозрачный оверлей карточки Store (.hit), карточки тем и фонов, плитки, пункты меню,
    иконки, кнопки окна, остров, образцы цвета и плитки внутри виджетов и Файлов (.gauge, .clock, .title, .a, .c, .name, .w, .pick,
    .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link). */
 :root[data-look="umbrel"] button:not(.hit, .thm-card, .bg, .pitem, .icon, .item, .tile, .rc-open, .search, .empty, .start, .tl, .key, .close, .min, .max, .ib, .swatch, .mback, .gauge, .clock, .title, .a, .c, .name, .w, .pick, .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link) { border-radius: 999px; background: rgb(255 255 255 / .1); border: .5px solid rgb(255 255 255 / .2); box-shadow: inset 0 .5px 0 rgb(255 255 255 / .1); font-weight: 500; }
 :root[data-look="umbrel"] button:not(.hit, .thm-card, .bg, .pitem, .icon, .item, .tile, .rc-open, .search, .empty, .start, .tl, .key, .close, .min, .max, .ib, .swatch, .mback, .gauge, .clock, .title, .a, .c, .name, .w, .pick, .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link):hover { background: rgb(255 255 255 / .15); border-color: rgb(255 255 255 / .25); }
-/* плитки внутри виджетов — «углубления» в стекле, как glass-cell umbrelOS */
+/* tiles inside widgets are "recesses" in the glass, like the umbrelOS glass-cell */
 :root[data-look="umbrel"] .gauge, :root[data-look="umbrel"] .c { border-radius: 14px; background: rgb(255 255 255 / .06); border: 0; box-shadow: inset 0 2px 3px -1px rgb(0 0 0 / .22), inset 0 -1px 0 rgb(255 255 255 / .09); }
 :root[data-look="umbrel"] .thm-card, :root[data-look="umbrel"] .bg, :root[data-look="umbrel"] .pitem { border-radius: 16px; background: rgb(255 255 255 / .06); border: .5px solid rgb(255 255 255 / .1); }
 :root[data-look="umbrel"] .thm-card:hover, :root[data-look="umbrel"] .bg:hover, :root[data-look="umbrel"] .pitem:hover { background: rgb(255 255 255 / .1); }
@@ -112,7 +112,7 @@
 :root[data-look="umbrel"] .badge { background: rgb(255 255 255 / .08); border-color: rgb(255 255 255 / .06); }
 :root[data-look="umbrel"] code, :root[data-look="umbrel"] pre, :root[data-look="umbrel"] .skeleton { background: rgb(255 255 255 / .06); }
 :root[data-look="umbrel"] :focus-visible { outline: 2px solid rgb(255 255 255 / .25); outline-offset: 0; }
-/* оболочка: виджеты и уведомления над доком, меню запуска по центру */
+/* shell: widgets and notifications above the dock, the start menu centered */
 :root[data-look="umbrel"] .wlayer { inset: 0 0 100px 0; }
 :root[data-look="umbrel"] .toasts { bottom: 100px; }
 :root[data-look="umbrel"] .certwarn { bottom: 104px; }
@@ -125,8 +125,8 @@
 html { font-size: calc(15px * var(--scale)); }
 body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 1rem/1.5 var(--font); position: relative; }
 body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper); filter: blur(var(--wallpaper-blur)); transform: scale(1.02); }
-/* верхний слой обоев (знак Monolith) — без размытия, чтобы ползунок размывал только космос */
-body::after { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper-top); pointer-events: none; filter: blur(calc(var(--wallpaper-blur) * 0.2)); transform: scale(1.01); }  /* знак мягче на пятую часть от размытия космоса: при 13 px — около 2.5 px */
+/* the top wallpaper layer (the Monolith mark) — without blur, so the slider blurs only the space */
+body::after { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper-top); pointer-events: none; filter: blur(calc(var(--wallpaper-blur) * 0.2)); transform: scale(1.01); }  /* the mark is softened by a fifth of the space blur: at 13 px — about 2.5 px */
 a { color: var(--accent); }
 button { font: inherit; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(12px * var(--sp)); cursor: pointer; transition: border-color var(--dur), background var(--dur), transform var(--dur); }
 button:hover { border-color: var(--accent); }
@@ -151,7 +151,7 @@ pre { background: var(--panel-2); padding: 10px; border-radius: var(--r-sm); ove
 h1 { font-size: 1.2rem; margin: 0; } h2 { font-size: 1.07rem; margin: 0 0 8px; } h3 { font-size: 1rem; margin: 0; }
 details > summary { cursor: pointer; }
 
-/* индикаторы долгих операций (установка, удаление, связи) */
+/* indicators of long operations (install, removal, links) */
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .progress { position: absolute; left: 0; right: 0; top: 0; height: 3px; overflow: hidden; border-radius: var(--r) var(--r) 0 0; background: color-mix(in srgb, var(--accent) 20%, transparent); }

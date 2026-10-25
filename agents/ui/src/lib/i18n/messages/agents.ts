@@ -1,4 +1,5 @@
-// Окно «Агенты» (ADR-006): терминалы и сессии агентов workspace'ов.
+// The "Agents" window (ADR-006): terminals and agent sessions of
+// workspaces.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

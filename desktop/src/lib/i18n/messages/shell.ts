@@ -1,26 +1,26 @@
-// Оболочка Desktop: окна (Windows.svelte), мобильная оболочка (MobileShell.svelte), меню запуска (StartMenu.svelte),
-// панель задач (Taskbar.svelte), иконки рабочего стола (DesktopIcons.svelte). Заголовки системных окон — sys.* в common.ts,
-// «Закрыть все окна»/«Перезагрузить оболочку» в меню запуска — ctx.* оттуда же (тот же текст и действие, что в контекстном меню).
+// Desktop shell: windows (Windows.svelte), the mobile shell (MobileShell.svelte), the start menu (StartMenu.svelte), the taskbar
+// (Taskbar.svelte), desktop icons (DesktopIcons.svelte). System window titles — sys.* in common.ts, "Close all windows"/"Reload
+// shell" in the start menu — ctx.* from the same place (the same text and action as in the context menu).
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {
-    // окно: заголовок, кнопки управления, поповер данных для входа
+    // window: title, control buttons, the sign-in data popover
     'shell.barAria': 'window title bar', 'shell.mbarAria': 'title bar', 'shell.winHome': 'Home', 'shell.controlsAria': 'window controls', 'shell.resize': 'resize',
     'shell.loginDetails': 'Login details', 'shell.loginDetailsAria': 'login details', 'shell.openInBrowser': 'Open in browser', 'shell.openNewTab': 'Open in a new tab',
     'shell.minimize': 'Minimize', 'shell.restore': 'Restore', 'shell.maximize': 'Maximize',
-    // мобильная оболочка: статус-бар, домашний экран, недавние, нижняя навигация
+    // mobile shell: status bar, home screen, recents, bottom navigation
     'shell.theme': 'theme', 'shell.healthLow': 'core health', 'shell.searchApps': 'Search apps and projects', 'shell.recents': 'recents',
     'shell.openApps': 'Open apps', 'shell.closeAll': 'Close all', 'shell.nothingOpen': 'nothing open',
     'shell.navAria': 'navigation', 'shell.navBack': 'back', 'shell.navHome': 'home',
-    // меню запуска
+    // start menu
     'shell.startMenuAria': 'start menu', 'shell.searchPlaceholder': 'Search apps and projects…', 'shell.wsStatus': 'workspace {status}', 'shell.noProjects': 'no projects',
     'shell.installedApps': 'Installed apps', 'shell.nothingInstalled': 'nothing installed', 'shell.nothingFound': 'nothing found', 'shell.inStore': 'In Store',
     'shell.installEllipsis': 'install…', 'shell.addWidget': '+ Widget', 'shell.caCert': 'CA certificate',
-    // панель задач и трей
+    // taskbar and tray
     'shell.taskbarAria': 'taskbar', 'shell.startMenu': 'Start menu', 'shell.health': 'Core health', 'shell.coreOk': 'core ok',
     'shell.failures.one': '{n} failure', 'shell.failures.few': '{n} failures', 'shell.failures.many': '{n} failures', 'shell.failures.other': '{n} failures',
     'shell.sysUpdate': 'System update available', 'shell.appUpdates': 'App updates: {n}', 'shell.toggleTheme': 'Toggle theme',
-    // иконки рабочего стола
+    // desktop icons
     'shell.greetingMorning': 'Good morning', 'shell.greetingDay': 'Good afternoon', 'shell.greetingEvening': 'Good evening', 'shell.greetingNight': 'Good night', 'shell.dockAria': 'dock', 'shell.islandAria': 'status',
     'shell.desktopAria': 'desktop', 'shell.sysIconTitle': '{title} — part of AgentVerse OS', 'shell.projectIconTitle': 'project {name}: workspace {status}', 'shell.storeApps': 'Apps from Store',
   },

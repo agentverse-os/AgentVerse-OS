@@ -1,6 +1,6 @@
-# Кураторский список «Рекомендуем» для Store: порядок = место на полке. Ядро подмешивает его в манифесты при чтении
-# (поле recommended), переимпорт каталогов файл не трогает. `app` — имя каталога приложения в store/.
-# `reason` — причина на языке по умолчанию (английский), переводы — в `i18n.<lang>.reason`; Desktop выбирает по языку интерфейса.
+# Curated "Recommended" list for the Store: the order = the place on the shelf. The core mixes it into the manifests when reading
+# (the recommended field), a catalog re-import leaves the file alone. `app` — the app's directory name in store/. `reason` — the
+# reason in the default language (English), translations — in `i18n.<lang>.reason`; Desktop picks by the UI language.
 title: Recommended
 items:
   - app: pipecat-voice

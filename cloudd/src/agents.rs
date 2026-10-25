@@ -1,8 +1,9 @@
-//! Agent Runtime в ядре (ADR-006): ядро — единственная точка входа, адаптеры agentd в workspace'ах — источник фактов.
-//! Раз в 10 с опрашиваются все запущенные workspace'ы: записи расхода (`/v1/usage`) складываются в книгу расходов
-//! (`llm_usage`, дедупликация по проекту, сессии и seq), список сессий — в кэш для карточек проектов; переходы
-//! «работал → ждёт решения» и «работал → закончил» становятся событиями ленты, а если Desktop «ушёл» (не опрашивал
-//! статус видимой вкладкой полторы минуты) — push в ntfy (правило Orca: телефон только когда человека нет у экрана).
+//! Agent Runtime in the core (ADR-006): the core is the single entry point, the agentd adapters in the workspaces are
+//! the source of facts. Every 10 s all running workspaces are polled: usage records (`/v1/usage`) go into the expense
+//! ledger (`llm_usage`, deduplicated by project, session and seq), the session list — into the cache for project
+//! cards; the transitions "working → waiting for a decision" and "working → finished" become feed events, and if
+//! Desktop is "away" (no visible tab polled the status for a minute and a half) — a push to ntfy (the Orca rule: the
+//! phone only when the person is not at the screen).
 use crate::model::{AgentSessionBrief, AgentsSummary, UsageRow};
 use crate::service::Service;
 use anyhow::{anyhow, Result};
@@ -13,20 +14,55 @@ use std::sync::RwLock;
 use std::time::Duration;
 
 pub const POLL_SECS: u64 = 10;
-/// Desktop считается «ушедшим», если видимая вкладка не опрашивала статус дольше этого.
+/// Desktop counts as "away" if a visible tab has not polled the status for longer than
+/// this.
 pub const AWAY_MS: u64 = 90_000;
 pub const NTFY_TOPIC_KEY: &str = "agents.ntfy_topic";
 pub const DEFAULT_TOPIC: &str = "cloudos";
-/// Системный пользователь ntfy ядра: секреты `app:ntfy` → `CLOUDOS_TOKEN` (push) и `CLOUDOS_PASSWORD` (подписка с телефона).
+/// The core's ntfy system user: secrets `app:ntfy` → `CLOUDOS_TOKEN` (push) and `CLOUDOS_PASSWORD` (subscription from the
+/// phone).
 pub const NTFY_USER: &str = "cloudos";
 
 #[derive(Default)]
 pub struct AgentsState {
     pub cache: RwLock<HashMap<String, AgentsSummary>>,
     presence_seen_ms: AtomicU64,
+    /// Accounts blocked by a limit hit: id → until (epoch seconds), §9.7; survives a core restart (kv `agents.blocked`)
+    pub blocked: RwLock<HashMap<String, u64>>,
+    /// Already handled hits: "project:session" → the mark's `at` (epoch seconds); kv `agents.limit_seen`, entries older than a week are
+    /// dropped
+    pub limit_seen: RwLock<HashMap<String, u64>>,
+}
+
+/// kv keys of state that must survive a core restart: without them after a restart the pool would pick the
+/// just-blocked account, and an uncleared limit hit in the session mark would trigger the switch again
+pub const KV_BLOCKED: &str = "agents.blocked";
+pub const KV_LIMIT_SEEN: &str = "agents.limit_seen";
+pub const KV_BUDGET_WARNED: &str = "agents.budget_warned";
+/// Retention of handled limit hits
+pub const LIMIT_SEEN_TTL_SECS: u64 = 7 * 86_400;
+
+pub fn load_map(store: &crate::store::Store, key: &str) -> HashMap<String, u64> {
+    match store.get_kv(key) {
+        Ok(v) => v.and_then(|v| serde_json::from_value(v).ok()).unwrap_or_default(),
+        Err(e) => { tracing::warn!("kv {key}: чтение не удалось: {e:#}"); HashMap::new() }
+    }
+}
+
+pub fn save_map(store: &crate::store::Store, key: &str, map: &HashMap<String, u64>) {
+    if let Err(e) = store.put_kv(key, &serde_json::json!(map)) { tracing::warn!("kv {key}: запись не удалась: {e:#}"); }
 }
 
 impl AgentsState {
+    /// State from kv at start: expired blocks and old hits are not loaded
+    pub fn load(store: &crate::store::Store) -> Self {
+        let now = now_ms() / 1000;
+        let blocked: HashMap<String, u64> = load_map(store, KV_BLOCKED).into_iter().filter(|(_, until)| *until > now).collect();
+        let limit_seen: HashMap<String, u64> = load_map(store, KV_LIMIT_SEEN).into_iter().filter(|(_, at)| now.saturating_sub(*at) < LIMIT_SEEN_TTL_SECS).collect();
+        if !blocked.is_empty() { tracing::info!("аккаунты: {} блокировок по лимиту восстановлено из kv", blocked.len()); }
+        Self { blocked: RwLock::new(blocked), limit_seen: RwLock::new(limit_seen), ..Default::default() }
+    }
+
     pub fn touch_presence(&self) {
         self.presence_seen_ms.store(now_ms(), Ordering::Relaxed);
     }
@@ -44,7 +80,8 @@ pub fn now_ms() -> u64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0)
 }
 
-/// Запись расхода из ленты agentd → строка книги; модель — первая из `model_usage`.
+/// Usage record from the agentd feed → a ledger row; the model — the first one from
+/// `model_usage`.
 pub fn usage_row(project: &str, r: &Value) -> Option<UsageRow> {
     let u = |k: &str| r.pointer(&format!("/usage/{k}")).and_then(|x| x.as_u64()).unwrap_or(0);
     Some(UsageRow {
@@ -53,15 +90,17 @@ pub fn usage_row(project: &str, r: &Value) -> Option<UsageRow> {
         seq: r.get("seq")?.as_u64()?,
         ts: r.get("ts")?.as_u64()?,
         agent: r.get("agent").and_then(|a| a.as_str()).unwrap_or("claude").to_string(),
-        // ключ model_usage у сессий с меткой `[1m]` — «claude-fable-5-1[1m]»: в книге — канонический id (цены и группировка по модели)
-        // модель хода — из `result.model` (последний ответ, agentd), иначе первая запись model_usage (накопительна, ключ с `[1m]`) по canonicalModel
+        // the model_usage key of sessions with the `[1m]` tag is "claude-fable-5-1[1m]": the ledger keeps the canonical id (prices and grouping by
+        // model); the turn model comes from `result.model` (the last answer, agentd), otherwise the first model_usage entry (cumulative, key with
+        // `[1m]`) via canonicalModel
         model: r.get("model").and_then(|m| m.as_str()).filter(|m| !m.is_empty() && !m.starts_with('<')).map(|m| m.replace("[1m]", "").replace("[1M]", ""))
             .or_else(|| r.get("model_usage").and_then(|m| m.as_object()).and_then(|m| m.iter().next().map(|(k, v)| v.get("canonicalModel").and_then(|c| c.as_str()).map(str::to_string).unwrap_or_else(|| k.replace("[1m]", "").replace("[1M]", ""))))),
         input: u("input_tokens"),
         output: u("output_tokens"),
         cache_read: u("cache_read_input_tokens"),
         cache_create: u("cache_creation_input_tokens"),
-        // agentd с дельтами шлёт `cost_usd` (стоимость хода); `total_cost_usd` — накопительный итог сессии, фолбэк для старых adapter'ов
+        // agentd with deltas sends `cost_usd` (the turn cost); `total_cost_usd` is the cumulative session total, a fallback for old
+        // adapters
         cost_usd: r.get("cost_usd").and_then(|c| c.as_f64()).or_else(|| r.get("total_cost_usd").and_then(|c| c.as_f64())).unwrap_or(0.0),
         duration_ms: r.get("duration_ms").and_then(|d| d.as_u64()),
         num_turns: r.get("num_turns").and_then(|d| d.as_u64()),
@@ -81,6 +120,8 @@ pub fn summarize(list: &[Value]) -> AgentsSummary {
             pending: s.get("pending").and_then(|v| v.as_u64()).unwrap_or(0) as usize,
             last_text: s.get("last_text").and_then(|v| v.as_str()).map(str::to_string),
             cost_usd: s.pointer("/usage/cost_usd").and_then(|v| v.as_f64()).unwrap_or(0.0),
+            account: s.get("account").and_then(|v| v.as_str()).map(str::to_string),
+            limit_hit: s.get("limit_hit").filter(|v| !v.is_null()).cloned(),
         })
         .collect();
     AgentsSummary {
@@ -106,7 +147,8 @@ impl Service {
         });
     }
 
-    /// Один проход по всем проектам с запущенным workspace: расход → книга, сессии → кэш и переходы.
+    /// One pass over all projects with a running workspace: usage → ledger, sessions → cache and
+    /// transitions.
     pub async fn poll_agents(&self) -> Result<()> {
         let running: HashSet<String> = self.incus.instances().await?.into_iter().filter(|i| i.status == "Running").map(|i| i.name).collect();
         for st in self.store.list_projects()? {
@@ -132,7 +174,8 @@ impl Service {
             }
             match client.get("/v1/sessions").await {
                 Ok(Value::Array(list)) => {
-                    // первая строка книги у подхваченных бесед (до перехода на дельты) включала ходы до подхвата — вычесть базу один раз
+                    // the first ledger row of picked-up conversations (before the move to deltas) included turns before pickup —
+                    // subtract the base once
                     for s in &list {
                         if s.get("imported").and_then(|v| v.as_bool()) != Some(true) { continue }
                         let (Some(id), Some(base)) = (s.get("id").and_then(|v| v.as_str()), s.pointer("/usage_base/cost_usd").and_then(|v| v.as_f64()).filter(|b| *b > 0.0)) else { continue };
@@ -141,6 +184,7 @@ impl Service {
                     let cur = summarize(&list);
                     let prev = self.agents.cache.write().unwrap().insert(st.name.clone(), cur.clone());
                     self.agent_transitions(&st.name, prev.as_ref(), &cur).await;
+                    self.limit_failovers(&st.name, &cur.sessions);
                 }
                 Ok(_) => {}
                 Err(e) => tracing::debug!("{}: sessions: {e:#}", st.name),
@@ -152,7 +196,8 @@ impl Service {
     async fn agent_transitions(&self, project: &str, prev: Option<&AgentsSummary>, cur: &AgentsSummary) {
         let Some(prev) = prev else { return };
         for s in &cur.sessions {
-            // сессии, которой не было в прошлом снимке, приписываем статус `new`: «появилась уже ждущей» — тоже переход
+            // a session absent from the previous snapshot gets status `new`: "appeared already waiting" is a transition
+            // too
             let before = prev.sessions.iter().find(|x| x.id == s.id).map(|p| p.status.as_str()).unwrap_or("new");
             if before == s.status { continue }
             match s.status.as_str() {
@@ -167,7 +212,8 @@ impl Service {
         }
     }
 
-    /// Событие в ленту всегда; на телефон — только если Desktop «ушёл».
+    /// An event into the feed always; to the phone — only if Desktop is
+    /// "away".
     pub async fn notify_agent(&self, project: &str, title: &str, body: &str, tag: &str) {
         let _ = self.store.event("agent", project, &format!("{title}: {}", body.trim_start_matches(&format!("{project} · "))));
         if self.agents.desktop_away() {
@@ -177,8 +223,9 @@ impl Service {
         }
     }
 
-    /// Токен системного пользователя ntfy: как хук `notify`, но для ядра — пользователь `cloudos`, права rw на системную тему,
-    /// токен и пароль в секрет-сторе (пароль — чтобы владелец подписался на тему в приложении ntfy на телефоне).
+    /// Token of the ntfy system user: like the `notify` hook, but for the core — user `cloudos`, rw rights on the system
+    /// topic, the token and password in the secret store (the password — so the owner can subscribe to the topic in the ntfy
+    /// app on the phone).
     async fn ntfy_token(&self, container: &str, topic: &str) -> Result<String> {
         let scope = "app:ntfy";
         if let Some(t) = self.store.get_secret(scope, "CLOUDOS_TOKEN")? {
@@ -207,7 +254,7 @@ impl Service {
         Ok(token)
     }
 
-    /// Данные подписки на уведомления ядра с телефона: сервер ntfy, тема, пользователь и пароль (заводятся при первом обращении).
+    /// Subscription data for core notifications from the phone: ntfy server, topic, user and password (created on first access).
     pub async fn notify_settings(&self) -> Result<Value> {
         let topic = self.store.get_kv(NTFY_TOPIC_KEY)?.and_then(|v| v.as_str().map(str::to_string)).unwrap_or_else(|| DEFAULT_TOPIC.into());
         let Some(app) = self.store.list_apps()?.into_iter().find(|a| a.name == "ntfy") else {
@@ -219,8 +266,9 @@ impl Service {
         Ok(serde_json::json!({ "app": app.name, "server": self.app_url(&app), "topic": topic, "user": NTFY_USER, "password": password, "token": token }))
     }
 
-    /// Push через установленное приложение ntfy: контейнер главного сервиса в сети приложения, тема из kv
-    /// (`agents.ntfy_topic`, по умолчанию `cloudos`); клик открывает окно «Агенты» отдельным приложением.
+    /// Push through the installed ntfy app: the main service container in the app network, the topic from
+    /// kv (`agents.ntfy_topic`, `cloudos` by default); a click opens the "Agents" window as a separate
+    /// app.
     pub async fn ntfy_push(&self, title: &str, body: &str, tag: &str) -> Result<()> {
         let app = self.store.list_apps()?.into_iter().find(|a| a.name == "ntfy").ok_or_else(|| anyhow!("ntfy не установлен"))?;
         let container = format!("{}-{}-1", app.stack_name(), app.manifest.endpoint.service);

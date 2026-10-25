@@ -1,5 +1,6 @@
-//! Служебные вызовы дешёвой модели через workspace (ядро → agentd `llm/quick`): рефлексия памяти агента после запуска и
-//! черновик имени с брифом по описанию владельца. Оба — один ход без инструментов, через gate или аккаунт workspace'а.
+//! Service calls of a cheap model through a workspace (core → agentd `llm/quick`): reflection of the agent memory after
+//! a run and a draft name with a brief from the owner's description. Both are one turn without tools, through the gate
+//! or the workspace account.
 use crate::{App, ApiError};
 use anyhow::{anyhow, Result};
 use axum::extract::State;
@@ -13,15 +14,15 @@ pub async fn quick(app: &App, project: &str, prompt: &str, timeout_secs: u64) ->
     r.get("text").and_then(|t| t.as_str()).map(|t| t.trim().to_string()).filter(|t| !t.is_empty()).ok_or_else(|| anyhow!("пустой ответ модели"))
 }
 
-/// Рефлексия: переписать память агента по итогу запуска — долгосрочные факты с датами, без дублей, в бюджет. Ошибка модели
-/// оставляет память как есть (обычное дописывание уже сделано в routines::watch).
+/// Reflection: rewrite the agent memory by the run result — long-term facts with dates, no duplicates, within the budget.
+/// A model error leaves the memory as is (the regular append is already done in routines::watch).
 pub async fn reflect(app: Arc<App>, agent: crate::routines::AgentDef, run_label: String, summary: String) {
     let date = chrono::Local::now().format("%Y-%m-%d").to_string();
     let memory = if agent.memory.trim().is_empty() { "(пусто)".to_string() } else { agent.memory.clone() };
     let prompt = format!("Ты ведёшь память агента-сотрудника «{}». Его бриф: {}\n\nТекущая память (строки «дата: факт»):\n{memory}\n\nИтог последнего запуска «{run_label}» ({date}):\n{}\n\nПерепиши память целиком: оставь долгосрочно важные факты (решения, ограничения, грабли, договорённости, состояние проекта), добавь новые из итога, убери устаревшее и повторы, похожее объединяй. Формат: каждая строка «ГГГГ-ММ-ДД: факт», всего не больше {} символов. Без заголовков, пояснений, пустых строк и markdown — только строки памяти.",
         agent.name.trim(), agent.brief.trim(), summary.trim(), agent.memory_budget);
     let text = match quick(&app, &agent.workspace, &prompt, 120).await { Ok(t) => t, Err(e) => { tracing::warn!("рефлексия «{}»: {e:#}", agent.name); return; } };
-    // модель может обернуть список в ``` или добавить заголовок — берём только строки памяти
+    // the model may wrap the list in ``` or add a heading — take only the memory lines
     let lines: Vec<&str> = text.lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with("```") && !l.starts_with('#')).collect();
     let dated = lines.iter().filter(|l| l.len() > 11 && l.as_bytes()[4] == b'-' && l.as_bytes()[7] == b'-' && l[..4].chars().all(|c| c.is_ascii_digit())).count();
     if lines.is_empty() || dated * 2 < lines.len() { tracing::warn!("рефлексия «{}»: ответ не похож на память ({} строк, {} с датой)", agent.name, lines.len(), dated); return; }
@@ -34,7 +35,8 @@ pub async fn reflect(app: Arc<App>, agent: crate::routines::AgentDef, run_label:
 #[derive(Deserialize)]
 pub struct DraftBody { #[serde(default)] pub description: String, #[serde(default)] pub workspace: Option<String> }
 
-/// Черновик агента по описанию: {name, brief}. Считает в указанном workspace или в первом запущенном.
+/// Agent draft from a description: {name, brief}. Computes in the given workspace or the first
+/// running one.
 pub async fn draft(State(app): State<Arc<App>>, Json(b): Json<DraftBody>) -> Result<Json<Value>, ApiError> {
     let desc = b.description.trim();
     if desc.is_empty() { return Err(anyhow!("опишите, какой сотрудник нужен").into()); }

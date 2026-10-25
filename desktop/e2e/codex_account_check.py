@@ -1,7 +1,8 @@
 import os, time, json, ssl, urllib.request, random, string
-# Маршрут «подписка» для Codex (ADR-006, решения 5–6): аккаунт `codex` импортируется из workspace, где выполнен вход
-# (~/.codex/auth.json), сессия с этим аккаунтом получает CODEX_HOME и ходит своим входом (route=account), без gate-переопределения;
-# usage приходит из thread/tokenUsage/updated. Один короткий ход на подписке владельца. Уборка: сессия и аккаунт.
+# The "subscription" route for Codex (ADR-006, decisions 5–6): the `codex` account is imported from a workspace where the sign-in
+# was done (~/.codex/auth.json), a session with this account gets CODEX_HOME and uses its own sign-in (route=account), without the
+# gate override; usage comes from thread/tokenUsage/updated. One short turn on the owner's subscription. Cleanup: the session and
+# the account.
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); P = os.environ.get("PROJECT", "alpha"); FROM = os.environ.get("ACCOUNT_FROM", "beta"); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note, flush=True)
 ctx_ssl = ssl.create_default_context(); ctx_ssl.check_hostname = False; ctx_ssl.verify_mode = ssl.CERT_NONE
@@ -33,7 +34,8 @@ if sid:
     r = wait_event(sid, lambda e: e["kind"] == "result", 0, 240)
     ok("turn on the subscription", r is not None and not r.get("is_error") and MARK in (r.get("text") or ""), (r or {}).get("text", "")[:80] if r else "нет result")
     ok("usage from thread/tokenUsage/updated", r is not None and (r.get("usage") or {}).get("output_tokens", 0) > 0, json.dumps((r or {}).get("usage"))[:140])
-    # стоп и возобновление: thread/resume того же треда, история доступна модели
+    # stop and resume: thread/resume of the same thread, the history is
+    # available to the model
     seq = r["seq"] if r else 0
     api(f"/projects/{P}/sessions/{sid}", "DELETE"); time.sleep(3)
     st, s2 = api(f"/projects/{P}/sessions", "POST", {"resume": sid}); ok("resumed with the same id", st == 200 and s2 and s2["id"] == sid and s2["alive"] and s2.get("account") == aid, json.dumps({k: (s2 or {}).get(k) for k in ("account", "status")}))

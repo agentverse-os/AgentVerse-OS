@@ -1,9 +1,9 @@
 import os, time, json, ssl, urllib.request, random, string, tempfile
 from playwright.sync_api import sync_playwright
-# Рендеринги карточки сессии (ADR-006): API файлов и git agentd через ядро (список, запись/чтение/скачивание, папка,
-# переименование, удаление, запрет «..», статус/диф/лог git на репозитории, созданном через PTY), затем в Desktop: вкладки
-# Чат | Терминал | Файлы | Git у сессии, загрузка файла во вкладке «Файлы», shell сессии (PTY с session=id) и его уборка вместе
-# с сессией, выбор режима разрешений в композере. Ходов модели нет — токены не тратятся.
+# Session card renderings (ADR-006): the agentd files and git API through the core (list, write/read/download, folder, rename,
+# delete, ".." rejected, git status/diff/log on a repository created via a PTY), then in Desktop: the Chat | Terminal | Files |
+# Git tabs on a session, a file upload in the "Files" tab, the session shell (a PTY with session=id) and its cleanup together
+# with the session, choosing the permission mode in the composer. No model turns — no tokens spent.
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); P = os.environ.get("PROJECT", "alpha"); os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note, flush=True)
 ctx_ssl = ssl.create_default_context(); ctx_ssl.check_hostname = False; ctx_ssl.verify_mode = ssl.CERT_NONE
@@ -17,7 +17,7 @@ def api(path, method="GET", body=None):
     try: return st, (json.loads(t) if t else None)
     except Exception: return st, None
 MARK = "panes-" + "".join(random.choice(string.ascii_lowercase) for _ in range(6)); D = f"/home/coder/{MARK}"
-# ---- файлы ----
+# ---- files ----
 st, l = api(f"/projects/{P}/fs?path="); ok("fs: home listed", st == 200 and l and l["path"] == "/home/coder" and isinstance(l["entries"], list), f"{st} {len((l or {}).get('entries', []))} записей")
 ok("fs: write into a missing folder fails", raw(f"/projects/{P}/fs/file?path={D}/hello.txt", "PUT", b"x")[0] in (404, 400, 500))
 ok("fs: mkdir", api(f"/projects/{P}/fs/mkdir", "POST", {"path": D})[0] == 200)
@@ -27,7 +27,7 @@ st, h, t = raw(f"/projects/{P}/fs/file?path={D}/hello.txt&download=1"); ok("fs: 
 ok("fs: rename", api(f"/projects/{P}/fs/rename", "POST", {"from": f"{D}/hello.txt", "to": f"{D}/hi.txt"})[0] == 200 and [e["name"] for e in api(f"/projects/{P}/fs?path={D}")[1]["entries"]] == ["hi.txt"])
 ok("fs: '..' rejected", api(f"/projects/{P}/fs?path=/home/coder/../etc")[0] == 400)
 ok("fs: delete file and folder", api(f"/projects/{P}/fs?path={D}/hi.txt", "DELETE")[0] == 204 and api(f"/projects/{P}/fs?path={D}", "DELETE")[0] == 204 and api(f"/projects/{P}/fs?path={D}")[0] == 404)
-# ---- git: репозиторий через PTY ----
+# ---- git: a repository via a PTY ----
 G = f"/tmp/gtest-{MARK}"
 st, pty = api(f"/projects/{P}/ptys", "POST", {"cmd": ["bash", "-lc", f"mkdir -p {G} && cd {G} && git init -q && echo a > a.txt && git add a.txt && git -c user.email=t@t -c user.name=tester commit -qm init && echo b >> a.txt && echo new > b.txt; exit 0"], "title": "git-setup"})
 for _ in range(30):
@@ -54,7 +54,8 @@ with sync_playwright() as p:
     ok("composer: model input and permission mode select", pg.locator(".chat .tools input.model").count() == 1 and pg.locator(".chat .tools select.mode").count() == 1)
     pg.locator(".chat .tools select.mode").select_option("plan"); time.sleep(2)
     ok("composer: permission mode applied to the session", sid is not None and api(f"/projects/{P}/sessions/{sid}")[1]["info"]["permission_mode"] == "plan")
-    # Файлы: список home и загрузка файла
+    # Files: the home listing and a file
+    # upload
     pg.locator(".agents .pane .tabs button:has-text('Файлы')").click(); pg.wait_for_selector(".files .list .row", timeout=20000)
     ok("files: home listed in the pane", pg.locator(".files .crumb:has-text('coder')").count() == 1)
     tmp = tempfile.NamedTemporaryFile("w", suffix=f"-{MARK}.txt", delete=False); tmp.write("uploaded from the desktop\n"); tmp.close()
@@ -63,17 +64,19 @@ with sync_playwright() as p:
     pg.locator(f".files .row:has-text('{MARK}') button.open").click(); pg.wait_for_selector(".files .preview pre", timeout=10000)
     ok("files: text preview", "uploaded from the desktop" in pg.locator(".files .preview pre").inner_text())
     api(f"/projects/{P}/fs?path=/home/coder/{os.path.basename(tmp.name)}", "DELETE")
-    # Git: home — не репозиторий
+    # Git: home is not a repository
     pg.locator(".agents .pane .tabs button:has-text('Git')").click(); pg.wait_for_selector(".git .hint:has-text('git'), .git .bar, .git .err", timeout=20000)
     ok("git: pane answers for the home directory", pg.locator(".git .hint:has-text('Не git-репозиторий')").count() == 1 or pg.locator(".git .bar").count() == 1, pg.locator(".git").inner_text()[:120])
-    # Терминал сессии: PTY с session = id
+    # Session terminal: a PTY with session =
+    # id
     pg.locator(".agents .pane .tabs button:has-text('Терминал')").click(); pg.wait_for_selector(".agents .pane .xterm", timeout=30000); time.sleep(2)
     shells = [x for x in (api(f"/projects/{P}/ptys")[1] or []) if x.get("session") == sid]
     ok("shell: PTY linked to the session", len(shells) == 1 and shells[0]["alive"] and shells[0]["cwd"] == "/home/coder", json.dumps(shells)[:160])
     ok("shell: linked PTY hidden from the tree", pg.locator(f".agents .proj:has-text('{P}') .sess:has-text('shell ·')").count() == 0)
     pg.screenshot(path="shots/pn2-shell.png")
     b.close()
-# уборка: сессия (стоп + удаление) убирает и её shell
+# cleanup: the session (stop + delete) removes its
+# shell too
 if sid:
     api(f"/projects/{P}/sessions/{sid}", "DELETE"); time.sleep(3); api(f"/projects/{P}/sessions/{sid}", "DELETE"); time.sleep(2)
     left = [x for x in (api(f"/projects/{P}/ptys")[1] or []) if x.get("session") == sid]

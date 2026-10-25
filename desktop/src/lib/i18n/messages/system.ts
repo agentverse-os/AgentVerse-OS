@@ -1,4 +1,5 @@
-// Окно «Система» (System.svelte): заголовки разделов. Заголовок окна и кнопки — sys.* из common.ts; статусы компонентов и события приходят из ядра и не переводятся.
+// The "System" window (System.svelte): section headings. The window title and buttons — sys.* from common.ts; component statuses and events come from the core and
+// are not translated.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: { 'system.usage': 'LLM spend', 'system.usage30': 'over 30 days', 'system.usageTurns': '{n} turns', 'system.usageTurnsShort': 'turns', 'system.usageProject': 'project', 'system.usageModel': 'model', 'system.usageDay': 'day', 'system.usageEmpty': 'No agent turns recorded yet — start a session in Agents.', 'system.events': 'Events' },

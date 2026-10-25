@@ -9,10 +9,10 @@ with sync_playwright() as p:
         pg.goto(f"https://{HOST}/#files", wait_until="domcontentloaded"); pg.wait_for_selector(".files .bar select", timeout=30000); time.sleep(2)
         sel = pg.locator(".files .bar select")
         print(engine, "options:", sel.locator("option").count(), "value:", sel.input_value())
-        # реальный путь пользователя: клик по select, стрелка вниз, Enter
+        # the real user path: a click on the select, arrow down, Enter
         sel.click(); time.sleep(0.5); pg.keyboard.press("ArrowDown"); pg.keyboard.press("Enter"); time.sleep(1.5)
         print(engine, "после клавиатуры value:", sel.input_value(), "| crumbs root:", pg.locator(".files .crumbs button").first.inner_text())
-        # программный выбор
+        # programmatic selection
         sel.select_option("ws:alpha"); time.sleep(2)
         print(engine, "после select_option value:", sel.input_value(), "entries:", pg.locator(".files .row-entry").count())
         b.close()

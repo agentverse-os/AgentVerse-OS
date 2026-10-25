@@ -1,5 +1,6 @@
-//! Прокси RSS/Atom и погоды для виджетов: браузер не может ходить в чужие сайты из-за CORS, ядро ходит за него,
-//! кэширует на 10 минут и не обращается во внутренние сети (SSRF: private/loopback/link-local/overlay-диапазоны).
+//! RSS/Atom and weather proxy for widgets: the browser cannot reach foreign sites because of CORS, the core goes
+//! for it, caches for 10 minutes and does not touch internal networks (SSRF: private/loopback/link-local/overlay
+//! ranges).
 
 use anyhow::{anyhow, bail, Result};
 use serde::Serialize;
@@ -14,11 +15,14 @@ pub struct FeedItem {
     pub link: String,
     pub published: Option<String>,
     pub source: String,
-    /// Короткий анонс без HTML (до 240 символов).
+    /// Short teaser without HTML (up to 240
+    /// characters).
     pub summary: Option<String>,
-    /// Картинка записи: media:thumbnail / media:content / первый <img> в тексте.
+    /// Entry image: media:thumbnail / media:content / the first <img> in the
+    /// text.
     pub image: Option<String>,
-    /// Полный HTML записи, если лента его отдаёт (до 64 КБ; Desktop чистит его DOMPurify перед показом).
+    /// Full HTML of the entry if the feed provides it (up to 64 KB; Desktop cleans it with DOMPurify
+    /// before showing).
     pub content: Option<String>,
     pub author: Option<String>,
 }
@@ -44,7 +48,7 @@ fn is_public(ip: IpAddr) -> bool {
     }
 }
 
-/// Проверка URL: только http(s), хост резолвится в публичные адреса.
+/// URL check: http(s) only, the host resolves to public addresses.
 pub async fn check_url(url: &str) -> Result<reqwest::Url> {
     let u = reqwest::Url::parse(url).map_err(|e| anyhow!("имя URL: {e}"))?;
     if !matches!(u.scheme(), "http" | "https") {
@@ -113,7 +117,7 @@ impl Feeds {
         Ok(feed)
     }
 
-    /// Погода Open-Meteo (без ключа): текущая и прогноз на 5 дней.
+    /// Open-Meteo weather (no key): current and a 5-day forecast.
     pub async fn weather(&self, lat: f64, lon: f64) -> Result<serde_json::Value> {
         let key = format!("weather:{lat:.2}:{lon:.2}");
         if let Some((t, f)) = self.cache.lock().ok().and_then(|c| c.get(&key).cloned()) {
@@ -129,14 +133,15 @@ impl Feeds {
         Ok(v)
     }
 
-    /// Геокодинг города (Open-Meteo).
+    /// City geocoding (Open-Meteo).
     pub async fn geocode(&self, q: &str) -> Result<serde_json::Value> {
         let url = format!("https://geocoding-api.open-meteo.com/v1/search?name={}&count=5&language=ru&format=json", urlencoding::encode(q));
         Ok(reqwest::Client::builder().timeout(std::time::Duration::from_secs(10)).build()?.get(&url).send().await?.error_for_status()?.json().await?)
     }
 }
 
-/// Первый <img src="…"> в HTML (абсолютный http(s) URL).
+/// The first <img src="…"> in HTML (an absolute http(s)
+/// URL).
 fn first_img(html: &str) -> Option<String> {
     let re = regex_lite::Regex::new(r#"<img[^>]+src=["']([^"']+)["']"#).ok()?;
     re.captures(html).map(|c| c[1].to_string()).filter(|u| u.starts_with("http"))

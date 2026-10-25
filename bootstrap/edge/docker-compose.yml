@@ -1,7 +1,6 @@
-# Edge Caddy (bootstrap-набор). Конфигурацию целиком загружает cloudd через Admin API (POST /load) — Caddyfile здесь
-# только стартовый: admin на 0.0.0.0:2019 (опубликован на 127.0.0.1 хоста) и ничего больше.
-# Сети приложений и coder-net cloudd подключает к этому контейнеру сам при install/старте.
-#   docker compose up -d
+# Edge Caddy (the bootstrap set). The whole configuration is loaded by cloudd through the Admin API (POST /load) —
+# the Caddyfile here is only the starter: admin on 0.0.0.0:2019 (published on the host's 127.0.0.1) and nothing
+# else. cloudd joins the app networks and coder-net to this container itself at install/start. docker compose up -d
 services:
   caddy:
     image: caddy:2
@@ -11,10 +10,11 @@ services:
       - "80:80"
       - "443:443"
       - "8444:8444"                 # Coder (route: port)
-      - "8450-8499:8450-8499"       # приложения route: port (CLOUDD_APP_PORT_MIN..MAX)
-      - "127.0.0.1:2019:2019"       # Admin API — только для cloudd на хосте
+      - "8445:8445"                 # "Agents" as a separate app — its own origin for the PWA install (CLOUDD_AGENTS_PORT)
+      - "8450-8499:8450-8499"       # route: port apps (CLOUDD_APP_PORT_MIN..MAX)
+      - "127.0.0.1:2019:2019"       # the Admin API — only for cloudd on the host
     extra_hosts:
-      - "host.docker.internal:host-gateway"   # upstream cloudd на хосте
+      - "host.docker.internal:host-gateway"   # the cloudd upstream on the host
     networks:
       - default
       - coder-net
@@ -22,7 +22,7 @@ services:
       - ./Caddyfile.bootstrap:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
-      - /var/run/tailscale:/var/run/tailscale   # сертификаты для <box>.<tailnet>.ts.net от tailscaled (Tailscale); без Tailscale каталог пустой
+      - /var/run/tailscale:/var/run/tailscale   # certificates for <box>.<tailnet>.ts.net from tailscaled (Tailscale); without Tailscale the directory is empty
 networks:
   coder-net:
     external: true

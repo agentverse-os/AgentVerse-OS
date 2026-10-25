@@ -1,4 +1,5 @@
-// Экран загрузки (#boot в index.html): стоит до первого ответа ядра; если ядро не отвечает — показывает причину и продолжает пытаться.
+// Loading screen (#boot in index.html): stays until the core's first answer; if the core does not answer — shows the reason and keeps
+// trying.
 let done = false;
 export function bootMessage(text: string, error = false) {
   const el = document.getElementById('boot-msg');

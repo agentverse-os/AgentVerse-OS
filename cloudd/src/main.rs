@@ -1,4 +1,5 @@
-//! `cloudd` — ядро Cloud OS: сервер API/Desktop и CLI поверх одного сервисного слоя.
+//! `cloudd` — the Cloud OS core: the API/Desktop server and the CLI on top of one
+//! service layer.
 
 mod accounts;
 mod agentd;
@@ -9,6 +10,7 @@ mod caddy;
 mod coder;
 mod config;
 mod docker;
+mod failover;
 mod feeds;
 mod files;
 mod gate;
@@ -16,11 +18,13 @@ mod gateauth;
 mod importer;
 mod incus;
 mod komodo;
+mod limits;
 mod llm;
 mod model;
 mod monitor;
 mod appdata;
 mod backup;
+mod budgets;
 mod service;
 mod setup;
 mod store;
@@ -43,38 +47,43 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Cmd {
-    /// Запустить сервер API и Desktop (systemd)
+    /// Start the API and Desktop server
+    /// (systemd)
     Serve {
-        /// При старте применить все project.yaml из репозитория и перезагрузить edge
+        /// At start apply every project.yaml from the repository and reload the edge
         #[arg(long)]
         reconcile: bool,
     },
-    /// Здоровье компонентов ядра
+    /// Health of the core components
     Status,
-    /// Проекты
+    /// Projects
     Project {
         #[command(subcommand)]
         cmd: ProjectCmd,
     },
-    /// Workspace проекта (через Coder)
+    /// Project workspace (via Coder)
     Workspace {
         #[command(subcommand)]
         cmd: WsCmd,
     },
-    /// Приложения из Store (через App Runtime)
+    /// Apps from the Store (via the App
+    /// Runtime)
     App {
         #[command(subcommand)]
         cmd: AppCmd,
     },
-    /// Выдать проекту capability (маршрут на gate)
+    /// Grant a capability to a project (a route on
+    /// the gate)
     Grant { project: String, capability: String },
-    /// Снять capability
+    /// Revoke a capability
     Revoke { project: String, capability: String },
-    /// Применить все project.yaml и конфигурацию edge
+    /// Apply every project.yaml and the edge
+    /// configuration
     Reconcile,
-    /// Лента событий
+    /// Event feed
     Events,
-    /// Каталог Store: импорт из upstream-каталогов
+    /// Store catalog: import from upstream
+    /// catalogs
     Store {
         #[command(subcommand)]
         cmd: StoreCmd,
@@ -83,15 +92,16 @@ enum Cmd {
 
 #[derive(Subcommand)]
 enum StoreCmd {
-    /// Импортировать каталоги в store/ (рукописные манифесты с origin: manual не трогаются)
+    /// Import catalogs into store/ (hand-written manifests with origin: manual are left
+    /// alone)
     Import {
-        /// Источник: runtipi | coolify | umbrel | all
+        /// Source: runtipi | coolify | umbrel | all
         #[arg(default_value = "all")]
         source: String,
-        /// Только эти приложения (через запятую)
+        /// Only these apps (comma-separated)
         #[arg(long, value_delimiter = ',')]
         only: Vec<String>,
-        /// Каталог store (по умолчанию CLOUDD_REPO_DIR/store)
+        /// Store directory (default CLOUDD_REPO_DIR/store)
         #[arg(long)]
         dir: Option<std::path::PathBuf>,
     },
@@ -101,7 +111,7 @@ enum StoreCmd {
 enum ProjectCmd {
     List,
     Show { name: String },
-    /// Создать проект: записать project.yaml и применить
+    /// Create a project: write project.yaml and apply
     Create {
         name: String,
         #[arg(long, default_value = "incus-nesting")]
@@ -114,11 +124,11 @@ enum ProjectCmd {
         home: u32,
         #[arg(long = "cap")]
         capabilities: Vec<String>,
-        /// Заметка к проекту: что это и для чего
+        /// Project note: what it is and what for
         #[arg(long)]
         description: Option<String>,
     },
-    /// Применить существующий projects/<name>/project.yaml
+    /// Apply an existing projects/<name>/project.yaml
     Apply { name: String },
     Delete { name: String },
 }
@@ -131,12 +141,12 @@ enum WsCmd {
 
 #[derive(Subcommand)]
 enum AppCmd {
-    /// Каталог Store и установленные
+    /// Store catalog and installed apps
     List,
     Install { name: String },
     Remove {
         name: String,
-        /// Вместе с данными в tank/apps, секретами и переопределениями
+        /// Together with the data in tank/apps, secrets and overrides
         #[arg(long)]
         purge: bool,
     },
@@ -145,16 +155,18 @@ enum AppCmd {
         #[arg(long, default_value_t = 100)]
         tail: u32,
     },
-    /// Подключить приложение к другому: сеть провайдера, <ПРОВАЙДЕР>_URL и ключи из его хуков
+    /// Link an app to another: the provider network, <PROVIDER>_URL and the keys from its
+    /// hooks
     Link { consumer: String, provider: String },
     Unlink { consumer: String, provider: String },
-    /// Общая сеть приложений (имя <app>.apps): on | off
+    /// Shared app network (name <app>.apps): on | off
     Shared { name: String, state: String },
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Журнал — в stderr: stdout CLI принадлежит данным (JSON/таблицы), иначе `cloudd … | jq` ломается и убивает процесс по SIGPIPE.
+    // Logging goes to stderr: the CLI's stdout belongs to data (JSON/tables), otherwise `cloudd … | jq` breaks and kills the
+    // process with SIGPIPE.
     use std::io::IsTerminal;
     tracing_subscriber::fmt()
         .with_writer(std::io::stderr)
@@ -162,7 +174,8 @@ async fn main() -> Result<()> {
         .with_env_filter(tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "cloudd=info,tower_http=info".into()))
         .init();
     let cli = Cli::parse();
-    // импорт каталога не требует рантаймов и БД — только каталог store
+    // a catalog import needs no runtimes and no DB — only the store
+    // directory
     if let Cmd::Store { cmd: StoreCmd::Import { source, only, dir } } = &cli.cmd {
         let dir = dir.clone().unwrap_or_else(|| std::path::PathBuf::from(std::env::var("CLOUDD_REPO_DIR").unwrap_or_else(|_| "/var/lib/cloudos/repo".into())).join("store"));
         for r in importer::import(source, &dir, only).await? {
@@ -274,6 +287,7 @@ async fn main() -> Result<()> {
 
 async fn serve(svc: Service, reconcile: bool) -> Result<()> {
     svc.start_monitor();
+    svc.start_edge_watch();
     svc.start_backup_scheduler();
     svc.start_update_checker();
     svc.start_agents_poller();

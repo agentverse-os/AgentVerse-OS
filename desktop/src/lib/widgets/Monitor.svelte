@@ -51,7 +51,7 @@
   .gauges { display: flex; flex-direction: column; gap: 8px; }
   .gauge { display: block; text-align: left; padding: 6px 8px; background: var(--panel-2); border-color: transparent; }
   .gauge svg { width: 100%; height: 36px; display: block; }
-  .val { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; }  /* зазор gap, а не пробелом: в flex ведущий пробел схлопывается («9%CPU») */
+  .val { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; }  /* a gap, not a space: in flex a leading space collapses ("9%CPU") */
   .val b { font-size: 1.2rem; }
   .val span { min-width: 0; }
   .disks { display: flex; flex-direction: column; gap: 6px; font-size: .8rem; }

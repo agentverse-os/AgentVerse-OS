@@ -1,6 +1,6 @@
-//! PTY-демон: терминалы принадлежат agentd, а не вкладке и не IDE (ADR-006, урок Orca). Клиенты подключаются и
-//! отключаются сколько угодно раз; процесс живёт, пока жив сам или пока его не убили явно. Вывод раздаётся всем
-//! подключённым через broadcast, новому клиенту сначала проигрывается ограниченный хвост (scrollback).
+//! PTY daemon: terminals belong to agentd, not to a tab or the IDE (ADR-006, the Orca lesson). Clients attach
+//! and detach any number of times; the process lives until it exits on its own or is killed explicitly. Output
+//! is broadcast to every attached client; a new client first gets a bounded tail (scrollback) replayed.
 use anyhow::{Context, Result};
 use bytes::Bytes;
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
@@ -12,7 +12,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::{broadcast, watch};
 
-/// Хвост вывода, который получает подключившийся клиент.
+/// Output tail an attaching client receives.
 pub const SCROLLBACK_MAX: usize = 256 * 1024;
 const BROADCAST_CAPACITY: usize = 4096;
 
@@ -23,9 +23,11 @@ pub struct PtyOpts {
     pub rows: u16,
     pub title: String,
     pub env: HashMap<String, String>,
-    /// Shell карточки сессии: PTY принадлежит сессии агента и убирается вместе с ней
+    /// Session card shell: the PTY belongs to the agent session and goes away with
+    /// it
     pub session: Option<String>,
-    /// Терминальный режим (как в CloudCLI): родной TUI агента на той же беседе; один такой на сессию
+    /// Terminal mode (as in CloudCLI): the agent's native TUI on the same conversation; one per
+    /// session
     pub tui: bool,
 }
 
@@ -59,7 +61,8 @@ pub struct PtySession {
     writer: Mutex<Box<dyn Write + Send>>,
     child: Mutex<Box<dyn Child + Send + Sync>>,
     size: Mutex<(u16, u16)>,
-    /// Scrollback и раздача под одним замком: клиент, подписавшийся под ним, не пропустит и не задвоит байты.
+    /// Scrollback and broadcast under one lock: a client that subscribes under it neither misses nor
+    /// duplicates bytes.
     scrollback: Mutex<(VecDeque<u8>, broadcast::Sender<Bytes>)>,
     exit: watch::Sender<Option<i32>>,
     pub clients: AtomicUsize,
@@ -100,7 +103,8 @@ impl PtySession {
             exit: exit_tx,
             clients: AtomicUsize::new(0),
         });
-        // Блокирующее чтение мастера — в отдельном потоке; EOF означает, что процесс закрыл терминал.
+        // Blocking read of the master in a separate thread; EOF means the process closed the
+        // terminal.
         let me = s.clone();
         std::thread::Builder::new().name(format!("pty-{}", &me.id[..8])).spawn(move || {
             let mut buf = [0u8; 16384];
@@ -120,13 +124,16 @@ impl PtySession {
                 }
             }
             let code = me.child.lock().unwrap().wait().map(|st| st.exit_code() as i32).unwrap_or(-1);
-            // send_replace, а не send: send без единого получателя (никто не подключён) не обновляет значение
+            crate::hub::touch();
+            // send_replace rather than send: send without a single receiver (nobody attached) does not update
+            // the value
             me.exit.send_replace(Some(code));
         })?;
         Ok(s)
     }
 
-    /// Снимок хвоста и подписка на дальнейший вывод — атомарно относительно потока чтения.
+    /// Snapshot of the tail plus a subscription to further output — atomic with respect to
+    /// the reader thread.
     pub fn attach(&self) -> (Vec<u8>, broadcast::Receiver<Bytes>, watch::Receiver<Option<i32>>) {
         let g = self.scrollback.lock().unwrap();
         let snapshot: Vec<u8> = g.0.iter().copied().collect();
@@ -146,11 +153,13 @@ impl PtySession {
         Ok(())
     }
 
-    /// SIGHUP всей группе процессов терминала (оболочка — лидер сессии, дети — в её группе), через 5 с — SIGKILL тем,
-    /// кто не вышел. Так уходит и агент, запущенный внутри оболочки, а не только сама оболочка.
+    /// SIGHUP to the whole process group of the terminal (the shell is the session leader, children are in its
+    /// group), SIGKILL after 5 s to whoever has not exited. This way the agent started inside the shell goes away
+    /// too, not only the shell itself.
     pub fn kill(&self) -> Result<()> {
         let pid = self.pid.context("нет pid")? as i32;
-        // SAFETY: обычный kill(2); отрицательный pid — вся группа.
+        // SAFETY: plain kill(2); a negative pid means the whole
+        // group.
         if unsafe { libc::kill(-pid, libc::SIGHUP) } != 0 {
             return Err(std::io::Error::last_os_error()).context("kill(SIGHUP)");
         }
@@ -158,7 +167,7 @@ impl PtySession {
         std::thread::spawn(move || {
             std::thread::sleep(std::time::Duration::from_secs(5));
             if exit.borrow().is_none() {
-                // SAFETY: см. выше.
+                // SAFETY: see above.
                 unsafe { libc::kill(-pid, libc::SIGKILL) };
             }
         });
@@ -169,7 +178,8 @@ impl PtySession {
         *self.exit.borrow()
     }
 
-    /// Дождаться выхода процесса (после kill) не дольше `timeout`; возвращает, вышел ли.
+    /// Wait for the process to exit (after kill) no longer than `timeout`; returns
+    /// whether it exited.
     pub async fn wait_exit(&self, timeout: std::time::Duration) -> bool {
         let mut rx = self.exit.subscribe();
         let _ = tokio::time::timeout(timeout, async { while rx.borrow_and_update().is_none() { if rx.changed().await.is_err() { break } } }).await;
@@ -199,4 +209,33 @@ impl PtySession {
 
 pub fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
+}
+
+/// Text from terminal bytes: without CSI/OSC/ESC sequences and carriage returns, line breaks are kept.
+pub fn strip_ansi(b: &[u8]) -> String {
+    let s = String::from_utf8_lossy(b);
+    let mut out = String::with_capacity(s.len());
+    let mut it = s.chars().peekable();
+    while let Some(c) = it.next() {
+        if c == '\x1b' {
+            match it.next() {
+                Some('[') => { while let Some(&n) = it.peek() { it.next(); if ('@'..='~').contains(&n) { break } } }
+                Some(']') => { while let Some(n) = it.next() { if n == '\x07' { break } if n == '\x1b' { if it.peek() == Some(&'\\') { it.next(); } break } } }
+                Some(_) | None => {}
+            }
+            continue;
+        }
+        if c == '\r' || (c.is_control() && c != '\n' && c != '\t') { continue }
+        out.push(c);
+    }
+    out
+}
+
+#[cfg(test)]
+mod strip_tests {
+    #[test]
+    fn strips_sequences() {
+        assert_eq!(super::strip_ansi(b"a\x1b[31mb\x1b[0m\r\n\x1b]8;;https://x\x07link\x1b]8;;\x07 c"), "ab\nlink c");
+        assert_eq!(super::strip_ansi(b"\x1b[?1049h\x1b[H\x1b[2Jhttps://accounts.google.com/o/oauth2/auth?x=1\n"), "https://accounts.google.com/o/oauth2/auth?x=1\n");
+    }
 }

@@ -1,6 +1,6 @@
-// Всплывающее меню: одно на приложение, открывается у якоря, закрывается кликом вне, Esc или выбором пункта.
-// `header` — заголовок группы, `sub` — подзаголовок внутри группы (провайдер в меню моделей); `search` — поле поиска сверху:
-// пункты фильтруются по подписи и подсказке, заголовки остаются, если под ними есть совпадения.
+// Popup menu: one per app, opens at an anchor, closes on an outside click, Esc or picking an item. `header` — a group
+// heading, `sub` — a subheading inside a group (the provider in the model menu); `search` — a search field at the top: items
+// are filtered by label and hint, headings stay if there are matches under them.
 export type MenuItem = { label?: string; icon?: string; on?: () => void; checked?: boolean; danger?: boolean; header?: boolean; sub?: boolean; sep?: boolean; hint?: string; avatar?: string; disabled?: boolean };
 export type MenuOpts = { search?: boolean; placeholder?: string };
 class Menu {
@@ -10,23 +10,35 @@ class Menu {
   search = $state(false);
   placeholder = $state('');
   query = $state('');
+  label = $state('');
+  anchor: HTMLElement | null = null;
+  private showSeq = 0;
   show(anchor: HTMLElement, items: MenuItem[], opts: MenuOpts = {}) {
+    const seq = ++this.showSeq;
     const r = anchor.getBoundingClientRect();
+    this.anchor = anchor;
+    this.label = anchor.getAttribute('aria-label') || anchor.getAttribute('title') || anchor.textContent?.trim() || items.find(it => it.header)?.label || '';
     this.items = items; this.x = r.left; this.y = r.bottom + 6; this.open = true;
     this.search = !!opts.search; this.placeholder = opts.placeholder ?? ''; this.query = '';
-    // после отрисовки — поправить положение, чтобы меню не вылезло за экран
+    // after rendering — adjust the position so the menu does not go off
+    // screen
     requestAnimationFrame(() => {
-      const el = document.querySelector('.menu') as HTMLElement | null; if (!el) return;
+      const el = document.querySelector('.menu') as HTMLElement | null; if (!this.open || seq !== this.showSeq || !el) return;
       const w = el.offsetWidth, h = el.offsetHeight;
       this.x = Math.max(8, Math.min(r.left, innerWidth - w - 8));
       this.y = r.bottom + 6 + h > innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 6;
-      if (this.search) (el.querySelector('input.ms') as HTMLInputElement | null)?.focus();
+      const first = el.querySelector<HTMLElement>(this.search ? 'input.ms' : '.mi:not(:disabled)');
+      (first ?? el).focus({ preventScroll: true });
     });
   }
-  close() { this.open = false; }
-  /** Пункты с учётом поиска: совпадение по подписи или подсказке; заголовки и подзаголовки — только над совпадениями. */
+  close(restoreFocus = false) {
+    this.open = false; ++this.showSeq;
+    if (restoreFocus && this.anchor?.isConnected) this.anchor.focus({ preventScroll: true });
+  }
+  /** Items with the search applied: a match by label or hint; headings and subheadings — only above matches. */
   get visible(): MenuItem[] {
-    // слова запроса ищутся по отдельности, «-» и «_» равны точке: «opus 4.6» находит и «claude-opus-4-6», и «Claude 4.6 Opus»
+    // the query words are searched separately, "-" and "_" equal a dot: "opus 4.6" finds both "claude-opus-4-6" and "Claude
+    // 4.6 Opus"
     const norm = (x: string) => x.toLowerCase().replace(/[-_]/g, '.');
     const words = norm(this.query.trim()).split(/\s+/).filter(Boolean);
     if (!this.search || !words.length) return this.items;

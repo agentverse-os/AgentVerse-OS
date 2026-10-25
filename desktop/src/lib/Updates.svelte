@@ -1,7 +1,7 @@
 <script lang="ts">
-  // Обновления (docs/updates.md): система (канал или загруженный пакет, установка с автооткатом), приложения из каталога
-  // (новая версия манифеста, изменившийся compose, плавающие теги образов), компоненты (edge, Coder, Komodo — docker compose pull).
-  // Тексты ядра (check_error, notes, note, last_applied, состояния контейнеров, ошибки API) показываются как есть; словарь — i18n/messages/updates.ts.
+  // Updates (docs/updates.md): the system (a channel or an uploaded package, install with auto-rollback), apps from the catalog (a new manifest
+  // version, a changed compose, floating image tags), components (edge, Coder, Komodo — docker compose pull). Core texts (check_error, notes, note,
+  // last_applied, container states, API errors) are shown as is; the dictionary — i18n/messages/updates.ts.
   import { api, type UpdatesView, type AppUpdateInfo } from './api';
   import { t, tn, fmt } from './i18n.svelte';
   let v = $state<UpdatesView | null>(null);
@@ -42,7 +42,8 @@
     if (title.startsWith('Edge') && !confirm(t('updates.edgeConfirm'))) return;
     const r = await api.updateComponent(project); log = r.log; return r.changed.length ? t('updates.compUpdated', { title, list: r.changed.join(', ') }) : t('updates.compCurrent', { title });
   });
-  // Даты ядра — RFC 3339, показываем по локали Desktop; нечитаемое значение — как есть, без секунд и зоны.
+  // Core dates are RFC 3339, shown in the Desktop locale; an unreadable value — as is, without seconds and
+  // zone.
   const when = (s?: string | null) => { if (!s) return '—'; const d = new Date(s); return Number.isNaN(d.getTime()) ? s.slice(0, 16).replace('T', ' ') : fmt.dateTime(d, { dateStyle: 'short', timeStyle: 'short' }); };
   const rel = (r: string) => t(r === 'newer' ? 'updates.relNewer' : r === 'same' ? 'updates.relSame' : 'updates.relOlder');
   const toUpdate = $derived(v?.apps.filter(a => a.has_update).length ?? 0);
@@ -59,7 +60,7 @@
   {#if restarting}<div class="card note">{t('updates.restarting', { version: restarting })}</div>{/if}
 
   {#if v}
-    <!-- система -->
+    <!-- system -->
     <section class="card">
       <h3>{t('sys.system')}</h3>
       <div class="muted">{t('updates.systemHint1')} <code>stable.json</code>{t('updates.systemHint2')} <code>.prev</code>{t('updates.systemHint3')}</div>
@@ -105,7 +106,7 @@
       </div>
     </section>
 
-    <!-- приложения -->
+    <!-- apps -->
     <section class="card">
       <div class="row" style="justify-content: space-between;">
         <h3>{t('updates.apps')} {#if toUpdate}<span class="badge ok">{toUpdate}</span>{/if}</h3>
@@ -141,7 +142,7 @@
       {:else}<div class="muted" style="margin-top: 8px;">{t('updates.noApps')}</div>{/if}
     </section>
 
-    <!-- компоненты -->
+    <!-- components -->
     <section class="card">
       <h3>{t('updates.components')}</h3>
       <div class="muted">{t('updates.componentsHint1')} <code>docker compose pull && up -d</code> {t('updates.componentsHint2')}</div>

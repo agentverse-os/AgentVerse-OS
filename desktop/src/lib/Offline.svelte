@@ -1,5 +1,6 @@
 <script lang="ts">
-  // Соединение с ядром потеряно: оверлей поверх рабочего стола, пока опрос статуса не вернёт ответ.
+  // Connection with the core lost: an overlay over the desktop until the status poll gets an
+  // answer.
   import Mark from './Mark.svelte';
   import { t, fmt } from './i18n.svelte';
   let { since, attempts, onretry }: { since: number; attempts: number; onretry: () => void } = $props();

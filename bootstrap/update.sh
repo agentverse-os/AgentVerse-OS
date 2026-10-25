@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# AgentVerse OS · обновление с хоста: то же, что окно «Обновления» в Desktop, но из консоли и cron. Ставится как
-# /usr/local/bin/agentverse-update (bootstrap/install.sh). Работает через API ядра на 127.0.0.1:7100; если ядро не отвечает,
-# пакет ставится напрямую (с .prev и откатом). Нужны curl и jq.
+# AgentVerse OS · update from the host: the same as the "Updates" window in Desktop, but from the console and cron.
+# Installed as /usr/local/bin/agentverse-update (bootstrap/install.sh). Works through the core API on 127.0.0.1:7100; if the
+# core does not answer, the package is installed directly (with .prev and rollback). Needs curl and jq.
 #
-#   sudo agentverse-update                                  # статус: версия, канал, что можно обновить (то же: --status)
-#   sudo agentverse-update <пакет.tar.gz | https-URL>       # установить пакет agentverse-os-<версия>-<arch>.tar.gz (--sha256 <hex> — сверить файл)
-#   sudo agentverse-update --channel https://…/stable.json  # задать канал обновлений, проверить и поставить новее, если есть
-#   sudo agentverse-update --check                          # только проверить канал (код 0 — есть обновление, 1 — нет, 2 — канал недоступен)
-#   sudo agentverse-update --apps                           # обновить приложения с изменениями в каталоге (--apps-all — все, включая плавающие теги)
-#   sudo agentverse-update --components [проект]            # edge / Coder / Komodo / docker-прокси: docker compose pull && up -d (без проекта — все четыре)
-#   sudo agentverse-update --catalog                        # переимпорт каталога Store из upstream
-#   sudo agentverse-update --host                           # apt upgrade пакетов хоста (Docker, Incus, Tailscale не трогаются: --host-all)
-#   sudo agentverse-update --rollback                       # вернуть предыдущую версию ядра (.prev)
-#   sudo agentverse-update --all                            # пакет из канала (если новее) + приложения + компоненты + хост — для cron с --yes
-#   --yes, -y                                               # без вопросов (без терминала вопросы считаются отказом)
-#   API=http://host:port/api                                # другой адрес ядра (по умолчанию http://127.0.0.1:7100/api)
+#   sudo agentverse-update                                  # status: version, channel, what can be updated (the same: --status)
+#   sudo agentverse-update <package.tar.gz | https-URL>     # install the agentverse-os-<version>-<arch>.tar.gz package (--sha256 <hex> — verify the file)
+#   sudo agentverse-update --channel https://…/stable.json  # set the update channel, check and install a newer one if there is
+#   sudo agentverse-update --check                          # only check the channel (code 0 — there is an update, 1 — none, 2 — the channel is unavailable)
+#   sudo agentverse-update --apps                           # update the apps with changes in the catalog (--apps-all — all, including floating tags)
+#   sudo agentverse-update --components [project]           # edge / Coder / Komodo / docker proxy: docker compose pull && up -d (without a project — all four)
+#   sudo agentverse-update --catalog                        # re-import the Store catalog from upstream
+#   sudo agentverse-update --host                           # apt upgrade of the host packages (Docker, Incus, Tailscale are left alone: --host-all)
+#   sudo agentverse-update --rollback                       # bring back the previous core version (.prev)
+#   sudo agentverse-update --all                            # the package from the channel (if newer) + apps + components + host — for cron with --yes
+#   --yes, -y                                               # no questions (without a terminal questions count as a refusal)
+#   API=http://host:port/api                                # another core address (default http://127.0.0.1:7100/api)
 set -Eeuo pipefail
 API="${API:-http://127.0.0.1:7100/api}"
 BIN=/usr/local/bin/cloudd
@@ -31,7 +31,7 @@ die()  { printf '%s✗ %s%s\n' "$c_err" "$*" "$c_off" >&2; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
 need_root() { [[ $EUID -eq 0 ]] || die "запускать через sudo"; }
 usage() { sed -n '2,/^set /{/^set /!p}' "$0" | sed 's/^# \{0,1\}//'; }
-confirm() { # да — только явно: --yes или ответ в терминале; без терминала вопрос считается отказом
+confirm() { # yes — only explicitly: --yes or an answer in the terminal; without a terminal a question counts as a refusal
   [[ -n "$YES" ]] && return 0
   if [[ ! -t 0 ]]; then warn "нет терминала — добавьте --yes, чтобы подтвердить: $1"; return 1; fi
   local a=""; read -r -p "$1 [y/N] " a; [[ "$a" == [yY] ]]
@@ -41,23 +41,24 @@ TMP=""; trap '[[ -n "$TMP" ]] && rm -rf "$TMP"' EXIT
 
 # ------------------------------------------------------------------------------------------------------------ API
 core_up() { curl -fs -m 4 "$API/status" >/dev/null 2>&1; }
-api() { # api METHOD path [json] [timeout] → тело ответа в stdout; при неуспехе — текст ошибки в stdout и код 1 (без exit,
-  # чтобы вызывать в подоболочке: if r="$(api …)"; then …; else warn "$r"; fi)
+api() { # api METHOD path [json] [timeout] → the answer body on stdout; on failure — the error text on stdout and code 1 (no exit,
+  # so it can be called in a subshell: if r="$(api …)"; then …; else warn
+  # "$r"; fi)
   local m="$1" p="$2" body="${3:-}" tmo="${4:-900}" out code
   if ! out="$(curl -s -m "$tmo" -X "$m" -H 'Content-Type: application/json' ${body:+-d "$body"} -w '\n%{http_code}' "$API$p")"; then printf 'ядро не отвечает на %s%s' "$API" "$p"; return 1; fi
   code="${out##*$'\n'}"; out="${out%$'\n'*}"
   if [[ "$code" != 2* ]]; then printf '%s %s → HTTP %s: %s' "$m" "$p" "$code" "$(echo "$out" | jq -r '.error // .' 2>/dev/null | head -c 400)"; return 1; fi
   printf '%s' "$out"
 }
-must() { local out; out="$(api "$@")" || die "$out"; printf '%s' "$out"; }    # то же, но с остановкой скрипта
+must() { local out; out="$(api "$@")" || die "$out"; printf '%s' "$out"; }    # the same, but stopping the script
 jbody() { jq -cn "$@"; }
 ver_of() { api GET /status | jq -r '"\(.version) (\(.build // "dev"))"' 2>/dev/null || echo "?"; }
-wait_core() { # wait_core <сек> — дождаться ответа ядра
+wait_core() { # wait_core <sec> — wait for the core to answer
   local end=$(( $(date +%s) + ${1:-60} ))
   while ! core_up; do (( $(date +%s) >= end )) && return 1; sleep 2; done
 }
-# после apply/rollback: дождаться, когда ядро перезапустится и отчитается (update.applied.pending → false), а не просто ответит
-wait_applied() { # wait_applied <сборка до> [сек] → печатает result (ok | version_mismatch | rolled_back | timeout)
+# after apply/rollback: wait until the core restarts and reports (update.applied.pending → false), not merely answers
+wait_applied() { # wait_applied <build before> [sec] → prints result (ok | version_mismatch | rolled_back | timeout)
   local before="$1" end=$(( $(date +%s) + ${2:-120} )) u pending build res
   sleep 3
   while (( $(date +%s) < end )); do
@@ -72,7 +73,7 @@ wait_applied() { # wait_applied <сборка до> [сек] → печатае�
   done
   echo timeout
 }
-report_applied() { # report_applied <result> <ожидаемая версия>
+report_applied() { # report_applied <result> <expected version>
   case "$1" in
     ok) ok "готово: $(ver_of)" ;;
     version_mismatch) warn "новая версия не поднялась — сторожок вернул предыдущую: работает $(ver_of), ожидалась $2. Причина — $STATE/updates/restart.log и journalctl -u cloudd -n 100; сломанный бинарь сохранён как $BIN.failed"; return 1 ;;
@@ -82,7 +83,7 @@ report_applied() { # report_applied <result> <ожидаемая версия>
   esac
 }
 
-# ------------------------------------------------------------------------------------------------------------ статус
+# ------------------------------------------------------------------------------------------------------------ status
 do_status() {
   core_up || die "ядро не отвечает на $API — проверьте systemctl status cloudd; пакет можно поставить напрямую: sudo $0 <пакет.tar.gz>"
   local u; u="$(must GET /updates)"
@@ -112,7 +113,7 @@ do_status() {
   return 0
 }
 
-do_check() { # 0 — есть обновление, 1 — нет, 2 — канал недоступен/не задан
+do_check() { # 0 — there is an update, 1 — none, 2 — the channel is unavailable/not set
   core_up || { warn "ядро не отвечает на $API"; return 2; }
   local s; if ! s="$(api POST /updates/check)"; then warn "$s"; return 2; fi
   if [[ "$(echo "$s" | jq -r .available)" == true ]]; then ok "доступно обновление $(echo "$s" | jq -r .latest.version) (сейчас $(echo "$s" | jq -r .version))"; return 0; fi
@@ -120,8 +121,8 @@ do_check() { # 0 — есть обновление, 1 — нет, 2 — кана
   warn "канал: $(echo "$s" | jq -r '.check_error // "нет данных"')"; return 2
 }
 
-# ------------------------------------------------------------------------------------------------------- пакет
-# через ядро: загрузить, установить, дождаться перезапуска и результата
+# -------------------------------------------------------------------------------------------------------
+# package through the core: upload, install, wait for the restart and the result
 apply_via_core() {
   local file="$1" name; name="$(basename "$file")"
   local before; before="$(api GET /status | jq -r '.version + " " + (.build // "dev")')"
@@ -140,7 +141,8 @@ apply_via_core() {
   report_applied "$res" "$ver"
 }
 
-# напрямую (ядро не отвечает): распаковать, сверить sha256, .prev (только если текущий бинарь исправен), замена, перезапуск, откат
+# directly (the core does not answer): unpack, check sha256, .prev (only if the current binary is sound), replacement, restart,
+# rollback
 apply_direct() {
   need_root
   local src="$1"
@@ -194,7 +196,7 @@ do_channel() {
   confirm "Скачать и установить $ver?" || return 0
   install_from_channel "$ver"
 }
-install_from_channel() { # скачать пакет из канала через ядро и установить
+install_from_channel() { # download the package from the channel through the core and install
   local ver="$1" before p r res
   before="$(api GET /status | jq -r '.version + " " + (.build // "dev")')"
   p="$(must POST /updates/download)"
@@ -206,8 +208,8 @@ install_from_channel() { # скачать пакет из канала чере�
   report_applied "$res" "$ver"
 }
 
-# ------------------------------------------------------------------------------------------ приложения и компоненты
-do_apps() { # do_apps all|changed → код 1, если что-то не обновилось
+# ------------------------------------------------------------------------------------------ apps and components
+do_apps() { # do_apps all|changed → code 1 if something was not updated
   core_up || { warn "ядро не отвечает на $API — приложения пропущены"; return 1; }
   log "приложения из каталога"
   local u names; u="$(must GET /updates)"
@@ -223,7 +225,7 @@ do_apps() { # do_apps all|changed → код 1, если что-то не обн
   (( fails == 0 )) || { warn "не обновилось: $fails"; return 1; }
 }
 
-do_components() { # do_components [проект] → код 1 при ошибке или неизвестном проекте
+do_components() { # do_components [project] → code 1 on an error or an unknown project
   core_up || { warn "ядро не отвечает на $API — компоненты пропущены"; return 1; }
   log "компоненты (edge, Coder, Komodo, docker-прокси)"
   local u list p fails=0; u="$(must GET /updates)"
@@ -255,7 +257,7 @@ do_catalog() {
   must GET /updates | jq -r '.catalog | "манифестов: \(.manifests); последний импорт: \(.last_import.at // "?") — \(if .last_import.ok then "\(.last_import.imported) импортировано" else "ошибка: \(.last_import.error // "?")" end)"'
 }
 
-do_host() { # do_host [all] — пакеты хоста; Docker, Incus и Tailscale по умолчанию удерживаются (их обновление перезапускает сервисы)
+do_host() { # do_host [all] — host packages; Docker, Incus and Tailscale are held by default (updating them restarts services)
   need_root
   log "пакеты хоста"
   export DEBIAN_FRONTEND=noninteractive
@@ -294,7 +296,7 @@ do_rollback() {
   fi
 }
 
-do_all() { # для cron: sudo agentverse-update --all --yes
+do_all() { # for cron: sudo agentverse-update --all --yes
   local rc=0
   if core_up && [[ -n "$(api GET /updates | jq -r '.system.channel_url // empty')" ]]; then
     local c=0; do_check || c=$?
@@ -309,7 +311,8 @@ do_all() { # для cron: sudo agentverse-update --all --yes
   return $rc
 }
 
-# -------------------------------------------------------------------------------------------------------- разбор
+# --------------------------------------------------------------------------------------------------------
+# parsing
 ACTION=status; ARG=""
 while [[ $# -gt 0 ]]; do case "$1" in
   --yes|-y) YES=1 ;;

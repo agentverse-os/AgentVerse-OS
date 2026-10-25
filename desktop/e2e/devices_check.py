@@ -1,7 +1,7 @@
-# Запуск как остальные e2e (см. desktop_test.py): на стенде в контейнере Playwright, EDGE_HOST задаёт хост Desktop.
-# Визуальный и функциональный проход по устройствам и движкам: экран загрузки, обои двумя слоями, темы (стекло/OLED/контраст),
-# раздел «Темы» в Настройках, заставка, оверлей связи, горизонтальный скролл. Настройки пользователя на сервере не меняются:
-# темы применяются только в этой вкладке через атрибуты документа.
+# Run like the other e2e (see desktop_test.py): on the stand in the Playwright container, EDGE_HOST sets the Desktop host. A
+# visual and functional pass over devices and engines: the loading screen, two-layer wallpaper, themes (glass/OLED/contrast),
+# the "Themes" section in Settings, the screensaver, the connection overlay, horizontal scroll. The user's settings on the
+# server are not changed: the themes apply only in this tab through document attributes.
 import os
 from playwright.sync_api import sync_playwright
 H = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); os.makedirs("shots", exist_ok=True); res = []
@@ -17,7 +17,7 @@ with sync_playwright() as p:
         try: b = getattr(p, engine).launch()
         except Exception as e: ok(f"{engine}: launch", False, str(e)[:80]); continue
         for dev, opts in DEV.items():
-            if engine == "firefox" and opts.get("is_mobile"): opts = {k: v for k, v in opts.items() if k != "is_mobile"}  # Firefox без эмуляции is_mobile
+            if engine == "firefox" and opts.get("is_mobile"): opts = {k: v for k, v in opts.items() if k != "is_mobile"}  # Firefox without is_mobile emulation
             tag = f"{engine}/{dev}"
             try:
                 ctx = b.new_context(locale="ru-RU", **opts); pg = ctx.new_page()
@@ -28,7 +28,7 @@ with sync_playwright() as p:
                 ok(f"{tag}: shell rendered", pg.locator(".desktop").count() == 1 and pg.locator(".taskbar .start, .navbar, .status").count() >= 1)
                 ok(f"{tag}: no horizontal scroll", pg.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"))
                 ok(f"{tag}: wallpaper layers css", "wallpaper-monolith" in pg.evaluate("getComputedStyle(document.body, '::after').backgroundImage") or pg.evaluate("getComputedStyle(document.body, '::after').backgroundImage") == "none")
-                # темы: стекло тёмное/светлое, OLED, контраст — без ошибок JS и без скролла
+                # themes: glass dark/light, OLED, contrast — no JS errors and no scroll
                 for name, args in {"glass-dark": ("glass", "dark"), "glass-light": ("glass", "light"), "oled": ("oled", "dark"), "contrast": ("flat", "dark", "high", "sharp", "#F2C94C")}.items():
                     theme(pg, *args); pg.wait_for_timeout(500)
                     ok(f"{tag}: theme {name} applied", pg.evaluate("document.documentElement.dataset.surface") == args[0] and pg.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"))
@@ -36,20 +36,22 @@ with sync_playwright() as p:
                     if name == "glass-dark" and dev == "phone":
                         bf = pg.evaluate("getComputedStyle(document.querySelector('.status') || document.body).backdropFilter || ''")
                         ok(f"{tag}: glass backdrop on phone status bar", "blur" in bf or engine == "firefox", bf[:40])
-                # Настройки → раздел «Темы»
+                # Settings → the "Themes" section
                 pg.goto(f"https://{H}/#settings", wait_until="domcontentloaded"); pg.wait_for_timeout(3000); theme(pg, "glass", "dark"); pg.wait_for_timeout(400)
                 cards = pg.locator(".thm-card"); ok(f"{tag}: theme cards", cards.count() == 7, str(cards.count()))
                 if cards.count():
                     bb = cards.first.bounding_box(); ok(f"{tag}: theme card visible & within viewport", bool(bb) and bb["x"] >= 0 and bb["x"] + bb["width"] <= opts["viewport"]["width"] + 1)
                 pg.screenshot(path=f"shots/dev-{engine}-{dev}-settings.png")
-                # заставка (тестовый таймер) и оверлей связи — только chromium/webkit на телефоне и десктопе, чтобы не тянуть время
+                # the screensaver (a test timer) and the connection overlay — only chromium/webkit on the phone and desktop, so as
+                # not to drag the time
                 if engine != "firefox" and dev != "tablet":
                     pg.evaluate("localStorage.setItem('cloudos.screensaver.testMs', '2500')"); pg.goto(f"https://{H}/", wait_until="domcontentloaded"); pg.wait_for_timeout(2500); pg.mouse.move(100, 100); pg.wait_for_timeout(4000)
                     ok(f"{tag}: screensaver shows", pg.locator(".saver").count() == 1)
                     if pg.locator(".saver").count(): pg.screenshot(path=f"shots/dev-{engine}-{dev}-saver.png"); pg.mouse.move(120, 140); pg.touchscreen.tap(50, 50) if opts.get("has_touch") else None; pg.wait_for_timeout(700)
                     ok(f"{tag}: screensaver dismissed", pg.locator(".saver").count() == 0)
-                    pg.evaluate("localStorage.removeItem('cloudos.screensaver.testMs')"); pg.reload(wait_until="domcontentloaded"); pg.wait_for_timeout(3000)  # таймер заставки читается при загрузке — иначе она накроет оверлей связи
-                    # связь рвём на уровне контекста: page.route в WebKit не перехватывает запросы страницы под Service Worker; оверлей — через 25 с без ответа
+                    pg.evaluate("localStorage.removeItem('cloudos.screensaver.testMs')"); pg.reload(wait_until="domcontentloaded"); pg.wait_for_timeout(3000)  # the screensaver timer is read at load — otherwise it would cover the connection overlay
+                    # the connection is cut at the context level: page.route in WebKit does not intercept page requests under a Service Worker; the overlay —
+                    # after 25 s without an answer
                     ctx.set_offline(True); pg.wait_for_timeout(30000)
                     ok(f"{tag}: offline overlay", pg.locator(".offline").count() == 1); pg.screenshot(path=f"shots/dev-{engine}-{dev}-offline.png")
                     ctx.set_offline(False); pg.wait_for_timeout(14000); ok(f"{tag}: offline cleared", pg.locator(".offline").count() == 0)

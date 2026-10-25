@@ -14,7 +14,7 @@
   const s = $derived(q.trim().toLowerCase());
   const installed = $derived(apps.filter(a => a.installed && (!s || a.name.includes(s) || (a.manifest.title ?? '').toLowerCase().includes(s))));
   const catalog = $derived(s ? apps.filter(a => !a.installed && (a.name.includes(s) || (a.manifest.title ?? '').toLowerCase().includes(s))).slice(0, 8) : []);
-  const projs = $derived(projects.filter(p => !s || p.name.includes(s) || (p.spec.description ?? '').toLowerCase().includes(s)));  // заметка тоже ищется
+  const projs = $derived(projects.filter(p => !s || p.name.includes(s) || (p.spec.description ?? '').toLowerCase().includes(s)));  // the note is searched too
   const sysShown = $derived(sys.filter(([, m]) => !s || t(m.title).toLowerCase().includes(s)));
   function icon(a: AppView) { return a.manifest.icon?.startsWith('./') ? `/api/apps/${a.name}/icon` : (a.manifest.icon ?? '📦'); }
   function isImg(i: string) { return i.startsWith('/') || i.startsWith('http'); }

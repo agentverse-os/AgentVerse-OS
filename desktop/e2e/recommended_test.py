@@ -1,4 +1,5 @@
-# e2e списка «Рекомендуем»: полка в Store, фильтр по источнику «Рекомендуем», плашка в карточках, причина в карточке приложения.
+# "Recommended" list e2e: the shelf in the Store, the "Recommended" source filter, the badge on cards, the reason in the app
+# card.
 import os, time
 from playwright.sync_api import sync_playwright
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); os.makedirs("shots", exist_ok=True); res = []
@@ -32,7 +33,7 @@ with sync_playwright() as p:
         vw = pg.locator(".card.app", has_text="Runtipi").filter(has_text="Vaultwarden").first
         ok(f"{label}: needs line for a wizard-type pick", "создадите при первом входе" in (vw.locator(".needs").inner_text() if vw.locator(".needs").count() else ""))
         pg.fill("input.search", ""); time.sleep(0.5)
-        # фильтр «Рекомендуем» в выпадающем списке источников
+        # the "Recommended" filter in the source dropdown
         dd = pg.locator(".filters .dd").first
         dd.locator("button.dd-btn").click(); time.sleep(0.3)
         pg.locator(".dd-list li[role=option]", has_text="Рекомендуем").first.click(); time.sleep(0.8)

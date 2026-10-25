@@ -1,6 +1,6 @@
-// Данные для входа: блок AccessPanel (адрес, логин, пароль, смена секрета, заметка) и подписи access.ts —
-// поля «логин»/«пароль», пояснения режима входа (generated/default/none/external/app) и строка «Что понадобится» в Store.
-// login.note из манифеста и ошибки ядра показываются как есть.
+// Sign-in data: the AccessPanel block (address, login, password, secret rotation, note) and the access.ts labels — the
+// "login"/"password" fields, the sign-in mode explanations (generated/default/none/external/app) and the "What you will
+// need" line in the Store. login.note from the manifest and core errors are shown as is.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

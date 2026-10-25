@@ -1,11 +1,15 @@
-//! cloudos-agentd — адаптер AgentVerse OS внутри workspace (ADR-006). Единственный клиент — cloudd на хосте: он
-//! приходит по сети проекта с токеном, который сам же положил в контейнер. Протокол терминала (v1): по WebSocket
-//! бинарные кадры — байты ввода/вывода, текстовые — управление JSON (`hello`, `resize`, `ping`/`pong`, `exit`).
+//! cloudos-agentd — the AgentVerse OS adapter inside a workspace (ADR-006). The only client is cloudd on the
+//! host: it comes over the project network with a token it placed into the container itself. Terminal protocol
+//! (v1): over WebSocket, binary frames are input/output bytes, text frames are JSON control (`hello`, `resize`,
+//! `ping`/`pong`, `exit`).
 mod acp;
+mod agy;
+mod browser;
 mod codex;
 mod engines;
 mod fork;
 mod fs;
+mod hub;
 mod import;
 mod llm;
 mod mcp;
@@ -16,7 +20,7 @@ mod transfer;
 
 use anyhow::{Context, Result};
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
-use axum::extract::{Path, Request, State};
+use axum::extract::{Path, Query, Request, State};
 use axum::http::{header::AUTHORIZATION, StatusCode};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
@@ -37,19 +41,20 @@ pub const PROTOCOL: u32 = 1;
 #[derive(Parser)]
 #[command(name = "cloudos-agentd", version, about = "AgentVerse OS: адаптер workspace — PTY-демон, сессии агентов, файлы")]
 struct Args {
-    /// Адрес, на котором слушать: сеть проекта, куда приходит cloudd
+    /// Address to listen on: the project network cloudd comes from
     #[arg(long, env = "AGENTD_LISTEN", default_value = "0.0.0.0:7200")]
     listen: String,
-    /// Файл с токеном, который кладёт cloudd
+    /// File with the token placed by cloudd
     #[arg(long, env = "AGENTD_TOKEN_FILE", default_value = "/etc/cloudos/agentd.token")]
     token_file: PathBuf,
-    /// Токен явно (для разработки)
+    /// Token given explicitly (for development)
     #[arg(long, env = "AGENTD_TOKEN")]
     token: Option<String>,
-    /// Работать без токена — только для отладки на loopback
+    /// Work without a token — only for debugging on
+    /// loopback
     #[arg(long)]
     insecure: bool,
-    /// Каталог данных (журналы сессий); по умолчанию ~/.cloudos/agentd
+    /// Data directory (session journals); ~/.cloudos/agentd by default
     #[arg(long, env = "AGENTD_DATA")]
     data: Option<PathBuf>,
 }
@@ -59,8 +64,14 @@ struct AppState {
     sessions: Manager,
     token: Option<String>,
     started: Instant,
-    /// Каталог движков с результатом обнаружения (engines.rs), кэш на минуту
-    engines_cache: std::sync::Mutex<Option<(Instant, serde_json::Value)>>,
+    /// Engine catalog with the detection result (engines.rs), cached for a
+    /// minute
+    engines_cache: std::sync::Mutex<Option<(Instant, std::time::SystemTime, serde_json::Value)>>,
+    /// One version poll at a time: parallel requests wait for the running one instead of spawning their own `--version`
+    /// (each one is a 100 MB node)
+    engines_flight: tokio::sync::Mutex<()>,
+    /// Agent browser (browser.rs): this workspace's headless Chromium process
+    browser: browser::Browser,
 }
 
 impl AppState {
@@ -83,27 +94,44 @@ async fn main() -> Result<()> {
     };
     let data = args.data.clone().unwrap_or_else(|| PathBuf::from(home()).join(".cloudos/agentd"));
     let sessions = Manager::open(data.join("sessions")).with_context(|| format!("каталог данных {}", data.display()))?;
-    let state = Arc::new(AppState { ptys: RwLock::new(HashMap::new()), sessions, token, started: Instant::now(), engines_cache: std::sync::Mutex::new(None) });
-    // беседы, живые перед остановкой, возвращаются сами (срез 38); чуть позже старта, чтобы API уже отвечал
+    let state = Arc::new(AppState { ptys: RwLock::new(HashMap::new()), sessions, token, started: Instant::now(), engines_cache: std::sync::Mutex::new(None), engines_flight: tokio::sync::Mutex::new(()), browser: browser::Browser::default() });
+    // agent browser (browser.rs): enabled — the `browser` MCP server is in the workspace list; after a restart we start Chromium ourselves so sessions with
+    // MCP do not wait
+    { let st2 = state.clone(); tokio::spawn(async move { if mcp::servers().iter().any(|m| m.name == browser::MCP_NAME) { if let Err(e) = browser::start(&st2.browser).await { tracing::warn!("автозапуск браузера агента: {e:#}"); } } }); }
+    // conversations alive before the stop come back by themselves (slice 38); a little after start so the
+    // API already answers
     { let st = state.clone(); tokio::spawn(async move { tokio::time::sleep(std::time::Duration::from_secs(2)).await; let n = st.sessions.resume_live().await; if n > 0 { tracing::info!("автовозобновление завершено: {n}"); } }); }
     let api = Router::new()
+        .route("/v1/events", get(events_ws))
         .route("/v1/ptys", get(pty_list).post(pty_create))
         .route("/v1/ptys/{id}", get(pty_info).delete(pty_kill))
         .route("/v1/ptys/{id}/resize", axum::routing::post(pty_resize))
         .route("/v1/ptys/{id}/input", axum::routing::post(pty_input))
+        .route("/v1/ptys/{id}/text", get(pty_text))
         .route("/v1/ptys/{id}/ws", get(pty_attach))
         .route("/v1/sessions", get(session_list).post(session_create))
         .route("/v1/sessions/{id}", get(session_info).delete(session_delete))
         .route("/v1/sessions/{id}/events", get(session_events))
+        .route("/v1/sessions/{id}/events/{seq}", get(session_event))
         .route("/v1/sessions/{id}/download", get(session_download))
         .route("/v1/search", get(search))
         .route("/v1/mcp", get(mcp_get).post(mcp_set))
+        .route("/v1/mcp/health", get(mcp_health))
+        // agent browser (browser.rs, §4.9 step 2): status, enable/disable, Chromium install, screencast and input
+        .route("/v1/browser", get(browser_status))
+        .route("/v1/browser/enable", axum::routing::post(browser_enable))
+        .route("/v1/browser/disable", axum::routing::post(browser_disable))
+        .route("/v1/browser/install", axum::routing::post(browser_install))
+        .route("/v1/browser/ws", get(browser_ws))
         .route("/v1/sessions/{id}/ws", get(session_attach))
         .route("/v1/sessions/{id}/prompt", axum::routing::post(session_prompt))
         .route("/v1/sessions/{id}/permission", axum::routing::post(session_permission))
         .route("/v1/sessions/{id}/interrupt", axum::routing::post(session_interrupt))
         .route("/v1/sessions/{id}/mode", axum::routing::post(session_mode))
         .route("/v1/sessions/{id}/model", axum::routing::post(session_model))
+        .route("/v1/sessions/{id}/label", axum::routing::post(session_label))
+        .route("/v1/sessions/{id}/limit_hit", axum::routing::post(session_limit_hit))
+        .route("/v1/sessions/{id}/note", axum::routing::post(session_note))
         .route("/v1/sessions/{id}/tui", axum::routing::post(session_tui).delete(session_tui_stop))
         .route("/v1/sessions/{id}/effort", axum::routing::post(session_effort))
         .route("/v1/sessions/{id}/thinking", axum::routing::post(session_thinking))
@@ -155,7 +183,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-/// Bearer-токен в заголовке или `?token=` (WebSocket из браузера заголовков не ставит; cloudd ставит заголовок).
+/// Bearer token in the header or `?token=` (a browser WebSocket sets no headers; cloudd sets the header).
 async fn auth(State(st): State<Arc<AppState>>, req: Request, next: Next) -> Response {
     let Some(expected) = st.token.as_deref() else { return next.run(req).await };
     let header = req.headers().get(AUTHORIZATION).and_then(|v| v.to_str().ok()).and_then(|v| v.strip_prefix("Bearer ")).map(str::to_owned);
@@ -180,7 +208,8 @@ async fn health(State(st): State<Arc<AppState>>) -> Json<serde_json::Value> {
 
 #[derive(Deserialize)]
 struct CreateBody {
-    /// Shell карточки сессии: PTY принадлежит сессии и убирается вместе с ней
+    /// Shell of the session card: the PTY belongs to the session and goes
+    /// away with it
     #[serde(default)]
     session: Option<String>,
     #[serde(default)]
@@ -193,7 +222,8 @@ struct CreateBody {
     title: Option<String>,
     #[serde(default)]
     env: HashMap<String, String>,
-    /// Движок, чей TUI запускается (меню «+»): перед стартом готовим его конфигурацию как перед сессией
+    /// The engine whose TUI is being started (the "+" menu): prepare its configuration before start as
+    /// before a session
     engine: Option<String>,
 }
 fn d_cols() -> u16 { 120 }
@@ -203,27 +233,100 @@ fn home() -> String {
     std::env::var("HOME").unwrap_or_else(|_| "/".into())
 }
 
-/// Без команды — login-оболочка: она читает `/etc/profile.d/cloudos-env.sh`, и агенты получают gate и аккаунт.
+/// Without a command — a login shell: it reads `/etc/profile.d/cloudos-env.sh`, and the agents get the gate
+/// and the account.
 async fn pty_create(State(st): State<Arc<AppState>>, Json(b): Json<CreateBody>) -> Result<Json<pty::PtyInfo>, ApiError> {
-    let cmd = if b.cmd.is_empty() { vec![std::env::var("SHELL").unwrap_or_else(|_| "/bin/bash".into()), "-l".into()] } else { b.cmd };
+    let mut cmd = if b.cmd.is_empty() { vec![std::env::var("SHELL").unwrap_or_else(|_| "/bin/bash".into()), "-l".into()] } else { b.cmd };
     let title = b.title.clone().unwrap_or_else(|| cmd.join(" "));
     let cwd = b.cwd.unwrap_or_else(home);
     let mut env = b.env;
-    // TUI ACP-движка из меню «+» (без сессии agentd): та же подготовка, что перед сессией — иначе pi стартует со своей
-    // моделью без ключа (401), а Gemini без gate и доверенной папки
-    if let Some(engine) = b.engine.as_deref().and_then(engines::get).filter(|e| e.protocol == "acp").or_else(|| engines::in_cmd(&cmd)) {
+    // TUI of an ACP engine from the "+" menu (no agentd session): the same preparation as before a session — otherwise
+    // pi starts with its own model without a key (401), and Gemini without the gate and a trusted folder
+    if let Some(engine) = b.engine.as_deref().and_then(engines::get).filter(|e| e.protocol == "acp" || e.protocol == "agy").or_else(|| engines::in_cmd(&cmd)) {
         let base = std::fs::read_to_string("/etc/cloudos/env.sh").map(|t| codex::parse_env_sh(&t)).unwrap_or_default();
         if engine.id == "pi" { acp::pi_ensure_gate(&base).await; }
+        // Oh My Pi: the gate provider and the model as a flag (without it omp takes its own default google/…,
+        // which we do not have)
+        if engine.id == "omp" {
+            if let Some(d) = acp::omp_ensure_gate(&base).await {
+                if let Some(last) = cmd.last_mut() { if last.trim() == "exec omp" || last.trim() == "omp" { last.push_str(&format!(" --model {d}")); } }
+            }
+        }
         if engine.id == "gemini" {
             acp::gemini_ensure_trust(&cwd);
             if !base.contains_key("GOOGLE_GEMINI_BASE_URL") { if let Some(g) = base.get("GEMINI_BASE_URL") { env.entry("GOOGLE_GEMINI_BASE_URL".into()).or_insert_with(|| g.clone()); } }
             env.entry("NO_BROWSER".into()).or_insert_with(|| "true".into());
         }
+        // Antigravity through the gate: Gemini API key mode in agy's settings.json, the gate address in the
+        // environment, and the TUI from the "+" menu starts on the best gate Gemini (gemini-api://…) — agy's built-in
+        // catalog sends the gate names it does not have
+        if engine.id == "antigravity" && acp::antigravity_ensure_gate(&base) {
+            for (k, v) in acp::antigravity_env(&base) { env.entry(k).or_insert(v); }
+            if let Some(last) = cmd.last_mut() {
+                if last.trim() == "exec agy" || last.trim() == "agy" {
+                    if let Some(m) = acp::pick_gemini_model(&codex::gate_model_ids(&base).await) { last.push_str(&format!(" --model {}", acp::antigravity_model(&m, true))); }
+                }
+            }
+        }
     }
+    // Engine TUI from the "+" menu (`bash -lic "exec agy …"`): binaries from ~/.local/bin and ~/.npm-global/bin —
+    // regardless of the profile
+    let mut cmd = cmd;
+    if cmd.len() == 3 && cmd[0] == "bash" && cmd[1] == "-lic" && cmd[2].starts_with("exec ") { cmd[2] = format!("{}{}", engines::PATH_PREFIX, cmd[2]); }
     let p = PtySession::spawn(PtyOpts { cmd, cwd, cols: b.cols.max(10), rows: b.rows.max(4), title, env, session: b.session, tui: false })?;
-    st.ptys.write().unwrap().insert(p.id.clone(), p.clone());
+    st.ptys.write().unwrap().insert(p.id.clone(), p.clone()); hub::touch();
     tracing::info!("pty {} создан: {:?} в {}", &p.id[..8], p.cmd, p.cwd);
     Ok(Json(p.info()))
+}
+
+/// Registry snapshot for the hub (ADR-007): sessions (with TUI) and terminals — the same as `/v1/sessions` and
+/// `/v1/ptys` return.
+fn registry_snapshot(st: &AppState) -> serde_json::Value {
+    let sessions: Vec<session::Info> = st.sessions.list().into_iter().map(|i| with_tui(st, i)).collect();
+    let mut ptys: Vec<pty::PtyInfo> = st.ptys.read().unwrap().values().map(|p| p.info()).collect();
+    ptys.sort_by_key(|p| p.created_at);
+    // engine catalog version (the install stamp, engines.rs STAMP): when it changes the client re-reads the catalog —
+    // the "+" menu switches "Install…" to "Chat with …" without a reload, in any tab and on the phone
+    serde_json::json!({ "kind": "snapshot", "sessions": sessions, "ptys": ptys, "engines_v": engines::stamp_secs() })
+}
+
+/// `GET /v1/events` — the hub WebSocket: a snapshot on connect, then a new snapshot on every registry change (250 ms debounce,
+/// only if it differs), keepalive `ping` every 20 s. Disk reconciliation — as for the list, at most once per 15 s.
+async fn events_ws(State(st): State<Arc<AppState>>, ws: WebSocketUpgrade) -> Response {
+    ws.on_upgrade(move |mut sock| async move {
+        let mut rx = hub::subscribe();
+        let st2 = st.clone(); let _ = tokio::task::spawn_blocking(move || st2.sessions.sync_disk()).await;
+        let mut last = registry_snapshot(&st);
+        if sock.send(Message::Text(last.to_string().into())).await.is_err() { return; }
+        loop {
+            let changed = tokio::select! {
+                r = rx.recv() => match r { Ok(()) => true, Err(RecvError::Lagged(_)) => true, Err(RecvError::Closed) => return },
+                _ = tokio::time::sleep(Duration::from_secs(20)) => false,
+                m = sock.recv() => match m { Some(Ok(Message::Close(_))) | None | Some(Err(_)) => return, _ => continue },
+            };
+            if !changed {
+                // the engine install stamp changed without registry events (an install in a terminal) — a new snapshot
+                // instead of ping
+                if last.get("engines_v").and_then(|v| v.as_u64()).unwrap_or(0) != engines::stamp_secs() {
+                    last = registry_snapshot(&st);
+                    if sock.send(Message::Text(last.to_string().into())).await.is_err() { return; }
+                    continue;
+                }
+                if sock.send(Message::Text("{\"kind\":\"ping\"}".into())).await.is_err() { return; }
+                continue;
+            }
+            // debounce: a model turn yields dozens of events per second — gather them into one
+            // snapshot
+            tokio::time::sleep(Duration::from_millis(250)).await;
+            while rx.try_recv().is_ok() {}
+            let st2 = st.clone(); let _ = tokio::task::spawn_blocking(move || st2.sessions.sync_disk()).await;
+            let snap = registry_snapshot(&st);
+            if snap != last {
+                last = snap;
+                if sock.send(Message::Text(last.to_string().into())).await.is_err() { return; }
+            }
+        }
+    })
 }
 
 async fn pty_list(State(st): State<Arc<AppState>>) -> Json<Vec<pty::PtyInfo>> {
@@ -253,14 +356,14 @@ async fn pty_input(State(st): State<Arc<AppState>>, Path(id): Path<String>, Json
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// Убить процесс; запись остаётся, пока её не удалят повторным DELETE (тогда и хвост вывода пропадает).
+/// Kill the process; the record stays until removed by a second DELETE (then the output tail goes too).
 async fn pty_kill(State(st): State<Arc<AppState>>, Path(id): Path<String>) -> Result<StatusCode, ApiError> {
     let p = st.pty(&id).ok_or(ApiError::NotFound)?;
     if p.exit_code().is_none() {
         p.kill()?;
         Ok(StatusCode::ACCEPTED)
     } else {
-        st.ptys.write().unwrap().remove(&id);
+        st.ptys.write().unwrap().remove(&id); hub::touch();
         Ok(StatusCode::NO_CONTENT)
     }
 }
@@ -277,6 +380,13 @@ enum Control {
     Resize { cols: u16, rows: u16 },
     #[serde(rename = "ping")]
     Ping,
+}
+
+/// Terminal output tail as text without control sequences (§9.11: the UI looks for the Google sign-in link in it)
+async fn pty_text(State(st): State<Arc<AppState>>, Path(id): Path<String>) -> Result<Json<serde_json::Value>, ApiError> {
+    let p = st.ptys.read().unwrap().get(&id).cloned().ok_or(ApiError::NotFound)?;
+    let (snapshot, _, _) = p.attach();
+    Ok(Json(serde_json::json!({ "id": id, "alive": p.exit_code().is_none(), "text": pty::strip_ansi(&snapshot) })))
 }
 
 async fn pty_ws(mut sock: WebSocket, p: Arc<PtySession>) {
@@ -305,12 +415,13 @@ async fn pty_ws(mut sock: WebSocket, p: Arc<PtySession>) {
                 },
                 chunk = out.recv() => match chunk {
                     Ok(b) => { if sock.send(Message::Binary(b)).await.is_err() { break } }
-                    // Клиент не успевает: пропущенное не восстанавливаем, экран догонит по следующим кадрам.
+                    // The client cannot keep up: what was missed is not restored, the screen catches up with
+                    // the next frames.
                     Err(RecvError::Lagged(_)) => continue,
                     Err(RecvError::Closed) => break,
                 },
                 _ = exit.changed() => {
-                    let code = *exit.borrow();  // Ref не Send — не держать через await
+                    let code = *exit.borrow();  // Ref is not Send — do not hold it across an await
                     if let Some(code) = code {
                         let _ = sock.send(Message::Text(serde_json::json!({ "t": "exit", "code": code }).to_string().into())).await;
                         break;
@@ -323,24 +434,34 @@ async fn pty_ws(mut sock: WebSocket, p: Arc<PtySession>) {
     p.clients.fetch_sub(1, std::sync::atomic::Ordering::Relaxed);
 }
 
-// ---- сессии агентов (session.rs) ----
-/// Каталог движков с тем, что установлено в workspace (engines.rs); кэш 60 с — проверка версий зовёт четыре CLI.
-async fn engines_list(State(st): State<Arc<AppState>>) -> Json<serde_json::Value> {
-    {
-        let c = st.engines_cache.lock().unwrap();
-        if let Some((at, v)) = c.as_ref() { if at.elapsed() < Duration::from_secs(60) { return Json(v.clone()); } }
-    }
+// ---- agent sessions (session.rs) ----
+/// Engine catalog with what is installed in the workspace (engines.rs); a 5-minute cache and one poll at a time: the version
+/// check calls seven CLIs, and without single-flight simultaneous app opens (several tabs, e2e) launched dozens of `gemini
+/// --version` at once — the workspace hit its memory limit and dragged the host into swap. The cache is invalidated by an
+/// install (at its start), the engines::STAMP mark (the install command touches it at the end — a cache filled while the
+/// install was running goes stale at once) and `?refresh=1`.
+async fn engines_list(State(st): State<Arc<AppState>>, Query(q): Query<HashMap<String, String>>) -> Json<serde_json::Value> {
+    const TTL: Duration = Duration::from_secs(300);
+    let refresh = matches!(q.get("refresh").map(|s| s.as_str()), Some("1" | "true"));
+    let cached = |st: &AppState| st.engines_cache.lock().unwrap().as_ref().filter(|(at, sys, _)| at.elapsed() < TTL && !engines::stamp_after(*sys)).map(|(_, _, v)| v.clone());
+    if !refresh { if let Some(v) = cached(&st) { return Json(v); } }
+    let _flight = st.engines_flight.lock().await;
+    if !refresh { if let Some(v) = cached(&st) { return Json(v); } }
     let list = engines::detect().await;
     let v = serde_json::json!({ "engines": list });
-    *st.engines_cache.lock().unwrap() = Some((Instant::now(), v.clone()));
+    *st.engines_cache.lock().unwrap() = Some((Instant::now(), std::time::SystemTime::now(), v.clone()));
+    hub::touch();   // the catalog was re-read — the hub sends out a snapshot with the new catalog version
     Json(v)
 }
 
-/// Установка движка — в терминале (владелец видит ход npm); после установки кэш каталога сбрасывается.
+/// Engine install — in a terminal (the owner sees npm progress); after the install the catalog cache
+/// is invalidated.
 async fn engine_install(State(st): State<Arc<AppState>>, Path(id): Path<String>) -> Result<Json<pty::PtyInfo>, ApiError> {
     let e = engines::get(&id).ok_or_else(|| ApiError::BadRequest(format!("неизвестный движок {id}")))?;
-    let p = PtySession::spawn(PtyOpts { cmd: engines::install_cmd(e), cwd: home(), cols: 120, rows: 30, title: format!("Установка {}", e.title), env: Default::default(), session: None, tui: false })?;
-    st.ptys.write().unwrap().insert(p.id.clone(), p.clone());
+    let base = std::fs::read_to_string("/etc/cloudos/env.sh").map(|t| codex::parse_env_sh(&t)).unwrap_or_default();
+    let gate = e.id == "antigravity" && acp::antigravity_gate(&base);
+    let p = PtySession::spawn(PtyOpts { cmd: engines::install_cmd(e, gate), cwd: home(), cols: 120, rows: 30, title: format!("Установка {}", e.title), env: Default::default(), session: None, tui: false })?;
+    st.ptys.write().unwrap().insert(p.id.clone(), p.clone()); hub::touch();
     *st.engines_cache.lock().unwrap() = None;
     tracing::info!("установка движка {}: pty {}", e.id, &p.id[..8]);
     Ok(Json(p.info()))
@@ -350,7 +471,7 @@ fn session_of(st: &AppState, id: &str) -> Result<Arc<Session>, ApiError> {
     st.sessions.get(id).ok_or(ApiError::NotFound)
 }
 
-/// Живой PTY терминального режима этой сессии, если есть.
+/// Live terminal-mode PTY of this session, if any.
 fn tui_of(st: &AppState, id: &str) -> Option<String> {
     st.ptys.read().unwrap().values().find(|p| p.tui && p.session.as_deref() == Some(id) && p.exit_code().is_none()).map(|p| p.id.clone())
 }
@@ -360,18 +481,20 @@ fn with_tui(st: &AppState, mut info: session::Info) -> session::Info {
     info
 }
 
-/// Закрыть TUI сессии (SIGHUP группе, ждём выхода) и убрать его PTY; возвращает, был ли он.
+/// Close the session's TUI (SIGHUP to the group, wait for exit) and remove its PTY; returns
+/// whether there was one.
 async fn kill_tui(st: &AppState, id: &str) -> bool {
     let linked: Vec<Arc<PtySession>> = st.ptys.read().unwrap().values().filter(|p| p.tui && p.session.as_deref() == Some(id)).cloned().collect();
     let mut any = false;
     for p in linked {
         if p.exit_code().is_none() { any = true; if p.kill().is_ok() { p.wait_exit(Duration::from_secs(7)).await; } }
-        st.ptys.write().unwrap().remove(&p.id);
+        st.ptys.write().unwrap().remove(&p.id); hub::touch();
     }
     any
 }
 
-/// Список — со сверкой с диском workspace'а (беседы Claude Code и Codex, начатые вне agentd; не чаще раза в 15 с).
+/// List — with reconciliation against the workspace disk (Claude Code and Codex conversations started outside
+/// agentd; at most once per 15 s).
 async fn session_list(State(st): State<Arc<AppState>>) -> Json<Vec<session::Info>> {
     let st2 = st.clone();
     if let Ok(n) = tokio::task::spawn_blocking(move || st2.sessions.sync_disk()).await { if n > 0 { tracing::info!("с диска подхвачено бесед: {n}"); } }
@@ -379,10 +502,11 @@ async fn session_list(State(st): State<Arc<AppState>>) -> Json<Vec<session::Info
 }
 
 async fn session_create(State(st): State<Arc<AppState>>, Json(opts): Json<CreateOpts>) -> Result<Json<session::Info>, ApiError> {
-    // один живой процесс на беседу: возобновление из чата закрывает TUI терминального режима
+    // one live process per conversation: resuming from the chat closes the terminal-mode TUI
     if let Some(rid) = opts.resume.as_deref() { if kill_tui(&st, rid).await { tracing::info!("сессия {}: TUI закрыт перед возобновлением", &rid[..rid.len().min(8)]); } }
     let s = st.sessions.create(opts).await?;
-    // один захват meta: два lock() одного Mutex в одном выражении держат guard'ы до конца макроса и встают намертво
+    // one meta lock: two lock() of the same Mutex in one expression hold the guards until the end of the macro and
+    // deadlock
     let m = s.meta.lock().unwrap().clone();
     tracing::info!("сессия {} ({}) в {}", &m.id[..8], m.agent, m.cwd);
     Ok(Json(s.info()))
@@ -424,7 +548,7 @@ async fn session_tier(State(st): State<Arc<AppState>>, Path(id): Path<String>, J
     Ok(Json(session_of(&st, &id)?.set_tier(t).await?))
 }
 
-/// Запрос к провайдеру для интерфейса: Claude — control_request (`{subtype, …}`), Codex — `{method, params}` app-server.
+/// Provider request for the UI: Claude — control_request (`{subtype, …}`), Codex — app-server `{method, params}`.
 async fn session_control(State(st): State<Arc<AppState>>, Path(id): Path<String>, Json(req): Json<serde_json::Value>) -> Result<Json<serde_json::Value>, ApiError> {
     if !req.is_object() { return Err(ApiError::BadRequest("нужен объект запроса".into())); }
     Ok(Json(session_of(&st, &id)?.control_request(req).await?))
@@ -433,8 +557,9 @@ async fn session_control(State(st): State<Arc<AppState>>, Path(id): Path<String>
 #[derive(Deserialize)]
 struct TuiBody { #[serde(default = "d_cols")] cols: u16, #[serde(default = "d_rows")] rows: u16, #[serde(default)] bypass: bool }
 
-/// Терминальный режим (как в CloudCLI): та же беседа в родном TUI агента в PTY сессии. Один живой процесс на беседу:
-/// headless-процесс останавливается и ждётся, прежний TUI закрывается; обратно — отправка из чата (resume) или DELETE.
+/// Terminal mode (as in CloudCLI): the same conversation in the agent's native TUI in the session PTY. One live
+/// process per conversation: the headless process is stopped and waited for, the previous TUI is closed; the way back
+/// — a send from the chat (resume) or DELETE.
 async fn session_tui(State(st): State<Arc<AppState>>, Path(id): Path<String>, Json(b): Json<TuiBody>) -> Result<Json<pty::PtyInfo>, ApiError> {
     let s = session_of(&st, &id)?;
     if s.alive() {
@@ -446,14 +571,15 @@ async fn session_tui(State(st): State<Arc<AppState>>, Path(id): Path<String>, Js
     let m = s.meta.lock().unwrap().clone();
     let title = format!("{} · CLI · {}", engines::title(&m.agent), &m.id[..8]);
     let p = PtySession::spawn(PtyOpts { cmd, cwd: m.cwd.clone(), cols: b.cols.max(10), rows: b.rows.max(4), title, env, session: Some(id.clone()), tui: true })?;
-    st.ptys.write().unwrap().insert(p.id.clone(), p.clone());
+    st.ptys.write().unwrap().insert(p.id.clone(), p.clone()); hub::touch();
     tracing::info!("сессия {}: терминальный режим, pty {} (обход: {}): {}", &id[..8], &p.id[..8], b.bypass, p.cmd.last().map(String::as_str).unwrap_or(""));
     Ok(Json(p.info()))
 }
 
 #[derive(Deserialize)]
 struct ForkBody { #[serde(default)] at_seq: Option<u64>, #[serde(default)] title: Option<String> }
-/// Форк беседы: новая сессия с копией истории до события `at_seq` (или целиком).
+/// Conversation fork: a new session with a copy of the history up to event
+/// `at_seq` (or whole).
 async fn session_fork(State(st): State<Arc<AppState>>, Path(id): Path<String>, body: Option<Json<ForkBody>>) -> Result<Json<session::Info>, ApiError> {
     let b = body.map(|b| b.0).unwrap_or(ForkBody { at_seq: None, title: None });
     let ns = st.sessions.fork(&id, b.at_seq, b.title).await?;
@@ -463,7 +589,8 @@ async fn session_fork(State(st): State<Arc<AppState>>, Path(id): Path<String>, b
 
 #[derive(Deserialize)]
 struct EditBody { seq: u64, content: serde_json::Value }
-/// Правка отправленного сообщения: журнал режется, процесс перезапускается с точки перед ним, новый текст уходит ходом.
+/// Editing a sent message: the journal is cut, the process is restarted from the point before it, the new text goes as
+/// a turn.
 async fn session_edit(State(st): State<Arc<AppState>>, Path(id): Path<String>, Json(b): Json<EditBody>) -> Result<Json<serde_json::Value>, ApiError> {
     let s = session_of(&st, &id)?;
     kill_tui(&st, &id).await;
@@ -472,11 +599,13 @@ async fn session_edit(State(st): State<Arc<AppState>>, Path(id): Path<String>, J
 
 #[derive(Deserialize)]
 struct QueueBody { content: serde_json::Value }
-/// Очередь сообщений: уйдёт само после текущего хода.
+/// Message queue: goes out by itself after the
+/// current turn.
 async fn session_queue(State(st): State<Arc<AppState>>, Path(id): Path<String>, Json(b): Json<QueueBody>) -> Result<Json<serde_json::Value>, ApiError> {
     let s = session_of(&st, &id)?;
     let item = s.queue_push(b.content);
-    // сессия уже свободна — отправляем сразу
+    // the session is already free — send right
+    // away
     if matches!(s.status(), session::Status::Idle) && s.pending().is_empty() { s.drain_queue(); }
     Ok(Json(item))
 }
@@ -484,12 +613,14 @@ async fn session_unqueue(State(st): State<Arc<AppState>>, Path((id, qid)): Path<
     if session_of(&st, &id)?.queue_remove(&qid) { Ok(StatusCode::NO_CONTENT) } else { Err(ApiError::NotFound) }
 }
 
-/// Остановить фоновую задачу Claude Code (Bash в фоне, Agent, Workflow…): control `stop_task`.
+/// Stop a Claude Code background task (background Bash, Agent, Workflow…): control
+/// `stop_task`.
 async fn session_task_stop(State(st): State<Arc<AppState>>, Path((id, task)): Path<(String, String)>) -> Result<Json<serde_json::Value>, ApiError> {
     Ok(Json(session_of(&st, &id)?.stop_task(&task).await?))
 }
 
-/// Архив сессии для переноса в другой workspace (transfer.rs): живой процесс и TUI останавливаются.
+/// Session archive for moving to another workspace (transfer.rs): the live process and the TUI are
+/// stopped.
 async fn session_export(State(st): State<Arc<AppState>>, Path(id): Path<String>) -> Result<Response, ApiError> {
     let s = session_of(&st, &id)?;
     kill_tui(&st, &id).await;
@@ -505,7 +636,8 @@ async fn session_export(State(st): State<Arc<AppState>>, Path(id): Path<String>)
 #[derive(Deserialize)]
 struct ImportQuery { #[serde(default)] cwd: Option<String> }
 
-/// Принять архив сессии из другого workspace: запись с тем же id под новым cwd (по умолчанию — дом).
+/// Accept a session archive from another workspace: a record with the same id under a new cwd (home
+/// by default).
 async fn session_import(State(st): State<Arc<AppState>>, axum::extract::Query(q): axum::extract::Query<ImportQuery>, body: axum::body::Bytes) -> Result<Json<session::Info>, ApiError> {
     if body.is_empty() { return Err(ApiError::BadRequest("пустой архив".into())); }
     let id = transfer::import(&st.sessions, &body, q.cwd).await?;
@@ -514,17 +646,42 @@ async fn session_import(State(st): State<Arc<AppState>>, axum::extract::Query(q)
     Ok(Json(s.info()))
 }
 
-/// Отключить терминальный режим: TUI закрывается, сессия остаётся завершённой и возобновляется из чата.
+/// Turn off terminal mode: the TUI is closed, the session stays finished and is resumed from the chat.
 async fn session_tui_stop(State(st): State<Arc<AppState>>, Path(id): Path<String>) -> Result<StatusCode, ApiError> {
     session_of(&st, &id)?;
     if kill_tui(&st, &id).await { Ok(StatusCode::NO_CONTENT) } else { Err(ApiError::NotFound) }
 }
 
 #[derive(Deserialize)]
-struct SinceQuery { #[serde(default)] since: u64, #[serde(default = "d_limit")] limit: usize }
+struct SinceQuery { #[serde(default)] since: u64, #[serde(default = "d_limit")] limit: usize, #[serde(default)] lite: Option<String> }
+fn is_lite(q: &SinceQuery) -> bool { matches!(q.lite.as_deref(), Some("1") | Some("true")) }
 fn d_limit() -> usize { 500 }
 
-/// MCP-серверы workspace'а (срез 36): список и сколько их знает каждый CLI.
+/// Workspace MCP servers (slice 36): the list and how many of them each CLI
+/// knows.
+async fn browser_status(State(st): State<Arc<AppState>>) -> Json<serde_json::Value> { Json(browser::status(&st.browser).await) }
+async fn browser_enable(State(st): State<Arc<AppState>>) -> Result<Json<serde_json::Value>, ApiError> { browser::enable(&st.browser).await.map(Json).map_err(|e| ApiError::BadRequest(format!("{e:#}"))) }
+async fn browser_disable(State(st): State<Arc<AppState>>) -> Result<Json<serde_json::Value>, ApiError> { browser::disable(&st.browser).await.map(Json).map_err(|e| ApiError::BadRequest(format!("{e:#}"))) }
+/// Chromium install — a terminal, as for the engines: the user sees the install
+/// progress
+async fn browser_install(State(st): State<Arc<AppState>>) -> Result<Json<pty::PtyInfo>, ApiError> {
+    let p = PtySession::spawn(PtyOpts { cmd: browser::install_cmd(), cwd: home(), cols: 120, rows: 30, title: "Установка Chromium".into(), env: Default::default(), session: None, tui: false })?;
+    st.ptys.write().unwrap().insert(p.id.clone(), p.clone()); hub::touch();
+    Ok(Json(p.info()))
+}
+#[derive(Deserialize)]
+struct BrowserWsQuery { target: Option<String> }
+async fn browser_ws(ws: WebSocketUpgrade, axum::extract::Query(q): axum::extract::Query<BrowserWsQuery>) -> Response {
+    ws.on_upgrade(move |sock| browser::serve(sock, q.target))
+}
+
+#[derive(Deserialize)]
+struct HealthQuery { #[serde(default)] refresh: Option<String> }
+/// MCP server health via `claude mcp list` (30 s cache, `?refresh=1` — anew)
+async fn mcp_health(axum::extract::Query(q): axum::extract::Query<HealthQuery>) -> Json<serde_json::Value> {
+    let refresh = matches!(q.refresh.as_deref(), Some("1") | Some("true"));
+    Json(serde_json::json!({ "servers": mcp::health(refresh).await }))
+}
 async fn mcp_get() -> Json<serde_json::Value> { Json(serde_json::json!({ "servers": mcp::servers(), "engines": mcp::engine_counts() })) }
 #[derive(Deserialize)]
 struct McpBody { #[serde(default)] servers: Vec<mcp::McpServer> }
@@ -535,8 +692,8 @@ async fn mcp_set(Json(b): Json<McpBody>) -> Result<Json<serde_json::Value>, ApiE
 #[derive(Deserialize)]
 struct SearchQuery { #[serde(default)] q: String, #[serde(default = "d_search_limit")] limit: usize }
 fn d_search_limit() -> usize { 30 }
-/// Поиск по беседам workspace'а (срез 34): слова запроса — все, без регистра и ё/е; ответ — беседы с совпадениями (до 3 на
-/// беседу), новые сверху.
+/// Search across workspace conversations (slice 34): the query words — all of them, case-insensitive and ё/е-insensitive;
+/// the answer — conversations with matches (up to 3 per conversation), newest first.
 async fn search(State(st): State<Arc<AppState>>, axum::extract::Query(q): axum::extract::Query<SearchQuery>) -> Json<serde_json::Value> {
     let words: Vec<String> = session::norm_text(&q.q).split_whitespace().filter(|w| w.chars().count() >= 2).map(str::to_string).collect();
     let mut out: Vec<serde_json::Value> = Vec::new();
@@ -556,8 +713,8 @@ async fn search(State(st): State<Arc<AppState>>, axum::extract::Query(q): axum::
 
 #[derive(Deserialize)]
 struct ExportQuery { #[serde(default)] format: String }
-/// Выгрузка беседы для чтения (срез 34; `/export` занят архивом переноса): Markdown (по умолчанию) или JSON журнала; имя файла —
-/// ASCII-слаг названия (браузер подставит своё).
+/// Conversation download for reading (slice 34; `/export` is taken by the transfer archive): Markdown (default) or the journal
+/// JSON; the file name is an ASCII slug of the title (the browser substitutes its own).
 async fn session_download(State(st): State<Arc<AppState>>, Path(id): Path<String>, axum::extract::Query(q): axum::extract::Query<ExportQuery>) -> Result<Response, ApiError> {
     let s = session_of(&st, &id)?;
     let title = s.info().meta.title;
@@ -568,7 +725,12 @@ async fn session_download(State(st): State<Arc<AppState>>, Path(id): Path<String
 }
 
 async fn session_events(State(st): State<Arc<AppState>>, Path(id): Path<String>, axum::extract::Query(q): axum::extract::Query<SinceQuery>) -> Result<Json<Vec<serde_json::Value>>, ApiError> {
-    Ok(Json(session_of(&st, &id)?.events_since(q.since, q.limit.min(5000))))
+    let list = session_of(&st, &id)?.events_since(q.since, q.limit.min(5000));
+    Ok(Json(if is_lite(&q) { list.iter().map(session::lite).collect() } else { list }))
+}
+/// Full event by number (§4.3.16, "show whole" after a lightweight replay)
+async fn session_event(State(st): State<Arc<AppState>>, Path((id, seq)): Path<(String, u64)>) -> Result<Json<serde_json::Value>, ApiError> {
+    session_of(&st, &id)?.event_at(seq).map(Json).ok_or(ApiError::NotFound)
 }
 
 #[derive(Deserialize)]
@@ -599,12 +761,33 @@ async fn session_model(State(st): State<Arc<AppState>>, Path(id): Path<String>, 
     Ok(Json(session_of(&st, &id)?.set_model(b.model.filter(|m| !m.trim().is_empty()), b.context_window).await?))
 }
 
+/// Core note into the conversation (§9.7: "no free accounts in the pool"
+/// and the like)
+async fn session_note(State(st): State<Arc<AppState>>, Path(id): Path<String>, Json(b): Json<serde_json::Value>) -> Result<Json<serde_json::Value>, ApiError> {
+    let s = session_of(&st, &id)?;
+    let m = b.get("message").and_then(|m| m.as_str()).map(str::trim).filter(|m| !m.is_empty()).ok_or_else(|| ApiError::BadRequest("нужно поле message".into()))?;
+    s.note(m);
+    Ok(Json(serde_json::json!({ "ok": true })))
+}
+/// Simulated limit hit (e2e and a manual check of auto-switching, §9.7): the same mark rate_limit_event sets
+async fn session_limit_hit(State(st): State<Arc<AppState>>, Path(id): Path<String>, Json(b): Json<serde_json::Value>) -> Result<Json<serde_json::Value>, ApiError> {
+    let s = session_of(&st, &id)?;
+    s.set_limit_hit(serde_json::json!({ "window": b.get("window").cloned().unwrap_or(serde_json::json!("five_hour")), "resets_at": b.get("resets_at").cloned().unwrap_or(serde_json::Value::Null), "source": "manual" }));
+    Ok(Json(serde_json::json!({ "ok": true, "limit_hit": s.info().meta.limit_hit })))
+}
+#[derive(Deserialize)]
+struct LabelBody { label: Option<String> }
+/// Own session name (docs/agents-ux.md §4.8): `{label: ""}` brings back the auto-title
+async fn session_label(State(st): State<Arc<AppState>>, Path(id): Path<String>, Json(b): Json<LabelBody>) -> Result<Json<serde_json::Value>, ApiError> {
+    Ok(Json(session_of(&st, &id)?.set_label(b.label)))
+}
+
 async fn session_mode(State(st): State<Arc<AppState>>, Path(id): Path<String>, Json(b): Json<ModeBody>) -> Result<Json<serde_json::Value>, ApiError> {
     Ok(Json(session_of(&st, &id)?.set_permission_mode(&b.mode).await?))
 }
 
-/// Первый DELETE останавливает процесс (журнал остаётся, сессию можно возобновить) — или закрывает TUI терминального
-/// режима, если подключён он; второй — убирает запись с журналом.
+/// The first DELETE stops the process (the journal stays, the session can be resumed) — or closes the terminal-mode
+/// TUI if that is attached; the second removes the record with the journal.
 async fn session_delete(State(st): State<Arc<AppState>>, Path(id): Path<String>) -> Result<StatusCode, ApiError> {
     let s = session_of(&st, &id)?;
     if s.alive() {
@@ -614,9 +797,10 @@ async fn session_delete(State(st): State<Arc<AppState>>, Path(id): Path<String>)
         Ok(StatusCode::ACCEPTED)
     } else {
         st.sessions.remove(&id)?;
-        // shell-PTY карточки этой сессии уходят вместе с ней
+        // the shell PTYs of this session's card go away with
+        // it
         let linked: Vec<Arc<PtySession>> = st.ptys.read().unwrap().values().filter(|p| p.session.as_deref() == Some(id.as_str())).cloned().collect();
-        for p in linked { let _ = p.kill(); st.ptys.write().unwrap().remove(&p.id); }
+        for p in linked { let _ = p.kill(); st.ptys.write().unwrap().remove(&p.id); hub::touch(); }
         Ok(StatusCode::NO_CONTENT)
     }
 }
@@ -625,18 +809,21 @@ async fn usage_since(State(st): State<Arc<AppState>>, axum::extract::Query(q): a
     Json(st.sessions.usage_since(q.since))
 }
 
-/// Поток событий сессии: текстовые кадры JSON — сначала всё после `?since=`, затем живые; ввод — только через HTTP.
+/// Session event stream: JSON text frames — first everything after `?since=`, then live ones; input — only over
+/// HTTP.
 async fn session_attach(State(st): State<Arc<AppState>>, Path(id): Path<String>, axum::extract::Query(q): axum::extract::Query<SinceQuery>, ws: WebSocketUpgrade) -> Result<Response, ApiError> {
     let s = session_of(&st, &id)?;
     let info = with_tui(&st, s.info());
-    Ok(ws.on_upgrade(move |sock| session_ws(sock, s, info, q.since)))
+    let lite = is_lite(&q);
+    Ok(ws.on_upgrade(move |sock| session_ws(sock, s, info, q.since, lite)))
 }
 
-async fn session_ws(mut sock: WebSocket, s: Arc<Session>, info: session::Info, since: u64) {
+async fn session_ws(mut sock: WebSocket, s: Arc<Session>, info: session::Info, since: u64, lite: bool) {
     let (snapshot, mut rx) = s.attach(since);
-    let hello = serde_json::json!({ "kind": "hello", "protocol": PROTOCOL, "info": info, "pending": s.pending(), "replay": snapshot.len() });
+    let hello = serde_json::json!({ "kind": "hello", "protocol": PROTOCOL, "info": info, "pending": s.pending(), "replay": snapshot.len(), "lite": lite });
     if sock.send(Message::Text(hello.to_string().into())).await.is_err() { return }
     for ev in snapshot {
+        let ev = if lite { session::lite(&ev) } else { ev };
         if sock.send(Message::Text(ev.to_string().into())).await.is_err() { return }
     }
     loop {
@@ -647,7 +834,7 @@ async fn session_ws(mut sock: WebSocket, s: Arc<Session>, info: session::Info, s
                 _ => {}
             },
             ev = rx.recv() => match ev {
-                Ok(v) => { if sock.send(Message::Text(v.to_string().into())).await.is_err() { break } }
+                Ok(v) => { let v = if lite { session::lite(&v) } else { v }; if sock.send(Message::Text(v.to_string().into())).await.is_err() { break } }
                 Err(RecvError::Lagged(n)) => { let _ = sock.send(Message::Text(serde_json::json!({ "kind": "lagged", "missed": n }).to_string().into())).await; }
                 Err(RecvError::Closed) => break,
             },

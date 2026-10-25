@@ -1,5 +1,5 @@
-// Store: каталог приложений, мастер установки (InstallDialog) и диалог удаления (RemoveDialog).
-// Состояния стека (store.state.*) — подписи к docker-состояниям, которые фронт подбирает сам; неизвестное состояние показывается как есть.
+// Store: the app catalog, the install wizard (InstallDialog) and the removal dialog (RemoveDialog). Stack states (store.state.*) are
+// labels for the docker states the frontend picks itself; an unknown state is shown as is.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

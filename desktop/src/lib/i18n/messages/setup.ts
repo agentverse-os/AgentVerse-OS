@@ -1,6 +1,6 @@
-// Мастер первого запуска (Setup.svelte): шаги Tailscale → адрес и DNS → сертификат → первый проект → что дальше.
-// Тексты ядра (state и error Tailscale, health, error edge, ошибки API) не переводятся — вставляются подстановками как есть.
-// Фразы с <code>/<a> внутри разбиты на фрагменты (loginHint, machineAuth1/2, missing1/2, certInternal/2, certOk1/2, switchWait1/2, edgeAnswers, projectCreated).
+// First-run wizard (Setup.svelte): the steps Tailscale → address and DNS → certificate → the first project → what next. Core texts (Tailscale state and error,
+// health, edge error, API errors) are not translated — inserted by substitution as is. Phrases with <code>/<a> inside are split into fragments (loginHint,
+// machineAuth1/2, missing1/2, certInternal/2, certOk1/2, switchWait1/2, edgeAnswers, projectCreated).
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

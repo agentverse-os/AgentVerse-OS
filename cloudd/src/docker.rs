@@ -1,5 +1,6 @@
-//! Docker через bollard: macvlan-сеть проекта на мосту Incus, gate-контейнер (Caddy), сети приложений,
-//! connect/disconnect gate (grant/revoke), reload Caddy внутри gate. Реализация gate — по ADR-005 (docker-gate).
+//! Docker via bollard: the project macvlan network on the Incus bridge, the gate container (Caddy), app
+//! networks, gate connect/disconnect (grant/revoke), Caddy reload inside the gate. The gate implementation
+//! follows ADR-005 (docker-gate).
 
 use anyhow::{anyhow, Context, Result};
 use bollard::container::{Config as ContainerConfig, CreateContainerOptions, ListContainersOptions, RemoveContainerOptions, StartContainerOptions};
@@ -38,7 +39,8 @@ impl DockerRt {
         }
     }
 
-    /// Сеть приложения `<app>-net` — создаёт ядро, compose помечает `external: true` (ADR-005, решение 3).
+    /// App network `<app>-net` — created by the core, compose marks it `external: true` (ADR-005, decision
+    /// 3).
     pub async fn ensure_bridge_network(&self, name: &str, labels: HashMap<String, String>) -> Result<()> {
         if self.network_exists(name).await? {
             return Ok(());
@@ -49,7 +51,8 @@ impl DockerRt {
         Ok(())
     }
 
-    /// macvlan с parent = мост Incus проекта: gate получает интерфейс прямо в `net-<project>`.
+    /// macvlan with parent = the project's Incus bridge: the gate gets an interface right in
+    /// `net-<project>`.
     pub async fn ensure_macvlan(&self, name: &str, parent: &str, subnet: &str, gateway: &str, ip_range: &str) -> Result<()> {
         if self.network_exists(name).await? {
             return Ok(());
@@ -111,14 +114,15 @@ impl DockerRt {
         Ok(())
     }
 
-    /// `USER` из конфигурации образа: число, `uid:gid` или имя. None — root или не задан.
+    /// `USER` from the image configuration: a number, `uid:gid` or a name. None — root or
+    /// unset.
     pub async fn image_user(&self, image: &str) -> Result<Option<String>> {
         let i = self.docker.inspect_image(image).await?;
         Ok(i.config.and_then(|c| c.user).map(|u| u.trim().to_string()).filter(|u| !u.is_empty() && u != "0" && u != "root" && u != "0:0" && u != "root:root"))
     }
 
-    /// Путь внутри образа как tar-архив без запуска контейнера (create → download → remove): владелец каталога, /etc/passwd.
-    /// None — такого пути в образе нет. Читаем не больше 4 МБ: нужны заголовки, а не содержимое.
+    /// A path inside the image as a tar archive without running the container (create → download → remove): directory owner,
+    /// /etc/passwd. None — no such path in the image. Read at most 4 MB: we need the headers, not the content.
     pub async fn image_tar(&self, image: &str, path: &str) -> Result<Option<Vec<u8>>> {
         let name = format!("cloudos-peek-{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0));
         let cfg = ContainerConfig {
@@ -147,7 +151,8 @@ impl DockerRt {
         }
     }
 
-    /// Gate проекта: Caddy на macvlan со статическим IP, Caddyfile смонтирован из state_dir, restart unless-stopped.
+    /// Project gate: Caddy on the macvlan with a static IP, the Caddyfile mounted from state_dir, restart
+    /// unless-stopped.
     pub async fn ensure_gate(&self, name: &str, macvlan: &str, ip: &str, caddyfile_dir: &Path) -> Result<()> {
         if self.container_exists(name).await? {
             self.docker.start_container(name, None::<StartContainerOptions<String>>).await.ok();
@@ -184,7 +189,8 @@ impl DockerRt {
         Ok(())
     }
 
-    /// grant: gate получает интерфейс в сети приложения — без рестарта (StartedAt не меняется, ADR-005).
+    /// grant: the gate gets an interface in the app network — without a restart (StartedAt does not
+    /// change, ADR-005).
     pub async fn connect(&self, network: &str, container: &str) -> Result<()> {
         match self.docker.connect_network(network, ConnectNetworkOptions { container, endpoint_config: EndpointSettings::default() }).await {
             Ok(()) => Ok(()),
@@ -193,8 +199,9 @@ impl DockerRt {
             Err(e) => Err(e.into()),
         }
     }
-    /// Выход наружу для внешнего провайдера: bridge-сеть с NAT хоста становится default-шлюзом контейнера (gw_priority).
-    /// Без приоритета Docker берёт первую сеть по алфавиту — у gate это может оказаться macvlan проекта, откуда в tailnet пути нет.
+    /// Egress for an external provider: a bridge network with host NAT becomes the container's default gateway (gw_priority).
+    /// Without the priority Docker takes the first network alphabetically — for the gate that may be the project macvlan, from
+    /// where there is no path to the tailnet.
     pub async fn connect_gateway(&self, network: &str, container: &str, priority: i64) -> Result<()> {
         let endpoint_config = EndpointSettings { gw_priority: Some(priority), ..Default::default() };
         match self.docker.connect_network(network, ConnectNetworkOptions { container, endpoint_config }).await {
@@ -231,7 +238,8 @@ impl DockerRt {
         Ok(out)
     }
 
-    /// Перечитать Caddyfile gate без рестарта контейнера; если admin API внутри недоступен (старый процесс) — перезапуск.
+    /// Reload the gate Caddyfile without a container restart; if the admin API inside is unavailable (an old process) —
+    /// restart.
     pub async fn reload_gate(&self, name: &str) -> Result<()> {
         match self.exec(name, vec!["caddy", "reload", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]).await {
             Ok(_) => Ok(()),
@@ -243,7 +251,7 @@ impl DockerRt {
         }
     }
 
-    /// Контейнеры стека приложения (по label compose) — для status.
+    /// Containers of the app stack (by compose label) — for status.
     pub async fn stack_containers(&self, project: &str) -> Result<Vec<(String, String, String)>> {
         let mut filters = HashMap::new();
         filters.insert("label".to_string(), vec![format!("com.docker.compose.project={project}")]);
@@ -260,7 +268,8 @@ impl DockerRt {
             .collect())
     }
 
-    /// IP контейнера в конкретной сети (для хуков с хоста: хост видит bridge-сети напрямую).
+    /// Container IP in a specific network (for hooks from the host: the host sees bridge
+    /// networks directly).
     pub async fn container_ip(&self, container: &str, network: &str) -> Result<String> {
         let c = self.docker.inspect_container(container, None::<bollard::query_parameters::InspectContainerOptions>).await?;
         c.network_settings
@@ -270,7 +279,8 @@ impl DockerRt {
             .ok_or_else(|| anyhow!("у {container} нет адреса в сети {network}"))
     }
 
-    /// Endpoint приложения доступен из gate? (для health в Desktop) — простая проверка через `wget` в gate не нужна; смотрим сеть.
+    /// Is the app endpoint reachable from the gate? (for health in Desktop) — a simple check via `wget` in the gate is
+    /// unnecessary; look at the network.
     pub async fn gate_networks(&self, gate: &str) -> Result<Vec<String>> {
         let c = self.docker.inspect_container(gate, None::<bollard::query_parameters::InspectContainerOptions>).await?;
         Ok(c.network_settings.and_then(|n| n.networks).map(|n| n.keys().cloned().collect()).unwrap_or_default())

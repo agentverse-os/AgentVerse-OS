@@ -1,7 +1,9 @@
 <script lang="ts">
-  // Инспектор выбранной сессии: свойства (модель, аккаунт, режим — правятся здесь), расход, действия.
+  // Inspector of the selected session: properties (model, account, mode — edited here), usage,
+  // actions.
   import { ui, data, actions, titleOf, agentOf, agentName, dotOf, statusText, modeLabel, money, fmtK, ago, live, stopLabel, MODELS_FOR, MODES_FOR } from '../state.svelte';
   import { t, tn } from '../i18n';
+  import Mark from '../Mark.svelte';
   import Icon from '../Icon.svelte';
   import Md from '../Md.svelte';
   import type { SessionInfo, PtyInfo } from '../api';
@@ -12,22 +14,22 @@
   const accountLabel = $derived(s?.account ? (data.accounts.find(a => a.id === s.account)?.label ?? s.account) : t('insp.gate'));
 </script>
 
-<div class="i-head"><h2>{t('insp.title')}</h2><button class="icon sm ghost" onclick={() => (ui.inspector = false)}><Icon name="x" /></button></div>
 {#if !r || !info}
   <div class="empty" style="padding: 30px 16px"><b>{t('insp.none')}</b><span>{t('insp.noneHint')}</span></div>
 {:else}
   <section>
-    <div class="row"><span class="av {agentOf(r)} lg"><Icon name={agentOf(r) === 'shell' ? 'terminal' : agentOf(r)} /></span><div style="min-width: 0"><b class="md ell" style="display: block">{titleOf(r)}</b><span class="muted sm">{r.project} · {agentName(agentOf(r))} · {ago(info.created_at)}</span></div></div>
+    <div class="row"><span class="av {agentOf(r)} lg"><Icon name={agentOf(r) === 'shell' ? 'terminal' : agentOf(r)} /></span><div style="min-width: 0"><b class="md ell" style="display: block">{#if r.kind === 'session'}<Mark id={r.id} /> {/if}{titleOf(r)}</b><span class="muted sm">{r.project} · {agentName(agentOf(r))} · {ago(info.created_at)}</span></div></div>
   </section>
   {#if s}
     <section>
       <div class="kv">
         <span>{t('insp.status')}</span><span class="row"><span class="dot {dotOf(r)}"></span> {statusText(s)}</span>
-        <span>{t('insp.model')}</span><select class="sm" value={s.model ?? ''} onchange={(e) => actions.setModel(r!, (e.target as HTMLSelectElement).value || null)}><option value="">{t('agents.modelDefault')}</option>{#each Array.from(new Set([...(MODELS_FOR[s.agent] ?? []), ...(s.model ? [s.model] : [])])) as m (m)}<option value={m}>{m}</option>{/each}</select>
-        <span>{t('insp.account')}</span><select class="sm" value={s.account ?? ''} onchange={(e) => actions.setAccount(r!, (e.target as HTMLSelectElement).value || null)}><option value="">{t('insp.gate')}</option>{#each data.accounts as a (a.id)}<option value={a.id}>{a.label}</option>{/each}</select>
+        {#if s.label}<span>{t('insp.autoTitle')}</span><span class="ell" title={s.title}>{s.title}</span>{/if}
+        <span>{t('insp.model')}</span><select class="sm" aria-label={t('insp.model')} value={s.model ?? ''} onchange={(e) => actions.setModel(r!, (e.target as HTMLSelectElement).value || null)}><option value="">{t('agents.modelDefault')}</option>{#each Array.from(new Set([...(MODELS_FOR[s.agent] ?? []), ...(s.model ? [s.model] : [])])) as m (m)}<option value={m}>{m}</option>{/each}</select>
+        <span>{t('insp.account')}</span><select class="sm" aria-label={t('insp.account')} value={s.account ?? ''} onchange={(e) => actions.setAccount(r!, (e.target as HTMLSelectElement).value || null)}><option value="">{t('insp.gate')}</option>{#each data.accounts as a (a.id)}<option value={a.id}>{a.label}</option>{/each}</select>
         <span>{t('insp.route')}</span><span class="ell">{accountLabel}</span>
         <span>{t('insp.source')}</span><span class="ell">{s.imported ? t('insp.srcDisk') : t('insp.srcOwn')}{#if s.updated_at} · {t('insp.updated')} {ago(s.updated_at)}{/if}</span>
-        <span>{t('insp.mode')}</span><select class="sm" value={s.permission_mode ?? (s.agent === 'codex' ? 'on-request' : 'default')} onchange={(e) => actions.setMode(r!, (e.target as HTMLSelectElement).value)}>{#each MODES_FOR[s.agent] ?? MODES_FOR.claude as m (m)}<option value={m}>{modeLabel(m)}</option>{/each}</select>
+        <span>{t('insp.mode')}</span><select class="sm" aria-label={t('insp.mode')} value={s.permission_mode ?? (s.agent === 'codex' ? 'on-request' : 'default')} onchange={(e) => actions.setMode(r!, (e.target as HTMLSelectElement).value)}>{#each MODES_FOR[s.agent] ?? MODES_FOR.claude as m (m)}<option value={m}>{modeLabel(m)}</option>{/each}</select>
       </div>
     </section>
     <section>
@@ -46,6 +48,8 @@
       {#if ui.view === 'thread'}<button class="sm ghost" onclick={() => ui.toCanvas(r!)}><Icon name="grid" size="s" /> {t('top.toCanvas')}</button>{/if}
     </div>
     {#if data.project(r.project)?.apps.some(a => a.slug === 'code-server')}<button class="sm ghost" style="justify-content: flex-start" onclick={() => actions.ide(r!.project)}><Icon name="ext" size="s" /> {t('insp.ide')}</button>{/if}
+    <!-- dev server preview (§4.9/4.10): enabled — open the sidebar tab, disabled — enable (on desktop it opens right away) -->
+    <button class="sm ghost insp-preview" style="justify-content: flex-start" onclick={() => { if (data.browserOf(r!.project).preview) ui.openPreview(); else actions.togglePreview(r!.project); }}><Icon name="globe" size="s" /> {data.browserOf(r!.project).preview ? t('browser.tab') : t('browser.menuPreview')}</button>
   </section>
 {/if}
 

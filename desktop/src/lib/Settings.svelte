@@ -8,7 +8,8 @@
   async function runBk(label: string, f: () => Promise<unknown>) { bkBusy = label; bkMsg = ''; try { const r = await f() as Record<string, unknown>; bkMsg = r?.restic_error ? t('settings.bk.snapshotRestic', { error: String(r.restic_error) }) : t('common.ready'); } catch (e) { bkMsg = String(e); } finally { bkBusy = ''; await loadBk(); } }
   $effect(() => { loadBk(); });
   let coderPw = $state<string | null>(null);
-  // аккаунты агентов (ADR-006, решение 6): ключи и прокси — переменные, подписки — файлы входа, снятые с workspace
+  // agent accounts (ADR-006, decision 6): keys and proxies are variables, subscriptions are sign-in files taken
+  // from the workspace
   import type { Account } from './api';
   let accs = $state<Account[]>([]);
   let projs = $state<string[]>([]);
@@ -36,7 +37,7 @@
   let saved = $state('');
   let timer: ReturnType<typeof setTimeout> | undefined;
   $effect(() => { api.status().then(s => status = s).catch(() => {}); });
-  // любое изменение — применить сразу, сохранить локально и в ядре (с задержкой, чтобы не спамить при движении ползунка)
+  // any change — apply at once, save locally and in the core (with a delay, so as not to spam while a slider moves)
   $effect(() => {
     const a = $state.snapshot(appearance);
     apply(a); saveLocal(a);
@@ -45,7 +46,8 @@
   function reset() { appearance = { ...DEFAULTS }; }
   function set<K extends keyof Appearance>(k: K, v: Appearance[K]) { appearance = { ...appearance, [k]: v }; }
   function applyTheme(t: (typeof THEMES)[number]) { appearance = { ...appearance, ...t.set }; }
-  // облик umbrel: у сцен Umbrel есть brand-цвет, он становится акцентом вместе с обоями (как в umbrelOS)
+  // the umbrel look: Umbrel scenes have a brand color, it becomes the accent together with the wallpaper
+  // (as in umbrelOS)
   function setBackground(id: string) { const brand = backgroundBrand(id); appearance = { ...appearance, background: id, ...(appearance.look === 'umbrel' && brand ? { accent: brand } : {}) }; }
   const previewBg = (t: (typeof THEMES)[number]) => { const b = BACKGROUNDS.find(x => x.id === t.set.background); const m = t.set.mode === 'light' ? 'light' : 'dark'; return b ? (b.id.startsWith('umbrel') ? 'linear-gradient(180deg, #3b1a4e 0%, #d4553f 58%, #2e1b3a 100%)' : b.id.startsWith('monolith') ? (m === 'light' ? '#dfe6ff' : '#0f1424') : b[m]) : (m === 'light' ? '#f4f6f7' : '#121416'); };
 </script>

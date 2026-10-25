@@ -1,9 +1,9 @@
 <script lang="ts">
-  // Приложение «Агенты» (ADR-006, этап 2): собственный app shell со своей тёмной темой — одинаково отдельной вкладкой
-  // (/?app=agents) и внутри окна Desktop (токены OS переопределены на корне, поэтому Chat/Term/кнопки следуют теме приложения).
-  // Слева дерево workspace'ов с сессиями и терминалами из cloudos-agentd, сверху режимы Agent · Code · Thread · Chat,
-  // в центре холст карточек (Code: несколько сессий разных workspace'ов рядом, ширина/высота, перетаскивание) или одна
-  // сессия на весь экран (Thread). Раскладка холста хранится в ядре (kv agents.layout) и общая для всех устройств.
+  // The "Agents" app (ADR-006, stage 2): its own app shell with its own dark theme — the same as a separate tab (/?app=agents)
+  // and inside a Desktop window (the OS tokens are overridden at the root, so Chat/Term/buttons follow the app theme). On the
+  // left the workspace tree with sessions and terminals from cloudos-agentd, on top the modes Agent · Code · Thread · Chat, in
+  // the center the card canvas (Code: several sessions of different workspaces side by side, width/height, dragging) or one
+  // session full screen (Thread). The canvas layout is stored in the core (kv agents.layout) and shared across all devices.
   import { onMount } from 'svelte';
   import { api, type ProjectView, type PtyInfo, type SessionInfo, type Account, type UsageSummary } from './api';
   import SessionPane from './SessionPane.svelte';
@@ -39,7 +39,8 @@
   let notify = $state<{ app: string | null; server: string | null; topic: string; user: string; password: string | null; token: string | null } | null>(null);
   let notifyShown = $state(false);
 
-  // локальная память вкладки (режим, выбор, раскладка до ответа ядра); раскладка холста — в ядре, общая для устройств
+  // local tab memory (mode, selection, the layout before the core answers); the canvas layout is in the core, shared
+  // across devices
   const LS = 'cloudos.agents.ui';
   try {
     const u = JSON.parse(localStorage.getItem(LS) || '{}');
@@ -67,7 +68,8 @@
       try { [sessions[p.name], ptys[p.name]] = await Promise.all([api.sessions(p.name), api.ptys(p.name)]); reach[p.name] = true; }
       catch { reach[p.name] = false; sessions[p.name] = sessions[p.name] ?? []; ptys[p.name] = ptys[p.name] ?? []; }
     }
-    // карточки исчезнувших сессий снимаем с холста; недоступный agentd — не повод
+    // cards of vanished sessions are removed from the canvas; an unreachable
+    // agentd is not a reason
     const next = cards.filter(c => reach[c.project] !== true || infoOf(c));
     if (next.length !== cards.length) cards = next;
   }
@@ -93,7 +95,7 @@
   const onCanvas = (r: Ref) => cards.some(c => same(c, r));
   const current = $derived(sel ? infoOf(sel) : null);
 
-  // ---- навигация ----
+  // ---- navigation ----
   function open(r: Ref) { sel = r; if (mode === 'code') addCard(r); else mode = 'thread'; sideOpen = false; }
   function addCard(r: Ref) { if (!onCanvas(r)) cards = [...cards, { ...r, w: 1, h: 1 }]; focusCard(r); }
   function focusCard(r: Ref) {
@@ -112,15 +114,15 @@
   }
   function dropCanvas(e: DragEvent) { drop(cards.length, e); }
 
-  // ---- действия ----
-  // TUI-агенты стартуют через интерактивную login-оболочку: она читает /etc/bash.bashrc и profile.d — там PATH к CLI и env gate
+  // ---- actions ---- TUI agents start through an interactive login shell: it reads /etc/bash.bashrc and profile.d — the PATH
+  // to the CLIs and the gate env are there
   const CMD: Record<'shell' | 'claude' | 'codex', string[] | undefined> = { shell: undefined, claude: ['bash', '-lic', 'exec claude'], codex: ['bash', '-lic', 'exec codex'] };
   async function createPty(project: string, kind: 'shell' | 'claude' | 'codex') {
     busy = project; menuFor = '';
     try { const p = await api.ptyCreate(project, { cmd: CMD[kind], title: kind === 'shell' ? t('agents.newShell') : kind === 'claude' ? 'Claude Code' : 'Codex' }); await load(); open({ project, kind: 'pty', id: p.id }); }
     catch (e) { error = msg(e); } finally { busy = ''; }
   }
-  // карточка Chat: провайдер Claude (stream-json) или Codex (app-server) — один контракт сессии в agentd
+  // Chat card: the Claude provider (stream-json) or Codex (app-server) — one session contract in agentd
   async function createChat(project: string, agent: 'claude' | 'codex') {
     busy = project; menuFor = '';
     try { const s = await api.sessionCreate(project, { agent, title: agent === 'codex' ? 'Codex' : 'Claude' }); await load(); open({ project, kind: 'session', id: s.id }); }
@@ -286,7 +288,7 @@
 </div>
 
 <style>
-  /* Своя тема приложения. Токены OS переопределяются на корне, чтобы общие компоненты (Chat, Term, кнопки) следовали ей. */
+  /* The app's own theme. The OS tokens are overridden at the root so the shared components (Chat, Term, buttons) follow it. */
   .agents {
     --ag-bg: #0b0d12; --ag-panel: #0f1117; --ag-panel-2: #161a22; --ag-line: #232937; --ag-ink: #e6e8ee; --ag-muted: #8b93a7;
     --ag-accent: #7aa2ff; --ag-accent-rgb: 122 162 255; --ag-ok: #3fb950; --ag-warn: #e3b341; --ag-bad: #f0625d;
@@ -312,7 +314,7 @@
   @keyframes pulse { 50% { opacity: .35; } }
   .g { width: 16px; text-align: center; color: var(--ag-muted); font-size: 13px; flex: none; }
 
-  /* сайдбар */
+  /* sidebar */
   .side { grid-row: 1 / 3; display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--ag-line); background: var(--ag-panel); }
   .side-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px 8px; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ag-muted); }
   .foot-link { color: var(--ag-muted); text-decoration: none; font-weight: 500; letter-spacing: 0; text-transform: none; }
@@ -347,7 +349,7 @@
   .kv code { user-select: all; font-size: 11.5px; }
   .scrim { display: none; }
 
-  /* верхняя панель */
+  /* top bar */
   .top { grid-column: 2; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-bottom: 1px solid var(--ag-line); background: var(--ag-panel); }
   .burger { display: none; background: transparent; border-color: transparent; padding: 4px 8px; }
   .brand { font-weight: 700; letter-spacing: .01em; font-size: 13px; color: var(--ag-muted); }
@@ -359,7 +361,7 @@
   .cols button { background: transparent; border-color: transparent; color: var(--ag-muted); padding: 2px 8px; font-size: 12px; }
   .cols button.active { color: var(--ag-ink); background: var(--ag-panel-2); }
 
-  /* холст */
+  /* canvas */
   .main { grid-column: 2; min-height: 0; overflow: auto; padding: 12px; }
   .canvas { display: grid; gap: 12px; grid-auto-rows: 420px; grid-auto-flow: dense; min-height: 100%; align-content: start; }
   .canvas.c0 { grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); }
@@ -383,7 +385,7 @@
   .cbody :global(.pane) { flex: 1; min-height: 0; }
   .empty { grid-column: 1 / -1; display: grid; place-items: center; min-height: 240px; text-align: center; padding: 24px; max-width: 560px; margin: 0 auto; font-size: 14px; }
 
-  /* одна сессия */
+  /* single session */
   .thread { display: flex; flex-direction: column; height: 100%; min-height: 0; gap: 8px; }
   .thread :global(.pane) { flex: 1; min-height: 0; }
   .head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

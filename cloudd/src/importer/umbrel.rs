@@ -1,7 +1,7 @@
-//! Адаптер каталога Umbrel (umbrel-apps): `umbrel-app.yml` (метаданные, галерея, порт) + `docker-compose.yml`
-//! с сервисом `app_proxy` (APP_HOST/APP_PORT → главный сервис и его порт), переменные ${APP_DATA_DIR}, ${APP_PASSWORD},
-//! ${APP_SEED}, ${APP_DOMAIN}, экспорт из exports.sh. Приложения с зависимостями от других Umbrel-приложений пропускаются.
-//! id — `<app>-umbrel`. Иконки и галерея — по URL из getumbrel.github.io/umbrel-apps-gallery.
+//! Umbrel catalog adapter (umbrel-apps): `umbrel-app.yml` (metadata, gallery, port) + `docker-compose.yml` with the
+//! `app_proxy` service (APP_HOST/APP_PORT → the main service and its port), the variables ${APP_DATA_DIR},
+//! ${APP_PASSWORD}, ${APP_SEED}, ${APP_DOMAIN}, exports from exports.sh. Apps depending on other Umbrel apps are skipped.
+//! id — `<app>-umbrel`. Icons and gallery — by URL from getumbrel.github.io/umbrel-apps-gallery.
 
 use super::{bind_named_volumes, existing_origin, fetch_tarball, normalize_service, write_app, ImportReport, Imported};
 use anyhow::{anyhow, Result};
@@ -48,7 +48,7 @@ fn import_one(dir: &Path, base: &str, id: &str, store_dir: &Path) -> Result<Opti
     let yml: Value = serde_yaml_ng::from_str(&std::fs::read_to_string(dir.join("docker-compose.yml"))?).map_err(|e| anyhow!("compose: {e}"))?;
     let mut compose = yml.as_object().cloned().ok_or_else(|| anyhow!("compose не объект"))?;
     let mut services = compose.get("services").and_then(|v| v.as_object()).cloned().ok_or_else(|| anyhow!("нет services"))?;
-    // app_proxy → главный сервис и порт
+    // app_proxy → the main service and port
     let proxy = services.remove("app_proxy");
     let (mut main_service, mut main_port) = (None::<String>, None::<u16>);
     if let Some(pr) = &proxy {
@@ -66,7 +66,7 @@ fn import_one(dir: &Path, base: &str, id: &str, store_dir: &Path) -> Result<Opti
     }
     let main_service = main_service.unwrap_or_else(|| services.keys().next().unwrap().clone());
     let main_port = main_port.or_else(|| app.get("port").and_then(|p| p.as_u64()).map(|p| p as u16)).unwrap_or(80);
-    // exports.sh: `export APP_X="..."` → env литералы
+    // exports.sh: `export APP_X="..."` → env literals
     let mut env = Map::new();
     if let Ok(exp) = std::fs::read_to_string(dir.join("exports.sh")) {
         for line in exp.lines() {
@@ -74,7 +74,8 @@ fn import_one(dir: &Path, base: &str, id: &str, store_dir: &Path) -> Result<Opti
             if let Some(rest) = l.strip_prefix("export ") {
                 if let Some((k, v)) = rest.split_once('=') {
                     let v = v.trim().trim_matches('"').trim_matches('\'').replace("${EXPORTS_APP_DIR}", "${APP_DATA_DIR}").replace("${UMBREL_ROOT}", "${APP_DATA_DIR}");
-                    // ссылки на другие переменные (${APP_DATA_DIR}, ${APP_X_PORT}) ядро раскроет при рендере .env; подстановки команд — нет
+                    // references to other variables (${APP_DATA_DIR}, ${APP_X_PORT}) are expanded by the core when rendering .env; command
+                    // substitutions — no
                     if !v.contains("$(") && !v.contains('`') { env.insert(k.trim().to_string(), Value::String(v)); }
                 }
             }
@@ -92,9 +93,11 @@ fn import_one(dir: &Path, base: &str, id: &str, store_dir: &Path) -> Result<Opti
     let mut out = Map::new();
     for (name, svc) in &services {
         let mut m = svc.as_object().cloned().unwrap_or_default();
-        // статические IP сети Umbrel не нужны
+        // static IPs of the Umbrel network are not
+        // needed
         if let Some(Value::Object(nets)) = m.get("networks").cloned() { if nets.values().any(|n| n.get("ipv4_address").is_some()) { m.remove("networks"); } }
-        // hostname с подстановкой ${APP_*_IP} и т.п. — убрать
+        // hostname with a ${APP_*_IP} substitution and the
+        // like — remove
         if m.get("hostname").map(|h| super::scalar_to_string(h).contains("${")).unwrap_or(false) { m.remove("hostname"); }
         normalize_service(base, name, &mut m, &mut notes, &mut host_docker, &mut uses_docker_ro);
         out.insert(name.clone(), Value::Object(m));
@@ -104,7 +107,7 @@ fn import_one(dir: &Path, base: &str, id: &str, store_dir: &Path) -> Result<Opti
     compose.remove("networks");
     compose.insert("networks".into(), json!({ "appnet": { "external": true, "name": "${APP_NET}" } }));
     compose.remove("version");
-    // остаточные ${APP_*_IP}, ${APP_..._PORT} без значений → настройки/пустые литералы
+    // leftover ${APP_*_IP}, ${APP_..._PORT} without values → settings/empty literals
     let re = regex_lite::Regex::new(r"\$\{([A-Z][A-Z0-9_]+)\}").unwrap();
     let mut settings = Vec::new();
     for cap in re.captures_iter(&serde_yaml_ng::to_string(&Value::Object(compose.clone()))?) {
@@ -117,7 +120,8 @@ fn import_one(dir: &Path, base: &str, id: &str, store_dir: &Path) -> Result<Opti
     let gallery: Vec<String> = app.get("gallery").and_then(|g| g.as_array()).map(|a| a.iter().filter_map(|x| x.as_str()).map(|f| format!("{GALLERY}/{base}/{f}")).collect()).unwrap_or_default();
     let cats = s(&app, "category").map(|c| vec![c.to_lowercase()]).unwrap_or_default();
     write_app(store_dir, Imported {
-        // defaultUsername/defaultPassword каталога; при deterministicPassword пароль — наш сгенерированный APP_PASSWORD
+        // the catalog's defaultUsername/defaultPassword; with deterministicPassword the password is our generated
+        // APP_PASSWORD
         login_hints: (s(&app, "defaultUsername"), if app.get("deterministicPassword").and_then(|v| v.as_bool()).unwrap_or(false) { None } else { s(&app, "defaultPassword") }),
         id: id.to_string(),
         title: s(&app, "name").unwrap_or_else(|| base.to_string()),

@@ -1,5 +1,5 @@
-# e2e Pipecat Voice: встроенный клиент Pipecat открывается через edge, WebRTC-соединение с ботом устанавливается (фейковый микрофон Chromium),
-# и то же самое внутри окна Desktop (iframe с allow=microphone).
+# Pipecat Voice e2e: the built-in Pipecat client opens through the edge, a WebRTC connection with the bot is established (Chromium's fake
+# microphone), and the same inside a Desktop window (an iframe with allow=microphone).
 import os, re, time, json, urllib.request, ssl
 from playwright.sync_api import sync_playwright
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); os.makedirs("shots", exist_ok=True); res = []
@@ -8,7 +8,7 @@ ctx_ssl = ssl.create_default_context(); ctx_ssl.check_hostname = False; ctx_ssl.
 app = json.load(urllib.request.urlopen(f"https://{HOST}/api/apps/pipecat-voice", context=ctx_ssl)); URL = app["url"]
 ok("api: pipecat-voice installed & running", app["installed"] and app["state"] == "running", str(app.get("state")))
 def wait_connected(scope, label):
-    # журнал событий клиента Pipecat: Transport state changed: … → ready означает установленный WebRTC и открытый канал данных
+    # the Pipecat client event log: Transport state changed: … → ready means an established WebRTC and an open data channel
     t0 = time.time(); state = ""
     for _ in range(60):
         time.sleep(1); m = re.findall(r"Transport state changed: (\w+)", scope.locator("body").inner_text())

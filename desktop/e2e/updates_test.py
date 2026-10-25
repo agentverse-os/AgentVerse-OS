@@ -1,7 +1,7 @@
-# e2e обновлений: /api/updates — система (версия, канал, пакеты), приложения (версии и флаги), компоненты (edge, Coder, Komodo);
-# окно «Обновления» показывает всё это; канал: неверный адрес отклоняется, недоступный — «канал недоступен», сброс; загрузка пакета
-# файлом (dist/*.tar.gz, если передан UPDATE_PKG) → появляется в списке как «та же версия», удаление; обновление whoami
-# (плавающий тег) проходит и пишет updated_at; сводка в /api/status.
+# Updates e2e: /api/updates — the system (version, channel, packages), apps (versions and flags), components (edge, Coder, Komodo);
+# the "Updates" window shows all of it; the channel: a wrong address is rejected, an unreachable one — "channel unavailable",
+# reset; a package upload as a file (dist/*.tar.gz if UPDATE_PKG is given) → appears in the list as "the same version", deletion;
+# the whoami update (a floating tag) goes through and writes updated_at; the summary in /api/status.
 import os, sys, time, json, ssl, urllib.request
 from playwright.sync_api import sync_playwright
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); PKG = os.environ.get("UPDATE_PKG", ""); os.makedirs("shots", exist_ok=True); res = []
@@ -52,8 +52,9 @@ with sync_playwright() as p:
         if pk:
             api(f"/updates/packages/{pk[0]['file']}", "DELETE")
             ok("api: package deleted", not any(x["file"] == pk[0]["file"] for x in api("/updates")["system"]["packages"]))
-    # обновить whoami из окна (перевыкатка стека с актуальными compose и env, pull образов)
-    row = win.locator("section", has_text="Приложения из каталога").locator("tr", has_text="whoami").first  # не строка пакета, где whoami — среди манифестов Store
+    # update whoami from the window (a stack redeploy with the current compose and env,
+    # image pull)
+    row = win.locator("section", has_text="Приложения из каталога").locator("tr", has_text="whoami").first  # not the package row where whoami is among the Store manifests
     t0 = time.time(); row.locator("button", has_text="Обновить").click()
     for _ in range(120):
         time.sleep(2)

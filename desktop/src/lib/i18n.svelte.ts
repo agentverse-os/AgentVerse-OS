@@ -1,9 +1,10 @@
-// Локализация Desktop (английский, русский, украинский, испанский). Словари — i18n/messages/*.ts: один файл — одно пространство имён,
-// четыре языка, ключи ru/uk/es проверяются типом по en (i18n/define.ts). Текущий язык — реактивное состояние: t() в разметке
-// пересчитывается при смене языка без перезагрузки. Источник языка — оформление (Appearance.language, общее для всех устройств
-// пользователя, theme.ts → apply → i18n.set); 'auto' — по языку браузера, неизвестный язык → английский.
-// Русские строки словаря — исходные тексты интерфейса, по ним же ищут элементы e2e-тесты (контексты Playwright с locale ru-RU).
-// Тексты, которые приходят из ядра (события, ошибки API, состояния), пока не переводятся — это следующий шаг на стороне cloudd.
+// Desktop localization (English, Russian, Ukrainian, Spanish). Dictionaries — i18n/messages/*.ts: one file is one namespace, four
+// languages, the ru/uk/es keys are type-checked against en (i18n/define.ts). The current language is reactive state: t() in markup is
+// recomputed on a language change without a reload. The language source is the appearance (Appearance.language, shared across all of
+// the user's devices, theme.ts → apply → i18n.set); 'auto' — by the browser language, an unknown language → English. The Russian
+// dictionary strings are the source texts of the UI; the e2e tests look up elements by them too (Playwright contexts with locale
+// ru-RU). Texts that come from the core (events, API errors, states) are not translated yet — that is the next step on the cloudd
+// side.
 import { LANGS, type Lang, type LangSetting, type Messages } from './i18n/define';
 export { LANGS, type Lang, type LangSetting };
 
@@ -18,10 +19,11 @@ for (const [file, m] of Object.entries(modules)) {
 }
 
 export const LOCALES: Record<Lang, string> = { en: 'en-US', ru: 'ru-RU', uk: 'uk-UA', es: 'es-ES' };
-/** Названия языков на самих языках — не переводятся. */
+/** Language names in the languages themselves — not
+ *  translated. */
 export const LANG_NAMES: Record<Lang, string> = { en: 'English', ru: 'Русский', uk: 'Українська', es: 'Español' };
 
-/** Язык браузера: первый из navigator.languages, для которого есть словарь; иначе английский. */
+/** Browser language: the first of navigator.languages that has a dictionary; otherwise English. */
 export function detectLang(): Lang {
   const list = typeof navigator === 'undefined' ? [] : (navigator.languages?.length ? navigator.languages : [navigator.language]);
   for (const l of list) { const p = (l || '').toLowerCase().slice(0, 2); if (p in DICTS) return p as Lang; }
@@ -31,7 +33,7 @@ export function detectLang(): Lang {
 class I18n {
   setting = $state<LangSetting>('auto');
   lang = $state<Lang>(detectLang());
-  /** BCP 47 для Intl (даты, числа, множественное число). */
+  /** BCP 47 for Intl (dates, numbers, plurals). */
   get locale() { return LOCALES[this.lang]; }
   set(s: LangSetting) {
     const lang: Lang = s === 'auto' || !(s in DICTS) ? detectLang() : s;
@@ -44,7 +46,8 @@ export const i18n = new I18n();
 
 function fill(s: string, p?: Record<string, string | number>) { return p ? s.replace(/\{(\w+)\}/g, (m, k) => (k in p ? String(p[k]) : m)) : s; }
 
-/** Строка по ключу на текущем языке с подстановкой {name}; нет перевода — английский; нет ключа — сам ключ (и предупреждение в dev). */
+/** String by key in the current language with {name} substitution; no translation — English; no key — the key itself (and a warning in
+ *  dev). */
 export function t(key: string, params?: Record<string, string | number>): string {
   const s = DICTS[i18n.lang][key] ?? DICTS.en[key];
   if (s === undefined) { if (import.meta.env.DEV) console.warn(`i18n: нет ключа ${key}`); return key; }
@@ -52,7 +55,8 @@ export function t(key: string, params?: Record<string, string | number>): string
 }
 
 const rules = new Map<string, Intl.PluralRules>();
-/** Множественное число: ключ `<key>.<one|few|many|other>` по Intl.PluralRules текущей локали, {n} подставляется сам. */
+/** Plural: the key `<key>.<one|few|many|other>` per Intl.PluralRules of the current locale, {n} is substituted
+ *  automatically. */
 export function tn(key: string, n: number, params?: Record<string, string | number>): string {
   const loc = i18n.locale;
   let pr = rules.get(loc);
@@ -62,13 +66,14 @@ export function tn(key: string, n: number, params?: Record<string, string | numb
 }
 
 type DateLike = Date | string | number;
-/** Форматирование по локали текущего языка — вместо toLocale*() без аргументов (те берут язык браузера, а не Desktop). */
+/** Formatting by the locale of the current language — instead of toLocale*() without arguments (those take the browser
+ *  language, not Desktop's). */
 export const fmt = {
   date: (d: DateLike, opts?: Intl.DateTimeFormatOptions) => new Date(d).toLocaleDateString(i18n.locale, opts),
   time: (d: DateLike, opts?: Intl.DateTimeFormatOptions) => new Date(d).toLocaleTimeString(i18n.locale, opts ?? { hour: '2-digit', minute: '2-digit' }),
   dateTime: (d: DateLike, opts?: Intl.DateTimeFormatOptions) => new Date(d).toLocaleString(i18n.locale, opts),
   number: (n: number, opts?: Intl.NumberFormatOptions) => n.toLocaleString(i18n.locale, opts),
-  /** Размер: 1024-кратные единицы с локализованным суффиксом (B/KB/MB/GB/TB → Б/КБ/МБ/ГБ/ТБ). */
+  /** Size: 1024-based units with a localized suffix (B/KB/MB/GB/TB → Б/КБ/МБ/ГБ/ТБ). */
   bytes(n: number, digits = 1): string {
     if (!Number.isFinite(n)) return '';
     if (n < 1024) return `${Math.round(n)} ${t('unit.B')}`;
@@ -77,7 +82,7 @@ export const fmt = {
     while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
     return `${v >= 100 || i === 0 ? Math.round(v) : v.toFixed(digits)} ${t(units[i])}`;
   },
-  /** Сколько прошло — коротко: «только что», «5 мин», «3 ч», «2 д». */
+  /** Elapsed time, short: "just now", "5 min", "3 h", "2 d". */
   ago(iso?: string | null): string {
     if (!iso) return '';
     const d = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -86,7 +91,7 @@ export const fmt = {
     if (d < 86400) return t('time.h', { n: Math.floor(d / 3600) });
     return t('time.d', { n: Math.floor(d / 86400) });
   },
-  /** Длительность в секундах: «42 с» или «3 мин 5 с». */
+  /** Duration in seconds: "42 s" or "3 min 5 s". */
   duration(secs: number): string {
     const s = Math.max(0, Math.round(secs));
     return s < 60 ? t('time.sec', { n: s }) : t('time.minSec', { m: Math.floor(s / 60), s: s % 60 });

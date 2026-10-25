@@ -1,6 +1,7 @@
-//! Поиск по беседам и экспорт простого чата (срез 34, docs/agents-ux.md §4.6): слова запроса — все, по отдельности, без регистра
-//! и ё/е; agentd запущенных workspace'ов опрашиваются параллельно (`GET /projects/{p}/search`), простые чаты — из SQLite
-//! линейным проходом (объёмы позволяют, FTS не нужен). Ответ — одна строка на беседу с последним совпадением и их числом.
+//! Search across conversations and simple chat export (slice 34, docs/agents-ux.md §4.6): the query words — all of them,
+//! separately, case-insensitive and ё/е-insensitive; the agentd of running workspaces are polled in parallel (`GET
+//! /projects/{p}/search`), simple chats — from SQLite with a linear pass (the volumes allow it, FTS is not needed). The answer
+//! is one row per conversation with the last match and their count.
 use crate::{App, ApiError};
 use axum::extract::{Path, Query, State};
 use axum::http::{header, StatusCode};
@@ -25,7 +26,8 @@ fn encode(s: &str) -> String {
     out
 }
 
-/// Фрагмент ±80 знаков вокруг первого вхождения слова.
+/// A ±80-character snippet around the first occurrence
+/// of the word.
 pub fn snippet(text: &str, word: &str) -> String {
     let chars: Vec<char> = text.chars().collect();
     let n: Vec<char> = norm(text).chars().collect();
@@ -46,7 +48,8 @@ pub async fn search(State(app): State<Arc<App>>, Query(q): Query<SearchQuery>) -
     for p in projects.as_array().cloned().unwrap_or_default() {
         let name = p.get("name").and_then(|n| n.as_str()).unwrap_or("").to_string();
         if name.is_empty() { continue }
-        // статус workspace'а у ядра — внутри `workspace` ({status: running|stopped|…})
+        // the workspace status at the core is inside `workspace` ({status:
+        // running|stopped|…})
         if p.pointer("/workspace/status").and_then(|s| s.as_str()) == Some("running") { running.push(name) } else { stopped.push(name) }
     }
     let mut futs = Vec::new();
@@ -79,7 +82,7 @@ fn fmt_ts(v: i64) -> String {
     chrono::DateTime::from_timestamp(secs, 0).map(|d| d.format("%Y-%m-%d %H:%M").to_string()).unwrap_or_default()
 }
 
-/// Экспорт простого чата: Markdown (по умолчанию) или JSON {chat, messages}.
+/// Simple chat export: Markdown (default) or JSON {chat, messages}.
 pub async fn chat_export(State(app): State<Arc<App>>, Path(id): Path<String>, Query(q): Query<ExportQuery>) -> Result<Response, ApiError> {
     let (chat, msgs) = crate::simplechat::load(&app, &id).map_err(|e| ApiError(StatusCode::NOT_FOUND, e.to_string()))?;
     let slug: String = chat.title.chars().map(|c| if c.is_ascii_alphanumeric() { c.to_ascii_lowercase() } else { '-' }).collect::<String>().split('-').filter(|p| !p.is_empty()).collect::<Vec<_>>().join("-");

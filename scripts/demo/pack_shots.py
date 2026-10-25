@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Сборка кадров README из PNG съёмки (shots.py) в assets/shots/*.webp: десктоп и планшет — как есть (retina → половина),
-телефоны phone-home + phone-store склеиваются парой с зазором. Запуск: python3 scripts/demo/pack_shots.py <каталог PNG> [assets/shots]"""
+"""Building the README frames from the PNG shoot (shots.py) into assets/shots/*.webp: desktop and tablet — as is (retina → half),
+the phones phone-home + phone-store are glued as a pair with a gap. Run: python3 scripts/demo/pack_shots.py <PNG directory> [assets/shots]"""
 import sys, pathlib
 from PIL import Image
 
@@ -17,7 +17,8 @@ def half(name: str) -> Image.Image:
 for n in ("desktop-dark", "desktop-light", "tablet-dark"):
     save(half(n), n)
 
-# телефоны: два кадра 390×844 @3x → по 585 px шириной, зазор 40 px, фон прозрачный не нужен — берём цвет боковин из кадра
+# phones: two 390×844 @3x frames → 585 px wide each, a 40 px gap, no transparent background needed — the side color is
+# taken from the frame
 a = Image.open(SRC / "phone-home.png"); b = Image.open(SRC / "phone-store.png")
 w = a.width // 2; h = a.height // 2
 a = a.resize((w, h), Image.LANCZOS); b = b.resize((w, h), Image.LANCZOS)

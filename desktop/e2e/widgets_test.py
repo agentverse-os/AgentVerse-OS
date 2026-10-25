@@ -6,7 +6,7 @@ with sync_playwright() as p:
     b = p.chromium.launch()
     for label, vp in [("desktop", {"width": 1600, "height": 900}), ("phone", {"width": 390, "height": 844})]:
         ctx = b.new_context(locale="ru-RU", ignore_https_errors=True, viewport=vp, has_touch=(label == "phone")); pg = ctx.new_page()
-        pg.add_init_script("localStorage.setItem('cloudos.certwarn.until', '9999999999999')")  # браузер тестов не доверяет сертификату — баннер не должен мешать кликам
+        pg.add_init_script("localStorage.setItem('cloudos.certwarn.until', '9999999999999')")  # the test browser does not trust the certificate — the banner must not interfere with clicks
         s0 = pg.request.get(f"https://{HOST}/api/settings/desktop").json(); s0.pop("session", None); s0.pop("widgets", None); pg.request.put(f"https://{HOST}/api/settings/desktop", data=s0)
         pg.goto(f"https://{HOST}/", wait_until="domcontentloaded"); pg.wait_for_selector(".widget", timeout=30000); time.sleep(6)
         n = pg.locator(".widget").count(); ok(f"{label}: default widgets", n >= 2, f"{n}")
@@ -20,7 +20,8 @@ with sync_playwright() as p:
             rd = pg.locator(".win", has_text="Читалка").first if pg.locator(".win .bar .title", has_text="Читалка").count() else pg.locator(".win .reader").first.locator("xpath=ancestor::*[contains(@class,'win')]").first
             ok("desktop: reader window opens article", pg.locator(".win .reader h2").count() == 1 and pg.locator(".win .reader footer a[target=_blank]").count() == 1)
             pg.screenshot(path="shots/wg-reader.png"); pg.locator(".win", has=pg.locator(".reader")).first.locator(".bar button.close").click(); time.sleep(0.4)
-            # добавить виджет через правый клик по столу
+            # add a widget via a right click on the
+            # desktop
             while pg.locator(".win .bar button[title='Свернуть']").count(): pg.locator(".win .bar button[title='Свернуть']").first.click(); time.sleep(0.2)
             pg.mouse.click(60, 780, button="right"); time.sleep(0.4); ok("desktop: context menu", pg.locator(".ctx").count() == 1)
             pg.locator(".ctx button", has_text="Добавить виджет").click(); time.sleep(0.4); ok("desktop: picker", pg.locator(".picker .pitem").count() == 9)
@@ -28,12 +29,13 @@ with sync_playwright() as p:
             w = pg.locator(".widget", has_text="Погода").first; w.locator("input").fill("Kyiv"); w.locator("button", has_text="Найти").click(); time.sleep(3)
             w.locator("button.pick").first.click(); time.sleep(4)
             ok("desktop: weather shows temperature", "°" in w.inner_text() and "Киев" in w.inner_text(), w.inner_text()[:60].replace("\n", " "))
-            # перетаскивание виджета
+            # dragging a widget
             head = w.locator(".whead"); box = head.bounding_box()
             pg.mouse.move(box["x"] + 40, box["y"] + 8); pg.mouse.down(); pg.mouse.move(box["x"] - 260, box["y"] + 108, steps=10); pg.mouse.up(); time.sleep(0.6)
             box2 = head.bounding_box(); ok("desktop: widget dragged", abs((box2["x"] - box["x"]) + 300) < 8 and abs((box2["y"] - box["y"]) - 100) < 8, f"{box['x']:.0f},{box['y']:.0f} → {box2['x']:.0f},{box2['y']:.0f}")
             pg.screenshot(path="shots/wg-desktop.png")
-            # удалить часы; проверить сохранение в ядре
+            # remove the clock; check saving in the
+            # core
             clock = pg.locator(".widget", has_text="Часы").first; clock.hover(); clock.locator(".whead button[title='убрать виджет']").click(); time.sleep(1.5)
             j = pg.request.get(f"https://{HOST}/api/settings/desktop").json(); types = [x["type"] for x in j.get("widgets", {}).get("desktop", [])]
             ok("desktop: layout saved in cloudd", "clock" not in types and "weather" in types, str(types))

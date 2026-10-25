@@ -1,9 +1,10 @@
-//! Агенты (сотрудники), рутины и запуски (ADR-006, этап 4; docs/agents-ux.md §7). Модель как у BridgeMind One: агент —
-//! именованный сотрудник с брифом, устойчивой памятью и доступом к своему workspace; рутина — его задание по расписанию,
-//! вебхуку или событию ядра; запуск — обычная сессия agentd в workspace агента, за которой сервис следит до конца (бюджет,
-//! таймаут, итог, память, уведомление). Хранение: kv `agents` и `routines` (JSON-массивы), таблица `runs` (store.rs).
-//! Планировщик — фоновая задача с тиком 15 с: cron сверяется по минуте времени хоста и не стреляет дважды, события ядра
-//! читаются из ленты `/api/events` с момента старта сервиса, «висящие» запуски после рестарта досматриваются.
+//! Agents (employees), routines and runs (ADR-006, stage 4; docs/agents-ux.md §7). The model follows BridgeMind One: an
+//! agent is a named employee with a brief, persistent memory and access to its workspace; a routine is its task on a
+//! schedule, a webhook or a core event; a run is a regular agentd session in the agent's workspace that the service
+//! watches to the end (budget, timeout, result, memory, notification). Storage: kv `agents` and `routines` (JSON arrays),
+//! the `runs` table (store.rs). The scheduler is a background task with a 15 s tick: cron is checked against the host time
+//! minute and never fires twice, core events are read from the `/api/events` feed from the service start, "hanging" runs
+//! after a restart are watched to the end.
 use crate::{App, ApiError};
 use anyhow::{anyhow, bail, Result};
 use axum::extract::{Path, Query, State};
@@ -17,14 +18,17 @@ use std::sync::Arc;
 
 pub const TICK_SECS: u64 = 15;
 const WATCH_SECS: u64 = 10;
-/// Дольше этого запуск останавливается (`timeout`).
+/// Longer than this and the run is stopped
+/// (`timeout`).
 const MAX_RUN_SECS: i64 = 2 * 3600;
 const MEMORY_DEFAULT: usize = 6000;
 const SUMMARY_MAX: usize = 500;
 const WEBHOOK_MAX: usize = 64 * 1024;
-/// Навыки в задании: суммарно не больше этого (символов)
+/// Skills in the task: no more than this in total
+/// (characters)
 const SKILLS_MAX: usize = 8000;
-/// Длиннее этого цепочка почты между агентами не идёт: запуск → «ПОЧТА: …» → запуск → …
+/// A mail chain between agents does not go longer than this: run → "ПОЧТА: …" (mail) →
+/// run → …
 pub const MAIL_MAX_HOPS: u32 = 3;
 const MAIL_MAX: usize = 4000;
 const SKILLS_PER_AGENT: usize = 20;
@@ -47,29 +51,36 @@ pub struct AgentDef {
     #[serde(default)] pub model: Option<String>,
     #[serde(default)] pub account: Option<String>,
     #[serde(default)] pub workspace: String,
-    /// ask — спрашивать (вопросы во «Входящие»); auto — сам (auto у Claude, never у Codex); bypass — обход (если политика разрешает)
+    /// ask — ask (questions go to "Inbox"); auto — on its own (auto for Claude, never for Codex); bypass — bypass (if the policy
+    /// allows)
     #[serde(default = "s_ask")] pub mode: String,
     #[serde(default)] pub effort: Option<String>,
-    /// Claude: правила инструментов запуска (`Bash(npm test:*)`, `Read`…) — `--allowedTools` / `--disallowedTools`;
-    /// с ними режим «спрашивать» работает без присмотра: разрешённое идёт само, остальное ждёт во «Входящих»
+    /// Claude: tool rules of the run (`Bash(npm test:*)`, `Read`…) — `--allowedTools` / `--disallowedTools`; with
+    /// them the "ask" mode works unattended: the allowed goes on its own, the rest waits in "Inbox"
     #[serde(default)] pub rules: Rules,
-    /// Устойчивая память: текст, который агент получает с каждым заданием и пополняет строками «ПАМЯТЬ: …»
+    /// Persistent memory: text the agent gets with every task and extends with "ПАМЯТЬ: …" (memory) lines
     #[serde(default)] pub memory: String,
-    /// Дописывать в память краткий итог каждого запуска
+    /// Append a short summary of every run to the
+    /// memory
     #[serde(default = "yes")] pub remember: bool,
-    /// Место работы: подкаталог дома workspace (пусто — весь дом); запуски идут с этим cwd
+    /// Workplace: a subdirectory of the workspace home (empty — the whole home); runs go
+    /// with this cwd
     #[serde(default)] pub place: String,
-    /// Почта: может получать сообщения от владельца и других агентов и слать их строками «ПОЧТА: <агент>: …»
+    /// Mail: can receive messages from the owner and other agents and send them with "ПОЧТА: <agent>: …"
+    /// (mail) lines
     #[serde(default)] pub can_mail: bool,
-    /// Может стоять на рутинах (расписание, вебхук, событие)
+    /// May be assigned to routines (schedule, webhook,
+    /// event)
     #[serde(default = "yes")] pub can_routine: bool,
-    /// Бюджет памяти в символах (500–20000)
+    /// Memory budget in characters (500–20000)
     #[serde(default = "d_memory_budget")] pub memory_budget: usize,
-    /// Рефлексия: после удачного запуска память переписывается дешёвой моделью — факты с датами, без дублей, в бюджет
+    /// Reflection: after a successful run the memory is rewritten by a cheap model — facts with dates, no duplicates,
+    /// within the budget
     #[serde(default)] pub reflect: bool,
-    /// Навыки из каталога сервиса (skills.rs): уходят в задание, у Claude ещё и в ~/.claude/skills workspace'а
+    /// Skills from the service catalog (skills.rs): go into the task, for Claude also into the workspace's
+    /// ~/.claude/skills
     #[serde(default)] pub skills: Vec<String>,
-    /// Когда память последний раз переписывала рефлексия (assist.rs)
+    /// When reflection last rewrote the memory (assist.rs)
     #[serde(default)] pub reflected_at: Option<i64>,
     #[serde(default)] pub created_at: i64,
     #[serde(default)] pub updated_at: i64,
@@ -86,15 +97,17 @@ pub struct Trigger {
     /// schedule | webhook | event | manual
     #[serde(default = "s_manual")] pub kind: String,
     #[serde(default)] pub cron: String,
-    /// вид события ленты ядра (agent, app, update, workspace, project, grant, system, host); пусто — любой
+    /// kind of the core feed event (agent, app, update, workspace, project, grant, system, host); empty —
+    /// any
     #[serde(default)] pub event: String,
-    /// подстрока в теме или тексте события; пусто — любое
+    /// a substring in the event subject or text; empty —
+    /// any
     #[serde(default)] pub contains: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Budget {
-    /// 0 — без лимита
+    /// 0 — no limit
     #[serde(default)] pub run_usd: f64,
     #[serde(default)] pub day_usd: f64,
 }
@@ -107,12 +120,14 @@ pub struct Routine {
     #[serde(default)] pub prompt: String,
     #[serde(default)] pub trigger: Trigger,
     #[serde(default)] pub budget: Budget,
-    /// ask_error — при вопросе и ошибке; always; never
+    /// ask_error — on a question and an error; always;
+    /// never
     #[serde(default = "s_ask_error")] pub notify: String,
     #[serde(default = "yes")] pub enabled: bool,
-    /// Режим разрешений запусков этой рутины: пусто — как у агента; ask | auto | bypass
+    /// Permission mode of this routine's runs: empty — as the agent's; ask | auto |
+    /// bypass
     #[serde(default)] pub mode: String,
-    /// секрет вебхука: POST /agents/api/hooks/<token>
+    /// webhook secret: POST /agents/api/hooks/<token>
     #[serde(default)] pub token: String,
     #[serde(default)] pub created_at: i64,
     #[serde(default)] pub updated_at: i64,
@@ -139,20 +154,22 @@ pub struct Run {
     pub summary: Option<String>,
     pub reason: Option<String>,
     pub prompt: Option<String>,
-    /// Почта: агент-отправитель (None — владелец), запуск-источник и длина цепочки
+    /// Mail: the sending agent (None — the owner), the source run and the chain
+    /// length
     #[serde(default)] pub from_agent: Option<String>,
     #[serde(default)] pub reply_to: Option<String>,
     #[serde(default)] pub hops: u32,
 }
 
-/// Почта между агентами: кто прислал, из какого запуска, какой это шаг цепочки.
+/// Mail between agents: who sent it, from which run, which step of the chain it
+/// is.
 #[derive(Clone, Debug, Default)]
 pub struct Mail { pub from_agent: Option<String>, pub reply_to: Option<String>, pub hops: u32 }
 
 // ---------- cron ----------
 
-/// Пять полей cron (минута час день месяц день-недели): `*`, `*/n`, `a`, `a-b`, `a-b/n`, списки через запятую; дни недели 0–7
-/// (0 и 7 — воскресенье). Как в cron, при заданных и дне месяца, и дне недели срабатывает любое из двух.
+/// Five cron fields (minute hour day month weekday): `*`, `*/n`, `a`, `a-b`, `a-b/n`, comma-separated lists; weekdays 0–7 (0
+/// and 7 — Sunday). As in cron, when both the day of month and the weekday are set, either of the two fires.
 #[derive(Debug, Clone)]
 pub struct Cron { min: Vec<bool>, hour: Vec<bool>, dom: Vec<bool>, mon: Vec<bool>, dow: Vec<bool>, dom_any: bool, dow_any: bool }
 
@@ -184,7 +201,7 @@ impl Cron {
         let dow = self.dow[t.weekday().num_days_from_sunday() as usize];
         if self.dom_any && self.dow_any { true } else if self.dom_any { dow } else if self.dow_any { dom } else { dom || dow }
     }
-    /// Следующая минута срабатывания после `from` (до 60 дней вперёд).
+    /// Next firing minute after `from` (up to 60 days ahead).
     pub fn next_after(&self, from: chrono::DateTime<Local>) -> Option<chrono::DateTime<Local>> {
         let mut t = from.with_second(0)?.with_nanosecond(0)? + chrono::Duration::minutes(1);
         for _ in 0..(60 * 24 * 60) { if self.matches(&t) { return Some(t); } t += chrono::Duration::minutes(1); }
@@ -192,7 +209,8 @@ impl Cron {
     }
 }
 
-/// Подпись расписания по-русски для частых форм; иначе — само выражение.
+/// Russian-language schedule label for common forms; otherwise the
+/// expression itself.
 pub fn describe(expr: &str) -> String {
     let f: Vec<&str> = expr.split_whitespace().collect();
     if f.len() != 5 { return expr.to_string(); }
@@ -208,15 +226,16 @@ pub fn describe(expr: &str) -> String {
     }
 }
 
-// ---------- хранение ----------
+// ---------- storage ----------
 
 fn load_agents(app: &App) -> Result<Vec<AgentDef>> { Ok(serde_json::from_value(app.store.get_kv("agents")?.unwrap_or(json!([]))).unwrap_or_default()) }
 fn save_agents(app: &App, v: &[AgentDef]) -> Result<()> { app.store.put_kv("agents", &serde_json::to_value(v)?) }
 fn load_routines(app: &App) -> Result<Vec<Routine>> { Ok(serde_json::from_value(app.store.get_kv("routines")?.unwrap_or(json!([]))).unwrap_or_default()) }
 fn save_routines(app: &App, v: &[Routine]) -> Result<()> { app.store.put_kv("routines", &serde_json::to_value(v)?) }
-/// Все агенты (для каталога навыков).
+/// All agents (for the skills catalog).
 pub fn agents_with(app: &App) -> Result<Vec<AgentDef>> { load_agents(app) }
-/// Убрать навык из списков всех агентов (при удалении из каталога).
+/// Remove a skill from every agent's list (on deletion from the
+/// catalog).
 pub fn agents_drop_skill(app: &App, name: &str) -> Result<()> {
     let mut all = load_agents(app)?;
     let mut changed = false;
@@ -224,7 +243,8 @@ pub fn agents_drop_skill(app: &App, name: &str) -> Result<()> {
     if changed { save_agents(app, &all)?; }
     Ok(())
 }
-/// Заменить память агента (рефлексия, assist.rs).
+/// Replace the agent's memory (reflection,
+/// assist.rs).
 pub fn agent_set_memory(app: &App, id: &str, memory: &str) -> Result<()> {
     let mut all = load_agents(app)?;
     let a = all.iter_mut().find(|a| a.id == id).ok_or_else(|| anyhow!("агент не найден: {id}"))?;
@@ -235,7 +255,8 @@ fn agent_by(app: &App, id: &str) -> Result<AgentDef> { load_agents(app)?.into_it
 fn routine_by(app: &App, id: &str) -> Result<Routine> { load_routines(app)?.into_iter().find(|r| r.id == id).ok_or_else(|| anyhow!("рутина не найдена: {id}")) }
 fn new_id(prefix: &str) -> String { format!("{prefix}_{}", uuid::Uuid::new_v4().simple().to_string()[..12].to_string()) }
 
-/// Место работы агента: относительный путь внутри дома workspace без «..», абсолютных путей и «~».
+/// Agent workplace: a relative path inside the workspace home without "..", absolute paths and
+/// "~".
 pub fn clean_place(p: &str) -> Result<String> {
     let t = p.trim().trim_matches('/').trim();
     if t.is_empty() { return Ok(String::new()); }
@@ -270,19 +291,20 @@ fn validate_routine(r: &Routine, agent: &AgentDef) -> Result<()> {
     Ok(())
 }
 
-/// Режим разрешений сессии по режиму агента и провайдеру.
+/// Session permission mode from the agent mode and the
+/// provider.
 pub fn permission_mode(provider: &str, mode: &str) -> &'static str {
     match (provider, mode) {
         ("codex", "ask") => "on-request", ("codex", "auto") => "never", ("codex", _) => "bypassPermissions",
-        // Gemini CLI: режимы одобрения самого CLI; pi разрешений не спрашивает — режим не нужен
+        // Gemini CLI: the CLI's own approval modes; pi asks no permissions — no mode needed
         ("gemini", "ask") => "default", ("gemini", _) => "yolo",
         ("pi", _) => "default",
         (_, "ask") => "default", (_, "auto") => "auto", (_, _) => "bypassPermissions",
     }
 }
 
-/// Задание с преамбулой: бриф, память, навыки, само задание с подстановками, правила про строки «ПАМЯТЬ: …»,
-/// «НАВЫК: …» и (если у агента есть почта) «ПОЧТА: …».
+/// Task with a preamble: brief, memory, skills, the task itself with substitutions, the rules about "ПАМЯТЬ:
+/// …" (memory), "НАВЫК: …" (skill) and (if the agent has mail) "ПОЧТА: …" (mail) lines.
 pub fn compose(agent: &AgentDef, prompt: &str, vars: &HashMap<&str, String>, skills: &[crate::skills::Skill]) -> String {
     let mut task = prompt.to_string();
     for (k, v) in vars { task = task.replace(&format!("{{{k}}}"), v); }
@@ -304,12 +326,14 @@ pub fn compose(agent: &AgentDef, prompt: &str, vars: &HashMap<&str, String>, ski
     out
 }
 
-/// Строки «ПАМЯТЬ: …» из итогового ответа.
+/// "ПАМЯТЬ: …" (memory) lines from the
+/// final answer.
 pub fn memory_lines(text: &str) -> Vec<String> {
     text.lines().filter_map(|l| { let l = l.trim().trim_start_matches(['-', '*', ' ']); l.strip_prefix("ПАМЯТЬ:").or_else(|| l.strip_prefix("MEMORY:")).map(|s| s.trim().to_string()) }).filter(|s| !s.is_empty()).collect()
 }
 
-/// Строки «НАВЫК: имя: текст» из итогового ответа → (имя, текст).
+/// "НАВЫК: name: text" (skill) lines from the final answer →
+/// (name, text).
 pub fn skill_lines(text: &str) -> Vec<(String, String)> {
     text.lines().filter_map(|l| {
         let l = l.trim().trim_start_matches(['-', '*', ' ']);
@@ -321,7 +345,8 @@ pub fn skill_lines(text: &str) -> Vec<(String, String)> {
     }).collect()
 }
 
-/// Строки «ПОЧТА: агент: текст» из итогового ответа → (кому, текст).
+/// "ПОЧТА: agent: text" (mail) lines from the final answer →
+/// (recipient, text).
 pub fn mail_lines(text: &str) -> Vec<(String, String)> {
     text.lines().filter_map(|l| {
         let l = l.trim().trim_start_matches(['-', '*', ' ']);
@@ -333,7 +358,8 @@ pub fn mail_lines(text: &str) -> Vec<(String, String)> {
     }).collect()
 }
 
-/// Дописать в память с датой; старое обрезается спереди до бюджета `max`.
+/// Append to the memory with a date; the old part is trimmed from the
+/// front down to the `max` budget.
 pub fn remember(memory: &str, date: &str, lines: &[String], max: usize) -> String {
     if lines.is_empty() { return memory.to_string(); }
     let mut m = memory.trim_end().to_string();
@@ -341,22 +367,24 @@ pub fn remember(memory: &str, date: &str, lines: &[String], max: usize) -> Strin
     trim_memory(&m, max)
 }
 
-/// Обрезать память спереди до `max` символов по границе строки.
+/// Trim the memory from the front to `max` characters at a line
+/// boundary.
 pub fn trim_memory(m: &str, max: usize) -> String {
     if m.chars().count() <= max { return m.to_string(); }
     let cut: String = m.chars().rev().take(max).collect::<Vec<_>>().into_iter().rev().collect();
     match cut.find('\n') { Some(i) => cut[i + 1..].to_string(), None => cut }
 }
 
-// ---------- запуск и наблюдение ----------
+// ---------- launch and watching ----------
 
-/// Запуск задания агента: сессия в его workspace через ядро, запись `runs`, наблюдение в фоне. Возвращает запись запуска
-/// (в том числе `skipped` с причиной — workspace не запущен, дневной бюджет исчерпан, агенту запрещены рутины).
+/// Launch of an agent task: a session in its workspace through the core, a `runs` record, watching in the background.
+/// Returns the run record (including `skipped` with a reason — the workspace is not running, the daily budget is
+/// exhausted, routines are forbidden for the agent).
 pub async fn launch(app: &Arc<App>, routine: Option<&Routine>, agent: &AgentDef, prompt: &str, trigger: &str, extra: HashMap<&str, String>) -> Result<Run> {
     launch_with(app, routine, agent, prompt, trigger, extra, Mail::default()).await
 }
 
-/// То же с почтовыми полями (отправитель, запуск-источник, шаг цепочки).
+/// The same with the mail fields (sender, source run, chain step).
 pub async fn launch_with(app: &Arc<App>, routine: Option<&Routine>, agent: &AgentDef, prompt: &str, trigger: &str, extra: HashMap<&str, String>, mail: Mail) -> Result<Run> {
     let started = now();
     let local = Local::now();
@@ -375,21 +403,37 @@ pub async fn launch_with(app: &Arc<App>, routine: Option<&Routine>, agent: &Agen
             if spent >= r.budget.day_usd { skip(&mut run, format!("дневной бюджет исчерпан: ${spent:.2} из ${:.2}", r.budget.day_usd)); app.store.put_run(&run)?; return Ok(run); }
         }
     }
+    // core spending limits (§8.3): with "stop" and an exhausted limit the run is skipped rather than failing on the first
+    // turn
+    if let Ok(st) = app.core_get("/agents/budgets/state").await {
+        let blocked = st.as_array().and_then(|a| a.iter().find(|b| b.get("blocked").and_then(|x| x.as_bool()) == Some(true) && matches!(b.get("scope").and_then(|x| x.as_str()), Some(sc) if sc == "total" || sc == agent.workspace)));
+        if let Some(b) = blocked {
+            let who = if b.get("scope").and_then(|x| x.as_str()) == Some("total") { "всего".to_string() } else { agent.workspace.clone() };
+            skip(&mut run, format!("дневной лимит расходов {who} исчерпан: ${:.2} из ${:.2} за 24 ч", b.get("spent").and_then(|x| x.as_f64()).unwrap_or(0.0), b.get("per_day").and_then(|x| x.as_f64()).unwrap_or(0.0)));
+            app.store.put_run(&run)?; return Ok(run);
+        }
+    }
     if let Err(e) = app.core_get(&format!("/projects/{}/agentd", agent.workspace)).await {
         skip(&mut run, format!("workspace {} не запущен или agentd недоступен: {e:#}", agent.workspace)); app.store.put_run(&run)?; return Ok(run);
     }
     let mut vars: HashMap<&str, String> = HashMap::from([("date", local.format("%Y-%m-%d").to_string()), ("time", local.format("%H:%M").to_string()), ("payload", String::new()), ("event", String::new())]);
     vars.extend(extra);
-    // навыки агента: в задание всем, у Claude ещё и файлами ~/.claude/skills/<имя>/SKILL.md (доступны как /имя и в интерактивных сессиях)
+    // agent skills: into the task for everyone, for Claude also as files ~/.claude/skills/<name>/SKILL.md (available as /name and in
+    // interactive sessions)
     let skills = crate::skills::for_agent(app, agent);
     if agent.provider == "claude" && !skills.is_empty() { crate::skills::materialize(app, &agent.workspace, &skills).await; }
     let text = compose(agent, prompt, &vars, &skills);
     let title = format!("{} · {}", routine.map(|r| r.name.as_str()).unwrap_or(agent.name.as_str()), local.format("%d.%m %H:%M"));
-    // режим разрешений: у рутины свой (если задан), иначе как у агента; «обход» и так проходит только через политику ядра
+    // permission mode: the routine's own (if set), otherwise the agent's; "bypass" goes only through the core policy
+    // anyway
     let mode = routine.map(|r| r.mode.as_str()).filter(|m| !m.is_empty()).unwrap_or(agent.mode.as_str());
     let mut body = json!({ "agent": agent.provider, "title": title, "permission_mode": permission_mode(&agent.provider, mode) });
     if !agent.place.is_empty() { body["cwd"] = json!(format!("{HOME}/{}", agent.place)); }
-    if let Some(m) = agent.model.as_deref().filter(|m| !m.is_empty()) { body["model"] = json!(m); }
+    if let Some(m) = agent.model.as_deref().filter(|m| !m.is_empty()) {
+        body["model"] = json!(m);
+        // context window from the price catalog (Settings → Routes): Codex gets it as model_context_window
+        if let Some(c) = crate::api::settings_value(app).get("prices").and_then(|p| p.get(crate::prices::base_id(m))).and_then(|r| r.get("context")).and_then(|c| c.as_u64()) { body["context_window"] = json!(c); }
+    }
     if let Some(a) = agent.account.as_deref().filter(|a| !a.is_empty()) { body["account"] = json!(a); }
     if let Some(e) = agent.effort.as_deref().filter(|e| !e.is_empty()) { body["effort"] = json!(e); }
     if agent.provider == "claude" {
@@ -413,15 +457,17 @@ pub async fn launch_with(app: &Arc<App>, routine: Option<&Routine>, agent: &Agen
     Ok(run)
 }
 
-/// Наблюдение в коробке: watch → send_mail → launch_with → watch — рекурсия futures, тип размыкается через Box.
+/// Watching in a box: watch → send_mail → launch_with → watch is a recursion of futures, the type is broken
+/// with Box.
 fn watch_boxed(app: Arc<App>, run_id: String) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> { Box::pin(watch(app, run_id)) }
 
-/// Дом workspace'а (cwd запусков без «места работы»; chat.rs держит там же каталоги чатов).
+/// Workspace home (the cwd of runs without a "workplace"; chat.rs keeps the chat
+/// directories there too).
 pub const HOME: &str = "/home/coder";
 
-/// Почта агенту: от владельца (`from` = None) или от другого агента. Адресат — по id или имени (без учёта регистра); у обоих
-/// должна быть включена почта, почта не на паузе, цепочка не длиннее MAIL_MAX_HOPS. Сообщение уходит отдельным запуском
-/// (триггер `mail`), ответ адресата ложится в память отправителя-агента.
+/// Mail to an agent: from the owner (`from` = None) or from another agent. The recipient — by id or name (case-insensitive);
+/// both must have mail enabled, mail not paused, the chain not longer than MAIL_MAX_HOPS. The message goes as a separate run
+/// (trigger `mail`), the recipient's answer lands in the sending agent's memory.
 pub async fn send_mail(app: &Arc<App>, from: Option<&AgentDef>, to: &str, text: &str, reply_to: Option<String>, hops: u32) -> Result<Run> {
     let text = text.trim();
     if text.is_empty() { bail!("пустое сообщение"); }
@@ -436,7 +482,8 @@ pub async fn send_mail(app: &Arc<App>, from: Option<&AgentDef>, to: &str, text: 
     launch_with(app, None, &target, &prompt, "mail", HashMap::new(), Mail { from_agent: from.map(|f| f.id.clone()), reply_to, hops }).await
 }
 
-/// Итоговый текст сессии: последний `result` из хвоста журнала (Info.last_text обрезан до 200 символов).
+/// Final session text: the last `result` from the journal tail (Info.last_text is cut to 200
+/// characters).
 async fn final_text(app: &App, project: &str, sid: &str, last_seq: u64) -> Option<String> {
     let since = last_seq.saturating_sub(60);
     let ev = app.core_get(&format!("/projects/{project}/sessions/{sid}/events?since={since}&limit=200")).await.ok()?;
@@ -449,8 +496,8 @@ async fn notify(app: &App, project: &str, title: &str, body: &str, tag: &str) {
     if let Err(e) = app.core_post("/agents/notify", &json!({ "project": project, "title": title, "body": body, "tag": tag })).await { tracing::debug!("уведомление: {e:#}"); }
 }
 
-/// Наблюдение за запуском до конца: ждёт решения → уведомление (по правилу), бюджет/таймаут → остановка, выход → итог,
-/// память агента, уведомление, отметка в рутине.
+/// Watching the run to the end: waiting for a decision → a notification (per the rule), budget/timeout → stop, exit →
+/// result, agent memory, notification, a mark in the routine.
 async fn watch(app: Arc<App>, run_id: String) {
     let Some(mut run) = app.store.run(&run_id).ok().flatten() else { return };
     let Some(sid) = run.session.clone() else { return };
@@ -489,11 +536,13 @@ async fn watch(app: Arc<App>, run_id: String) {
             let _ = app.core_delete(&format!("/projects/{}/sessions/{sid}", run.project)).await;
             run.status = "timeout".into(); run.reason = Some("дольше 2 часов — остановлен".into()); break;
         }
-        // headless-процесс после хода не выходит сам (сессия «готова» и ждёт следующего сообщения): ход завершён — это и есть
-        // конец запуска; процесс останавливаем, запись сессии остаётся (открывается в Thread, возобновляется)
+        // the headless process does not exit by itself after a turn (the session is "ready" and waits for the next message):
+        // a finished turn is the end of the run; the process is stopped, the session record stays (opens in Thread, can be
+        // resumed)
         let turns = i.pointer("/usage/turns").and_then(|t| t.as_u64()).unwrap_or(0);
         let answered = i.get("last_text").and_then(|t| t.as_str()).map(|t| !t.trim().is_empty()).unwrap_or(false);
-        // фоновые задачи после ответа (Bash в фоне, Agent, Workflow) — запуск ещё идёт
+        // background tasks after the answer (background Bash, Agent, Workflow) — the
+        // run is still going
         let background = i.get("background").and_then(|b| b.as_u64()).unwrap_or(0);
         let finished = alive && status == "idle" && background == 0 && (turns >= 1 || answered) && elapsed >= WATCH_SECS as i64;
         if finished { if let Err(e) = app.core_delete(&format!("/projects/{}/sessions/{sid}", run.project)).await { tracing::debug!("остановка сессии {sid}: {e:#}"); } }
@@ -505,10 +554,12 @@ async fn watch(app: Arc<App>, run_id: String) {
             let summary: String = text.lines().filter(|l| !l.trim().is_empty() && memory_lines(l).is_empty()).collect::<Vec<_>>().join("\n");
             run.summary = Some(short(summary.trim(), SUMMARY_MAX));
             if status == "error" { run.reason = Some(i.get("last_text").and_then(|t| t.as_str()).unwrap_or("процесс завершился с ошибкой").to_string()); }
-            // навыки из ответа («НАВЫК: имя: текст») — в каталог и в список агента
+            // skills from the answer ("НАВЫК: name: text") — into the catalog and
+            // the agent's list
             let new_skills = skill_lines(&text);
             for (name, body) in &new_skills { if let Err(e) = crate::skills::upsert_from_agent(&app, &run.agent, name, body) { tracing::warn!("навык «{name}» от агента {}: {e:#}", run.agent_name); } }
-            // память агента: строки «ПАМЯТЬ: …» всегда, краткий итог — если включено; ответ на почту — в память отправителя
+            // agent memory: "ПАМЯТЬ: …" lines always, a short summary — if enabled; a mail answer — into the sender's
+            // memory
             let date = Local::now().format("%Y-%m-%d").to_string();
             let mut reflect_agent: Option<AgentDef> = None;
             if let Ok(mut agents) = load_agents(&app) {
@@ -529,7 +580,8 @@ async fn watch(app: Arc<App>, run_id: String) {
                 }
                 let _ = save_agents(&app, &agents);
             }
-            // почта из ответа («ПОЧТА: агент: текст») — отдельные запуски адресатам, шаг цепочки +1
+            // mail from the answer ("ПОЧТА: agent: text") — separate runs for the recipients, chain
+            // step +1
             if let Ok(sender) = agent_by(&app, &run.agent) {
                 for (to, body) in mail_lines(&text) {
                     match send_mail(&app, Some(&sender), &to, &body, Some(run.id.clone()), run.hops + 1).await {
@@ -558,16 +610,18 @@ async fn watch(app: Arc<App>, run_id: String) {
     tracing::info!("запуск {}: {} (${:.2}, {} с)", run.id, run.status, run.cost_usd, dur);
 }
 
-// ---------- планировщик ----------
+// ---------- scheduler ----------
 
-/// Фоновая задача: досмотреть «висящие» запуски, затем тик — cron по минутам и события ленты ядра.
+/// Background task: watch the "hanging" runs to the end, then the tick — cron by minutes and core
+/// feed events.
 pub fn start(app: Arc<App>) {
     tokio::spawn(async move {
         if let Ok(hanging) = app.store.running_runs() {
             for r in hanging { tokio::spawn(watch_boxed(app.clone(), r.id.clone())); }
         }
         let mut fired: HashMap<String, i64> = HashMap::new();
-        // события ядра: только те, что новее момента старта
+        // core events: only those newer than the start
+        // moment
         let mut last_event_at = app.core_get("/events").await.ok().and_then(|v| v.as_array().and_then(|a| a.first()).and_then(|e| e.get("at").and_then(|t| t.as_str()).map(str::to_string))).unwrap_or_default();
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(TICK_SECS)).await;
@@ -593,7 +647,7 @@ pub fn start(app: Arc<App>) {
                             let want = r.trigger.event.trim();
                             let sub = r.trigger.contains.trim().to_lowercase();
                             if (!want.is_empty() && want != kind) || (!sub.is_empty() && !subject.to_lowercase().contains(&sub) && !message.to_lowercase().contains(&sub)) { continue }
-                            // собственные события запусков рутин не должны запускать рутины по кругу
+                            // the routines' own run events must not launch routines in a loop
                             if kind == "agent" && (message.starts_with("рутина") || message.starts_with("беседа")) { continue }
                             if let Ok(a) = agent_by(&app, &r.agent) {
                                 let extra = HashMap::from([("event", format!("{kind} · {subject}: {message}"))]);
@@ -651,7 +705,7 @@ pub async fn agents_delete(State(app): State<Arc<App>>, Path(id): Path<String>) 
     all.retain(|a| a.id != id);
     if all.len() == before { return Err(anyhow!("агент не найден: {id}").into()); }
     save_agents(&app, &all)?;
-    // его рутины уходят вместе с ним
+    // its routines go away with it
     let mut rs = load_routines(&app)?; rs.retain(|r| r.agent != id); save_routines(&app, &rs)?;
     Ok(StatusCode::NO_CONTENT)
 }
@@ -659,7 +713,8 @@ pub async fn agents_delete(State(app): State<Arc<App>>, Path(id): Path<String>) 
 #[derive(Deserialize)]
 pub struct RunBody { #[serde(default)] pub prompt: String }
 
-/// Разовое поручение агенту (без рутины).
+/// One-off assignment to an agent (without
+/// a routine).
 pub async fn agent_run(State(app): State<Arc<App>>, Path(id): Path<String>, Json(b): Json<RunBody>) -> R {
     let a = agent_by(&app, &id)?;
     if b.prompt.trim().is_empty() { return Err(anyhow!("пустое поручение").into()); }
@@ -670,7 +725,8 @@ pub async fn agent_run(State(app): State<Arc<App>>, Path(id): Path<String>, Json
 #[derive(Deserialize)]
 pub struct MailBody { #[serde(default)] pub text: String, #[serde(default)] pub from: Option<String> }
 
-/// Почта агенту: от владельца или (поле `from` — id агента) от другого агента; ответ адресата ложится в память отправителя.
+/// Mail to an agent: from the owner or (the `from` field — an agent id) from another agent; the recipient's answer lands in
+/// the sender's memory.
 pub async fn agent_mail(State(app): State<Arc<App>>, Path(id): Path<String>, Json(b): Json<MailBody>) -> R {
     let from = match b.from.as_deref().filter(|f| !f.trim().is_empty()) { Some(f) => Some(agent_by(&app, f.trim())?), None => None };
     let run = match send_mail(&app, from.as_ref(), &id, &b.text, None, from.as_ref().map(|_| 1).unwrap_or(0)).await {
@@ -727,7 +783,8 @@ pub async fn routines_delete(State(app): State<Arc<App>>, Path(id): Path<String>
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// «Запустить сейчас»: задание рутины (или своё) вручную.
+/// "Run now": the routine's task (or a custom one) by
+/// hand.
 pub async fn routine_run(State(app): State<Arc<App>>, Path(id): Path<String>, body: Option<Json<RunBody>>) -> R {
     let r = routine_by(&app, &id)?;
     let a = agent_by(&app, &r.agent)?;
@@ -751,7 +808,8 @@ pub async fn run_delete(State(app): State<Arc<App>>, Path(id): Path<String>) -> 
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// Вебхук рутины: тело (JSON или текст, до 64 КБ) уходит в задание как {payload}.
+/// Routine webhook: the body (JSON or text, up to 64 KB) goes into the task as
+/// {payload}.
 pub async fn hook(State(app): State<Arc<App>>, Path(token): Path<String>, body: axum::body::Bytes) -> Result<(StatusCode, Json<Value>), ApiError> {
     let r = load_routines(&app)?.into_iter().find(|r| r.token == token && !token.is_empty()).ok_or_else(|| ApiError(StatusCode::NOT_FOUND, "вебхук не найден".into()))?;
     if !r.enabled { return Err(ApiError(StatusCode::CONFLICT, "рутина выключена".into())); }
@@ -774,13 +832,13 @@ mod tests {
         assert!(c.matches(&at(2026, 9, 28, 3, 0)));
         assert!(!c.matches(&at(2026, 9, 28, 3, 1)));
         let wd = Cron::parse("30 9 * * 1-5").unwrap();
-        assert!(wd.matches(&at(2026, 9, 28, 9, 30))); // понедельник
-        assert!(!wd.matches(&at(2026, 9, 27, 9, 30))); // воскресенье
+        assert!(wd.matches(&at(2026, 9, 28, 9, 30))); // Monday
+        assert!(!wd.matches(&at(2026, 9, 27, 9, 30))); // Sunday
         let every = Cron::parse("*/15 * * * *").unwrap();
         assert!(every.matches(&at(2026, 1, 1, 12, 45)) && !every.matches(&at(2026, 1, 1, 12, 50)));
         assert!(Cron::parse("0 7 * * 7").unwrap().matches(&at(2026, 9, 27, 7, 0)));
         assert!(Cron::parse("a b c d e").is_none() && Cron::parse("0 25 * * *").is_none() && Cron::parse("0 3 * *").is_none());
-        // день месяца ИЛИ день недели, когда заданы оба
+        // day of month OR weekday when both are set
         let both = Cron::parse("0 0 1 * 1").unwrap();
         assert!(both.matches(&at(2026, 10, 1, 0, 0)) && both.matches(&at(2026, 9, 28, 0, 0)) && !both.matches(&at(2026, 9, 29, 0, 0)));
     }

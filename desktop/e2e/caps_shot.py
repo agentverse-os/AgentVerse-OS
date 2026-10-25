@@ -6,7 +6,7 @@ with sync_playwright() as p:
     pg.goto(f"https://{HOST}/#projects", wait_until="networkidle"); pg.wait_for_selector("text=capabilities", timeout=15000); time.sleep(1.5)
     pg.screenshot(path="shots/d6-projects-caps.png")
     body = pg.inner_text("body"); print("PASS caps" if "storage.s3" in body and "notify" in body and "demo.http" in body else "FAIL caps")
-    # переключаем notify у beta через галочку
+    # toggle notify on beta via the checkbox
     card = pg.locator(".card", has_text="beta").first
     cb = card.locator("label", has_text="notify").locator("input")
     before = cb.is_checked(); cb.click(); time.sleep(6); pg.reload(wait_until="networkidle"); time.sleep(1.5)

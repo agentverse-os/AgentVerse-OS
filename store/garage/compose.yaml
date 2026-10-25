@@ -1,5 +1,6 @@
-# Сеть создаёт cloudd (external); данные — bind-mount в tank/apps/garage (2.8), не named volume.
-# rpc_secret / admin_token / metrics_token приходят из env (генерирует ядро), в конфиге их нет.
+# The network is created by cloudd (external); the data is a bind mount in tank/apps/garage
+# (2.8), not a named volume. rpc_secret / admin_token / metrics_token come from env (generated
+# by the core), they are not in the config.
 services:
   garage:
     image: dxflrs/garage:v2.3.0

@@ -1,4 +1,5 @@
-// Тосты: короткие подтверждения действий в правом нижнем углу.
+// Toasts: short action confirmations in the bottom right
+// corner.
 export type Toast = { id: number; text: string; kind: 'ok' | 'bad' | 'info' };
 class Toasts {
   list = $state<Toast[]>([]);

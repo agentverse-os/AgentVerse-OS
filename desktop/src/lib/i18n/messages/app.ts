@@ -1,5 +1,5 @@
-// Карточка приложения (AppDetail: шапка, вкладки, снимки, связи, конфигурация, техническое) и окно «Готово» после установки (AppReady).
-// Тексты манифеста (title, description, notes, подписи настроек) и ответы ядра (состояние, ошибки, этапы установки) показываются как есть.
+// App card (AppDetail: header, tabs, screenshots, links, configuration, technical) and the "Done" window after install (AppReady).
+// Manifest texts (title, description, notes, setting labels) and core answers (state, errors, install stages) are shown as is.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

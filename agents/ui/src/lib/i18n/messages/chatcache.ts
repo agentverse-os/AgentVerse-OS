@@ -1,0 +1,9 @@
+import { defineMessages } from '../define';
+
+// Feed on the device (docs/agents-ux.md §4.3.16): the "as of …" mark, "show whole", cache reset
+export default defineMessages({
+  en: { 'chat.cachedAt': 'Showing the copy from {when} — checking with the server…', 'chat.cachedOffline': 'No connection — showing the copy from {when}', 'chat.showFull': 'show in full ({kb} KB)', 'set.chatCache': 'conversation cache: {n} on this device', 'set.chatCacheHint': 'The last events of opened conversations are kept on this device so they open instantly; the journal on the server stays the source of truth.' },
+  ru: { 'chat.cachedAt': 'Показана копия на момент {when} — сверяю с сервером…', 'chat.cachedOffline': 'Нет связи — показана копия на момент {when}', 'chat.showFull': 'показать целиком ({kb} КБ)', 'set.chatCache': 'кэш бесед: {n} на этом устройстве', 'set.chatCacheHint': 'Последние события открытых бесед хранятся на устройстве, чтобы они открывались сразу; истина — журнал на сервере.' },
+  uk: { 'chat.cachedAt': 'Показано копію на момент {when} — звіряю із сервером…', 'chat.cachedOffline': 'Немає зв’язку — показано копію на момент {when}', 'chat.showFull': 'показати повністю ({kb} КБ)', 'set.chatCache': 'кеш бесід: {n} на цьому пристрої', 'set.chatCacheHint': 'Останні події відкритих бесід зберігаються на пристрої, щоб вони відкривалися одразу; істина — журнал на сервері.' },
+  es: { 'chat.cachedAt': 'Mostrando la copia de las {when} — comprobando con el servidor…', 'chat.cachedOffline': 'Sin conexión — mostrando la copia de las {when}', 'chat.showFull': 'mostrar completo ({kb} KB)', 'set.chatCache': 'caché de conversaciones: {n} en este dispositivo', 'set.chatCacheHint': 'Los últimos eventos de las conversaciones abiertas se guardan en este dispositivo para que se abran al instante; la fuente de verdad sigue siendo el diario en el servidor.' },
+});

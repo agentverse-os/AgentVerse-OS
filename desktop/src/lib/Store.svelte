@@ -44,7 +44,7 @@
   const shelf = $derived(!s && !source && !category && !onlyInstalled && picks.length > 0);
   let installing = $state<AppView | null>(null);
   function install(a: AppView) {
-    if (a.manifest.settings.some(s => s.required)) { installing = a; return; } // обязательные настройки — сначала мастер
+    if (a.manifest.settings.some(s => s.required)) { installing = a; return; } // required settings — the wizard first
     run(a.name, t('store.installing'), () => toast.track(t('store.installingTitle', { name: titleOf(a) }), progress => api.installWait(a.name, st => { busy[a.name] = st; progress(st); }), v => { wm.openSys('appready', { name: a.name }, t('store.readyTitle', { name: titleOf(v) })); return { text: t('store.installed'), action: { label: t('common.open'), run: () => open(v) } }; }));
   }
   $effect(() => { s; category; source; onlyInstalled; page = 60; });

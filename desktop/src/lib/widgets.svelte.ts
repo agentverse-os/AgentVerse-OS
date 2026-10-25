@@ -1,12 +1,13 @@
-// Виджеты рабочего стола: слой между обоями и окнами. Каталог типов, экземпляры с раскладкой per device-class,
-// хранение в ядре (kv desktop.settings.widgets) и localStorage. На телефоне — столбец без перетаскивания.
+// Desktop widgets: the layer between the wallpaper and the windows. A catalog of types, instances with a
+// layout per device class, storage in the core (kv desktop.settings.widgets) and localStorage. On the phone —
+// a column without dragging.
 import { api } from './api';
 import { deviceClass } from './windows.svelte';
 
 export type WidgetType = 'monitor' | 'news' | 'clock' | 'projects' | 'health' | 'events' | 'notes' | 'apps' | 'weather';
 export interface WidgetInst { id: string; type: WidgetType; x: number; y: number; w: number; h: number; config: Record<string, any> }
 
-/** title и description — ключи словаря (i18n/messages/widgets.ts): показывать через t(...). */
+/** title and description are dictionary keys (i18n/messages/widgets.ts): show via t(...). */
 export const WIDGETS: Record<WidgetType, { title: string; icon: string; w: number; h: number; description: string; defaults: Record<string, any> }> = {
   monitor: { title: 'widgets.monitor.title', icon: '📈', w: 420, h: 400, description: 'widgets.monitor.desc', defaults: { show: 'all' } },
   news: { title: 'widgets.news.title', icon: '📰', w: 420, h: 380, description: 'widgets.news.desc', defaults: { interval: 15, images: true, compact: false, preset: 'ai', count: 10, feeds: [] as string[], lang: 'both' } },
@@ -19,7 +20,7 @@ export const WIDGETS: Record<WidgetType, { title: string; icon: string; w: numbe
   weather: { title: 'widgets.weather.title', icon: '🌤', w: 300, h: 220, description: 'widgets.weather.desc', defaults: { city: '', lat: 0, lon: 0 } },
 };
 
-/** label — ключ словаря. */
+/** label is a dictionary key. */
 export const NEWS_PRESETS: Record<string, { label: string; feeds: { url: string; lang: 'en' | 'ru' }[] }> = {
   ai: { label: 'widgets.news.preset.ai', feeds: [
     { url: 'https://hnrss.org/newest?q=AI+OR+LLM+OR+GPT+OR+Claude&points=50', lang: 'en' },
@@ -45,20 +46,22 @@ const KEY = () => `cloudos.widgets.${deviceClass()}`;
 
 class WidgetStore {
   items = $state<WidgetInst[]>([]);
-  /** Идёт перетаскивание или изменение размера: сетка облика umbrel не пересчитывает отступы под виджеты, пока жест не закончен. */
+  /** Dragging or resizing is in progress: the umbrel-look grid does not recompute the margins for widgets until the gesture ends. */
   dragging = $state(false);
   picker = $state(false);
   private timer: ReturnType<typeof setTimeout> | undefined;
   private loaded = false;
 
   constructor() {
-    // пустой список считается «настройкой» только если пользователь явно убрал все виджеты (маркер cleared)
+    // an empty list counts as a "setting" only if the user explicitly removed all widgets (the cleared
+    // marker)
     const cleared = () => { try { return localStorage.getItem(`${KEY()}.cleared`) === '1'; } catch { return false; } };
     try { const local = JSON.parse(localStorage.getItem(KEY()) ?? 'null') as WidgetInst[] | null; this.items = local && (local.length || cleared()) ? this.migrate(local) : this.defaults(); } catch { this.items = this.defaults(); }
     api.desktopSettings().then(s => { const r = s?.widgets?.[deviceClass()] as WidgetInst[] | undefined; if (r && (r.length || cleared())) { const before = JSON.stringify(r); this.items = this.migrate(r); this.loaded = true; if (JSON.stringify(this.items) !== before) this.persist(); } this.loaded = true; }).catch(() => { this.loaded = true; });
   }
-  /** Монитор прежнего размера по умолчанию (420×300 — с прокруткой при шести датасетах) вырастает до 400, а виджеты в том же
-   *  столбике расталкиваются вниз, чтобы не наехать друг на друга; всё остальное (положение, свои размеры) не трогаем. */
+  /** The monitor of the previous default size (420×300 — with scrolling at six datasets) grows to 400, and the widgets in
+   *  the same
+   * column are pushed down so they do not overlap each other; everything else (position, custom sizes) is left alone. */
   private migrate(items: WidgetInst[]): WidgetInst[] {
     let changed = false;
     for (const w of items) if (w.type === 'monitor' && w.w === 420 && w.h === 300) { w.h = 400; changed = true; }
@@ -73,7 +76,8 @@ class WidgetStore {
   defaults(): WidgetInst[] {
     const phone = deviceClass() === 'phone';
     return [
-      // столбик справа сверху вниз: часы, монитор целиком (шесть датасетов без прокрутки), новости до панели задач на 900 px
+      // the column on the right from top to bottom: clock, the whole monitor (six datasets without scrolling), news down to
+      // the taskbar at 900 px
       { id: 'w-clock', type: 'clock', x: innerWidth - 440, y: 24, w: 260, h: 140, config: { ...WIDGETS.clock.defaults } },
       { id: 'w-monitor', type: 'monitor', x: innerWidth - 440, y: 184, w: 420, h: 400, config: { ...WIDGETS.monitor.defaults } },
       ...(phone ? [] : [{ id: 'w-news', type: 'news' as WidgetType, x: innerWidth - 440, y: 604, w: 420, h: 200, config: { ...WIDGETS.news.defaults } }]),

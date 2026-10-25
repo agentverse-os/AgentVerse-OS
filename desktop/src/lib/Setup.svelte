@@ -1,8 +1,8 @@
 <script lang="ts">
-  // Мастер первого запуска (docs/first-run.md): Tailscale → адрес и DNS → сертификат → первый проект → что дальше.
-  // Состояние берётся у ядра (/api/setup) и обновляется каждые 8 с: пока пользователь авторизует узел в другой вкладке,
-  // шаги зеленеют сами. Проверка «с этого устройства» делается из браузера: fetch no-cors до адреса ядра.
-  // Тексты ядра (state и error Tailscale, health, error edge, ошибки API) показываются как есть; словарь — i18n/messages/setup.ts.
+  // First-run wizard (docs/first-run.md): Tailscale → address and DNS → certificate → the first project → what next. The state
+  // comes from the core (/api/setup) and refreshes every 8 s: while the user authorizes the node in another tab, the steps turn
+  // green by themselves. The "from this device" check is done from the browser: a no-cors fetch to the core address. Core texts
+  // (Tailscale state and error, health, edge error, API errors) are shown as is; the dictionary — i18n/messages/setup.ts.
   import { api, type SetupState } from './api';
   import { wm } from './windows.svelte';
   import { t } from './i18n.svelte';
@@ -30,7 +30,8 @@
   async function checkDevice() {
     if (!st) return;
     const host = st.edge.host;
-    // текст результата собирается в разметке по device.ok — переводится вместе со сменой языка
+    // the result text is assembled in markup by device.ok — translated along with a language
+    // change
     try { await fetch(`https://${host}/api/status`, { mode: 'no-cors', cache: 'no-store' }); device = { ok: true, host }; }
     catch { device = { ok: false, host }; }
   }
@@ -38,7 +39,7 @@
     if (!st?.suggested_host) return;
     const r = await api.setupSwitchHost(st.suggested_host);
     switching = { url: r.url, tries: 0 };
-    // ядро перезапускается; ждём, когда новый адрес ответит с этого устройства, и переходим на него
+    // the core restarts; wait until the new address answers from this device, then go to it
     const tick = async () => {
       const sw = switching; if (!sw) return;
       const tries = sw.tries + 1; switching = { url: sw.url, tries };
@@ -107,7 +108,7 @@
       {/if}
     </section>
 
-    <!-- 2. Адрес и DNS -->
+    <!-- 2. Address and DNS -->
     <section class="card step {st.edge.matches_tailscale && st.edge.reachable ? 'ok' : st.suggested_host ? 'warn' : st.edge.reachable ? 'ok' : 'warn'}">
       <div class="head"><span class="ico">{st.edge.matches_tailscale && st.edge.reachable ? '✅' : st.suggested_host || !st.edge.reachable ? '⚠️' : '✅'}</span>
         <div><b>{t('setup.step2')}</b><div class="muted">{t('setup.edgeAnswers')} <code>https://{st.edge.host}</code>{#if st.edge.alt_hosts.length} · {t('setup.altHosts')} {#each st.edge.alt_hosts as h, i}{i ? ', ' : ''}<a href="https://{h}/">{h}</a>{/each}{/if}</div></div></div>
@@ -125,7 +126,7 @@
       {#if switching}<div class="note card">{t('setup.switchWait1')} <a href={switching.url}>{switching.url}</a> {t('setup.switchWait2', { tries: switching.tries })}</div>{/if}
     </section>
 
-    <!-- 3. Сертификат -->
+    <!-- 3. Certificate -->
     <section class="card step {st.edge.cert_ok === true && !st.edge.tls_internal ? 'ok' : st.edge.cert_ok === false ? 'bad' : 'warn'}">
       <div class="head"><span class="ico">{st.edge.cert_ok === true && !st.edge.tls_internal ? '✅' : st.edge.cert_ok === false ? '❌' : '⚠️'}</span>
         <div><b>{t('setup.step3')}</b>
@@ -137,7 +138,7 @@
           </div></div></div>
     </section>
 
-    <!-- 4. Первый проект -->
+    <!-- 4. First project -->
     <section class="card step {st.projects ? 'ok' : 'warn'}">
       <div class="head"><span class="ico">{st.projects ? '✅' : '·'}</span>
         <div><b>{t('setup.step4')}</b><div class="muted">{st.projects ? t('setup.projectsCount', { n: st.projects }) : t('setup.projectIntro')}</div></div></div>
@@ -153,7 +154,7 @@
       {/if}
     </section>
 
-    <!-- 5. Дальше -->
+    <!-- 5. Next -->
     <section class="card step">
       <div class="head"><span class="ico">→</span><div><b>{t('setup.next')}</b><div class="muted">{t('setup.nextHint')}</div></div></div>
       <ul class="checks">

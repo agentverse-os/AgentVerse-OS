@@ -1,6 +1,6 @@
 <script lang="ts">
-  // Мастер установки (docs/userflow-apps.md, шаг 2.1): обязательные настройки до первого запуска, остальные — по желанию;
-  // после установки родитель открывает «Готово, данные для входа».
+  // Install wizard (docs/userflow-apps.md, step 2.1): required settings before the first start, the rest optional; after
+  // the install the parent opens "Done, sign-in data".
   import { api, type AppView, type AppSetting } from './api';
   import { titleOf } from './store-utils';
   import Dropdown from './Dropdown.svelte';

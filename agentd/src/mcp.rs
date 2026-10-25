@@ -1,7 +1,7 @@
-//! MCP-серверы workspace'а (срез 36, docs/agents-ux.md §4.3.10): один список в `~/.cloudos/mcp.json`; при сохранении
-//! раскладывается всем движкам их же командами (`claude mcp add -s user`, `codex mcp add`, `gemini mcp add -s user`), снятые
-//! серверы убираются `mcp remove` (помним только свои имена — чужие записи владельца не трогаем); ACP-сессии получают тот же
-//! список в `session/new`.
+//! Workspace MCP servers (slice 36, docs/agents-ux.md §4.3.10): one list in `~/.cloudos/mcp.json`; on save it is rolled out
+//! to every engine with its own commands (`claude mcp add -s user`, `codex mcp add`, `gemini mcp add -s user`), removed
+//! servers go away with `mcp remove` (we remember only our own names — the owner's foreign entries are left alone); ACP
+//! sessions get the same list in `session/new`.
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -32,7 +32,8 @@ pub fn count() -> usize { load().servers.len() }
 
 pub fn valid_name(n: &str) -> bool { !n.is_empty() && n.chars().count() <= 64 && n.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.')) }
 
-/// Список в формате ACP `session/new.mcpServers`: stdio — {name, command, args, env:[{name,value}]}, http/sse — {type, name, url, headers:[…]}.
+/// List in the ACP `session/new.mcpServers` format: stdio — {name, command, args, env:[{name,value}]}, http/sse — {type, name, url,
+/// headers:[…]}.
 pub fn acp_servers() -> Vec<Value> {
     servers().iter().map(|s| {
         if s.transport == "stdio" {
@@ -43,7 +44,8 @@ pub fn acp_servers() -> Vec<Value> {
     }).collect()
 }
 
-/// Сколько серверов знает каждый CLI (их конфиги): проверка, что раскладка дошла.
+/// How many servers each CLI knows (their configs): a check that the rollout went
+/// through.
 pub fn engine_counts() -> Value {
     let h = home();
     let json_keys = |p: String, key: &str| -> Option<usize> { serde_json::from_slice::<Value>(&std::fs::read(p).ok()?).ok()?.get(key)?.as_object().map(|o| o.len()) };
@@ -53,7 +55,8 @@ pub fn engine_counts() -> Value {
 
 fn sh(s: &str) -> String { format!("'{}'", s.replace('\'', "'\\''")) }
 
-/// Команды одного движка: снять устаревшие и свои прежние записи, добавить текущие. Возвращает None, если движку нечего делать.
+/// Commands of one engine: remove stale and our previous entries, add the current ones. Returns None if the engine has nothing
+/// to do.
 fn script_for(engine: &str, stale: &[String], servers: &[McpServer]) -> Option<String> {
     let mut sc = String::from("set +e\n");
     let (bin, scope) = match engine { "claude" => ("claude", " -s user"), "codex" => ("codex", ""), "gemini" => ("gemini", " -s user"), _ => return None };
@@ -62,8 +65,9 @@ fn script_for(engine: &str, stale: &[String], servers: &[McpServer]) -> Option<S
     for s in servers {
         let name = sh(&s.name);
         let line = match (engine, s.transport.as_str()) {
-            // claude: `-e` многозначный — после имени, перед `--` (иначе съедает имя); gemini (yargs): `-e` по одному значению до
-            // имени, а `--` — после команды, перед аргументами (проверено на 0.62: `name cmd -- -y pkg`)
+            // claude: `-e` is multi-valued — after the name, before `--` (otherwise it swallows the name); gemini (yargs): `-e`
+            // one value at a time before the name, and `--` after the command, before the arguments (verified on 0.62: `name cmd
+            // -- -y pkg`)
             ("claude", "stdio") => {
                 let env: String = s.env.iter().map(|(k, v)| format!(" -e {}", sh(&format!("{k}={v}")))).collect();
                 format!("{bin} mcp add{scope} {name}{env} -- {} {}", sh(&s.command), s.args.iter().map(|a| sh(a)).collect::<Vec<_>>().join(" "))
@@ -98,7 +102,8 @@ async fn run(engine: &str, script: String) -> String {
     if problems.is_empty() { "ok".into() } else { problems.join("; ").chars().take(300).collect() }
 }
 
-/// Сохранить список и разложить движкам. Ошибка — только у валидации; проблемы движков возвращаются в `applied`.
+/// Save the list and roll it out to the engines. An error only from validation; engine problems come back in
+/// `applied`.
 pub async fn save(servers: Vec<McpServer>) -> Result<Value, String> {
     let mut seen = std::collections::HashSet::new();
     for s in &servers {
@@ -137,5 +142,51 @@ mod tests {
         let g = script_for("gemini", &[], &[s]).unwrap();
         assert!(g.contains("gemini mcp add -s user -t stdio -e 'K=v w' 'echo' 'npx' -- '-y' '@x/mcp'"), "{g}");
         assert_eq!(sh("it's"), "'it'\\''s'");
+    }
+}
+
+/// Server health via `claude mcp list` (slice 70): the CLI connects to each one itself — "✔ Connected", "⚠ Needs
+/// authentication", "✘ Failed to connect — …"; parsing the "name: … (TRANSPORT) - status" line. 30 s cache: the check is not
+/// fast.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct McpHealth { pub name: String, pub transport: String, pub status: String, pub detail: String }
+static HEALTH_CACHE: std::sync::OnceLock<std::sync::Mutex<Option<(std::time::Instant, Vec<McpHealth>)>>> = std::sync::OnceLock::new();
+pub fn parse_health(out: &str) -> Vec<McpHealth> {
+    let mut v = Vec::new();
+    for line in out.lines() {
+        let l = line.trim();
+        let Some((name, rest)) = l.split_once(": ") else { continue };
+        if name.is_empty() || name.contains(' ') { continue }
+        let Some((left, st)) = rest.rsplit_once(" - ") else { continue };
+        let transport = left.rsplit_once(" (").and_then(|(_, t)| t.strip_suffix(')')).unwrap_or("").to_lowercase();
+        let st = st.trim();
+        let status = if st.starts_with('✔') || st.starts_with('✓') || st.to_lowercase().contains("connected") && !st.to_lowercase().contains("failed") { "ok" }
+            else if st.to_lowercase().contains("auth") { "auth" } else if st.starts_with('✘') || st.starts_with('✗') || st.to_lowercase().contains("fail") { "fail" } else { "unknown" };
+        let detail = st.trim_start_matches(['✔', '✓', '✘', '✗', '⚠', ' ']).to_string();
+        v.push(McpHealth { name: name.to_string(), transport, status: status.into(), detail });
+    }
+    v
+}
+pub async fn health(refresh: bool) -> Vec<McpHealth> {
+    let cache = HEALTH_CACHE.get_or_init(|| std::sync::Mutex::new(None));
+    if !refresh { if let Some((t, v)) = cache.lock().unwrap().as_ref() { if t.elapsed() < std::time::Duration::from_secs(30) { return v.clone() } } }
+    let out = tokio::time::timeout(std::time::Duration::from_secs(120), tokio::process::Command::new("bash").args(["-lc", "claude mcp list 2>&1"]).output()).await;
+    let text = match out { Ok(Ok(o)) => String::from_utf8_lossy(&o.stdout).to_string(), Ok(Err(e)) => { tracing::warn!("mcp list: {e}"); String::new() } Err(_) => { tracing::warn!("mcp list: таймаут 120 с"); String::new() } };
+    let v = parse_health(&text);
+    *cache.lock().unwrap() = Some((std::time::Instant::now(), v.clone()));
+    v
+}
+
+#[cfg(test)]
+mod health_tests {
+    #[test]
+    fn parses_claude_mcp_list() {
+        let out = "Checking MCP server health…\n\ncontext7: npx -y @upstash/context7-mcp (stdio) - ✔ Connected\nlinear: https://mcp.linear.app/mcp (HTTP) - ⚠ Needs authentication\nprobe: https://mcp.example.com/mcp (HTTP) - ✘ Failed to connect — ENOTFOUND: getaddrinfo ENOTFOUND mcp.example.com\n";
+        let v = super::parse_health(out);
+        assert_eq!(v.len(), 3);
+        assert_eq!((v[0].name.as_str(), v[0].transport.as_str(), v[0].status.as_str()), ("context7", "stdio", "ok"));
+        assert_eq!((v[1].status.as_str(), v[1].detail.as_str()), ("auth", "Needs authentication"));
+        assert_eq!(v[2].status, "fail"); assert!(v[2].detail.contains("ENOTFOUND"));
+        assert!(super::parse_health("No MCP servers configured. Use `claude mcp add` to add a server.").is_empty());
     }
 }

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#151a2a"/><stop offset="1" stop-color="#0a0c12"/></linearGradient>
+  <radialGradient id="glow" cx="0.5" cy="0.42" r="0.6"><stop offset="0" stop-color="#5B8CFF" stop-opacity="0.28"/><stop offset="0.6" stop-color="#7A5CFF" stop-opacity="0.08"/><stop offset="1" stop-color="#7A5CFF" stop-opacity="0"/></radialGradient>
+  <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FF"/><stop offset="0.4" stop-color="#A2B4FF"/><stop offset="1" stop-color="#5B8CFF"/></linearGradient>
+  <linearGradient id="violet" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A2B4FF"/><stop offset="0.45" stop-color="#7A5CFF"/><stop offset="1" stop-color="#3B2FA8"/></linearGradient>
+  <linearGradient id="ring" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3B2FA8"/><stop offset="0.5" stop-color="#5B8CFF"/><stop offset="1" stop-color="#A2B4FF"/></linearGradient>
+  <linearGradient id="diag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F7FF"/><stop offset="0.5" stop-color="#8FA3FF"/><stop offset="1" stop-color="#7A5CFF"/></linearGradient>
+  <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/>
+<rect width="512" height="512" rx="112" fill="url(#glow)"/>
+
+<rect x="112" y="112" width="128" height="128" rx="30" fill="url(#blue)"/>
+<rect x="272" y="112" width="128" height="128" rx="30" fill="url(#violet)" opacity="0.55"/>
+<rect x="112" y="272" width="128" height="128" rx="30" fill="url(#violet)" opacity="0.55"/>
+<rect x="272" y="272" width="128" height="128" rx="30" fill="url(#violet)" opacity="0.55"/></svg>

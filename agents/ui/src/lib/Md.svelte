@@ -1,7 +1,8 @@
 <script module lang="ts">
-  // Markdown ответов агента и вывода команд: marked (GFM — таблицы, код, списки) + DOMPurify; ссылки — в новую вкладку.
-  // Срез 33 (docs/agents-ux.md §4.3.9): формулы TeX (KaTeX) и диаграммы mermaid — разбор на этапе токенов marked, рендер после
-  // вставки в DOM; библиотеки грузятся лениво отдельными чанками при первой формуле/диаграмме. Кнопка «⧉» у блоков кода.
+  // Markdown of agent answers and command output: marked (GFM — tables, code, lists) + DOMPurify; links open in a new tab.
+  // Slice 33 (docs/agents-ux.md §4.3.9): TeX formulas (KaTeX) and mermaid diagrams — parsed at the marked token stage,
+  // rendered after insertion into the DOM; the libraries load lazily as separate chunks on the first formula/diagram. The "⧉"
+  // button on code blocks.
   import { marked, type Tokens } from 'marked';
   import DOMPurify from 'dompurify';
   import { tick } from 'svelte';
@@ -10,8 +11,8 @@
   import { toast } from './toast.svelte';
 
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  // формулы: $$…$$ и \[…\] — блочные; $…$ и \(…\) — в строке. Инлайн-доллары принимаем только без пробелов у границ и без цифры
-  // сразу после закрывающего $ («$5 и $7» — не формула).
+  // formulas: $$…$$ and \[…\] are blocks; $…$ and \(…\) are inline. Inline dollars are accepted only without spaces at the
+  // boundaries and without a digit right after the closing $ ("$5 and $7" is not a formula).
   const mathBlock = {
     name: 'mathBlock', level: 'block' as const,
     start(src: string) { const m = /(^|\n)[ \t]*(\$\$|\\\[)/.exec(src); return m ? m.index + m[1].length : undefined; },
@@ -38,7 +39,8 @@
   };
   marked.use({
     gfm: true, breaks: false, extensions: [mathBlock, mathInline],
-    // исходник схемы — только текстом внутри <pre><code>: в атрибуте DOMPurify вырезал бы его из-за стрелок `-->` (похоже на `-->` комментария)
+    // the diagram source — only as text inside <pre><code>: in an attribute DOMPurify would cut it because of the `-->` arrows (looks like a
+    // comment's `-->`)
     renderer: { code(tok: Tokens.Code): string | false { return tok.lang === 'mermaid' ? `<div class="mermaid-src"><pre><code class="language-mermaid">${esc(tok.text)}</code></pre></div>\n` : false; } } as any,
   });
   DOMPurify.addHook('afterSanitizeAttributes', (node) => { if (node.tagName === 'A') { node.setAttribute('target', '_blank'); node.setAttribute('rel', 'noopener noreferrer'); } });
@@ -53,19 +55,27 @@
     catch { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch {} ta.remove(); }
     toast(t('md.copied'));
   }
-  /** TeX формулы: из data-tex, а если DOMPurify убрал атрибут — из текста узла без ограничителей. */
+  /** TeX formulas: from data-tex, and if DOMPurify removed the attribute — from the node text
+   *  without delimiters. */
   const texOf = (m: HTMLElement) => m.dataset.tex ?? (m.textContent ?? '').trim().replace(/^(\$\$|\$|\\\(|\\\[)/, '').replace(/(\$\$|\$|\\\)|\\\])$/, '').trim();
   const btn = (cls: string, title: string, label: string, on: () => void) => { const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.title = title; b.textContent = label; b.onclick = (e) => { e.stopPropagation(); on(); }; return b; };
 
-  /** Ближайший прокручиваемый предок: чат, прилипший к низу, докручиваем после асинхронной отрисовки (диаграмма выше текста). */
+  /** The nearest scrollable ancestor: a chat stuck to the bottom is scrolled further after the asynchronous render (a diagram
+   *  above the text). */
   function scrollParent(el: HTMLElement): HTMLElement | null {
     for (let p = el.parentElement; p; p = p.parentElement) { const o = getComputedStyle(p).overflowY; if ((o === 'auto' || o === 'scroll') && p.scrollHeight > p.clientHeight) return p; }
     return null;
   }
-  /** Дорисовка после вставки HTML: формулы, кнопки копирования, диаграммы (последние — только у завершённого сообщения). */
+  /** Finishing after the HTML insertion: formulas, copy buttons, diagrams (the latter — only for a finished message). */
   async function enhance(el: HTMLElement, theme: 'dark' | 'light', live: boolean) {
     const sc = scrollParent(el); const atBottom = !!sc && sc.scrollHeight - sc.scrollTop - sc.clientHeight < 48;
-    const restick = () => { if (atBottom && sc) sc.scrollTop = sc.scrollHeight; };
+    // The asynchronous finishing must not cancel a jump to a request or reading history. Chats say explicitly
+    // whether the scroll follows the answer right now; for the other panels the position is re-checked.
+    const restick = () => {
+      if (!atBottom || !sc || !el.isConnected || sc.dataset.following === 'false') return;
+      if (sc.dataset.following === undefined && sc.scrollHeight - sc.scrollTop - sc.clientHeight >= 48) return;
+      sc.scrollTop = sc.scrollHeight;
+    };
     await enhanceInner(el, theme, live, restick);
     restick();
   }
@@ -75,7 +85,7 @@
       const katex = await loadKatex();
       for (const m of maths) {
         if (!m.isConnected) continue;
-        try { m.innerHTML = katex.renderToString(texOf(m), { displayMode: m.dataset.display === '1', throwOnError: false, output: 'html', trust: false }); } catch { /* остаётся исходный текст */ }
+        try { m.innerHTML = katex.renderToString(texOf(m), { displayMode: m.dataset.display === '1', throwOnError: false, output: 'html', trust: false }); } catch { /* the source text stays */ }
         m.dataset.done = '1';
       }
     }
@@ -125,7 +135,7 @@
     catch { return ''; }
   });
   $effect(() => {
-    // зависимости: html (новый DOM), тема (перерисовать диаграммы), live (дорисовать диаграммы, когда ответ завершён)
+    // dependencies: html (a new DOM), theme (redraw the diagrams), live (finish the diagrams when the answer is done)
     void html; const theme = prefs.effective; const isLive = live; const el = root;
     if (!el || !rich) return;
     let cancelled = false;
@@ -156,12 +166,12 @@
   .md :global(a) { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
   .md :global(img) { max-width: 100%; border-radius: var(--r-1); }
   .md :global(strong) { font-weight: 600; }
-  /* формулы */
+  /* formulas */
   .md :global(.math[data-display="1"]) { display: block; text-align: center; margin: 8px 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
   .md :global(.math:not([data-done])) { font-family: var(--mono); font-size: 12px; color: var(--fg-2); }
   .md :global(.katex-display) { margin: 0; }
   .md :global(.katex) { font-size: 1.08em; }
-  /* диаграммы */
+  /* diagrams */
   .md :global(.mermaid-src) { margin: 6px 0 8px; }
   .md :global(.mermaid-src:not(.src) > pre) { display: none; }
   .md :global(.mermaid-src.src > .diagram > .dg) { display: none; }

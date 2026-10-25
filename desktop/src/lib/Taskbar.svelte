@@ -14,8 +14,8 @@
   function isImg(icon?: string | null) { return !!icon && (icon.startsWith('/') || icon.startsWith('http')); }
   function toggleTheme() { appearance = { ...appearance, mode: appearance.mode === 'light' ? 'dark' : 'light' }; }
   const umbrel = $derived(appearance.look === 'umbrel');
-  // облик umbrel: док показывает закреплённые системные приложения и открытые окна остальных; окна системных приложений
-  // рисуются своей иконкой SysIcon, приложения — картинкой манифеста или эмодзи в плитке
+  // the umbrel look: the dock shows the pinned system apps and the open windows of the rest; system app windows are
+  // drawn with their own SysIcon, apps — with the manifest image or an emoji in a tile
   const SYS_ICON: Partial<Record<string, SysIconName>> = { projects: 'projects', store: 'store', files: 'files', system: 'system', settings: 'settings', project: 'project', vault: 'vault', updates: 'updates', setup: 'setup', appdetail: 'appdetail', reader: 'reader', appready: 'appready', agents: 'agents' };
   const others = $derived(wm.wins.filter(w => !pinned.some(p => w.id === `sys:${p}`)));
 </script>
@@ -40,7 +40,8 @@
     <span class="sep"></span>
     <div class="slot"><button class="item" aria-label={t('shell.addWidget')} onclick={() => widgets.picker = true}><span class="tile plus">+</span></button><span class="tip">{t('shell.addWidget')}</span></div>
     <span class="sep"></span>
-    <!-- служебный сегмент дока вместо трея: здоровье ядра, обновления, часы — не накрывает ни окна, ни виджеты -->
+    <!-- the dock's service segment instead of the tray: core health, updates, clock — covers neither windows nor
+         widgets -->
     <div class="tray" role="status" aria-label={t('shell.islandAria')}>
       <button class="ib" title={t('shell.health')} onclick={() => wm.openSys('system')}><span class="dot" class:ok={bad === 0} class:bad={bad > 0}></span><span class="label">{status ? (bad ? tn('shell.failures', bad) : t('shell.coreOk')) : '…'}</span></button>
       {#if status && (status.update_available || (status.app_updates ?? 0) > 0)}<button class="ib" title={status.update_available ? t('shell.sysUpdate') : t('shell.appUpdates', { n: status.app_updates ?? 0 })} onclick={() => wm.openSys('updates')}>⬆️</button>{/if}
@@ -102,8 +103,8 @@
   .taskbar .clock .date { font-size: .7rem; }
   @media (max-width: 700px) { .label { display: none; } .clock .date { display: none; } .taskbar { gap: 2px; padding: 0 4px; } }
 
-  /* док umbrelOS: стекло с бликом и глубокой тенью, иконки 50 px с увеличением при наведении (соседи — чуть), подсказка над
-     иконкой, точка под открытым окном; служебный сегмент справа (здоровье ядра, обновления, часы) заменяет трей */
+  /* the umbrelOS dock: glass with a highlight and a deep shadow, 50 px icons that grow on hover (the neighbours — slightly), the hint
+     above the icon, a dot under an open window; the service segment on the right (core health, updates, clock) replaces the tray */
   .dock { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 2000; display: flex; align-items: flex-end; gap: 10px; height: 74px; padding: 0 12px 12px; max-width: calc(100vw - 24px); overflow: visible;
     border-radius: 24px; background: rgb(0 0 0 / .42); background-clip: padding-box; border: .5px solid rgb(255 255 255 / .1); backdrop-filter: blur(20px) saturate(1.2) brightness(.85); -webkit-backdrop-filter: blur(20px) saturate(1.2) brightness(.85);
     box-shadow: inset 1px 0 0 rgb(255 255 255 / .04), inset -1px 0 0 rgb(255 255 255 / .04), inset 0 1px 0 rgb(255 255 255 / .2), inset 0 .5px 0 rgb(255 255 255 / .1), 0 4px 24px rgb(0 0 0 / .56); }

@@ -1,4 +1,5 @@
-# Dozzle читает Docker через read-only прокси cloudos-docker-ro (bootstrap/docker-proxy), а не через сокет хоста.
+# Dozzle reads Docker through the read-only proxy cloudos-docker-ro (bootstrap/docker-proxy), not through the
+# host socket.
 services:
   dozzle:
     image: amir20/dozzle:v8

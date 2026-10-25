@@ -1,7 +1,7 @@
-//! Сервис «Агенты» (cloudos-agents) на хосте (ADR-006, этап 2): отдельный бэкенд и веб-приложение на своём порту (7300) и
-//! маршруте `/agents/` за edge. Бинарь встроен в cloudd (build.rs), и ядро само ставит его в `/usr/local/bin`, кладёт юнит
-//! systemd и перезапускает при изменении — та же схема, что с agentd в workspace'ах: один пакет обновления обновляет и ядро,
-//! и сервис. Без systemd (разработка) — тихий пропуск.
+//! The "Agents" service (cloudos-agents) on the host (ADR-006, stage 2): a separate backend and web app on its own port
+//! (7300) and the `/agents/` route behind the edge. The binary is embedded into cloudd (build.rs), and the core itself
+//! installs it into `/usr/local/bin`, places the systemd unit and restarts it on change — the same scheme as agentd in
+//! workspaces: one update package updates both the core and the service. Without systemd (development) — a quiet skip.
 use anyhow::{Context, Result};
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
@@ -15,7 +15,7 @@ pub const SERVICE: &str = "cloudos-agents";
 
 async fn sc(args: &[&str]) -> Result<std::process::Output> { crate::setup::run("systemctl", args, Duration::from_secs(60)).await }
 
-/// Поставить или обновить сервис на хосте. Возвращает, что изменилось.
+/// Install or update the service on the host. Returns what changed.
 pub async fn ensure_installed() -> Result<Vec<&'static str>> {
     let mut changed = Vec::new();
     if BIN.is_empty() {

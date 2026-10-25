@@ -1,7 +1,7 @@
 <script lang="ts">
-  // Рендеринги карточки сессии (ADR-006): Chat | Shell | Files | Git над одной сессией workspace'а. Shell — PTY в cwd сессии,
-  // привязанный к ней (`session` у PTY, убирается вместе с сессией); Files и Git — API agentd; вкладка запоминается на сессию.
-  // Для «голого» терминала (kind = pty) вкладки Shell | Files | Git.
+  // Session card renderings (ADR-006): Chat | Shell | Files | Git over one workspace session. Shell is a PTY in the session
+  // cwd bound to it (`session` on the PTY, removed with the session); Files and Git — the agentd API; the tab is remembered
+  // per session. For a "bare" terminal (kind = pty) the tabs are Shell | Files | Git.
   import { api, type PtyInfo } from './api';
   import Chat from './Chat.svelte';
   import Term from './Term.svelte';
@@ -16,7 +16,8 @@
   try { const s = localStorage.getItem(LS) as Tab | null; if (s && tabs.includes(s)) tab = s; } catch {}
   $effect(() => { try { localStorage.setItem(LS, tab); } catch {} });
   const label: Record<Tab, () => string> = { chat: () => '💬 ' + t('agents.tabChat'), shell: () => '⌨ ' + t('agents.tabShell'), files: () => '📁 ' + t('agents.tabFiles'), git: () => '⎇ ' + t('agents.tabGit') };
-  // shell сессии: живой PTY с session == id, иначе создаём в её cwd
+  // session shell: a live PTY with session == id, otherwise created
+  // in its cwd
   let shell = $state<PtyInfo | null>(null);
   let shellErr = $state('');
   async function ensureShell(fresh = false) {

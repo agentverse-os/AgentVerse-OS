@@ -1,8 +1,9 @@
-# e2e доступа (docs/userflow-apps.md, P0). Браузер работает на самом стенде: при создании/удалении docker-сети приложения
-# Chromium обрывает текущие запросы (ERR_NETWORK_CHANGED) — поэтому Desktop повторяет install/remove и ждёт статус опросом.
+# Access e2e (docs/userflow-apps.md, P0). The browser runs on the stand itself: when an app's docker network is
+# created/removed Chromium aborts the current requests (ERR_NETWORK_CHANGED) — so Desktop retries install/remove and waits
+# for the status by polling.
 import os, time
 from playwright.sync_api import sync_playwright
-HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); APP = "linkding-coolify"; SECOND = os.environ.get("SECOND_APP_NAME", "Hermes Agent")  # второе установленное приложение с генерируемым входом для проверки поповера
+HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); APP = "linkding-coolify"; SECOND = os.environ.get("SECOND_APP_NAME", "Hermes Agent")  # a second app with a generated sign-in to check the popover (previously Hermes, removed from the stand)
 os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 with sync_playwright() as p:
@@ -12,7 +13,7 @@ with sync_playwright() as p:
     a = pg.request.get(f"https://{HOST}/api/apps/{APP}").json()
     if a["installed"]: pg.request.delete(f"https://{HOST}/api/apps/{APP}?purge=true"); time.sleep(3)
     ok("api: single app view has login", a["manifest"]["login"]["mode"] == "generated" and a["manifest"]["login"]["user"] == "SERVICE_USER_LINKDING", str(a["manifest"]["login"]))
-    # Store: «Что понадобится»
+    # Store: "What you will need"
     pg.goto(f"https://{HOST}/#store", wait_until="domcontentloaded"); pg.wait_for_selector(".card.app", timeout=30000); time.sleep(1.5)
     pg.fill("input.search", "linkding"); time.sleep(0.8)
     card = pg.locator(".card.app", has_text="Coolify").filter(has_text="Linkding").first
@@ -22,7 +23,7 @@ with sync_playwright() as p:
     ok("store: needs line for wizard app", "создадите при первом входе" in (g.locator(".needs").inner_text() if g.locator(".needs").count() else ""))
     pg.fill("input.search", "linkding"); time.sleep(0.8)
     pg.screenshot(path="shots/ac-store-needs.png")
-    # установка → окно «Готово»
+    # install → the "Done" window
     t0 = time.time(); card.locator("button", has_text="Установить").click()
     ready = pg.locator(".win", has_text="Данные для входа").filter(has_text="установлено")
     try: ready.first.wait_for(timeout=420000); ok("install: «Готово» window", True, f"{time.time() - t0:.0f}s")
@@ -38,9 +39,10 @@ with sync_playwright() as p:
     except Exception: clip = ""
     ok("ready: copy all puts login+password to clipboard", ("пароль: " + pw) in clip and "логин: " in clip, clip.replace(pw, "***")[:80].replace("\n", " | "))
     pg.screenshot(path="shots/ac-ready-revealed.png")
-    # Открыть → окно приложения с 🔑, поповер раскрыт сам при первом открытии
+    # Open → the app window with 🔑, the popover expands by itself on the
+    # first open
     ready.first.locator("button.primary", has_text="Открыть").click(); time.sleep(2.5)
-    appwin = pg.locator(".win", has=pg.locator(f"iframe[src*='{HOST}']")).filter(has_text="Linkding").first  # iframe приложения открыт по хосту Desktop
+    appwin = pg.locator(".win", has=pg.locator(f"iframe[src*='{HOST}']")).filter(has_text="Linkding").first  # the app iframe is opened by the Desktop host
     ok("app window: 🔑 button in title bar", appwin.locator(".bar button.key").count() == 1)
     ok("app window: access popover auto-opened on first open", appwin.locator(".keypop .field[data-field=пароль]").count() == 1)
     pg.screenshot(path="shots/ac-app-key.png")
@@ -48,7 +50,8 @@ with sync_playwright() as p:
     appwin.locator(".bar button.key").click(); time.sleep(0.5); ok("app window: 🔑 reopens popover", appwin.locator(".keypop").count() == 1)
     appwin.locator(".keypop .field[data-field=пароль] button[title=показать]").click(); time.sleep(1.0)
     ok("app window: popover reveals password", appwin.locator(".keypop .field[data-field=пароль] code").inner_text() == pw)
-    # второе приложение с генерируемым входом из иконки на столе: поповер сам открывается один раз, второй раз — нет
+    # a second app with a generated sign-in from the desktop icon: the popover opens by itself once, not the second
+    # time
     for _ in range(12):
         if not pg.locator(".win").count(): break
         try: pg.locator(".win .bar button.close").last.click(timeout=2000)
@@ -63,7 +66,7 @@ with sync_playwright() as p:
     hw = pg.locator(".win", has_text=SECOND).first
     ok("second app: no auto popover on second open", hw.locator(".keypop").count() == 0 and hw.locator(".bar button.key").count() == 1)
     hw.locator(".bar button.close").click(); time.sleep(0.3)
-    # карточка: блок доступа, удаление полностью с подтверждением словом delete
+    # card: the access block, full removal confirmed with the word delete
     pg.goto(f"https://{HOST}/#app={APP}", wait_until="domcontentloaded"); time.sleep(3)
     det = pg.locator(".win", has_text="Описание").last
     ok("card: access box", det.locator(".accessbox .field[data-field=пароль]").count() == 1)

@@ -1,8 +1,9 @@
 import os, time, json, ssl, urllib.request
 from playwright.sync_api import sync_playwright
-# Скриншоты app shell «Агентов» (ADR-006, этап 2) для владельца: холст (Code) отдельной вкладкой с карточками разных
-# workspace'ов, режим Thread, окно внутри Desktop, телефон с выдвижной панелью. Создаёт терминал и чат Claude в PROJECT
-# (без ходов — токены не тратятся), в конце убирает их. Уже существующие сессии владельца не трогает.
+# Screenshots of the "Agents" app shell (ADR-006, stage 2) for the owner: the canvas (Code) as a separate tab with cards
+# of different workspaces, the Thread mode, a window inside Desktop, the phone with the slide-out panel. Creates a
+# terminal and a Claude chat in PROJECT (no turns — no tokens spent), removes them at the end. The owner's existing
+# sessions are left alone.
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); P = os.environ.get("PROJECT", "alpha"); os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note, flush=True)
 ctx_ssl = ssl.create_default_context(); ctx_ssl.check_hostname = False; ctx_ssl.verify_mode = ssl.CERT_NONE
@@ -17,7 +18,8 @@ with sync_playwright() as p:
     pg.goto(f"https://{HOST}/?app=agents", wait_until="networkidle"); pg.wait_for_selector(".agents", timeout=30000); time.sleep(2)
     ok("standalone: own shell, no desktop chrome", pg.locator("nav.dock, nav.taskbar, .icons").count() == 0 and pg.locator(".agents .modes").count() == 1)
     pg.locator(".agents .modes button:text-is('Code')").click()
-    # холст: терминал + чат Claude в PROJECT, плюс все живые сессии других workspace'ов (клик в дереве добавляет карточку)
+    # canvas: a terminal + a Claude chat in PROJECT, plus all live sessions of other workspaces (a click in the tree adds
+    # a card)
     proj = pg.locator(f".agents .proj:has-text('{P}')")
     proj.locator("button.add").click(); proj.locator(".menu button:has-text('Терминал')").click(); pg.wait_for_selector(".agents .card .xterm", timeout=30000); time.sleep(1.5)
     pg.locator(".agents .card .xterm").first.click(); pg.keyboard.type("echo AgentVerse OS && uname -a && ls\n"); time.sleep(1)
@@ -27,7 +29,7 @@ with sync_playwright() as p:
     time.sleep(3)
     n = pg.locator(".agents .card").count(); ok("canvas: several cards", n >= 2, f"cards={n}")
     pg.screenshot(path="shots/sh1-code.png")
-    # перетаскивание: первую карточку в конец; ширина на две колонки
+    # dragging: the first card to the end; width of two columns
     cards = pg.locator(".agents .card")
     if n >= 2:
         first = cards.first.get_attribute("data-card"); cards.first.locator(".chead").drag_to(cards.last, target_position={"x": 40, "y": 10}); time.sleep(0.8)
@@ -36,15 +38,16 @@ with sync_playwright() as p:
         pg.screenshot(path="shots/sh2-code-wide.png")
     time.sleep(1.5)
     st, lay = api("/agents/layout"); ok("layout saved in the core", st == 200 and isinstance(lay, dict) and len(lay.get("cards") or []) == pg.locator(".agents .card").count(), json.dumps(lay)[:120])
-    # Thread: одна сессия на весь экран
+    # Thread: one session full screen
     pg.locator(".agents .card").first.locator("button[title*='Thread']").click(); time.sleep(1)
     ok("thread: one session full-screen", pg.locator(".agents .thread").count() == 1 and pg.locator(".agents .modes button.active").inner_text().strip() == "Thread")
     pg.screenshot(path="shots/sh3-thread.png")
-    # внутри Desktop — то же приложение в окне со своей темой
+    # inside Desktop — the same app in a window with its own
+    # theme
     pg2 = ctx.new_page(); pg2.goto(f"https://{HOST}/#agents", wait_until="networkidle"); pg2.wait_for_selector(".agents", timeout=30000); time.sleep(2.5)
     ok("desktop window: same app, same layout", pg2.locator(".agents .card").count() == pg.locator(".agents .card").count() or pg2.locator(".agents .thread").count() == 1)
     pg2.screenshot(path="shots/sh4-window.png")
-    # телефон: панель workspace'ов выдвигается
+    # phone: the workspace panel slides out
     ph = b.new_context(locale="ru-RU", ignore_https_errors=True, viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True); pp = ph.new_page()
     pp.goto(f"https://{HOST}/?app=agents", wait_until="networkidle"); pp.wait_for_selector(".agents", timeout=30000); time.sleep(2)
     pp.locator(".agents .burger").click(); time.sleep(0.6); ok("phone: sidebar drawer opens", pp.locator(".agents.side-open").count() == 1)
@@ -52,7 +55,7 @@ with sync_playwright() as p:
     pp.locator(f".agents .proj:has-text('{P}') .sess").first.click(); time.sleep(2); pp.screenshot(path="shots/sh6-phone-thread.png")
     ok("phone: session opens full-screen, drawer closes", pp.locator(".agents.side-open").count() == 0 and pp.locator(".agents .thread").count() == 1)
     b.close()
-# уборка: только созданное этим скриптом
+# cleanup: only what this script created
 for s in (api(f"/projects/{P}/sessions")[1] or []):
     if s["id"] not in before_s: api(f"/projects/{P}/sessions/{s['id']}", "DELETE"); time.sleep(2); api(f"/projects/{P}/sessions/{s['id']}", "DELETE")
 for s in (api(f"/projects/{P}/ptys")[1] or []):

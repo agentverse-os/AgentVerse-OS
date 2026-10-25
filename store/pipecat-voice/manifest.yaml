@@ -1,6 +1,7 @@
-# Pipecat Voice — голосовой агент на фреймворке Pipecat (pipecat-ai): микрофон в браузере → STT → LLM → TTS → динамики.
-# Ручной манифест (в каталогах Runtipi/Coolify/Umbrel нет). STT и TTS локальные (speaches: faster-whisper + Piper/Kokoro),
-# LLM — любой OpenAI-совместимый адрес: LiteLLM или Ollama из Store, OpenAI, OpenRouter.
+# Pipecat Voice — a voice agent on the Pipecat framework (pipecat-ai): the microphone in the browser → STT → LLM → TTS →
+# the speakers. A manual manifest (not in the Runtipi/Coolify/Umbrel catalogs). STT and TTS are local (speaches:
+# faster-whisper + Piper/Kokoro), the LLM is any OpenAI-compatible address: LiteLLM or Ollama from the Store, OpenAI,
+# OpenRouter.
 schema: 1
 origin: manual
 name: pipecat-voice
@@ -28,8 +29,8 @@ env:
   TTS_SAMPLE_RATE: "22050"
   SYSTEM_PROMPT: "Ты голосовой ассистент Cloud OS. Отвечай коротко и разговорно, на языке собеседника."
 data: [tank/apps/pipecat-voice]
-health: null                                   # первый старт: сборка образа и загрузка моделей — ждём только running
-endpoint: { service: web, port: 7860 }         # web → socat → бот в сети хоста (WebRTC)
+health: null                                   # first start: the image build and model download — wait only for running
+endpoint: { service: web, port: 7860 }         # web → socat → the bot in the host network (WebRTC)
 hooks: {}
 settings:
   - { env: LLM_BASE_URL, type: text, label: адрес LLM (OpenAI-совместимый), hint: "адрес OpenAI-совместимого API + /v1: LiteLLM или Ollama из Store (адрес приложения + /v1), OpenAI, OpenRouter", required: true, options: null }

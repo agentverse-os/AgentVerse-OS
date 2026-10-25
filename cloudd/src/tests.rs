@@ -1,5 +1,5 @@
-//! Модульные тесты ядра: контракты (парсинг), рендеры (gate, edge), хранилище (SQLite + age).
-//! Интеграция с живыми Incus/Docker/Coder/Komodo — `tests/e2e-stand.sh` на стенде.
+//! Core unit tests: contracts (parsing), renders (gate, edge), storage (SQLite + age).
+//! Integration with live Incus/Docker/Coder/Komodo — `tests/e2e-stand.sh` on the stand.
 
 use crate::caddy::{EdgeCaddy, EdgeInput};
 use crate::gate;
@@ -60,7 +60,8 @@ fn project_yaml_parses_gib_and_defaults() {
     assert_eq!(p.workspace.home, 50);
     assert_eq!(p.capabilities, vec!["storage.s3", "llm"]);
     assert!(p.description.is_none(), "заметка необязательна");
-    // числа без суффикса тоже принимаются, а обратно сериализуется с GiB
+    // numbers without a suffix are accepted too, and serialize back with
+    // GiB
     let p2: ProjectSpec = serde_yaml_ng::from_str("project: b\nworkspace: { memory: 4, home: 10 }\n").unwrap();
     assert_eq!(p2.workspace.memory, 4);
     assert_eq!(p2.workspace.runtime, Runtime::IncusNesting, "runtime по умолчанию — incus-nesting (3.4)");
@@ -111,7 +112,7 @@ fn validate_names() {
     assert!(validate_name(&"a".repeat(49)).is_err());
 }
 
-// ---------- манифест ----------
+// ---------- manifest ----------
 
 #[test]
 fn manifest_parses_store_whoami() {
@@ -150,7 +151,7 @@ fn gate_caddyfile_routes_and_deny_all() {
     let grants = vec![
         Grant { project: "alpha".into(), capability: "demo.http".into(), app: "whoami".into(), granted_at: store::now() },
         Grant { project: "alpha".into(), capability: "storage.s3".into(), app: "garage".into(), granted_at: store::now() },
-        Grant { project: "alpha".into(), capability: "llm".into(), app: "bifrost".into(), granted_at: store::now() }, // приложение не установлено → маршрута нет
+        Grant { project: "alpha".into(), capability: "llm".into(), app: "bifrost".into(), granted_at: store::now() }, // the app is not installed → no route
     ];
     let routes = gate::routes_for(&grants, &apps, &Default::default());
     assert_eq!(routes.len(), 2);
@@ -178,35 +179,71 @@ fn edge_config_servers_and_tls() {
     let apps = vec![
         app_state(manifest("whoami", &[], RouteMode::Port, None), Some(8450)),
         app_state(manifest("grafana", &[], RouteMode::Path, None), None),
-        app_state(manifest("noport", &[], RouteMode::Port, None), None), // без выданного порта — пропускается
+        app_state(manifest("noport", &[], RouteMode::Port, None), None), // without an assigned port — skipped
     ];
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "host.docker.internal:7100", agents_upstream: "host.docker.internal:7300", coder_upstream: "coder:7080", coder_port: 8444, apps: &apps, tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "host.docker.internal:7100", agents_upstream: "host.docker.internal:7300", coder_upstream: "coder:7080", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: true });
     let servers = cfg["apps"]["http"]["servers"].as_object().unwrap();
     let mut names: Vec<_> = servers.keys().cloned().collect();
     names.sort();
-    assert_eq!(names, vec!["app-whoami", "coder", "desktop"]);
+    assert_eq!(names, vec!["agents", "app-whoami", "coder", "desktop"]);
     assert_eq!(servers["coder"]["listen"][0], ":8444");
-    assert_eq!(servers["coder"]["routes"][0]["handle"][0]["response"]["replace"]["Content-Security-Policy"][0]["replace"], "frame-ancestors 'self' https://box.example");
+    // Coder and apps can be framed from Desktop and from "Agents" on its own port
+    // (§9.8)
+    assert_eq!(servers["coder"]["routes"][0]["handle"][0]["response"]["replace"]["Content-Security-Policy"][0]["replace"], "frame-ancestors 'self' https://box.example https://box.example:8445");
+    // "Agents" as a separate app: its own server on :8445, `/` → `/agents/`, the rest — to the service with
+    // compression
+    assert_eq!(servers["agents"]["listen"][0], ":8445");
+    assert_eq!(servers["agents"]["routes"][0]["match"][0]["path"][0], "/");
+    assert_eq!(servers["agents"]["routes"][0]["handle"][0]["status_code"], 302);
+    assert_eq!(servers["agents"]["routes"][0]["handle"][0]["headers"]["Location"][0], "/agents/");
+    assert_eq!(servers["agents"]["routes"][1]["handle"][0]["handler"], "encode");
+    assert_eq!(servers["agents"]["routes"][1]["handle"][1]["upstreams"][0]["dial"], "host.docker.internal:7300");
     assert_eq!(servers["coder"]["routes"][0]["handle"][1]["upstreams"][0]["dial"], "coder:7080");
     assert_eq!(servers["app-whoami"]["listen"][0], ":8450");
-    // path-приложение — маршрут внутри desktop-сервера, раньше catch-all
+    // a path app — a route inside the desktop server, before the
+    // catch-all
     let routes = servers["desktop"]["routes"].as_array().unwrap();
     assert_eq!(routes.len(), 3);
-    // сервис «Агенты» — первым: /agents/* уходит на его порт, минуя ядро
+    // the "Agents" service goes first: /agents/* goes to its port,
+    // bypassing the core
     assert_eq!(routes[0]["match"][0]["path"][1], "/agents/*");
     assert_eq!(routes[0]["handle"][1]["upstreams"][0]["dial"], "host.docker.internal:7300");
     assert_eq!(routes[1]["match"][0]["path"][0], "/apps/grafana/*");
-    assert_eq!(routes[2]["handle"][1]["handler"], "encode"); // сжатие API/оболочки перед проксированием
+    assert_eq!(routes[2]["handle"][1]["handler"], "encode"); // API/shell compression before proxying
     assert_eq!(routes[2]["handle"][2]["upstreams"][0]["dial"], "host.docker.internal:7100");
-    // Desktop нельзя фреймить; приложение с open: iframe можно только с origin Desktop
+    // Desktop must not be framed; an app with open: iframe only from the Desktop
+    // origin
     assert_eq!(routes[2]["handle"][0]["response"]["set"]["X-Frame-Options"][0], "DENY");
-    assert_eq!(servers["app-whoami"]["routes"][0]["handle"][0]["response"]["set"]["Content-Security-Policy"][0], "frame-ancestors 'self' https://box.example");
+    assert_eq!(servers["app-whoami"]["routes"][0]["handle"][0]["response"]["set"]["Content-Security-Policy"][0], "frame-ancestors 'self' https://box.example https://box.example:8445");
     assert_eq!(cfg["apps"]["tls"]["automation"]["policies"][0]["issuers"][0]["module"], "internal");
-    let cfg2 = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &[], tls_internal: false });
+    let cfg2 = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &[], previews: &[], tls_internal: false });
     assert!(cfg2["apps"].get("tls").is_none(), "без internal CA — обычная автоматизация Caddy");
 }
 
 // ---------- store ----------
+
+#[test]
+fn agents_state_survives_restart_without_stale_entries() {
+    let d = tmp();
+    let s = Store::open(&d.path().join("db"), &d.path().join("age.key")).unwrap();
+    let now = crate::agents::now_ms() / 1000;
+    let mut blocked = std::collections::HashMap::new();
+    blocked.insert("acc-live".to_string(), now + 600); blocked.insert("acc-expired".to_string(), now - 5);
+    crate::agents::save_map(&s, crate::agents::KV_BLOCKED, &blocked);
+    let mut seen = std::collections::HashMap::new();
+    seen.insert("p:fresh".to_string(), now - 60); seen.insert("p:old".to_string(), now - crate::agents::LIMIT_SEEN_TTL_SECS - 1);
+    crate::agents::save_map(&s, crate::agents::KV_LIMIT_SEEN, &seen);
+    let mut warned = std::collections::HashMap::new(); warned.insert("total".to_string(), 123_u64);
+    crate::agents::save_map(&s, crate::agents::KV_BUDGET_WARNED, &warned);
+    let st = crate::agents::AgentsState::load(&s);
+    let b = st.blocked.read().unwrap();
+    assert_eq!(b.get("acc-live"), Some(&(now + 600)), "живая блокировка восстановлена");
+    assert!(!b.contains_key("acc-expired"), "истёкшая блокировка не загружается");
+    let l = st.limit_seen.read().unwrap();
+    assert!(l.contains_key("p:fresh") && !l.contains_key("p:old"), "удары старше недели отбрасываются: {l:?}");
+    assert_eq!(crate::agents::load_map(&s, crate::agents::KV_BUDGET_WARNED).get("total"), Some(&123));
+    assert!(crate::agents::load_map(&s, "agents.nothing").is_empty(), "отсутствующий ключ — пустая карта");
+}
 
 #[test]
 fn store_llm_usage_ledger_dedupes_and_summarizes() {
@@ -271,10 +308,10 @@ fn store_secrets_encrypted_at_rest_and_key_reused() {
         assert_eq!(s.get_secret("app:garage", "NOPE").unwrap(), None);
         assert_eq!(s.list_secret_keys("app:garage").unwrap(), vec!["GARAGE_ADMIN_TOKEN"]);
     }
-    // в файле БД открытого текста нет
+    // no plaintext in the DB file
     let raw = std::fs::read(&db).unwrap();
     assert!(!raw.windows(12).any(|w| w == b"s3cr3t-value"), "секрет лежит в SQLite открытым текстом");
-    // повторное открытие — тот же ключ, секрет читается
+    // reopening — the same key, the secret is readable
     let s = Store::open(&db, &key).unwrap();
     assert_eq!(s.get_secret("app:garage", "GARAGE_ADMIN_TOKEN").unwrap().as_deref(), Some("s3cr3t-value"));
     #[cfg(unix)]
@@ -295,7 +332,7 @@ fn store_events_recent_first() {
     assert_eq!(ev[0].message, "two");
 }
 
-// ---------- coder статус ----------
+// ---------- coder status ----------
 
 #[test]
 fn coder_status_mapping() {
@@ -313,7 +350,7 @@ fn coder_status_mapping() {
     assert_eq!(ws("starting").simple_status(), "starting");
 }
 
-// ---------- хуки ----------
+// ---------- hooks ----------
 
 #[test]
 fn hook_output_parsing_and_env_prefix() {
@@ -347,7 +384,8 @@ fn all_store_manifests_parse_and_are_consistent() {
         let m: AppManifest = serde_yaml_ng::from_str(&std::fs::read_to_string(&mp).unwrap()).unwrap_or_else(|err| panic!("{}: {err}", mp.display()));
         assert_eq!(Some(m.name.as_str()), p.file_name().and_then(|f| f.to_str()), "{}", mp.display());
         if m.kind == AppKind::External {
-            // внешний провайдер: без compose и endpoint, но с разделом external и его настройками в env
+            // external provider: no compose and endpoint, but with an external section and its settings
+            // in env
             let ext = m.external.as_ref().unwrap_or_else(|| panic!("{}: type external без external", m.name));
             assert!(m.compose.is_empty() && m.env.contains_key(&ext.url_env), "{}: external.url_env должен быть объявлен в env", m.name);
         } else {
@@ -356,7 +394,8 @@ fn all_store_manifests_parse_and_are_consistent() {
         }
         if let Some(icon) = &m.icon { if icon.starts_with("./") { assert!(p.join(icon).exists(), "{}: иконка {icon}", m.name); } }
         for h in [&m.hooks.on_grant, &m.hooks.on_revoke].into_iter().flatten() { assert!(p.join(h).exists(), "{}: хук {h}", m.name); }
-        // login: при mode=generated пароль — переменная из env; логин — переменная из env или литерал
+        // login: with mode=generated the password is a variable from env; the login — a variable from
+        // env or a literal
         if m.login.mode == LoginMode::Generated {
             let pw = m.login.password.as_deref().unwrap_or_else(|| panic!("{}: login.mode=generated без password", m.name));
             assert!(m.env.contains_key(pw), "{}: login.password {pw} не объявлен в env", m.name);
@@ -384,7 +423,7 @@ fn derive_login_coolify_pairs_and_infra_excluded() {
     assert_eq!(l["mode"], "generated");
     assert_eq!(l["user"], "SERVICE_USER_LINKDING");
     assert_eq!(l["password"], "SERVICE_PASSWORD_LINKDING");
-    // только инфраструктурные секреты — вход настраивается в приложении
+    // infrastructure secrets only — the sign-in is set up in the app
     let mut env = Map::new();
     env.insert("SERVICE_PASSWORD_JWTSECRET".into(), json!({ "generate": "password" }));
     env.insert("SERVICE_PASSWORD_POSTGRES".into(), json!({ "generate": "password" }));
@@ -392,7 +431,8 @@ fn derive_login_coolify_pairs_and_infra_excluded() {
     let l = crate::importer::derive_login(&env, None, None, "app", "");
     assert_eq!(l["mode"], "app");
     assert!(l["password"].is_null());
-    // пароль без пары: логин из литеральной переменной каталога (GOTIFY_USERNAME=admin)
+    // a password without a pair: the login from a literal catalog variable
+    // (GOTIFY_USERNAME=admin)
     let mut env = Map::new();
     env.insert("SERVICE_PASSWORD_GOTIFY".into(), json!({ "generate": "password" }));
     env.insert("GOTIFY_USERNAME".into(), json!("admin"));
@@ -421,13 +461,15 @@ fn derive_login_umbrel_defaults_and_runtipi_fields() {
     env.insert("SMTP_PASSWORD".into(), json!(""));
     let l = crate::importer::derive_login(&env, None, None, "dailytxt", "");
     assert_eq!(l["password"], "DAILYTXT_ADMIN_PASSWORD");
-    // пустой литерал — пароль, который пользователь задаст в настройках: ядро его узнает, режим generated
+    // an empty literal — a password the user will set in the settings: the core will know it, mode
+    // generated
     let mut env = Map::new();
     env.insert("ADMIN_PASSWORD".into(), json!(""));
     let l = crate::importer::derive_login(&env, None, None, "x", "");
     assert_eq!(l["mode"], "generated");
     assert_eq!(l["password"], "ADMIN_PASSWORD");
-    // использование в compose важнее имени: SERVICE_PASSWORD_N8N идёт в *_AUTH_TOKEN → не пароль входа; GRAFANA → GF_SECURITY_ADMIN_PASSWORD → пароль, логин — литерал соседней переменной
+    // usage in compose matters more than the name: SERVICE_PASSWORD_N8N goes into *_AUTH_TOKEN → not a sign-in password; GRAFANA → GF_SECURITY_ADMIN_PASSWORD → a password, the login —
+    // the literal of the neighbouring variable
     let mut env = Map::new();
     env.insert("SERVICE_PASSWORD_N8N".into(), json!({ "generate": "password" }));
     assert_eq!(crate::importer::derive_login(&env, None, None, "n8n", "N8N_RUNNERS_AUTH_TOKEN=${SERVICE_PASSWORD_N8N}")["mode"], "app");
@@ -440,7 +482,8 @@ fn derive_login_umbrel_defaults_and_runtipi_fields() {
     env.insert("SERVICE_PASSWORD_POSTGRES".into(), json!({ "generate": "password" }));
     env.insert("SERVICE_USER_POSTGRES".into(), json!({ "generate": "password" }));
     assert_eq!(crate::importer::derive_login(&env, None, None, "immich", "POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}\nDB_PASSWORD=$SERVICE_PASSWORD_POSTGRES")["mode"], "app");
-    // manifest с login.yaml-совместимым разделом парсится
+    // a manifest with a login.yaml-compatible section
+    // parses
     let m: AppManifest = serde_yaml_ng::from_str("name: x\ncompose: ./c.yaml\nroute: { mode: port }\nendpoint: { service: web, port: 80 }\nlogin: { mode: none }\n").unwrap();
     assert_eq!(m.login.mode, LoginMode::None);
 }
@@ -469,10 +512,10 @@ fn garage_manifest_provides_storage_s3_with_hooks() {
 
 #[test]
 fn edge_alt_hosts_share_routes_and_certificate() {
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &["100.64.0.9".to_string()], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &[], tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &["100.64.0.9".to_string()], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &[], previews: &[], tls_internal: true });
     let text = serde_json::to_string(&cfg).unwrap();
     assert!(text.contains(r#"["box.example","100.64.0.9"]"#), "host-матчеры и subjects должны включать IP: {text}");
-    assert!(text.contains("frame-ancestors 'self' https://box.example https://100.64.0.9"));
+    assert!(text.contains("frame-ancestors 'self' https://box.example https://box.example:8445 https://100.64.0.9 https://100.64.0.9:8445"));
 }
 
 #[test]
@@ -480,21 +523,24 @@ fn inject_links_networks_env_and_shared_alias() {
     let compose = "services:\n  app:\n    image: x\n    networks: [appnet]\n    environment:\n      - A=1\n      - OPENAI_API_KEY=${OPENAI_API_KEY}\n  db:\n    image: pg\n    networks:\n      appnet:\n        aliases: [database]\n    environment:\n      PGDATA: /x\n  host:\n    image: h\n    network_mode: host\nnetworks:\n  appnet:\n    external: true\n    name: ${APP_NET}\n";
     let mut v: serde_json::Value = serde_yaml_ng::from_str(compose).unwrap();
     crate::service::inject_links(&mut v, "hermes", "app", &[("litellm".into(), "litellm-net".into())], true, &["LITELLM_URL".into(), "OPENAI_API_KEY".into(), "OPENAI_BASE_URL".into()]);
-    // сети: провайдер и общая — external
+    // networks: the provider and the shared
+    // one — external
     assert_eq!(v["networks"]["link_litellm"]["name"], "litellm-net");
     assert_eq!(v["networks"]["cloudos_shared"]["name"], crate::service::SHARED_NET);
-    // список сетей превращён в отображение, alias <app>.apps — только у главного сервиса
+    // the network list is turned into a map, the alias <app>.apps — only on the main
+    // service
     assert!(v["services"]["app"]["networks"]["appnet"].is_object());
     assert!(v["services"]["app"]["networks"]["link_litellm"].is_object());
     assert_eq!(v["services"]["app"]["networks"]["cloudos_shared"]["aliases"][0], "hermes.apps");
     assert!(v["services"]["db"]["networks"]["cloudos_shared"]["aliases"].is_null());
     assert_eq!(v["services"]["db"]["networks"]["appnet"]["aliases"][0], "database");
-    // environment: список — добавлены только отсутствующие, как ${VAR}; отображение — тоже
+    // environment: a list — only the missing ones are added, as ${VAR}; a map — likewise
     let env: Vec<&str> = v["services"]["app"]["environment"].as_array().unwrap().iter().map(|x| x.as_str().unwrap()).collect();
     assert!(env.contains(&"LITELLM_URL=${LITELLM_URL}") && env.contains(&"OPENAI_BASE_URL=${OPENAI_BASE_URL}"));
     assert_eq!(env.iter().filter(|e| e.starts_with("OPENAI_API_KEY=")).count(), 1);
     assert_eq!(v["services"]["db"]["environment"]["OPENAI_BASE_URL"], "${OPENAI_BASE_URL}");
-    // сервис в сети хоста не тронут
+    // a service in the host network is
+    // untouched
     assert!(v["services"]["host"].get("networks").is_none());
     assert!(v["services"]["host"].get("environment").is_none());
 }
@@ -524,7 +570,7 @@ fn generate_rotation_yields_new_value_of_same_shape() {
 
 #[test]
 fn edge_no_h3_and_compresses_api() {
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &[], tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &[], previews: &[], tls_internal: true });
     let text = serde_json::to_string(&cfg).unwrap();
     assert!(text.contains(r#""protocols":["h1","h2"]"#));
     assert!(text.contains(r#""handler":"encode""#));
@@ -533,7 +579,7 @@ fn edge_no_h3_and_compresses_api() {
 #[test]
 fn edge_app_servers_have_friendly_error_page() {
     let apps = vec![app_state(manifest("whoami", &[], RouteMode::Port, Some(8450)), Some(8450))];
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &apps, tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: true });
     let errs = &cfg["apps"]["http"]["servers"]["app-whoami"]["errors"]["routes"][0]["handle"];
     assert_eq!(errs[1]["handler"], "static_response");
     assert!(errs[1]["body"].as_str().unwrap().contains("#app=whoami"));
@@ -573,12 +619,12 @@ fn appdata_mounts_expand_and_owner_from_compose() {
 fn edge_tailscale_mode_leaves_ts_net_host_to_caddy_and_keeps_internal_ca_for_alt_hosts() {
     let apps = vec![app_state(manifest("whoami", &[], RouteMode::Port, Some(8450)), Some(8450))];
     let alts = vec!["100.101.102.103".to_string()];
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "aios.tail1234.ts.net", alt_hosts: &alts, cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &apps, tls_internal: false });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.tail1234.ts.net", alt_hosts: &alts, cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: false });
     let policies = cfg["apps"]["tls"]["automation"]["policies"].as_array().unwrap();
     assert_eq!(policies.len(), 1);
     assert_eq!(policies[0]["subjects"], serde_json::json!(["100.101.102.103"]));
     assert_eq!(policies[0]["issuers"][0]["module"], "internal");
-    let no_alts = EdgeCaddy::render(&EdgeInput { host: "aios.tail1234.ts.net", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, apps: &apps, tls_internal: false });
+    let no_alts = EdgeCaddy::render(&EdgeInput { host: "box.tail1234.ts.net", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: false });
     assert!(no_alts["apps"].get("tls").is_none(), "без запасных имён политики TLS не нужны — Caddy сам обслужит .ts.net");
 }
 
@@ -594,7 +640,7 @@ fn backup_snapshot_names_and_prune_plan() {
     let mut snaps: Vec<SnapshotInfo> = (0..30).map(|i| mk("tank/apps", "hourly", i)).collect();
     snaps.extend((0..12).map(|i| mk("tank/apps", "pre", i)));
     snaps.extend((0..3).map(|i| mk("tank/apps", "manual", i)));
-    snaps.extend((0..5).map(|i| mk("tank/workspaces/containers/ws-a", "hourly", i))); // дочерний датасет — не планируется отдельно
+    snaps.extend((0..5).map(|i| mk("tank/workspaces/containers/ws-a", "hourly", i))); // a child dataset is not planned separately
     let cfg = BackupConfig { hourly: 24, ..Default::default() };
     let plan = prune_plan(&snaps, &cfg);
     let hourly: Vec<&(String, String)> = plan.iter().filter(|(_, n)| n.contains("-hourly-")).collect();
@@ -605,7 +651,7 @@ fn backup_snapshot_names_and_prune_plan() {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// первый запуск и обновления (setup.rs, updates.rs)
+// first run and updates (setup.rs, updates.rs)
 // ---------------------------------------------------------------------------------------------------------------------
 
 #[test]
@@ -639,7 +685,8 @@ fn env_file_set_replaces_and_appends() {
     let src = "# комментарий\nCLOUDD_EDGE_HOST=10.0.0.5\nCLOUDD_TLS_INTERNAL=true\nCLOUDOS_ADMIN_EMAIL=a@b\n";
     let out = crate::setup::env_file_set(src, &[("CLOUDD_EDGE_HOST", "box.tail.ts.net"), ("CLOUDD_TLS_INTERNAL", "false"), ("CLOUDD_EDGE_ALT_HOSTS", "10.0.0.5,100.1.2.3")]);
     assert_eq!(out, "# комментарий\nCLOUDD_EDGE_HOST=box.tail.ts.net\nCLOUDD_TLS_INTERNAL=false\nCLOUDOS_ADMIN_EMAIL=a@b\nCLOUDD_EDGE_ALT_HOSTS=10.0.0.5,100.1.2.3\n");
-    // ключ-префикс другого ключа не задевается
+    // a key that is a prefix of another key is
+    // not affected
     let out2 = crate::setup::env_file_set("CLOUDD_EDGE_HOSTS_X=1\n", &[("CLOUDD_EDGE_HOST", "h")]);
     assert_eq!(out2, "CLOUDD_EDGE_HOSTS_X=1\nCLOUDD_EDGE_HOST=h\n");
 }
@@ -653,7 +700,7 @@ fn version_cmp_orders_semver() {
     assert_eq!(version_cmp("1.0.0", "1.0"), Equal);
     assert_eq!(version_cmp("v1.2.3", "1.2.3"), Equal);
     assert_eq!(version_cmp("1.2.3-rc1", "1.2.3"), Less);
-    assert_eq!(version_cmp("1.2.3+build5", "1.2.3"), Less); // метаданные сборки считаем «предварительными»
+    assert_eq!(version_cmp("1.2.3+build5", "1.2.3"), Less); // build metadata counts as "pre-release"
     assert_eq!(version_cmp("2", "1.99.99"), Greater);
 }
 
@@ -730,18 +777,21 @@ fn compose_differs_is_semantic() {
 
 #[test]
 fn external_provider_manifest_and_gate() {
-    // type: external — без compose/route/endpoint, с разделом external
+    // type: external — without compose/route/endpoint, with an
+    // external section
     let m: AppManifest = serde_yaml_ng::from_str("name: x\ntype: external\nprovides: [llm]\nexternal: { url_env: U, key_env: K }\nenv: { U: '', K: '' }\n").unwrap();
     assert_eq!(m.kind, AppKind::External);
     assert!(m.compose.is_empty());
     assert_eq!(m.external.as_ref().unwrap().url_env, "U");
-    // адрес: только схема и хост, путь запрещён
+    // address: scheme and host only, a path is
+    // forbidden
     assert_eq!(crate::service::normalize_external_url("https://llm.example.ts.net/").unwrap(), "https://llm.example.ts.net");
     assert_eq!(crate::service::normalize_external_url(" http://10.0.0.5:11434 ").unwrap(), "http://10.0.0.5:11434");
     assert!(crate::service::normalize_external_url("https://openrouter.ai/api/v1").is_err());
     assert!(crate::service::normalize_external_url("ftp://x").is_err());
     assert!(crate::service::normalize_external_url("not a url").is_err());
-    // gate: внешний upstream с подстановкой Host и ключа (ключ экранируется), внутренний — как раньше
+    // gate: an external upstream with Host and key substitution (the key is escaped), an internal one
+    // — as before
     let routes = vec![
         gate::GateRoute { capability: "llm", upstream: gate::Upstream::External { url: "https://p.example".into(), key: Some("k\"1".into()) } },
         gate::GateRoute { capability: "notify", upstream: gate::Upstream::Internal("ntfy:80".into()) },
@@ -751,17 +801,19 @@ fn external_provider_manifest_and_gate() {
     assert!(text.contains("header_up Authorization \"Bearer k\\\"1\"\n"), "{text}");
     assert!(text.contains("header_up x-api-key \"k\\\"1\"\n"), "{text}");
     assert!(text.contains("reverse_proxy ntfy:80\n"), "{text}");
-    // без ключа заголовки не подставляются
+    // without a key the headers are not
+    // inserted
     let text = gate::render_caddyfile("beta", &[gate::GateRoute { capability: "llm", upstream: gate::Upstream::External { url: "http://ollama:11434".into(), key: None } }]);
     assert!(text.contains("reverse_proxy http://ollama:11434 {") && !text.contains("Authorization"));
-    // routes_for: внешний провайдер берёт адрес из карты externals, обычный — endpoint
+    // routes_for: an external provider takes the address from the externals map, a
+    // regular one — the endpoint
     let ext = manifest("llm-external", &["llm"], RouteMode::Port, None);
     let apps = vec![AppState { name: "llm-external".into(), manifest: AppManifest { kind: AppKind::External, ..ext }, port: None, komodo_stack_id: None, installed_at: "t".into() }];
     let grants = vec![Grant { project: "alpha".into(), capability: "llm".into(), app: "llm-external".into(), granted_at: "t".into() }];
     let externals = std::collections::HashMap::from([("llm-external".to_string(), ("https://p.example".to_string(), Some("k".to_string())))]);
     let routes = gate::routes_for(&grants, &apps, &externals);
     assert!(matches!(routes[0].upstream, gate::Upstream::External { ref url, .. } if url == "https://p.example"));
-    // манифест в каталоге
+    // the manifest in the catalog
     let y = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../store/llm-external/manifest.yaml")).unwrap();
     let m: AppManifest = serde_yaml_ng::from_str(&y).unwrap();
     assert_eq!(m.kind, AppKind::External);
@@ -785,4 +837,25 @@ fn copy_store_keeps_hooks_and_skips_user_files() {
     assert!(dst.join("recommended.yaml").exists());
     assert!(!dst.join("app1/compose.override.yaml").exists() && !dst.join("app1/login.yaml").exists(), "файлы установки не копируются");
     let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn edge_renders_preview_routes_like_port_apps() {
+    use crate::caddy::PreviewRoute;
+    let pv = vec![
+        PreviewRoute { project: "alpha".into(), port: 3000, edge_port: 8451, upstream: Some("10.77.7.146:3000".into()) },
+        PreviewRoute { project: "alpha".into(), port: 5173, edge_port: 8452, upstream: None },
+    ];
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "y", coder_upstream: "z", coder_port: 8444, agents_port: 8445, apps: &[], previews: &pv, tls_internal: true });
+    let servers = &cfg["apps"]["http"]["servers"];
+    let s1 = &servers["preview-alpha-3000"];
+    assert_eq!(s1["listen"][0], ":8451");
+    let handle = &s1["routes"][0]["handle"];
+    assert!(handle[0]["response"]["set"]["Content-Security-Policy"][0].as_str().unwrap().contains("frame-ancestors 'self' https://box.example"), "превью встраивается в Desktop и «Агенты»");
+    assert_eq!(handle[1]["upstreams"][0]["dial"], "10.77.7.146:3000");
+    assert!(s1["errors"]["routes"][0]["handle"][1]["body"].as_str().unwrap().contains("превью alpha :3000"));
+    // the workspace is not running — the server exists, a stub upstream, the error
+    // page explains
+    assert_eq!(servers["preview-alpha-5173"]["listen"][0], ":8452");
+    assert_eq!(servers["preview-alpha-5173"]["routes"][0]["handle"][1]["upstreams"][0]["dial"], "127.0.0.1:9");
 }

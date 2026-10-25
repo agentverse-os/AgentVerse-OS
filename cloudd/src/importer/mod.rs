@@ -1,8 +1,8 @@
-//! Агрегатор каталогов Store (2.6, 3.7): compose и метаданные чужие, наш — только манифест-контракт.
-//! Источники: Runtipi, Coolify, Umbrel. Дубликаты допускаются — у каждого приложения плашка источника;
-//! id из не-первичных источников получают суффикс `-<source>`, чтобы не пересекаться (id = имя compose-проекта и сети).
-//! Рукописные манифесты (`origin: manual`) не перезаписываются. Общие правила: порты не публикуются, сеть external
-//! под управлением ядра, данные — bind в tank/apps, docker.sock — только через read-only прокси.
+//! Store catalog aggregator (2.6, 3.7): the compose and metadata are foreign, ours is only the manifest contract.
+//! Sources: Runtipi, Coolify, Umbrel. Duplicates are allowed — every app has a source badge; ids from non-primary
+//! sources get a `-<source>` suffix so they do not collide (id = the compose project and network name). Hand-written
+//! manifests (`origin: manual`) are not overwritten. Common rules: ports are not published, the network is external and
+//! managed by the core, data — bind in tank/apps, docker.sock — only through the read-only proxy.
 
 pub mod coolify;
 pub mod runtipi;
@@ -12,7 +12,8 @@ use anyhow::{anyhow, bail, Result};
 use serde_json::{json, Map, Value};
 use std::path::{Path, PathBuf};
 
-/// Приложения, управляющие Docker (create/exec) — им нужен полный сокет; остальным docker.sock заменяется на read-only прокси.
+/// Apps that manage Docker (create/exec) — they need the full socket; for the rest docker.sock is replaced with the read-only
+/// proxy.
 pub const RAW_DOCKER_SOCKET_APPS: &[&str] = &["portainer", "dockge", "komodo", "watchtower", "yacht", "kasm-workspaces", "olivetin", "semaphore", "coolify", "dokploy", "cup"];
 pub const DOCKER_RO_HOST: &str = "tcp://cloudos-docker-ro:2375";
 pub const DOCKER_RO_NET: &str = "cloudos-docker-ro-net";
@@ -25,7 +26,8 @@ pub struct ImportReport {
     pub skipped: Vec<(String, String)>,
 }
 
-/// Результат адаптера: всё, что нужно для записи приложения в Store.
+/// Adapter result: everything needed to write the app into the
+/// Store.
 pub struct Imported {
     pub id: String,
     pub title: String,
@@ -38,7 +40,7 @@ pub struct Imported {
     pub notes: Vec<String>,
     pub host_docker: bool,
     pub uses_docker_ro: bool,
-    /// Иконка: локальный файл (байты + расширение) или URL.
+    /// Icon: a local file (bytes + extension) or a URL.
     pub icon_file: Option<(Vec<u8>, &'static str)>,
     pub icon_url: Option<String>,
     pub gallery: Vec<String>,
@@ -48,7 +50,7 @@ pub struct Imported {
     pub categories: Vec<String>,
     pub upstream: Value,
     pub origin: &'static str,
-    /// Подсказки каталога для раздела login: литералы логина и пароля по умолчанию (Umbrel defaultUsername/defaultPassword).
+    /// Catalog hints for the login section: default login and password literals (Umbrel defaultUsername/defaultPassword).
     pub login_hints: (Option<String>, Option<String>),
 }
 
@@ -71,7 +73,8 @@ pub async fn import(source: &str, store_dir: &Path, only: &[String]) -> Result<V
     Ok(out)
 }
 
-/// Скачать tar.gz и распаковать во временный каталог; вернуть корень архива.
+/// Download a tar.gz and unpack it into a temporary directory; return the
+/// archive root.
 pub async fn fetch_tarball(url: &str, tag: &str) -> Result<(PathBuf, PathBuf)> {
     let tmp = std::env::temp_dir().join(format!("cloudd-import-{tag}-{}", std::process::id()));
     std::fs::create_dir_all(&tmp)?;
@@ -86,13 +89,15 @@ pub async fn fetch_tarball(url: &str, tag: &str) -> Result<(PathBuf, PathBuf)> {
     Ok((tmp, root))
 }
 
-/// Есть ли уже ручной манифест (или манифест другого источника) — тогда не трогаем.
+/// Is there already a manual manifest (or a manifest from another source) — then
+/// leave it alone.
 pub fn existing_origin(store_dir: &Path, id: &str) -> Option<String> {
     let text = std::fs::read_to_string(store_dir.join(id).join("manifest.yaml")).ok()?;
     Some(serde_yaml_ng::from_str::<Value>(&text).ok().and_then(|v| v.get("origin").and_then(|o| o.as_str()).map(|s| s.to_string())).unwrap_or_else(|| "manual".into()))
 }
 
-/// Записать приложение в Store: manifest.yaml, compose.yaml, иконка, описание.
+/// Write the app into the Store: manifest.yaml, compose.yaml, icon,
+/// description.
 pub fn write_app(store_dir: &Path, a: Imported) -> Result<()> {
     crate::service::validate_name(&a.id).map_err(|e| anyhow!("{e}"))?;
     let dst = store_dir.join(&a.id);
@@ -124,7 +129,7 @@ pub fn write_app(store_dir: &Path, a: Imported) -> Result<()> {
         "compose": "./compose.yaml",
         "provides": [],
         "requires": [],
-        "route": { "mode": "port", "open": "iframe" }, // edge переписывает frame-ancestors на origin Desktop; ↗ в шапке окна — запасной выход
+        "route": { "mode": "port", "open": "iframe" }, // the edge rewrites frame-ancestors to the Desktop origin; ↗ in the window header is the fallback exit
         "auth": "own",
         "env": Value::Object(a.env),
         "data": [format!("tank/apps/{}", a.id)],
@@ -144,9 +149,9 @@ pub fn write_app(store_dir: &Path, a: Imported) -> Result<()> {
     });
     let mut manifest = manifest;
     manifest["upstream"]["categories"] = json!(a.categories);
-    let header = format!("# Импортировано из каталога {src} командой `cloudd store import {src}`; правки руками перезапишутся —\n# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.\n", src = a.origin);
+    let header = format!("# Imported from the {src} catalog by `cloudd store import {src}`; manual edits will be overwritten —\n# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.\n", src = a.origin);
     std::fs::write(dst.join("manifest.yaml"), header + &serde_yaml_ng::to_string(&manifest)?)?;
-    std::fs::write(dst.join("compose.yaml"), format!("# {}: сгенерировано импортёром ({}); сеть external (создаёт cloudd), порты не публикуются.\n", a.id, a.origin) + &serde_yaml_ng::to_string(&compose)?)?;
+    std::fs::write(dst.join("compose.yaml"), format!("# {}: generated by the importer ({}); the network is external (created by cloudd), ports are not published.\n", a.id, a.origin) + &serde_yaml_ng::to_string(&compose)?)?;
     Ok(())
 }
 
@@ -160,8 +165,8 @@ pub fn scalar_to_string(v: &Value) -> String {
     }
 }
 
-/// Общая доводка сервиса обычного compose (Coolify, Umbrel, статический Runtipi): убрать ports/container_name/traefik-labels,
-/// добавить restart и сеть appnet, заменить docker.sock на прокси (если не управляющее приложение).
+/// Common finishing of a regular compose service (Coolify, Umbrel, static Runtipi): remove ports/container_name/traefik
+/// labels, add restart and the appnet network, replace docker.sock with the proxy (unless a managing app).
 pub fn normalize_service(app_id: &str, name: &str, svc: &mut Map<String, Value>, notes: &mut Vec<String>, host_docker: &mut bool, uses_docker_ro: &mut bool) {
     if let Some(ports) = svc.remove("ports") {
         for p in ports.as_array().cloned().unwrap_or_default() {
@@ -169,7 +174,8 @@ pub fn normalize_service(app_id: &str, name: &str, svc: &mut Map<String, Value>,
         }
     }
     svc.remove("container_name");
-    // env_file на файлы, которых у нас нет (Coolify settings.env) — убрать, значения приходят через environment/.env
+    // env_file pointing at files we do not have (Coolify settings.env) — remove, the values come via
+    // environment/.env
     if svc.remove("env_file").is_some() {
         notes.push(format!("{name}: env_file из каталога проигнорирован (значения — через настройки приложения)"));
     }
@@ -182,7 +188,8 @@ pub fn normalize_service(app_id: &str, name: &str, svc: &mut Map<String, Value>,
         let empty = match &keep { Value::Array(a) => a.is_empty(), Value::Object(o) => o.is_empty(), _ => true };
         if empty { svc.remove("labels"); } else { svc.insert("labels".into(), keep); }
     }
-    // расширения Coolify в томах (is_directory / isDirectory) compose не знает
+    // compose does not know the Coolify extensions in volumes (is_directory /
+    // isDirectory)
     if let Some(Value::Array(vols)) = svc.get_mut("volumes") {
         for v in vols.iter_mut() {
             if let Some(o) = v.as_object_mut() { o.remove("is_directory"); o.remove("isDirectory"); }
@@ -219,7 +226,8 @@ pub fn normalize_service(app_id: &str, name: &str, svc: &mut Map<String, Value>,
     }
 }
 
-/// Coolify: тома с `content:` (inline-файл) → compose `configs` с `content` + `configs:` у сервиса.
+/// Coolify: volumes with `content:` (an inline file) → compose `configs` with `content` +
+/// `configs:` on the service.
 pub fn inline_volumes_to_configs(compose: &mut Map<String, Value>) {
     let mut configs = compose.get("configs").and_then(|c| c.as_object()).cloned().unwrap_or_default();
     let mut n = 0;
@@ -248,9 +256,10 @@ pub fn inline_volumes_to_configs(compose: &mut Map<String, Value>) {
     if !configs.is_empty() { compose.insert("configs".into(), Value::Object(configs)); }
 }
 
-/// Named volumes: остаются именованными (Docker заполняет пустой том содержимым образа — bind так не умеет), но живут
-/// не в /var/lib/docker, а в ${APP_DATA_DIR}/<имя> через driver_opts bind (2.8: данные приложений — в tank/apps).
-/// Coolify не объявляет тома вверху файла, поэтому именованным считается любой источник, не похожий на путь.
+/// Named volumes: stay named (Docker fills an empty volume with the image content — bind cannot do that), but live
+/// not in /var/lib/docker but in ${APP_DATA_DIR}/<name> via driver_opts bind (2.8: app data goes to tank/apps).
+/// Coolify does not declare volumes at the top of the file, so any source that does not look like a path counts as
+/// named.
 pub fn bind_named_volumes(compose: &mut Map<String, Value>) {
     let mut declared: std::collections::BTreeSet<String> = compose.get("volumes").and_then(|v| v.as_object()).map(|o| o.keys().cloned().collect()).unwrap_or_default();
     let is_named = |src: &str| !src.is_empty() && !src.starts_with('/') && !src.starts_with('.') && !src.starts_with('~') && !src.starts_with('$');
@@ -276,10 +285,11 @@ pub fn bind_named_volumes(compose: &mut Map<String, Value>) {
     compose.insert("volumes".into(), Value::Object(vols));
 }
 
-/// Раздел `login` манифеста: какая переменная env — пароль входа в веб-интерфейс, какая — логин. Главный сигнал — как переменная
-/// используется в compose (`GF_SECURITY_ADMIN_PASSWORD=${SERVICE_PASSWORD_GRAFANA}` — пароль входа; `DB_PASSWORD=…`, `*_AUTH_TOKEN=…` —
-/// инфраструктура), второй — её собственное имя. `user_hint`/`password_hint` — литералы каталога (Umbrel defaultUsername/defaultPassword).
-/// Без уверенного кандидата — `mode: app` (вход настраивается в приложении). Уточнения — файлом `login.yaml` рядом с манифестом.
+/// The manifest `login` section: which env variable is the web UI sign-in password and which is the login. The main signal is how the
+/// variable is used in compose (`GF_SECURITY_ADMIN_PASSWORD=${SERVICE_PASSWORD_GRAFANA}` — a sign-in password; `DB_PASSWORD=…`,
+/// `*_AUTH_TOKEN=…` — infrastructure), the second — its own name. `user_hint`/`password_hint` — catalog literals (Umbrel
+/// defaultUsername/defaultPassword). Without a confident candidate — `mode: app` (the sign-in is set up in the app). Refinements — a
+/// `login.yaml` file next to the manifest.
 pub fn derive_login(env: &Map<String, Value>, user_hint: Option<String>, password_hint: Option<String>, main_service: &str, compose_text: &str) -> Value {
     const INFRA: &[&str] = &["SECRET", "JWT", "SALT", "ENCRYPT", "ENCRYPTION", "MASTER", "DB", "DATABASE", "POSTGRES", "PG", "PGSQL", "MYSQL", "MARIADB", "REDIS", "MONGO", "RABBIT", "RABBITMQ", "MINIO", "SMTP", "MAIL", "S3", "RPC", "METRIC", "METRICS", "API", "KEY", "TOKEN", "SESSION", "COOKIE", "HASH", "SIGN", "SIG", "CLICKHOUSE", "ELASTIC", "KAFKA", "NATS", "MQTT", "LDAP", "OIDC", "OAUTH", "VAPID", "WEBHOOK", "AGENT", "PEPPER", "SEED", "ENC", "PROXY", "CACHE", "QUEUE", "BROKER", "STORAGE", "BUCKET", "SUDO", "VNC", "FTP", "SSH", "WIREGUARD", "VPN", "TURN", "STUN", "SENTRY", "MEILI", "TYPESENSE", "MEMCACHED", "INFLUX", "RUNNERS", "WORKER", "INTERNAL", "PRIVATE", "CERT", "TLS", "SSL", "GPG", "PGP", "VAULT", "KEYCLOAK_DB"];
     const UI: &[&str] = &["ADMIN", "WEB", "WEBUI", "UI", "ROOT", "LOGIN", "AUTH", "ACCESS", "USER", "PANEL", "DASHBOARD", "SUPERUSER", "INITIAL", "DEFAULT", "DEFAULTUSER", "BASIC", "OWNER", "PORTAL", "CONSOLE", "GUI", "FRONTEND"];
@@ -295,12 +305,13 @@ pub fn derive_login(env: &Map<String, Value>, user_hint: Option<String>, passwor
         }
         u.to_string()
     }
-    /// Имена переменных compose, которым присваивается `${var}` / `$var` / `${var:-…}`.
+    /// Names of compose variables that are assigned `${var}` / `$var` / `${var:-…}`.
     fn assigned_to(compose: &str, var: &str) -> Vec<String> {
         let re = regex_lite::Regex::new(&format!(r#"(?m)([A-Za-z][A-Za-z0-9_]*)\s*[:=]\s*["']?\$\{{?{}(?:[^A-Za-z0-9_]|$)"#, regex_lite::escape(var))).unwrap();
         re.captures_iter(compose).map(|c| c[1].to_uppercase()).collect()
     }
-    /// Значение соседней переменной compose `BASE_(USER|USERNAME|NAME|EMAIL|LOGIN)`: `${VAR}`/`${VAR:-lit}`/`$VAR` → (Some(VAR), lit), литерал → (None, Some(lit)).
+    /// Value of the neighbouring compose variable `BASE_(USER|USERNAME|NAME|EMAIL|LOGIN)`: `${VAR}`/`${VAR:-lit}`/`$VAR` → (Some(VAR), lit), a literal → (None,
+    /// Some(lit)).
     fn sibling_user(compose: &str, base: &str) -> Option<(Option<String>, Option<String>)> {
         let re = regex_lite::Regex::new(&format!(r#"(?mi)^\s*-?\s*["']?{}_?(USER_?NAME|USERNAME|USER|NAME|EMAIL|LOGIN)["']?\s*[:=]\s*["']?([^"'\n#]*)"#, regex_lite::escape(base))).unwrap();
         let c = re.captures(compose)?;
@@ -315,7 +326,8 @@ pub fn derive_login(env: &Map<String, Value>, user_hint: Option<String>, passwor
         Some((None, Some(raw)))
     }
     let main = main_service.to_uppercase().replace(['-', '_', '.'], "");
-    // если приложение само и есть «инфраструктура» (MinIO, Postgres, pgAdmin), его имя в переменной — не признак чужого секрета
+    // if the app itself is the "infrastructure" (MinIO, Postgres, pgAdmin), its name in the variable is not a sign of a foreign
+    // secret
     let infra: Vec<&str> = INFRA.iter().copied().filter(|w| !(main.len() >= 3 && (main.contains(*w) || w.contains(main.as_str())))).collect();
     let is_gen = |k: &str| env.get(k).map(|v| v.is_object()).unwrap_or(false);
     let empty_literal = |k: &str| env.get(k).and_then(|v| v.as_str()).map(|s| s.is_empty()).unwrap_or(true);
@@ -326,7 +338,8 @@ pub fn derive_login(env: &Map<String, Value>, user_hint: Option<String>, passwor
         if u.starts_with("SERVICE_URL") || u.starts_with("SERVICE_FQDN") || !(u.contains("PASSWORD") || u.contains("PASSWD") || u.ends_with("_PASS") || u.contains("_PASS_")) {
             continue;
         }
-        // флаги политики паролей (PASSWORDLOWERCASE=1, PASSWORD_MIN_LENGTH) и булевы/числовые литералы — не пароли
+        // password policy flags (PASSWORDLOWERCASE=1, PASSWORD_MIN_LENGTH) and boolean/numeric literals are not
+        // passwords
         const POLICY: &[&str] = &["LOWERCASE", "UPPERCASE", "LENGTH", "NUMERIC", "SYMBOL", "REQUIRE", "POLICY", "RESET", "CHANGE", "EXPIRE", "HISTORY", "COMPLEXITY", "ATTEMPT", "VALIDAT", "REGEX", "ENABLE", "DISABLE", "ALLOW", "HASH", "FILE", "PATH", "URL", "CHECK", "STRENGTH", "RULE", "TTL", "TIMEOUT", "LOGIN_PASSWORD_ENABLED"];
         if POLICY.iter().any(|w| u.contains(w)) { continue; }
         if let Some(lit) = env.get(k).and_then(|v| v.as_str()) {
@@ -341,8 +354,9 @@ pub fn derive_login(env: &Map<String, Value>, user_hint: Option<String>, passwor
         if main.len() >= 3 && (flat.contains(&main) || main.contains(&flat)) { score += 4; }
         if env.contains_key(&format!("SERVICE_USER_{suffix}")) { score += 6; }
         if u == "APP_PASSWORD" || suffix == "PASSWORD" || suffix == "PASS" { score += 3; }
-        if is_gen(k) { score += 1; } else if empty_literal(k) { score -= 6; } // пустой литерал: пользователь ещё не задал
-        // как используется в compose: левая часть присваивания
+        if is_gen(k) { score += 1; } else if empty_literal(k) { score -= 6; } // an empty literal: the user has not set it yet
+        // how it is used in compose: the left side of the
+        // assignment
         for lhs in assigned_to(compose_text, k) {
             if lhs == u { continue; }
             if hits(&infra, &lhs) { score -= 100; }
@@ -353,8 +367,8 @@ pub fn derive_login(env: &Map<String, Value>, user_hint: Option<String>, passwor
     }
     pw.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
     let password = pw.first().filter(|(_, s)| *s > -5).map(|(k, _)| k.clone());
-    // логин: SERVICE_USER_<тот же суффикс>; соседняя переменная compose по основе имени (GF_SECURITY_ADMIN_PASSWORD → GF_SECURITY_ADMIN_USER);
-    // иначе переменная env с USER/LOGIN/EMAIL без инфраструктурных слов; иначе литерал каталога
+    // login: SERVICE_USER_<the same suffix>; the neighbouring compose variable by name stem (GF_SECURITY_ADMIN_PASSWORD →
+    // GF_SECURITY_ADMIN_USER); otherwise an env variable with USER/LOGIN/EMAIL without infrastructure words; otherwise the catalog literal
     let mut user: Option<String> = None;
     if let Some(p) = &password {
         let cand = format!("SERVICE_USER_{}", suffix_of(&p.to_uppercase(), pw_prefixes));

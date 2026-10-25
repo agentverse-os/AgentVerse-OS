@@ -1,5 +1,6 @@
-# pipecat-voice: бот Pipecat (образ собирается на месте из python:3.12-slim), speaches (STT+TTS) и socat-мост для edge.
-# Сеть appnet создаёт cloudd (external). Бот — в сети хоста ради WebRTC (см. заметки манифеста), speaches отдаёт порт только на 127.0.0.1.
+# pipecat-voice: the Pipecat bot (the image is built in place from python:3.12-slim), speaches (STT+TTS) and a socat bridge for the edge.
+# The appnet network is created by cloudd (external). The bot is in the host network for WebRTC (see the manifest notes), speaches exposes
+# its port only on 127.0.0.1.
 services:
   pipecat:
     build:
@@ -53,8 +54,9 @@ services:
 configs:
   bot_py:
     content: |
-      # Pipecat Voice для Cloud OS: браузер (WebRTC, встроенный клиент Pipecat) → STT → LLM → TTS → браузер.
-      # Все сервисы OpenAI-совместимые: STT/TTS — speaches рядом, LLM — адрес из настроек приложения.
+      # Pipecat Voice for Cloud OS: the browser (WebRTC, the built-in Pipecat client) → STT → LLM → TTS →
+      # the browser. All services are OpenAI-compatible: STT/TTS — speaches next to it, LLM — the address
+      # from the app settings.
       import os
       from loguru import logger
       from pipecat.audio.vad.silero import SileroVADAnalyzer
@@ -76,7 +78,8 @@ configs:
           return os.getenv(k) or d
 
       def ensure_models():
-          # speaches хранит модели локально и не предзагружает их: просим скачать STT и TTS (POST /v1/models/<id>), ждём, пока сервис поднимется
+          # speaches stores models locally and does not preload them: ask it to download the STT and TTS (POST /v1/models/<id>), wait until the
+          # service comes up
           import json, time, urllib.request, urllib.error
           for base, model in ((env("STT_BASE_URL", "http://127.0.0.1:18000/v1"), env("STT_MODEL", "Systran/faster-whisper-small")), (env("TTS_BASE_URL", "http://127.0.0.1:18000/v1"), env("TTS_MODEL", "speaches-ai/piper-ru_RU-irina-medium"))):
               for attempt in range(90):

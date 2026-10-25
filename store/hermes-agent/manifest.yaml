@@ -1,6 +1,7 @@
-# Hermes Agent (Nous Research) — официальный образ последней версии с официальным Web Dashboard: чат-терминал в браузере,
-# сессии, конфиг, ключи API, skills/MCP, cron, логи, каналы мессенджеров. Ручной манифест Cloud OS (в каталогах Runtipi/Coolify/Umbrel
-# только сторонний веб-чат hermes-webui поверх агента трёхмесячной давности). Версии: агент v2026.8.31.
+# Hermes Agent (Nous Research) — the official image of the latest version with the official Web Dashboard: a chat terminal in the
+# browser, sessions, config, API keys, skills/MCP, cron, logs, messenger channels. A manual Cloud OS manifest (the
+# Runtipi/Coolify/Umbrel catalogs have only the third-party hermes-webui web chat on top of a three-month-old agent). Versions: agent
+# v2026.8.31.
 schema: 1
 origin: manual
 name: hermes-agent
@@ -18,16 +19,16 @@ requires: []
 route: { mode: port, open: iframe }
 auth: own
 env:
-  HERMES_DASHBOARD_PASSWORD: { generate: password }   # вход в дашборд (логин admin)
-  HERMES_DASHBOARD_SECRET: { generate: hex64 }        # подпись сессий дашборда, чтобы вход переживал перезапуск
-  HERMES_API_SERVER_KEY: { generate: token }          # ключ OpenAI-совместимого API самого Hermes (порт 8642 внутри сети приложения)
+  HERMES_DASHBOARD_PASSWORD: { generate: password }   # dashboard sign-in (login admin)
+  HERMES_DASHBOARD_SECRET: { generate: hex64 }        # signing of the dashboard sessions so the sign-in survives a restart
+  HERMES_API_SERVER_KEY: { generate: token }          # the key of Hermes's own OpenAI-compatible API (port 8642 inside the app network)
   OPENROUTER_API_KEY: ""
   ANTHROPIC_API_KEY: ""
   OPENAI_API_KEY: ""
   OPENAI_BASE_URL: ""
   GOOGLE_API_KEY: ""
 data: [tank/apps/hermes-agent]
-health: null                                           # дашборд отвечает 401 без входа — ждём только running
+health: null                                           # the dashboard answers 401 without a sign-in — wait only for running
 endpoint: { service: hermes, port: 9119 }
 hooks: {}
 settings:

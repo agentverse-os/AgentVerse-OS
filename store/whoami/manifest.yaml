@@ -1,4 +1,4 @@
-# Тестовое приложение Store: HTTP-эхо. Показывает контракт манифеста (2.6) целиком на самом простом сервисе.
+# Store test app: an HTTP echo. Shows the whole manifest contract (2.6) on the simplest service.
 schema: 1
 origin: manual
 name: whoami
@@ -11,7 +11,7 @@ i18n:
 icon: 🪞
 type: app
 compose: ./compose.yaml
-provides: [demo.http]            # проект с capabilities: [demo.http] получит http://demo.http.gate
+provides: [demo.http]            # a project with capabilities: [demo.http] gets http://demo.http.gate
 requires: []
 route: { mode: port, open: iframe }
 auth: own
@@ -20,6 +20,7 @@ data: []
 health: http://whoami:80/
 endpoint: { service: whoami, port: 80 }
 
-# входа нет: доступ ограничен сетью Cloud OS
+# no sign-in: access is limited by the Cloud
+# OS network
 login:
   mode: none

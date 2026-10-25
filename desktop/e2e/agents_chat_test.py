@@ -1,8 +1,9 @@
 import os, time, json, ssl, urllib.request
 from playwright.sync_api import sync_playwright
-# Карточка Chat в окне «Агенты» (ADR-006, этап 1, срез 3): сессия Claude создаётся из окна, ответ приходит в чат,
-# запрос разрешения показывается карточкой и подтверждается кнопкой, история переживает закрытие окна, остановка и
-# возобновление. Скриншоты в shots/. Тратит немного токенов через gate проекта.
+# The Chat card in the "Agents" window (ADR-006, stage 1, slice 3): a Claude session is created from the window,
+# the answer arrives in the chat, a permission request is shown as a card and confirmed with a button, the history
+# survives closing the window, stop and resume. Screenshots in shots/. Spends a few tokens through the project
+# gate.
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); P = os.environ.get("PROJECT", "alpha"); os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 ctx_ssl = ssl.create_default_context(); ctx_ssl.check_hostname = False; ctx_ssl.verify_mode = ssl.CERT_NONE
@@ -27,7 +28,7 @@ with sync_playwright() as p:
     wait(pg, f".chat .m.user:has-text('{MARK}')", 10); ok("chat: user message shown", True)
     wait(pg, f".chat .m.agent:has-text('{MARK}')", 150); ok("chat: assistant reply streamed", True); pg.screenshot(path="shots/ch1-reply.png")
     wait(pg, ".chat .m.sys:has-text('$')", 30); ok("chat: result line with cost", pg.locator(".chat .m.sys:has-text('$')").count() >= 1)
-    # разрешение инструмента карточкой
+    # a tool permission as a card
     path = f"/home/coder/{MARK}.txt"
     pg.locator(".chat textarea").fill(f"Create the file {path} containing the single word hello. Use the Write tool. Do not ask questions."); pg.locator(".chat button:has-text('Отправить')").click()
     wait(pg, ".chat .m.perm:not(.done)", 120); ok("chat: permission card shown", "Write" in pg.locator(".chat .m.perm:not(.done)").last.inner_text()); pg.screenshot(path="shots/ch2-permission.png")
@@ -41,17 +42,18 @@ with sync_playwright() as p:
     wait(pg, ".chat .m.tool", 120); time.sleep(3)
     ok("chat: tool call rendered after approval", pg.locator(".chat .m.tool:has-text('Write')").count() >= 1)
     ok("chat: permission card settled", pg.locator(".chat .m.perm.done").count() >= 1)
-    # закрыть окно и открыть снова — история из журнала
+    # close the window and open again — the history
+    # from the journal
     pg.evaluate("document.querySelector('.win.active .ctl .close')?.click()"); time.sleep(1)
     open_agents(pg); pg.locator(".agents .modes button:text-is('Thread')").click(); pg.locator(f".agents .sess[data-id='{sid}']").click(); wait(pg, ".agents .chat", 30); time.sleep(2)
     ok("reopen: history replayed", pg.locator(f".chat .m.user:has-text('{MARK}')").count() >= 1 and pg.locator(".chat .m.tool:has-text('Write')").count() >= 1); pg.screenshot(path="shots/ch3-reopened.png")
-    # остановить, возобновить, спросить про историю
+    # stop, resume, ask about the history
     pg.locator(".agents .head button:has-text('Остановить')").click(); wait(pg, ".chat button:has-text('Возобновить')", 30); ok("stop: session exited", True)
     pg.locator(".chat button:has-text('Возобновить')").click(); time.sleep(3)
     pg.locator(".chat textarea").fill("What was the exact marker string I asked you to reply with earlier? Reply with just the string."); pg.locator(".chat button:has-text('Отправить')").click()
     wait(pg, f".chat .m.agent:has-text('{MARK}') >> nth=1", 150); ok("resume: history survives", True); pg.screenshot(path="shots/ch4-resumed.png")
     b.close()
-# уборка
+# cleanup
 api(f"/projects/{P}/sessions/{sid}", "DELETE"); time.sleep(3); api(f"/projects/{P}/sessions/{sid}", "DELETE")
 ok("removed", api(f"/projects/{P}/sessions/{sid}")[0] == 404)
 print("ALL PASS" if all(res) else "SOME FAIL")

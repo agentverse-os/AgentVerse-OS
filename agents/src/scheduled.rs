@@ -1,7 +1,7 @@
-//! Отложенные сообщения (docs/agents-ux.md §4.3.5, по образцу CloudCLI): «отправить через 15 мин / 1 ч / завтра» — таймер
-//! держит сервис (таблица `scheduled`), тик планировщика раз в 15 с. В срок сообщение уходит в сессию через ядро:
-//! остановленную возобновляем, занятую — через очередь agentd (уйдёт после хода). Пропущенное за время простоя сервиса
-//! уходит при первом тике.
+//! Scheduled messages (docs/agents-ux.md §4.3.5, modelled on CloudCLI): "send in 15 min / 1 h / tomorrow" — the service
+//! holds the timer (the `scheduled` table), the scheduler tick every 15 s. When due, the message goes to the session
+//! through the core: a stopped one is resumed, a busy one — through the agentd queue (goes out after the turn). Anything
+//! missed while the service was down goes out at the first tick.
 use crate::{App, ApiError};
 use anyhow::Result;
 use axum::extract::{Path, Query, State};
@@ -17,13 +17,13 @@ pub struct Scheduled {
     pub project: String,
     pub session: String,
     pub content: String,
-    /// unix-секунды
+    /// unix seconds
     pub at: i64,
     /// pending | sending | sent | failed
     pub status: String,
     pub created_at: i64,
     pub sent_at: Option<i64>,
-    /// как ушло: «отправлено» / «в очередь (сессия занята)» / «сессия возобновлена, отправлено»
+    /// how it went: "sent" / "queued (session busy)" / "session resumed, sent"
     #[serde(default)]
     pub note: Option<String>,
     pub error: Option<String>,
@@ -32,7 +32,7 @@ pub struct Scheduled {
 fn now() -> i64 { chrono::Utc::now().timestamp() }
 
 #[derive(Deserialize)]
-pub struct ListQ { pub project: Option<String>, pub session: Option<String>, /// `all=1|true` — включая отправленные и упавшие (как `?all=1` у ядра)
+pub struct ListQ { pub project: Option<String>, pub session: Option<String>, // / `all=1|true` — including sent and failed ones (like the core's `?all=1`)
     #[serde(default)] pub all: Option<String> }
 
 pub async fn list(State(app): State<Arc<App>>, Query(q): Query<ListQ>) -> Result<Json<Value>, ApiError> {
@@ -56,8 +56,8 @@ pub async fn delete(State(app): State<Arc<App>>, Path(id): Path<String>) -> Resu
     if app.store.delete_scheduled(&id)? { Ok(StatusCode::NO_CONTENT) } else { Err(ApiError(StatusCode::NOT_FOUND, "нет такого сообщения".into())) }
 }
 
-/// Один тик: забрать созревшие и отправить. Живая занятая сессия → очередь agentd; свободная → prompt; остановленная →
-/// resume, затем prompt.
+/// One tick: take the due ones and send them. A live busy session → the agentd queue; a free one → prompt; a stopped
+/// one → resume, then prompt.
 pub async fn dispatch(app: &Arc<App>) {
     let due = match app.store.claim_due_scheduled(now()) { Ok(d) => d, Err(e) => { tracing::warn!("отложенные: {e:#}"); return } };
     for mut m in due {

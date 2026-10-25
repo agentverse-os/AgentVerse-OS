@@ -1,5 +1,5 @@
-// Сообщения клиента API (lib/api.ts): ошибка связи с ядром и этапы ожидания установки/удаления, которые формирует сам фронт.
-// Тексты ядра (события, ошибки сервера, состояния) сюда не входят — показываются как есть.
+// API client messages (lib/api.ts): the core connection error and the install/removal waiting stages the frontend itself
+// produces. Core texts (events, server errors, states) are not included — shown as is.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

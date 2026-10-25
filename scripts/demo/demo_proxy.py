@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Демо-прокси для скриншотов README: сидит перед настоящим cloudd и подменяет ответы про состояние системы
-(проекты, установленные приложения, монитор, события, статус, погода, лента новостей) на показательные данные.
-Всё остальное — каталог Store, иконки, статика Desktop, настройки — уходит в настоящее ядро.
-Запуск: python3 demo_proxy.py <порт> <адрес cloudd> [--tls cert.pem key.pem]   (например 7300 http://127.0.0.1:7299)
---tls — отдавать HTTPS с указанным (самоподписанным) сертификатом: так e2e-тесты Desktop (они ходят по https и игнорируют ошибки
-сертификата) можно прогнать локально на демо-данных, без стенда: EDGE_HOST=host.docker.internal:7443."""
+"""Demo proxy for the README screenshots: sits in front of the real cloudd and replaces the answers about the system state
+(projects, installed apps, monitor, events, status, weather, news feed) with showcase data.
+Everything else — the Store catalog, icons, Desktop statics, settings — goes to the real core.
+Run: python3 demo_proxy.py <port> <cloudd address> [--tls cert.pem key.pem]   (e.g. 7300 http://127.0.0.1:7299)
+--tls — serve HTTPS with the given (self-signed) certificate: that way the Desktop e2e tests (they go over https and ignore certificate
+errors) can be run locally on demo data, without the stand: EDGE_HOST=host.docker.internal:7443."""
 import json, ssl, sys, time, urllib.request, urllib.error
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
@@ -13,7 +13,7 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 7300
 UPSTREAM = sys.argv[2] if len(sys.argv) > 2 else "http://127.0.0.1:7299"
 NOW = "2026-09-11T09:41:00Z"
 
-INSTALLED = {  # имя → (порт, состояние)
+INSTALLED = {  # name → (port, state)
     "gitea": (8456, "running"), "n8n-coolify": (8460, "running"), "hermes-agent": (8462, "running"),
     "uptime-kuma": (8453, "running"), "ntfy": (8455, "running"), "it-tools": (8454, "running"),
     "linkding-coolify": (8461, "running"), "nextcloud": (8463, "running"), "jellyfin": (8464, "running"),
@@ -86,7 +86,7 @@ NEWS_EN = {"url": "demo", "title": "AI", "fetched_at": NOW, "error": None, "item
     {"title": "Home Assistant Assist: voice control of the home without the cloud becomes the norm", "link": "https://example.com/5", "published": "2026-09-10T12:00:00Z", "source": "Hacker News", "summary": "Whisper, Piper and a local LLM in one install out of ten.", "image": None, "content": None},
 ]}
 def by_lang(h):
-    """События и новости — на языке браузера (Accept-Language): русский как прежде, иначе английский."""
+    """Events and news in the browser language (Accept-Language): Russian as before, otherwise English."""
     ru = (h.headers.get("Accept-Language") or "").lower().startswith("ru")
     return (EVENTS_RU, NEWS_RU) if ru else (EVENTS_EN, NEWS_EN)
 

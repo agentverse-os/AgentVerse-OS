@@ -1,5 +1,5 @@
-//! App Runtime v1 — Komodo через API (ADR-005, решение 2). Контракт: install / upgrade / uninstall / status / logs.
-//! Типы сверены на стенде (Komodo 2.x): CreateStack{name,config{server_id,project_name,file_contents,environment}},
+//! App Runtime v1 — Komodo via the API (ADR-005, decision 2). Contract: install / upgrade / uninstall / status / logs.
+//! Types verified on the stand (Komodo 2.x): CreateStack{name,config{server_id,project_name,file_contents,environment}},
 //! DeployStack/DestroyStack{stack}, UpdateStack{id,config}, DeleteStack{id}, ListStacks, ListStackServices, GetStackLog.
 
 use anyhow::{anyhow, Context, Result};
@@ -67,14 +67,16 @@ impl Komodo {
         }
     }
 
-    /// install: CreateStack с содержимым compose (сеть уже создана ядром и помечена external) и env из секрет-стора.
+    /// install: CreateStack with the compose content (the network is already created by the core and marked
+    /// external) and env from the secret store.
     pub async fn create_stack(&self, name: &str, compose: &str, env: &str) -> Result<String> {
         let v = self
             .call(
                 "write",
                 "CreateStack",
-                // стеки с `build:` (образ собирается на месте, как pipecat-voice): run_build — иначе Komodo не собирает; auto_pull=false —
-                // иначе `compose pull` пытается скачать локальный образ из реестра и валит деплой. Остальным стекам pull оставляем.
+                // stacks with `build:` (the image is built in place, like pipecat-voice): run_build — otherwise Komodo does not build;
+                // auto_pull=false — otherwise `compose pull` tries to download the local image from the registry and fails the deploy.
+                // Other stacks keep pull.
                 json!({ "name": name, "config": { "server_id": self.server, "project_name": name, "file_contents": compose, "environment": env, "run_build": has_build(compose), "auto_pull": !has_build(compose) } }),
             )
             .await?;
@@ -92,7 +94,8 @@ impl Komodo {
         self.call("execute", "DestroyStack", json!({ "stack": name })).await?;
         Ok(())
     }
-    /// Сразу после deploy Komodo ещё занят стеком («Stack busy») — повторяем несколько раз.
+    /// Right after deploy Komodo is still busy with the stack ("Stack busy") — retry
+    /// several times.
     pub async fn delete_stack(&self, id: &str) -> Result<()> {
         let mut last = None;
         for _ in 0..10 {
@@ -108,13 +111,14 @@ impl Komodo {
         Err(last.unwrap_or_else(|| anyhow!("DeleteStack: стек занят")))
     }
 
-    /// Состояния всех стеков одним ListStacks: для списка приложений (иначе по запросу на каждое установленное).
+    /// States of all stacks with one ListStacks: for the app list (otherwise a request per installed app).
     pub async fn states(&self) -> Result<std::collections::HashMap<String, String>> {
         let list = self.call("read", "ListStacks", json!({})).await?;
         Ok(list.as_array().map(|a| a.iter().filter_map(|s| Some((s.get("name")?.as_str()?.to_string(), s.pointer("/info/state").and_then(|x| x.as_str()).unwrap_or("unknown").to_string()))).collect()).unwrap_or_default())
     }
 
-    /// Состояние — из ListStacks/ListStackServices (в GetStack.info.state пусто — стенд).
+    /// State — from ListStacks/ListStackServices (GetStack.info.state is empty — the
+    /// stand).
     pub async fn status(&self, name: &str) -> Result<Option<StackStatus>> {
         let list = self.call("read", "ListStacks", json!({})).await?;
         let Some(st) = list.as_array().and_then(|a| a.iter().find(|s| s.get("name").and_then(|n| n.as_str()) == Some(name))) else {
@@ -143,7 +147,8 @@ impl Komodo {
         Ok(v.get("stdout").and_then(|s| s.as_str()).unwrap_or("").to_string() + v.get("stderr").and_then(|s| s.as_str()).unwrap_or(""))
     }
 
-    /// Ждать, пока стек станет `running` (deploy асинхронный, отвечает "InProgress").
+    /// Wait until the stack becomes `running` (deploy is asynchronous, answers
+    /// "InProgress").
     pub async fn wait_running(&self, name: &str, timeout_s: u64) -> Result<StackStatus> {
         let start = std::time::Instant::now();
         loop {
@@ -163,7 +168,8 @@ impl Komodo {
     }
 }
 
-/// Есть ли в compose сервисы с `build:` (образ собирается на хосте).
+/// Are there services with `build:` in compose (the image is built
+/// on the host).
 fn has_build(compose: &str) -> bool {
     compose.lines().any(|l| l.trim_start().starts_with("build:"))
 }

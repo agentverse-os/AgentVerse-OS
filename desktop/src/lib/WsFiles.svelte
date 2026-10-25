@@ -1,6 +1,6 @@
 <script lang="ts">
-  // Файлы workspace'а (ADR-006, рендеринг Files карточки): каталог с хлебными крошками, предпросмотр текста и картинок,
-  // загрузка файлов и фото (кнопкой и перетаскиванием), папка/файл/переименование/удаление — через agentd от пользователя coder.
+  // Workspace files (ADR-006, the Files rendering of the card): a directory with breadcrumbs, text and image preview, file and
+  // photo upload (by button and drag-and-drop), folder/file/rename/delete — via agentd as the coder user.
   import { api, type FsEntry } from './api';
   import { t } from './i18n.svelte';
   let { project, root }: { project: string; root: string } = $props();
@@ -16,8 +16,8 @@
     busy = true;
     try { const l = await api.fsList(project, p); path = l.path; entries = l.entries; error = ''; } catch (e) { error = msg(e); } finally { busy = false; }
   }
-  // корень грузим только при реальной смене пути: проп `root` приходит из объекта сессии, который опрос рабочих мест
-  // пересоздаёт каждые 5 с, и без этой защиты эффект откатывал открытую папку к корню
+  // the root is loaded only on a real path change: the `root` prop comes from the session object, which the
+  // workplaces poll recreates every 5 s, and without this guard the effect rolled the open folder back to the root
   let loadedRoot = '';
   $effect(() => { if (root !== loadedRoot) { loadedRoot = root; load(root); } });
   const shown = $derived(entries.filter(e => hidden || !e.name.startsWith('.')));

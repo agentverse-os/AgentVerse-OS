@@ -1,17 +1,26 @@
-//! Провайдеры через gate: OAuth-входы в прокси провайдера llm (Antigravity, Kimi, xAI Grok, ChatGPT/Codex, Claude и плагины вроде
-//! Gemini CLI / GitHub Copilot) из «Агентов» → Настройки → Аккаунты (docs/agents-ux.md §9.1). Ядро само ничего не хранит:
-//! оно зовёт Management API того прокси, который выдаёт проектам capability `llm` — локального приложения
-//! (ключ панели известен ядру) или внешнего (`llm-external` с необязательным ключом управления).
-//! Файлы входа лежат у прокси, модели появляются в его `/v1/models` и доступны всем проектам через `http://llm.gate`.
-//! Ссылка входа открывается на любом устройстве: device-code провайдеры (Kimi, xAI) подтверждаются кодом, callback-провайдеры
-//! (Antigravity, Codex, Claude) переадресуют браузер на `http://localhost:<порт>/…` — страница не откроется, владелец вставляет
-//! этот адрес обратно, ядро отдаёт его прокси (`POST /v0/management/oauth-callback`), как делает панель самого прокси.
+//! Providers through the gate: OAuth sign-ins into the llm provider proxy (Antigravity, Kimi, xAI Grok, ChatGPT/Codex, Claude and plugins
+//! like Gemini CLI / GitHub Copilot) from "Agents" → Settings → Accounts (docs/agents-ux.md §9.1). The core stores nothing
+//! itself: it calls the Management API of the proxy that grants the `llm` capability to projects — a local app
+//! (the panel key is known to the core) or an external one (`llm-external` with an optional management key).
+//! Sign-in files live at the proxy, models appear in its `/v1/models` and are available to all projects through
+//! `http://llm.gate`. The sign-in link opens on any device: device-code providers (Kimi, xAI) are confirmed with a code,
+//! callback providers (Antigravity, Codex, Claude) redirect the browser to `http://localhost:<port>/…` — the page will not
+//! open, the owner pastes that address back, the core hands it to the proxy (`POST /v0/management/oauth-callback`), as
+//! the proxy's own panel does.
 use crate::model::AppKind;
 use crate::service::Service;
 use anyhow::{anyhow, bail, Result};
 use serde_json::{json, Value};
 
-/// Куда ходить за Management API: приложение, база, ключ панели и ключ API для `/v1/models`.
+/// Where to go for the Management API: the app, base, panel key and the API key for `/v1/models`. Proxies
+/// without `/v0/management/quota` (404): address → when marked; retried after 10 minutes.
+fn quota_flags() -> &'static std::sync::Mutex<std::collections::HashMap<String, std::time::Instant>> {
+    static F: std::sync::OnceLock<std::sync::Mutex<std::collections::HashMap<String, std::time::Instant>>> = std::sync::OnceLock::new();
+    F.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()))
+}
+fn quota_unsupported(base: &str) -> bool { quota_flags().lock().unwrap().get(base).map(|t| t.elapsed() < std::time::Duration::from_secs(600)).unwrap_or(false) }
+fn mark_quota_unsupported(base: &str) { quota_flags().lock().unwrap().insert(base.to_string(), std::time::Instant::now()); }
+
 #[derive(Debug, Clone)]
 pub struct MgmtTarget {
     pub app: String,
@@ -22,12 +31,13 @@ pub struct MgmtTarget {
     pub api_key: Option<String>,
 }
 
-/// Встроенные провайдеры прокси: маршрут `GET /v0/management/<id>-auth-url`, тип потока и адрес, на который
-/// провайдер переадресует браузер после входа (его вставляют обратно). Плагины добираются из `/v0/management/plugins`.
+/// Built-in proxy providers: the route `GET /v0/management/<id>-auth-url`, the flow type and the address
+/// the provider redirects the browser to after sign-in (it is pasted back). Plugins are fetched from
+/// `/v0/management/plugins`.
 pub fn builtin_providers() -> Vec<Value> {
     vec![
-        // OAuth-ссылки самого прокси (вход в браузере, затем адрес localhost:<порт>/… из адресной строки) — основной способ,
-        // как в панели прокси (пожелание владельца); коды устройства/со страницы потоками ядра — запасные
+        // the proxy's own OAuth links (sign in in the browser, then the localhost:<port>/… address from the address bar) — the
+        // main way, as in the proxy panel (the owner's wish); device/page codes through the core's flows are the fallbacks
         json!({ "id": "codex", "title": "ChatGPT (Codex)", "flow": "callback", "callback": "http://localhost:1455/auth/callback", "models": "GPT-5.x Codex" }),
         json!({ "id": "anthropic", "title": "Claude", "flow": "callback", "callback": "http://localhost:54545/callback", "models": "Claude Opus / Sonnet / Fable" }),
         json!({ "id": "antigravity", "title": "Antigravity (Google)", "flow": "callback", "callback": "http://localhost:51121/oauth-callback", "models": "Gemini 3 Pro / Flash через Antigravity" }),
@@ -40,28 +50,30 @@ pub fn builtin_providers() -> Vec<Value> {
     ]
 }
 
-/// Прокси отдаёт клиентам формата Anthropic (запрос `/v1/models` с `anthropic-version`) модели не-Claude под именем
-/// `claude-fable-5-dd-<id задом наперёд>` (internal/client/claude/models, EnsureClaudeModelIDPrefix) и сам переводит такое
-/// имя обратно при запросе. Это не дубли: за ними GPT (Codex), Gemini, Kimi, Grok, Devin. Настоящий id — для меню и для
-/// OpenAI-формата (простой чат, Codex); Claude Code с ANTHROPIC_BASE_URL принимает настоящий id тоже.
+/// To clients of the Anthropic format (a `/v1/models` request with `anthropic-version`) the proxy returns non-Claude
+/// models under the name `claude-fable-5-dd-<id reversed>` (internal/client/claude/models, EnsureClaudeModelIDPrefix) and
+/// translates such a name back itself on request. These are not duplicates: behind them are GPT (Codex), Gemini, Kimi,
+/// Grok, Devin. The real id — for the menu and for the OpenAI format (simple chat, Codex); Claude Code with
+/// ANTHROPIC_BASE_URL accepts the real id too.
 pub const CLOAK_PREFIX: &str = "claude-fable-5-dd-";
 pub fn real_model_id(id: &str) -> String {
     match id.strip_prefix(CLOAK_PREFIX) { Some(enc) if !enc.is_empty() => enc.chars().rev().collect(), _ => id.to_string() }
 }
 
-/// Канал (тип учётки прокси), когда списка учёток нет (gate без ключа управления): префикс учётки в id (`devin/…`)
-/// или владелец модели.
+/// Channel (proxy account type) when there is no account list (a gate without a management key): the account
+/// prefix in the id (`devin/…`) or the model owner.
 pub fn guess_channel(real: &str, owned_by: &str) -> String {
     if let Some((pfx, _)) = real.split_once('/') { if !pfx.is_empty() { return pfx.to_ascii_lowercase(); } }
     match owned_by.trim() { "anthropic" => "claude", "openai" => "codex", "moonshot" => "kimi", "google" => "gemini", "" => "other", o => o }.to_string()
 }
 
-/// Модели, которые по каталогу прокси отдают несколько каналов. В списке gate
-/// у такой модели один `owned_by` (последний зарегистрированный), поэтому без списка учёток канал добавляется по таблице.
+/// Models that per the proxy catalog are served by several channels. In the
+/// gate list such a model has one `owned_by` (the last registered), so without an account list the channel is added from
+/// the table.
 const SHARED_MODELS: &[(&str, &str)] = &[("claude-sonnet-4-6", "antigravity"), ("claude-opus-4-6-thinking", "antigravity"), ("gpt-oss-120b-medium", "antigravity")];
 
-/// Каналы модели в gate без ключа управления: по id/владельцу, плюс Claude Code для обычных `claude-*`, если такой канал в
-/// gate есть, плюс общие модели из каталога прокси (Sonnet 4.6 и Opus 4.6 Thinking у Antigravity).
+/// Model channels in a gate without a management key: by id/owner, plus Claude Code for regular `claude-*` if the gate has
+/// such a channel, plus the shared models from the proxy catalog (Sonnet 4.6 and Opus 4.6 Thinking at Antigravity).
 pub fn guess_channels(real: &str, owned_by: &str, present: &std::collections::HashSet<String>) -> Vec<String> {
     let mut v = vec![guess_channel(real, owned_by)];
     let add = |v: &mut Vec<String>, ch: &str| if present.contains(ch) && !v.iter().any(|x| x == ch) { v.push(ch.to_string()); };
@@ -70,7 +82,7 @@ pub fn guess_channels(real: &str, owned_by: &str, present: &std::collections::Ha
     v
 }
 
-/// Подпись канала в меню моделей.
+/// Channel label in the model menu.
 pub fn channel_title(key: &str) -> String {
     match key {
         "claude" => "Claude Code".into(), "codex" => "Codex · ChatGPT".into(), "antigravity" => "Antigravity".into(), "gemini" | "gemini-cli" => "Gemini".into(),
@@ -80,18 +92,20 @@ pub fn channel_title(key: &str) -> String {
     }
 }
 
-/// Порядок каналов в меню: подписки Claude Code и Codex первыми.
+/// Channel order in the menu: the Claude Code and Codex
+/// subscriptions first.
 pub fn channel_rank(key: &str) -> usize { ["claude", "codex", "antigravity", "gemini", "gemini-cli", "kimi", "xai", "grok", "devin"].iter().position(|k| *k == key).unwrap_or(50) }
 
-/// Вид модели: картинки и видео в меню чата не нужны.
+/// Model kind: images and video are not needed in the
+/// chat menu.
 pub fn model_kind(real: &str) -> &'static str {
     let l = real.to_ascii_lowercase();
     if l.contains("video") { "video" } else if l.contains("image") || l.contains("imagine") { "image" } else { "chat" }
 }
 
 impl Service {
-    /// Приложения-провайдеры llm с доступом к Management API. Внешний без ключа управления тоже возвращается (`managed: false`),
-    /// чтобы интерфейс подсказал, где взять ключ.
+    /// llm provider apps with Management API access. An external one without a management key is returned too (`managed: false`)
+    /// so the UI can hint where to get the key.
     pub async fn gate_targets(&self) -> Result<Vec<(MgmtTarget, bool)>> {
         let mut out = Vec::new();
         for a in self.store.list_apps()? {
@@ -122,7 +136,7 @@ impl Service {
         Ok(t)
     }
 
-    /// Вызов Management API: статус и тело (JSON или текст).
+    /// Management API call: status and body (JSON or text).
     async fn mgmt(&self, t: &MgmtTarget, method: reqwest::Method, path: &str, body: Option<Value>, timeout_s: u64) -> Result<(u16, Value)> {
         let http = reqwest::Client::builder().timeout(std::time::Duration::from_secs(timeout_s)).build()?;
         let mut req = http.request(method, format!("{}{path}", t.base.trim_end_matches('/'))).header("Accept", "application/json");
@@ -138,7 +152,8 @@ impl Service {
         match status { 401 | 403 => format!("ключ управления не принят ({status}) {msg}"), 404 => format!("нет такого маршрута в этой версии прокси ({status}) {msg}"), _ => format!("{status} {msg}") }.trim().to_string()
     }
 
-    /// Обзор: цели с их входами (auth-файлы), плагинами с OAuth и провайдерами, которые можно добавить.
+    /// Overview: targets with their sign-ins (auth files), plugins with OAuth and providers that can be
+    /// added.
     pub async fn gate_auth_overview(&self) -> Result<Value> {
         let mut targets = Vec::new();
         for (t, managed) in self.gate_targets().await? {
@@ -149,9 +164,25 @@ impl Service {
                     v["reachable"] = json!(true);
                     let list: Vec<Value> = files.get("files").and_then(|f| f.as_array()).cloned().unwrap_or_default().into_iter().map(|f| {
                         let provider = f.get("provider").and_then(|p| p.as_str()).or_else(|| f.get("type").and_then(|p| p.as_str())).unwrap_or("").to_string();
-                        json!({ "name": f.get("name"), "provider": provider, "label": f.get("label").and_then(|l| l.as_str()).filter(|l| !l.is_empty()).or_else(|| f.get("email").and_then(|e| e.as_str())), "email": f.get("email"), "status": f.get("status"), "status_message": f.get("status_message"), "disabled": f.get("disabled").and_then(|d| d.as_bool()).unwrap_or(false), "unavailable": f.get("unavailable").and_then(|d| d.as_bool()).unwrap_or(false), "plan": f.get("plan_type") })
+                        json!({ "name": f.get("name"), "auth_index": f.get("auth_index"), "provider": provider, "label": f.get("label").and_then(|l| l.as_str()).filter(|l| !l.is_empty()).or_else(|| f.get("email").and_then(|e| e.as_str())), "email": f.get("email"), "status": f.get("status"), "status_message": f.get("status_message"), "disabled": f.get("disabled").and_then(|d| d.as_bool()).unwrap_or(false), "unavailable": f.get("unavailable").and_then(|d| d.as_bool()).unwrap_or(false), "plan": f.get("plan_type") })
                     }).collect();
                     v["logins"] = json!(list);
+                    // account quotas (GET /v0/management/quota?auth_index=…) → windows as for core accounts (docs/agents-ux.md
+                    // §9.2); a proxy without support answers 404 — such a one is not asked for another 10 minutes
+                    if !quota_unsupported(&t.base) {
+                        let mut unsupported = false;
+                        if let Some(arr) = v["logins"].as_array_mut() {
+                            for l in arr.iter_mut() {
+                                let Some(idx) = l.get("auth_index").and_then(|i| i.as_str()).map(str::to_string) else { continue };
+                                match self.mgmt(&t, reqwest::Method::GET, &format!("/v0/management/quota?auth_index={}", urlencoding::encode(&idx)), None, 15).await {
+                                    Ok((200, q)) => { let (plan, windows) = crate::limits::gate_windows(&q); if !windows.is_empty() || plan.is_some() { l["limits"] = json!({ "plan": plan, "windows": windows }); } }
+                                    Ok((404, _)) => { unsupported = true; break }
+                                    _ => {}
+                                }
+                            }
+                        }
+                        if unsupported { mark_quota_unsupported(&t.base); }
+                    }
                 }
                 Ok((status, body)) => { v["error"] = json!(Self::mgmt_err(status, &body)); }
                 Err(e) => { v["error"] = json!(format!("{e:#}")); }
@@ -165,7 +196,7 @@ impl Service {
                     })).collect();
                     v["plugins"] = json!(plugins);
                     let ids: Vec<String> = pl.get("plugins").and_then(|p| p.as_array()).cloned().unwrap_or_default().iter().filter_map(|p| p.get("id").and_then(|i| i.as_str()).map(str::to_string)).collect();
-                    // магазин плагинов (GitHub): только те, что дают вход в провайдера
+                    // plugin store (GitHub): only those that give a provider sign-in
                     if let Ok((200, st)) = self.mgmt(&t, reqwest::Method::GET, "/v0/management/plugin-store", None, 25).await {
                         let store: Vec<Value> = st.get("plugins").and_then(|p| p.as_array()).cloned().unwrap_or_default().into_iter()
                             .filter(|p| p.get("auth_required").and_then(|a| a.as_bool()).unwrap_or(false) || p.get("id").and_then(|i| i.as_str()).map(|i| i.contains("gemini") || i.contains("copilot") || i.contains("qwen") || i.contains("iflow")).unwrap_or(false))
@@ -179,7 +210,8 @@ impl Service {
         Ok(json!({ "targets": targets }))
     }
 
-    /// Файл входа в формате прокси из токенов OpenAI/Anthropic: (имя файла, JSON).
+    /// Sign-in file in the proxy format from OpenAI/Anthropic tokens: (file name,
+    /// JSON).
     fn gate_auth_file(provider: &str, tok: &Value) -> Result<(String, Value)> {
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
         let expires_in = tok.get("expires_in").and_then(|v| v.as_u64()).unwrap_or(3600);
@@ -208,7 +240,8 @@ impl Service {
         }
     }
 
-    /// Загрузка файла входа в прокси: `POST /v0/management/auth-files?name=<файл>.json` с телом-JSON (без multipart).
+    /// Uploading a sign-in file to the proxy: `POST /v0/management/auth-files?name=<file>.json` with a JSON body (no
+    /// multipart).
     async fn upload_auth_file(&self, t: &MgmtTarget, name: &str, body: &Value) -> Result<()> {
         let http = reqwest::Client::builder().timeout(std::time::Duration::from_secs(20)).build()?;
         let mut req = http.post(format!("{}/v0/management/auth-files?name={}", t.base.trim_end_matches('/'), urlencoding::encode(name))).header("Content-Type", "application/json").body(serde_json::to_vec(body)?);
@@ -220,7 +253,8 @@ impl Service {
         Ok(())
     }
 
-    /// Начать вход: ChatGPT и Claude — потоками ядра (state в pending ядра с пометкой gate), остальное — ссылка от прокси (`state` живёт у прокси).
+    /// Start a sign-in: ChatGPT and Claude — through the core's flows (the state in the core's pending marked gate), the rest — a link from the
+    /// proxy (the `state` lives at the proxy).
     pub async fn gate_auth_start(&self, app: &str, provider: &str) -> Result<Value> {
         let provider = provider.trim().to_ascii_lowercase();
         if provider.is_empty() || !provider.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') { bail!("провайдер: буквы, цифры, «-»"); }
@@ -244,7 +278,8 @@ impl Service {
 
     pub async fn gate_auth_status(&self, app: &str, state: &str) -> Result<Value> {
         let t = self.gate_target(app).await?;
-        // вход потоком ядра: device-code Codex опрашиваем сами и кладём файл в прокси; Claude ждёт код со страницы (callback)
+        // sign-in through the core's flow: we poll the Codex device-code ourselves and put the file into the proxy; Claude
+        // waits for the code from the page (callback)
         if let Some(p) = self.oauth_pending(state)? {
             if p.get("gate").and_then(|g| g.as_str()) == Some(app) {
                 if p.get("provider").and_then(|v| v.as_str()) != Some("codex") { return Ok(json!({ "status": "wait" })); }
@@ -262,12 +297,14 @@ impl Service {
         Ok(json!({ "status": st, "error": v.get("error") }))
     }
 
-    /// Callback-провайдеры: адрес, на который переадресовал браузер (`http://localhost:…/…?code=…&state=…`), — прокси.
+    /// Callback providers: the address the browser was redirected to (`http://localhost:…/…?code=…&state=…`) — to the
+    /// proxy.
     pub async fn gate_auth_callback(&self, app: &str, state: &str, redirect_url: &str) -> Result<Value> {
         let t = self.gate_target(app).await?;
         let raw = redirect_url.trim();
         if raw.is_empty() { bail!("вставьте адрес из адресной строки браузера"); }
-        // Claude потоком ядра: `code#state` со страницы → токены → файл входа в прокси
+        // Claude through the core's flow: `code#state` from the page → tokens → a
+        // sign-in file into the proxy
         if let Some(p) = self.oauth_pending(state)? {
             if p.get("gate").and_then(|g| g.as_str()) == Some(app) && p.get("provider").and_then(|v| v.as_str()) == Some("claude") {
                 let (_, tok) = self.oauth_exchange(state, raw).await?;
@@ -275,7 +312,8 @@ impl Service {
                 return Ok(json!({ "status": "ok", "done": true, "file": name }));
             }
         }
-        // адрес от другого входа (иной state) прокси принял бы и попытался обменять чужой код — отсекаем сразу
+        // the proxy would accept an address from another sign-in (a different state) and try to exchange a
+        // foreign code — cut it off right away
         if let Some(q) = raw.split_once('?').map(|(_, q)| q) {
             let other = q.split('&').filter_map(|kv| kv.split_once('=')).find(|(k, _)| *k == "state").map(|(_, v)| urlencoding::decode(v).map(|c| c.into_owned()).unwrap_or_else(|_| v.to_string()));
             if let Some(o) = other { if o != state { bail!("этот адрес от другого входа (state не совпадает) — откройте ссылку заново и вставьте адрес того же входа"); } }
@@ -303,9 +341,9 @@ impl Service {
         Ok(json!({ "name": name, "disabled": disabled }))
     }
 
-    /// Модели прокси (`/v1/models` с ключом API): для проекта — только его провайдер llm, иначе все цели.
-    /// Модели по учёткам gate (Management API, `auth-files` → `auth-files/models`): настоящий id → каналы, которые его
-    /// отдают. None — у gate нет ключа управления или он недоступен.
+    /// Proxy models (`/v1/models` with the API key): for a project — only its llm provider, otherwise all targets.
+    /// Models by gate accounts (Management API, `auth-files` → `auth-files/models`): real id → the channels that serve
+    /// it. None — the gate has no management key or it is unavailable.
     async fn models_by_channel(&self, t: &MgmtTarget) -> Option<std::collections::HashMap<String, Vec<String>>> {
         t.key.as_ref()?;
         let (st, files) = self.mgmt(t, reqwest::Method::GET, "/v0/management/auth-files", None, 15).await.ok()?;
@@ -323,9 +361,10 @@ impl Service {
         Some(map)
     }
 
-    /// Модели gate-приложения для меню: список `/v1/models` в Anthropic-формате (окно контекста и имя), id переведён в
-    /// настоящий (`listed` — как отдал прокси), канал по учёткам или по id/владельцу, вид. Модель, которую отдают несколько
-    /// каналов (Sonnet у Claude Code и у Antigravity), идёт записью на каждый канал; порядок — по каналам.
+    /// Models of a gate app for the menu: the `/v1/models` list in the Anthropic format (context window and name), the id
+    /// translated to the real one (`listed` — as the proxy returned it), the channel by accounts or by id/owner, the kind.
+    /// A model served by several channels (Sonnet at Claude Code and at Antigravity) gets an entry per channel; the order
+    /// is by channels.
     pub async fn gate_model_list(&self, t: &MgmtTarget) -> Vec<Value> {
         let http = match reqwest::Client::builder().timeout(std::time::Duration::from_secs(10)).build() { Ok(h) => h, Err(_) => return Vec::new() };
         let mut req = http.get(format!("{}/v1/models", t.base.trim_end_matches('/'))).header("Accept", "application/json").header("anthropic-version", "2023-06-01");
@@ -336,7 +375,7 @@ impl Service {
             Err(e) => { tracing::warn!("gate {}: /v1/models {e}", t.app); Vec::new() }
         };
         let by_ch = self.models_by_channel(t).await;
-        // каналы, которые в этом gate вообще есть (по владельцам) — для таблицы общих моделей
+        // channels that exist in this gate at all (by owners) — for the shared models table
         let present: std::collections::HashSet<String> = models.iter().filter_map(|m| { let id = m.get("id").and_then(|i| i.as_str())?; Some(guess_channel(&real_model_id(id), m.get("owned_by").and_then(|o| o.as_str()).unwrap_or(""))) }).collect();
         let mut out: Vec<Value> = Vec::new();
         for m in &models {

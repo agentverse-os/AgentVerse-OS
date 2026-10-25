@@ -1,6 +1,7 @@
 <script lang="ts">
-  // Блок «Данные для входа»: адрес, логин, пароль с показом и копированием — в карточке, в окне «Готово», по 🔑 в заголовке окна
-  // и в сводном разделе «Пароли и доступы». manage — с кнопками «сменить» (сгенерированные секреты) и заметкой.
+  // The "Sign-in data" block: address, login, password with reveal and copy — in the card, in the "Done" window, via 🔑 in the
+  // window title and in the "Passwords and access" summary section. manage — with "rotate" buttons (generated secrets) and a
+  // note.
   import { api, type AppView } from './api';
   import { accessOf, modeText, type AccessField } from './access';
   import { t } from './i18n.svelte';

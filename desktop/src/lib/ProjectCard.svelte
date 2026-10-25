@@ -1,5 +1,6 @@
 <script lang="ts">
-  // Карточка проекта: используется в списке «Проекты» и в окне отдельного проекта.
+  // Project card: used in the "Projects" list and in the window of a single
+  // project.
   import { api, type ProjectView } from './api';
   import { wm } from './windows.svelte';
   import { t, tn } from './i18n.svelte';
@@ -81,7 +82,7 @@
 </div>
 
 <style>
-  /* заметка владельца: в списке — до трёх строк (полный текст в подсказке), в окне проекта — целиком */
+  /* the owner's note: in the list — up to three lines (the full text in the tooltip), in the project window — whole */
   .desc { margin-top: 4px; white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .card.compact .desc { display: block; }
   .desc-edit { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; resize: vertical; }

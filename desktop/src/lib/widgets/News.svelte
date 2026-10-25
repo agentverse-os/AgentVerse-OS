@@ -1,6 +1,6 @@
 <script lang="ts">
-  // Виджет «Новости»: несколько RSS/Atom-лент через прокси ядра, склейка дубликатов, фильтр по источнику,
-  // отметка прочитанного, картинки, чтение внутри Desktop (окно «Читалка»), настройки лент и интервала.
+  // The "News" widget: several RSS/Atom feeds through the core proxy, duplicate merging, a filter by
+  // source, read marks, images, reading inside Desktop (the "Reader" window), feed and interval settings.
   import { NEWS_PRESETS } from '../widgets.svelte';
   import { wm } from '../windows.svelte';
   import { ago } from './util';
@@ -42,7 +42,7 @@
       if (seenLink.has(i.link) || (tk && seenTitle.has(tk))) return false;
       seenLink.add(i.link); if (tk) seenTitle.add(tk); return true;
     }).sort((a, b) => new Date(b.published ?? 0).getTime() - new Date(a.published ?? 0).getTime());
-    items = merged.slice(0, Math.max(count, 30)); // держим запас для фильтра по источнику
+    items = merged.slice(0, Math.max(count, 30)); // keep a margin for the source filter
     for (const i of items) newsCache.set(i.link, i);
     lastAt = Date.now(); loading = false;
   }

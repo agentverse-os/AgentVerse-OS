@@ -1,10 +1,12 @@
-//! Обновления (docs/updates.md). Три уровня:
-//! 1. система — cloudd с встроенным Desktop и рукописные манифесты Store одним пакетом `agentverse-os-<версия>-<arch>.tar.gz`
-//!    (manifest.json + cloudd + store/); источник — канал обновлений (JSON-манифест по URL) или загруженный через Desktop файл;
-//!    установка: проверка sha256, `cloudd --version` нового бинаря, текущий → `.prev`, атомарная замена, перезапуск через
-//!    transient-unit systemd со сторожком: если ядро не ответило за 45 с — откат на `.prev`;
-//! 2. приложения из каталога — новая версия манифеста или изменившийся compose → перевыкатка стека с pull образов;
-//! 3. компоненты (edge Caddy, Coder, Komodo, docker-прокси) — `docker compose pull && up -d` по их compose-файлам с хоста.
+//! Updates (docs/updates.md). Three levels:
+//! 1. the system — cloudd with the embedded Desktop and the hand-written Store manifests in one package
+//! `agentverse-os-<version>-<arch>.tar.gz`
+//! (manifest.json + cloudd + store/); the source is the update channel (a JSON manifest by URL) or a file uploaded through
+//! Desktop; install: sha256 check, `cloudd --version` of the new binary, current → `.prev`, atomic replacement, restart via a
+//! systemd transient unit with a watchdog: if the core did not answer within 45 s — rollback to `.prev`;
+//! 2. apps from the catalog — a new manifest version or a changed compose → a stack redeploy with image pull;
+//! 3. components (edge Caddy, Coder, Komodo, docker proxy) — `docker compose pull && up -d` by their compose files from
+//! the host.
 
 use crate::model::{AppManifest, AppView, RouteMode};
 use crate::service::Service;
@@ -20,7 +22,7 @@ use std::time::Duration;
 use utoipa::ToSchema;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-/// Идентификатор сборки (`CLOUDD_BUILD=YYYYMMDD-<git>` при cargo build, см. scripts/release.sh); в разработке — dev.
+/// Build identifier (`CLOUDD_BUILD=YYYYMMDD-<git>` at cargo build, see scripts/release.sh); in development — dev.
 pub fn build_id() -> &'static str { option_env!("CLOUDD_BUILD").unwrap_or("dev") }
 pub const ARCH: &str = std::env::consts::ARCH;
 pub const PACKAGE_NAME: &str = "agentverse-os";
@@ -42,7 +44,7 @@ pub struct ReleaseInfo {
     #[serde(default)] pub size: Option<u64>,
 }
 
-/// `manifest.json` внутри пакета.
+/// `manifest.json` inside the package.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, ToSchema)]
 pub struct PackageManifest {
     pub name: String,
@@ -62,11 +64,13 @@ pub struct PackageInfo {
     pub arch: Option<String>,
     pub size: u64,
     pub sha256: String,
-    /// Рукописные манифесты Store внутри пакета.
+    /// Hand-written Store manifests inside the
+    /// package.
     pub store_apps: Vec<String>,
     pub notes: Option<String>,
     pub added_at: String,
-    /// newer | same | older — относительно работающей версии.
+    /// newer | same | older — relative to the running
+    /// version.
     pub relation: String,
     pub arch_ok: bool,
 }
@@ -101,7 +105,7 @@ pub struct AppUpdateInfo {
     pub in_catalog: bool,
     pub version_changed: bool,
     pub compose_changed: bool,
-    /// Образы с плавающим тегом (latest и т. п.): «обновить» подтянет свежий образ, даже если каталог не менялся.
+    /// Images with a floating tag (latest etc.): "update" pulls a fresh image even if the catalog did not change.
     pub floating_tags: Vec<String>,
     pub has_update: bool,
     pub state: Option<String>,
@@ -114,14 +118,15 @@ pub struct ComponentContainer { pub name: String, pub image: String, pub image_i
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ComponentInfo {
-    /// Имя compose-проекта (например cloudos-edge, komodo).
+    /// Compose project name (e.g. cloudos-edge, komodo).
     pub project: String,
     pub title: String,
     pub containers: Vec<ComponentContainer>,
     pub config_files: Vec<String>,
     pub working_dir: Option<String>,
     pub env_file: Option<String>,
-    /// compose-файлы есть на хосте — можно `pull && up -d`.
+    /// The compose files are on the host — `pull && up -d`
+    /// is possible.
     pub updatable: bool,
     pub note: Option<String>,
 }
@@ -143,10 +148,11 @@ pub struct ApplyBody { pub file: String }
 pub struct CatalogBody { #[serde(default)] pub source: Option<String> }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// чистые функции (тестируются в tests.rs)
+// pure functions (tested in tests.rs)
 // ---------------------------------------------------------------------------------------------------------------------
 
-/// Сравнение версий `x.y.z[-pre]`: числовые части по порядку, версия с pre-release младше такой же без него.
+/// Version comparison `x.y.z[-pre]`: numeric parts in order, a version with a pre-release is older than the
+/// same one without it.
 pub fn version_cmp(a: &str, b: &str) -> Ordering {
     fn split(v: &str) -> (Vec<u64>, Option<String>) {
         let v = v.trim().trim_start_matches('v');
@@ -163,7 +169,8 @@ pub fn version_cmp(a: &str, b: &str) -> Ordering {
     match (ap, bp) { (None, None) => Ordering::Equal, (Some(_), None) => Ordering::Less, (None, Some(_)) => Ordering::Greater, (Some(x), Some(y)) => x.cmp(&y) }
 }
 
-/// Манифест канала (stable.json): `{ version, published?, notes?, assets: { "<arch>-unknown-linux-gnu" | "<arch>": { url, sha256?, size? } } }`.
+/// Channel manifest (stable.json): `{ version, published?, notes?, assets: { "<arch>-unknown-linux-gnu" | "<arch>": { url, sha256?, size? } }
+/// }`.
 pub fn parse_channel(json: &str, arch: &str) -> Result<ReleaseInfo> {
     let v: serde_json::Value = serde_json::from_str(json).context("манифест канала: не JSON")?;
     let version = v.get("version").and_then(|x| x.as_str()).filter(|s| !s.is_empty()).context("манифест канала: нет version")?.to_string();
@@ -180,8 +187,8 @@ pub fn parse_channel(json: &str, arch: &str) -> Result<ReleaseInfo> {
     })
 }
 
-/// Отличается ли развёрнутый compose от отрендеренного: сравниваем разобранный YAML (форматирование и комментарии не в счёт),
-/// если хоть один не разбирается — текст без крайних пробелов.
+/// Does the deployed compose differ from the rendered one: compare the parsed YAML (formatting and comments do not count); if
+/// either does not parse — the text without surrounding whitespace.
 pub fn compose_differs(deployed: &str, rendered: &str) -> bool {
     match (serde_yaml_ng::from_str::<serde_json::Value>(deployed), serde_yaml_ng::from_str::<serde_json::Value>(rendered)) {
         (Ok(a), Ok(b)) => a != b,
@@ -189,7 +196,8 @@ pub fn compose_differs(deployed: &str, rendered: &str) -> bool {
     }
 }
 
-/// Образы с плавающим тегом в compose (services.*.image без тега или с latest/main/…); `${VAR}` пропускаем.
+/// Images with a floating tag in compose (services.*.image without a tag or with latest/main/…); `${VAR}`
+/// is skipped.
 pub fn floating_tags(compose: &str) -> Vec<String> {
     let Ok(v) = serde_yaml_ng::from_str::<serde_json::Value>(compose) else { return vec![] };
     let mut out = vec![];
@@ -221,7 +229,7 @@ pub fn component_title(project: &str, container: &str) -> String {
     else { project.to_string() }
 }
 
-/// Имя файла пакета без путей.
+/// Package file name without paths.
 pub fn safe_file_name(name: &str) -> Result<String> {
     let n = name.trim();
     if n.is_empty() || n.contains('/') || n.contains("..") || n.starts_with('.') { bail!("недопустимый путь пакета: {name}") }
@@ -233,7 +241,8 @@ fn sha256_hex(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
-/// Прочитать пакет: manifest.json, sha256 бинаря (сверяется с манифестом), список приложений Store внутри.
+/// Read the package: manifest.json, the binary sha256 (checked against the manifest), the list of Store
+/// apps inside.
 pub fn inspect_package(path: &Path) -> Result<(PackageManifest, Vec<String>, u64, String)> {
     use sha2::{Digest, Sha256};
     let bytes = std::fs::read(path).with_context(|| format!("чтение {}", path.display()))?;
@@ -279,11 +288,12 @@ fn extract_package(path: &Path, dest: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Рукописные манифесты из пакета → каталог Store (только файлы, что есть в пакете; compose.override.yaml и login.yaml не трогаем).
-/// Файлы приложения, которые принадлежат установке, а не каталогу: пакет их не несёт и не перезаписывает.
+/// Hand-written manifests from the package → the Store catalog (only the files present in the package; compose.override.yaml and
+/// login.yaml are left alone). App files that belong to the installation rather than the catalog: the package does not carry or
+/// overwrite them.
 pub(crate) const USER_FILES: [&str; 3] = ["compose.override.yaml", "login.yaml", "user.env"];
 
-/// Каталог манифеста целиком (compose, описание, иконка, hooks/ и другие подкаталоги), кроме пользовательских файлов.
+/// The whole manifest directory (compose, description, icon, hooks/ and other subdirectories), except user files.
 fn copy_tree(src: &Path, dst: &Path) -> Result<()> {
     std::fs::create_dir_all(dst)?;
     for f in std::fs::read_dir(src)? {
@@ -321,7 +331,8 @@ fn tail(s: &str, n: usize) -> String {
     if s.len() <= n { s.to_string() } else { format!("…{}", &s[s.len() - n..]) }
 }
 
-/// Скрипт в фоне вне cgroup cloudd (transient unit systemd): переживает перезапуск сервиса; запасной вариант — обычный sh.
+/// A background script outside the cloudd cgroup (a systemd transient unit): survives the service restart; the fallback is
+/// plain sh.
 fn detached_shell(script: &str) -> Result<()> {
     use std::process::{Command, Stdio};
     let unit = format!("cloudd-restart-{}", uuid::Uuid::new_v4().simple());
@@ -406,7 +417,7 @@ impl Service {
         })
     }
 
-    /// Опросить канал: манифест по URL → kv update.check (последний результат или ошибка).
+    /// Poll the channel: the manifest by URL → kv update.check (the last result or error).
     pub async fn check_system_update(&self) -> Result<SystemUpdateInfo> {
         let Some(url) = self.channel_url() else { bail!("канал обновлений не настроен: укажите адрес манифеста (stable.json) или загрузите пакет обновления") };
         let res: Result<ReleaseInfo> = async {
@@ -427,7 +438,8 @@ impl Service {
         self.system_update_info()
     }
 
-    /// Скачать пакет из канала в updates/ и проверить.
+    /// Download the package from the channel into
+    /// updates/ and verify it.
     pub async fn download_update(&self) -> Result<PackageInfo> {
         let info = self.check_system_update().await?;
         let latest = info.latest.context("канал не сообщил версию")?;
@@ -452,7 +464,8 @@ impl Service {
         self.list_packages()?.into_iter().find(|p| p.file == file).with_context(|| format!("пакет {file} не прошёл проверку"))
     }
 
-    /// Пакет, загруженный через Desktop: сохранить и проверить; битый — удалить.
+    /// A package uploaded through Desktop: save and verify; a broken one is
+    /// deleted.
     pub fn upload_update(&self, name: &str, bytes: &[u8]) -> Result<PackageInfo> {
         let dir = self.updates_dir();
         std::fs::create_dir_all(&dir)?;
@@ -476,7 +489,8 @@ impl Service {
         Ok(())
     }
 
-    /// Установить пакет: проверка → бинарь запускается → store/ из пакета → текущий бинарь в .prev → замена → перезапуск со сторожком.
+    /// Install the package: verify → the binary runs → store/ from the package → the current binary to .prev → replacement → restart
+    /// with a watchdog.
     pub async fn apply_update(&self, file: &str) -> Result<ApplyResult> {
         use std::os::unix::fs::PermissionsExt;
         let _g = self.lock.lock().await;
@@ -510,7 +524,8 @@ impl Service {
         Ok(ApplyResult { from: VERSION.into(), to: pm.version, restart_in_s: 3, store_apps })
     }
 
-    /// Вернуть предыдущий бинарь (`.prev`) и перезапустить.
+    /// Bring back the previous binary (`.prev`) and
+    /// restart.
     pub async fn rollback_update(&self) -> Result<()> {
         let _g = self.lock.lock().await;
         let bin = self_binary_path();
@@ -529,7 +544,8 @@ impl Service {
         Ok(())
     }
 
-    /// Перезапуск cloudd в фоне; со сторожком — откат на `.prev`, если ядро не ответило за 45 с.
+    /// Restart cloudd in the background; with a watchdog — rollback to `.prev` if the core did
+    /// not answer within 45 s.
     pub(crate) fn schedule_restart(&self, watchdog: bool) -> Result<()> {
         let dir = self.updates_dir();
         std::fs::create_dir_all(&dir)?;
@@ -547,7 +563,7 @@ impl Service {
         detached_shell(&script)
     }
 
-    /// При старте: если предыдущий запуск установил обновление — отметить результат.
+    /// At start: if the previous run installed an update — record the result.
     pub fn finish_pending_update(&self) {
         if let Ok(Some(mut a)) = self.store.get_kv(APPLIED_KEY) {
             if a.get("pending").and_then(|p| p.as_bool()) == Some(true) {
@@ -560,13 +576,13 @@ impl Service {
         }
     }
 
-    // ------------------------------------------------------------------------------------------------ приложения
+    // ------------------------------------------------------------------------------------------------ apps
 
     pub async fn app_updates(&self) -> Result<Vec<AppUpdateInfo>> {
         let states = self.komodo.states().await.unwrap_or_default();
         let mut out = vec![];
         for st in self.store.list_apps()? {
-            if st.manifest.kind == crate::model::AppKind::External { continue; } // нет стека — нечего сравнивать
+            if st.manifest.kind == crate::model::AppKind::External { continue; } // no stack — nothing to compare
             let cat = self.manifest(&st.name).ok();
             let installed_version = upstream_version(&st.manifest);
             let catalog_version = cat.as_ref().and_then(upstream_version);
@@ -594,7 +610,7 @@ impl Service {
         Ok(out)
     }
 
-    /// Обновить приложение из каталога: снимок манифеста → актуальные compose и env → перевыкатка (Komodo подтягивает образы).
+    /// Update an app from the catalog: a manifest snapshot → the current compose and env → redeploy (Komodo pulls the images).
     pub async fn app_update(&self, name: &str) -> Result<AppView> {
         let _g = self.lock.lock().await;
         let m = self.manifest(name)?;
@@ -613,7 +629,8 @@ impl Service {
         self.app(name).await
     }
 
-    /// Переимпорт каталога из upstream в фоне (runtipi | coolify | umbrel | all); рукописные манифесты не трогаются.
+    /// Catalog re-import from upstream in the background (runtipi | coolify | umbrel | all); hand-written manifests
+    /// are left alone.
     pub fn catalog_refresh(&self, source: &str) -> Result<bool> {
         let source = match source { "" | "all" => "all", s @ ("runtipi" | "coolify" | "umbrel") => s, other => bail!("источник {other}: runtipi | coolify | umbrel | all") }.to_string();
         if self.importing.swap(true, AtomicOrdering::SeqCst) { return Ok(false); }
@@ -638,9 +655,9 @@ impl Service {
         Ok(true)
     }
 
-    // ------------------------------------------------------------------------------------------------ компоненты
+    // ------------------------------------------------------------------------------------------------ components
 
-    /// Compose-проекты хоста, кроме приложений Store: edge, Coder, Komodo, docker-прокси.
+    /// Host compose projects other than Store apps: edge, Coder, Komodo, docker proxy.
     pub async fn components(&self) -> Result<Vec<ComponentInfo>> {
         let apps: HashSet<String> = self.store.list_apps()?.into_iter().map(|a| a.stack_name()).collect();
         let list = self.docker.docker.list_containers(Some(bollard::query_parameters::ListContainersOptions { all: true, ..Default::default() })).await?;
@@ -669,12 +686,14 @@ impl Service {
     }
 
     fn compose_env(&self) -> Vec<(String, String)> {
-        // compose Coder ждёт EDGE_HOST и INCUS_ADMIN_GID из окружения (bootstrap/install.sh) — иначе пересоздание сломает access URL
+        // the Coder compose expects EDGE_HOST and INCUS_ADMIN_GID from the environment (bootstrap/install.sh) — otherwise recreation
+        // breaks the access URL
         let gid = std::fs::read_to_string("/etc/group").ok().and_then(|g| g.lines().find_map(|l| { let mut p = l.split(':'); (p.next()? == "incus-admin").then(|| p.nth(1).map(String::from)).flatten() })).unwrap_or_else(|| "0".into());
         vec![("EDGE_HOST".into(), self.cfg.edge_host.clone()), ("INCUS_ADMIN_GID".into(), gid), ("COMPOSE_STATUS_STDOUT".into(), "1".into())]
     }
 
-    /// `docker compose pull && up -d` компонента; после пересоздания edge — reconcile (сети приложений и конфигурация Caddy).
+    /// `docker compose pull && up -d` of a component; after the edge is recreated — reconcile (app networks and the Caddy
+    /// configuration).
     pub async fn component_update(&self, project: &str) -> Result<ComponentUpdateResult> {
         let comps = self.components().await?;
         let Some(c) = comps.into_iter().find(|c| c.project == project) else { bail!("компонент {project} не найден") };
@@ -695,7 +714,8 @@ impl Service {
         self.store.event("update", project, "docker compose up -d")?;
         log.push_str(&run_docker(&args, &["up", "-d"], wd.as_deref(), &env, Duration::from_secs(600)).await?);
         if c.title.starts_with("Edge") {
-            // новый контейнер edge стартует с пустым Caddyfile и без сетей приложений
+            // a new edge container starts with an empty Caddyfile and without app
+            // networks
             tokio::time::sleep(Duration::from_secs(2)).await;
             self.reconcile_all().await.context("reconcile после обновления edge")?;
         }
@@ -705,7 +725,8 @@ impl Service {
         Ok(ComponentUpdateResult { project: project.to_string(), changed, log: tail(log.trim(), 4000) })
     }
 
-    // ------------------------------------------------------------------------------------------------ сводка
+    // ------------------------------------------------------------------------------------------------
+    // summary
 
     pub async fn updates_view(&self) -> Result<UpdatesView> {
         let system = self.system_update_info()?;
@@ -716,14 +737,14 @@ impl Service {
         Ok(UpdatesView { system, apps, components, catalog: CatalogInfo { importing: self.importing.load(AtomicOrdering::SeqCst), manifests: self.catalog().map(|c| c.len()).unwrap_or(0), last_import: self.store.get_kv(CATALOG_KEY)? } })
     }
 
-    /// Для /api/status: доступно ли обновление системы и сколько приложений можно обновить (по последней проверке).
+    /// For /api/status: whether a system update is available and how many apps can be updated (per the last check).
     pub fn update_summary(&self) -> (bool, u32) {
         let sys = self.store.get_kv(CHECK_KEY).ok().flatten().and_then(|c| c.get("latest").and_then(|l| l.get("version")).and_then(|v| v.as_str()).map(|v| version_cmp(v, VERSION) == Ordering::Greater)).unwrap_or(false);
         let apps = self.store.get_kv(SUMMARY_KEY).ok().flatten().and_then(|s| s.get("apps").and_then(|a| a.as_u64())).unwrap_or(0) as u32;
         (sys, apps)
     }
 
-    /// Фон: через 2 минуты после старта и далее каждые 6 часов — опрос канала (если задан) и сводка по приложениям.
+    /// Background: 2 minutes after start and then every 6 hours — poll the channel (if set) and the app summary.
     pub fn start_update_checker(&self) {
         let me = self.clone();
         tokio::spawn(async move {

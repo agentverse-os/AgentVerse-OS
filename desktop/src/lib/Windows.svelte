@@ -31,11 +31,12 @@
     if (drag.kind === 'move') wm.move(drag.id, dx, dy); else wm.resize(drag.id, dx, dy);
   }
   function up() { if (drag) { wm.save(); drag = null; } }
-  // телефон: видно только активное окно; без активного — домашний экран
+  // phone: only the active window is visible; without an active one —
+  // the home screen
   const visible = $derived(device.phone ? wm.wins.filter(w => !w.minimized && w.id === wm.active) : wm.wins.filter(w => !w.minimized));
   function isImg(icon?: string | null) { return !!icon && (icon.startsWith('/') || icon.startsWith('http')); }
 
-  // 🔑 данные для входа в окне приложения (docs/userflow-apps.md, шаг 3); при первом открытии приложения с известным паролем — раскрывается само
+  // 🔑 sign-in data in the app window (docs/userflow-apps.md, step 3); on the first open of an app with a known password it expands by itself
   let keyOpen = $state<Record<string, boolean>>({});
   let keyApp = $state<Record<string, AppView>>({});
   const seenApp = new Set<string>();
@@ -44,7 +45,7 @@
     keyOpen[id] = !keyOpen[id];
   }
   $effect(() => {
-    // закрытое окно: сбросить состояние поповера, чтобы при повторном открытии он не всплывал сам
+    // a closed window: reset the popover state so it does not pop up by itself on a reopen
     const ids = new Set(wm.wins.map(w => w.id));
     for (const id of Object.keys(keyOpen)) if (!ids.has(id)) { delete keyOpen[id]; seenApp.add(id); }
     for (const w of wm.wins) {
@@ -82,7 +83,7 @@
       <span class="title">{winTitle(w)}</span>
       {#if w.url}<span class="url muted">{w.url.replace(/^https?:\/\//, '')}</span>{/if}
       <span class="spacer"></span>
-      <!-- кнопки в духе macOS: цветные кружки, глифы проявляются при наведении на группу; порядок прежний — ключ, новая вкладка, свернуть, развернуть, закрыть -->
+      <!-- macOS-style buttons: colored circles, the glyphs appear on hovering the group; the order is as before — key, new tab, minimize, maximize, close -->
       <div class="ctl" role="group" aria-label={t('shell.controlsAria')}>
         {#if w.id.startsWith('app:')}<button class="key" class:on={keyOpen[w.id]} title={t('shell.loginDetails')} aria-label={t('shell.loginDetails')} onclick={() => toggleKey(w.id)}>
           <svg viewBox="0 0 10 10" aria-hidden="true"><circle cx="3.4" cy="6.6" r="1.9" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M4.8 5.2 8.4 1.6M7.2 2.8l1.2 1.2M6 4l1 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>{/if}
@@ -145,11 +146,12 @@
   .bar .spacer { flex: 1; }
   .bar button { padding: 0 8px; line-height: 1.6; font-size: .85rem; }
   .bar button.key.on { background: color-mix(in srgb, var(--accent) 30%, transparent); }
-  /* кнопки окна как в macOS: кружки 14 px, зона нажатия шире кружка, глифы видны при наведении на группу (у ключа и ↗ — всегда: их смысл не передаётся цветом) */
+  /* window buttons as in macOS: 14 px circles, the hit area wider than the circle, the glyphs visible on hovering the group (for the key and ↗ — always: their
+     meaning is not conveyed by color) */
   .bar .ctl { display: flex; align-items: center; gap: 8px; margin: 0 2px 0 6px; }
   .bar .ctl button, .bar .ctl a.ext { position: relative; width: 14px; height: 14px; padding: 0; border-radius: 50%; border: 1px solid rgb(0 0 0 / .22); display: grid; place-items: center; line-height: 0; color: rgb(0 0 0 / .62);
     background: #C3C8D6; box-shadow: inset 0 1px 0 rgb(255 255 255 / .28); transition: background var(--dur), filter var(--dur), color var(--dur); }
-  .bar .ctl button::after, .bar .ctl a.ext::after { content: ""; position: absolute; inset: -6px; }  /* зона нажатия 26 px */
+  .bar .ctl button::after, .bar .ctl a.ext::after { content: ""; position: absolute; inset: -6px; }  /* 26 px hit area */
   .bar .ctl svg { width: 9px; height: 9px; transition: opacity var(--dur); }
   .bar .ctl .tl svg { opacity: 0; }
   .bar .ctl:hover .tl svg, .bar .ctl .tl:focus-visible svg { opacity: 1; }
@@ -159,7 +161,7 @@
   .bar .ctl button:hover, .bar .ctl a.ext:hover { filter: brightness(1.1); border-color: rgb(0 0 0 / .3); }
   .bar .ctl button:active { transform: none; filter: brightness(.85); }
   .bar .ctl .key.on { background: var(--accent); color: var(--on-accent); }
-  .win:not(.active) .bar .ctl .tl { background: color-mix(in srgb, var(--ink) 22%, var(--panel-2)); }  /* у неактивного окна светофор гаснет */
+  .win:not(.active) .bar .ctl .tl { background: color-mix(in srgb, var(--ink) 22%, var(--panel-2)); }  /* on an inactive window the traffic lights go out */
   .win:not(.active) .bar .ctl .key:not(.on), .win:not(.active) .bar .ctl a.ext { background: color-mix(in srgb, var(--ink) 30%, var(--panel-2)); color: color-mix(in srgb, var(--ink) 70%, transparent); }
   :root[data-theme="light"] .bar .ctl button, :root[data-theme="light"] .bar .ctl a.ext { border-color: rgb(0 0 0 / .16); }
   :root[data-contrast="high"] .bar .ctl .tl svg { opacity: 1; }

@@ -15,16 +15,17 @@
   function icon(a: AppView) { return a.manifest.icon?.startsWith('./') ? `/api/apps/${a.name}/icon` : (a.manifest.icon ?? '📦'); }
   function isImg(i: string) { return i.startsWith('/') || i.startsWith('http'); }
   function openApp(a: AppView) { if (!a.url) return; if (a.manifest.route.open === 'iframe') wm.open(`app:${a.name}`, a.manifest.title ?? a.name, openUrl(a), icon(a)); else window.open(openUrl(a), '_blank', 'noopener'); }
-  // одинарный клик — выделить (на сенсорных экранах — открыть), двойной — открыть; как в настольных ОС
+  // a single click — select (on touch screens — open), a double click — open; as in desktop OSes
   let selected = $state<string | null>(null);
   const touch = matchMedia('(pointer: coarse)').matches;
   function act(id: string, open: () => void) { if (touch) open(); else selected = id; }
   const umbrel = $derived(look === 'umbrel');
-  // приветствие по времени суток, как заголовок рабочего стола umbrelOS
+  // a greeting by time of day, like the umbrelOS desktop heading
   let hour = $state(new Date().getHours());
   $effect(() => { const t = setInterval(() => hour = new Date().getHours(), 60000); return () => clearInterval(t); });
-  // облик umbrel: сетка по центру, но виджеты (свободный слой, по умолчанию столбик справа сверху) не должны её накрывать —
-  // под столбики слева и справа резервируются отступы; пока виджет тащат, отступы не пересчитываются (иначе сетка дёргается)
+  // the umbrel look: the grid is centered, but the widgets (a free layer, a column on the top right by default) must not
+  // cover it — margins are reserved for the columns on the left and right; while a widget is being dragged the margins are
+  // not recomputed (otherwise the grid jitters)
   let vw = $state(innerWidth);
   $effect(() => { const h = () => vw = innerWidth; addEventListener('resize', h); return () => removeEventListener('resize', h); });
   let lastReserve = { left: 0, right: 0 };
@@ -67,7 +68,7 @@
 
 <div class="icons" class:umbrel role="group" aria-label={t('shell.desktopAria')} style={umbrel ? `padding-left:${28 + reserve.left}px; padding-right:${28 + reserve.right}px` : ''} onpointerdown={(e) => { if (e.target === e.currentTarget) selected = null; }}>
   {#if umbrel}
-    <!-- облик umbrel: логотип, приветствие и одна общая сетка (система, проекты, приложения), как в umbrelOS -->
+    <!-- the umbrel look: the logo, the greeting and one shared grid (system, projects, apps), as in umbrelOS -->
     <div class="hdr"><Mark size={56} /><h1>{greeting}</h1></div>
     <div class="grp">{@render sysIcons()}{@render projectIcons()}{@render appIcons()}</div>
   {:else}
@@ -93,7 +94,7 @@
   .state { position: absolute; right: -3px; bottom: -3px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); border: 2px solid var(--bg); }
   .state.ok { background: var(--ok); } .state.off { background: var(--muted); }
 
-  /* облик umbrel: логотип и приветствие сверху, сетка по центру без подписей групп, плитки 52 px с кольцом при наведении */
+  /* the umbrel look: the logo and greeting on top, the grid centered without group labels, 52 px tiles with a ring on hover */
   .icons.umbrel { inset: 0 0 100px 0; max-width: none; align-items: center; justify-content: flex-start; gap: 4px; padding: 3vh 28px 16px; overflow: hidden auto; scrollbar-width: none; transition: padding var(--dur); }
   .hdr { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 16px; pointer-events: none; }
   .hdr h1 { font-size: clamp(20px, 2.6vw, 36px); font-weight: 700; letter-spacing: -.03em; color: rgb(255 255 255 / .92); text-shadow: 0 2px 8px rgb(0 0 0 / .5); margin: 0; }

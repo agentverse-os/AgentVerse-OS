@@ -18,7 +18,7 @@ def mark_parts(mono=None, simple=False, uid="m"):
     ring_w = 16 if simple else 9
     cut_w = ring_w + (10 if simple else 6)
     notch = "128,132 112,228 144,228" if simple else "128,118 108,228 148,228"
-    wedge = "128,146 117,228 139,228"   # внутренний клин: в вырезе, с зазором до ножек
+    wedge = "128,146 117,228 139,228"   # the inner wedge: in the cutout, with a gap to the legs
     if mono:
         fl = fr = fc = fw = rb = rf = mono; grads = ""
     else:
@@ -57,7 +57,7 @@ def mark_parts(mono=None, simple=False, uid="m"):
     return defs, body
 
 def mark_svg(size=256, mono=None, simple=False, uid="m", bg=None, pad=0, radius=0):
-    """Знак на прозрачном фоне (или на фоне bg с радиусом radius — для иконок PWA). pad — поле вокруг знака в единицах viewBox."""
+    """The mark on a transparent background (or on a bg background with radius — for PWA icons). pad — the margin around the mark in viewBox units."""
     defs, body = mark_parts(mono, simple, uid)
     vb = f"{-pad} {-pad} {256 + 2 * pad} {256 + 2 * pad}"
     bg_rect = f'<rect x="{-pad}" y="{-pad}" width="{256 + 2 * pad}" height="{256 + 2 * pad}" rx="{radius}" fill="{bg}"/>' if bg else ""
@@ -80,8 +80,8 @@ def font_style():
     return f"<style>@font-face{{font-family:'Space Grotesk';font-weight:300 700;src:url(data:font/woff2;base64,{base64.b64encode(f.read_bytes()).decode()}) format('woff2')}}</style>"
 
 def lockup_parts(vertical=False, ink=P["paper"], accent=P["lilac"], muted="#8E97B8", uid="lk"):
-    """Внутренности лок-апа (знак и надпись) и размер его системы координат: горизонтальный 760×256, вертикальный 420×420."""
-    m = mark_svg(uid=uid).split("\n", 1)[1].rsplit("</svg>", 1)[0]  # внутренности знака без <svg>
+    """The lock-up internals (the mark and the caption) and the size of its coordinate system: horizontal 760×256, vertical 420×420."""
+    m = mark_svg(uid=uid).split("\n", 1)[1].rsplit("</svg>", 1)[0]  # the mark internals without <svg>
     if vertical:
         body = f"""<g transform="translate(82 0)">{m}</g>
 <text x="210" y="326" text-anchor="middle" font-family="{FONT}" font-weight="600" font-size="46" letter-spacing="-1" fill="{ink}">AgentVerse <tspan fill="{accent}">OS</tspan></text>
@@ -93,7 +93,7 @@ def lockup_parts(vertical=False, ink=P["paper"], accent=P["lilac"], muted="#8E97
     return body, 760, 256
 
 def lockup_svg(vertical=False, ink=P["paper"], accent=P["lilac"], muted="#8E97B8"):
-    """Лок-ап с надписью; шрифт встроен (font_style), поэтому файл рендерится одинаково везде."""
+    """The lock-up with the caption; the font is embedded (font_style), so the file renders the same everywhere."""
     body, vw, vh = lockup_parts(vertical, ink, accent, muted)
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {vw} {vh}" width="{vw}" height="{vh}" role="img" aria-label="AgentVerse OS">
 {font_style()}
@@ -102,7 +102,7 @@ def lockup_svg(vertical=False, ink=P["paper"], accent=P["lilac"], muted="#8E97B8
 """
 
 def stars(w, h, avoid, light, rnd):
-    """Звёзды с редкими бликами-крестиками; avoid(x, y) — где звёзд не ставить (знак, надпись)."""
+    """Stars with rare cross-shaped glints; avoid(x, y) — where not to place stars (the mark, the caption)."""
     star = "#2E3A6E" if light else "#DDE3FF"
     parts = []
     for _ in range(int(w * h / 9000)):
@@ -111,13 +111,13 @@ def stars(w, h, avoid, light, rnd):
         rad = rnd.choice([0.6, 0.8, 1.0, 1.2, 1.6, 2.0])
         op = rnd.uniform(0.18, 0.7) if not light else rnd.uniform(0.15, 0.45)
         parts.append(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{rad}" fill="{star}" opacity="{op:.2f}"/>')
-        if rad >= 1.6 and rnd.random() < 0.45:   # блик-крестик у ярких
+        if rad >= 1.6 and rnd.random() < 0.45:   # a cross glint on bright ones
             L = rad * 6
             parts.append(f'<path d="M {x:.0f} {y - L:.0f} V {y + L:.0f} M {x - L:.0f} {y:.0f} H {x + L:.0f}" stroke="{star}" stroke-width="0.7" opacity="{op * 0.6:.2f}"/>')
     return parts
 
 def constellation(pts, light, rnd):
-    """Созвездие: точки со случайным сдвигом и тонкие связи между соседними."""
+    """Constellation: points with a random offset and thin links between neighbours."""
     star = "#2E3A6E" if light else "#DDE3FF"; line = "#7A5CFF" if light else "#A2B4FF"
     pts = [(x + rnd.uniform(-12, 12), y + rnd.uniform(-10, 10)) for x, y in pts]
     parts = [f'<line x1="{x1:.0f}" y1="{y1:.0f}" x2="{x2:.0f}" y2="{y2:.0f}" stroke="{line}" stroke-width="0.7" opacity="{0.22 if not light else 0.3}"/>' for (x1, y1), (x2, y2) in zip(pts, pts[1:])]
@@ -125,7 +125,7 @@ def constellation(pts, light, rnd):
     return parts
 
 def orbits(cx, cy, specs, light, moon=None):
-    """Тонкие орбиты с наклоном кольца знака (−10°); specs — (rx, ry, толщина, непрозрачность); moon=(номер орбиты, угол°) — «луна»."""
+    """Thin orbits with the tilt of the mark's ring (−10°); specs — (rx, ry, thickness, opacity); moon=(orbit number, angle°) — the "moon"."""
     import math
     line = "#7A5CFF" if light else "#A2B4FF"; dot = "#7A5CFF" if light else "#5B8CFF"
     parts = [f'<ellipse cx="{cx:.0f}" cy="{cy:.0f}" rx="{rx:.0f}" ry="{ry:.0f}" fill="none" stroke="{line}" stroke-width="{sw:.2f}" opacity="{op}" transform="rotate(-10 {cx:.0f} {cy:.0f})"/>' for rx, ry, sw, op in specs]
@@ -135,7 +135,7 @@ def orbits(cx, cy, specs, light, moon=None):
     return parts
 
 def cosmos(w, h, cx, cy, r, light=False, seed=7):
-    """Космос вокруг знака: звёзды (не на знаке), три орбиты вокруг него с «луной», созвездие слева внизу."""
+    """Space around the mark: stars (not on the mark), three orbits around it with a "moon", a constellation at the bottom left."""
     import random
     rnd = random.Random(seed)
     parts = stars(w, h, lambda x, y: (x - cx) ** 2 + (y - cy) ** 2 < (r * 0.9) ** 2, light, rnd)
@@ -145,7 +145,7 @@ def cosmos(w, h, cx, cy, r, light=False, seed=7):
     return "\n".join(parts)
 
 def cosmos_lockup(w, h, box, light=False, seed=7, portrait=False):
-    """Космос для обоев с лок-апом: звёзды не заходят на надпись, орбиты обнимают лок-ап целиком, созвездия по свободным углам."""
+    """Space for the wallpaper with the lock-up: stars stay off the caption, the orbits embrace the whole lock-up, constellations in the free corners."""
     import random
     rnd = random.Random(seed)
     x0, y0, x1, y1 = box; mx, my = w * 0.04, h * 0.05
@@ -177,7 +177,7 @@ def planet(x, y, pr, op, ring=False, halo=2.6):
     return out
 
 def graph(x0, y0, gw, gh, n, seed, op):
-    """Граф: узлы со свечением и рёбра к двум ближайшим соседям — агенты и связи между ними."""
+    """Graph: glowing nodes and edges to the two nearest neighbours — agents and the links between them."""
     import random, math
     c1, c2, c3 = AB_C
     g = random.Random(seed)
@@ -193,7 +193,7 @@ def graph(x0, y0, gw, gh, n, seed, op):
     return out
 
 def shards_and_streaks(w, h, avoid, rnd, op, n_shards=7, n_streaks=4, streak_x=(0.05, 0.7), streak_avoid=True):
-    """Осколки-шпили в духе Monolith и тонкие световые штрихи; осколки не заходят в avoid, штрихи — если streak_avoid."""
+    """Spire-like shards in the spirit of Monolith and thin light streaks; the shards stay out of avoid, the streaks — if streak_avoid."""
     u = min(w, h)
     out = []
     for _ in range(n_shards):
@@ -218,22 +218,23 @@ def abstractions(w, h, cx, cy, r, light=False, seed=11, portrait=False):
     c1, c2, c3 = AB_C
     op = 0.55 if light else 1.0; u = min(w, h)
     parts = [ab_defs()]
-    # обрывки больших орбит: две широкие дуги с тем же наклоном −10°
+    # fragments of large orbits: two wide arcs with the same −10°
+    # tilt
     ocx, ocy = (w * 0.5, h * 0.30) if portrait else (w * 0.62, h * 0.58)
     for rx, ry, sw, o in ([(w * 0.62, h * 0.11, 1.4, 0.16), (w * 0.80, h * 0.15, 1.0, 0.10)] if portrait else [(w * 0.48, h * 0.20, 1.4, 0.16), (w * 0.62, h * 0.27, 1.0, 0.10)]):
         parts.append(f'<ellipse cx="{ocx:.0f}" cy="{ocy:.0f}" rx="{rx:.0f}" ry="{ry:.0f}" fill="none" stroke="url(#ab-orbit)" stroke-width="{sw}" opacity="{o * op:.2f}" transform="rotate(-10 {ocx:.0f} {ocy:.0f})"/>')
-    # планеты: одна с кольцом, одна маленькая
+    # planets: one with a ring, one small
     (px, py), (qx, qy) = ((w * 0.14, h * 0.10), (w * 0.86, h * 0.62)) if portrait else ((w * 0.17, h * 0.24), (w * 0.84, h * 0.80))
     parts += planet(px, py, u * 0.022, op, ring=True) + planet(qx, qy, u * 0.011, op, halo=3)
-    # осколки и штрихи — не на знаке
+    # shards and streaks — not on the mark
     parts += shards_and_streaks(w, h, lambda x, y: (x - cx) ** 2 + (y - cy) ** 2 <= (r * 1.6) ** 2, rnd, op, streak_avoid=False)
-    # графы: два скопления
+    # graphs: two clusters
     g1, g2 = ((w * 0.08, h * 0.44, w * 0.40, h * 0.16), (w * 0.50, h * 0.72, w * 0.42, h * 0.16)) if portrait else ((w * 0.27, h * 0.12, w * 0.26, h * 0.26), (w * 0.54, h * 0.62, w * 0.22, h * 0.24))
     parts += graph(*g1, 8, seed + 1, op) + graph(*g2, 6, seed + 2, op)
     return "\n".join(parts)
 
 def abstractions_lockup(w, h, box, light=False, seed=11, portrait=False):
-    """Абстракции верхнего слоя вокруг лок-апа: планеты и графы по углам, осколки и штрихи вне надписи, обрывки орбит по краям."""
+    """Top-layer abstractions around the lock-up: planets and graphs in the corners, shards and streaks off the caption, orbit fragments at the edges."""
     import random
     rnd = random.Random(seed)
     c1, c2, c3 = AB_C
@@ -290,7 +291,7 @@ def wallpaper_lockup_svg(w, h, light=False, layer="all", portrait=False):
     body, vw, vh = lockup_parts(vertical=portrait, ink=ink, accent=accent, muted=muted, uid="wl")
     s = w * (0.56 if portrait else 0.48) / vw
     bw, bh = vw * s, vh * s
-    bx, by = (w - bw) / 2, h * (0.72 if portrait else 0.50) - bh / 2   # портрет: верх экрана занят иконками и виджетами, лок-ап — в нижней трети
+    bx, by = (w - bw) / 2, h * (0.72 if portrait else 0.50) - bh / 2   # portrait: the top of the screen is taken by icons and widgets, the lock-up is in the bottom third
     box = (bx, by, bx + bw, by + bh)
     cx, cy = w / 2, by + bh / 2
     glow = "rgba(122,92,255,0.14)" if light else "rgba(91,140,255,0.20)"
@@ -312,20 +313,23 @@ def wallpaper_lockup_svg(w, h, light=False, layer="all", portrait=False):
 </svg>
 """
 
-ICON_PNGS = [  # (svg-файл, png-файл, ширина, высота)
+ICON_PNGS = [  # (svg file, png file, width, height)
     ("favicon-16.svg", "favicon-16.png", 16, 16), ("favicon-32.svg", "favicon-32.png", 32, 32), ("favicon-48.svg", "favicon-48.png", 48, 48),
     ("icon-bg.svg", "icon-180.png", 180, 180), ("icon-bg.svg", "icon-192.png", 192, 192), ("icon-bg.svg", "icon-512.png", 512, 512),
     ("icon-maskable.svg", "icon-512-maskable.png", 512, 512),
     ("wallpaper-1440x900.svg", "wallpaper-1440x900.png", 1440, 900), ("wallpaper-2560x1440.svg", "wallpaper-2560x1440.png", 2560, 1440),
     ("wallpaper-light-1440x900.svg", "wallpaper-light-1440x900.png", 1440, 900),
     ("wallpaper-quiet-1440x900.svg", "wallpaper-quiet-1440x900.png", 1440, 900), ("wallpaper-quiet-2560x1440.svg", "wallpaper-quiet-2560x1440.png", 2560, 1440),
-    # слои для Desktop: космос (под размытие) и знак (резкий, прозрачный фон)
+    # layers for Desktop: space (under the blur) and the mark (sharp,
+    # transparent background)
     ("wallpaper-bg-2560x1440.svg", "wallpaper-bg-2560x1440.png", 2560, 1440), ("wallpaper-mark-2560x1440.svg", "wallpaper-mark-2560x1440.png", 2560, 1440),
     ("wallpaper-light-bg-1440x900.svg", "wallpaper-light-bg-1440x900.png", 1440, 900),
-    # портретные слои пресета Monolith (телефон): знак по центру сверху
+    # portrait layers of the Monolith preset (phone): the mark centered
+    # at the top
     ("wallpaper-bg-1440x2560.svg", "wallpaper-bg-1440x2560.png", 1440, 2560), ("wallpaper-mark-1440x2560.svg", "wallpaper-mark-1440x2560.png", 1440, 2560),
     ("wallpaper-light-bg-1440x2560.svg", "wallpaper-light-bg-1440x2560.png", 1440, 2560),
-    # лок-ап по центру: композиты для превью и слои для Desktop (альбом и портрет, тёмный и светлый)
+    # the lock-up centered: composites for the preview and layers for Desktop (landscape and
+    # portrait, dark and light)
     ("wallpaper-lockup-2560x1440.svg", "wallpaper-lockup-2560x1440.png", 2560, 1440), ("wallpaper-lockup-light-2560x1440.svg", "wallpaper-lockup-light-2560x1440.png", 2560, 1440),
     ("wallpaper-lockup-bg-2560x1440.svg", "wallpaper-lockup-bg-2560x1440.png", 2560, 1440), ("wallpaper-lockup-top-2560x1440.svg", "wallpaper-lockup-top-2560x1440.png", 2560, 1440),
     ("wallpaper-lockup-light-bg-2560x1440.svg", "wallpaper-lockup-light-bg-2560x1440.png", 2560, 1440), ("wallpaper-lockup-light-top-2560x1440.svg", "wallpaper-lockup-light-top-2560x1440.png", 2560, 1440),
@@ -364,7 +368,7 @@ def write_svgs(out: Path):
         "wallpaper-lockup-top-1440x2560.svg": wallpaper_lockup_svg(1440, 2560, layer="top", portrait=True),
         "wallpaper-lockup-light-bg-1440x2560.svg": wallpaper_lockup_svg(1440, 2560, light=True, layer="bg", portrait=True),
         "wallpaper-lockup-light-top-1440x2560.svg": wallpaper_lockup_svg(1440, 2560, light=True, layer="top", portrait=True),
-        # источники PNG-иконок: favicon — упрощённый знак до 18 px, плашка с закруглением, maskable с безопасной зоной 80 %
+        # PNG icon sources: favicon — the simplified mark down to 18 px, a rounded plate, maskable with an 80 % safe zone
         "favicon-16.svg": mark_svg(simple=True, uid="f"), "favicon-32.svg": mark_svg(uid="f"), "favicon-48.svg": mark_svg(uid="f"),
         "icon-bg.svg": mark_svg(uid="i", bg=P["night"], pad=28, radius=64),
         "icon-maskable.svg": mark_svg(uid="k", bg=P["night"], pad=52, radius=0),
@@ -377,13 +381,13 @@ def write_svgs(out: Path):
 def assemble(out: Path, install: bool):
     missing = [png for _, png, _, _ in ICON_PNGS if not (out / png).exists()]
     if missing: print("нет PNG (сначала assets/render.py):", ", ".join(missing)); sys.exit(1)
-    # Pillow отбрасывает размеры больше базового кадра — базой идёт 48 px, меньшие кадры добавляются как есть
+    # Pillow drops sizes larger than the base frame — 48 px goes as the base, smaller frames are added as is
     ims = [Image.open(out / f"favicon-{s}.png").convert("RGBA") for s in (48, 32, 16)]
     ims[0].save(out / "favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48)], append_images=ims[1:])
     if install:
         pub = ROOT / "desktop" / "public"
         def put(src, dst):
-            """Обои кладём как WebP q=90 (звёзды и градиенты в PNG весят 1–1.7 МБ, в WebP — 150–350 КБ), остальное — как есть."""
+            """Wallpapers are stored as WebP q=90 (stars and gradients weigh 1–1.7 MB in PNG, 150–350 KB in WebP), the rest — as is."""
             if dst.endswith(".webp"):
                 im = Image.open(out / src); im.save(pub / dst, format="WEBP", quality=90, method=6)
             else: (pub / dst).write_bytes((out / src).read_bytes())
@@ -400,7 +404,7 @@ def assemble(out: Path, install: bool):
     print("ok:", ", ".join(sorted(p.name for p in out.iterdir() if p.suffix in (".svg", ".png", ".ico"))))
 
 def write_mark_svelte(path: Path):
-    """Компонент знака для Desktop генерируется из той же геометрии, что и файлы бренда."""
+    """The mark component for Desktop is generated from the same geometry as the brand files."""
     defs_c, body_c = mark_parts(uid="U")
     defs_s, body_s = mark_parts(simple=True, uid="U")
     defs_m, body_m = mark_parts(mono="MONO", uid="U")
@@ -427,7 +431,7 @@ def write_mark_svelte(path: Path):
 """)
 
 def patch_boot_svg(path: Path):
-    """Экран загрузки в index.html: SVG между маркерами <!-- mark --> и <!-- /mark -->."""
+    """The loading screen in index.html: the SVG between the <!-- mark --> and <!-- /mark --> markers."""
     html = path.read_text()
     a, b = html.find("<!-- mark -->"), html.find("<!-- /mark -->")
     if a < 0 or b < 0: print("index.html: маркеры знака не найдены, пропускаю"); return

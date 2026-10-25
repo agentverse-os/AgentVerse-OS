@@ -1,12 +1,14 @@
-// Виджеты рабочего стола: слой и выбор (Widgets.svelte), каталог типов и пресеты новостей (widgets.svelte.ts — там хранятся ключи,
-// потребители показывают t(meta.title)), сами виджеты (widgets/*.svelte). Контент лент, погоды, событий и метрик не переводится.
+// Desktop widgets: the layer and the picker (Widgets.svelte), the type catalog and news presets (widgets.svelte.ts — the keys are
+// stored there, consumers show t(meta.title)), the widgets themselves (widgets/*.svelte). The content of feeds, weather, events
+// and metrics is not translated.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {
-    // слой и окно выбора
+    // the layer and the picker window
     'widgets.title': 'Widgets', 'widgets.add': '+ Add', 'widgets.emptyHint': 'No widgets. Tap to add: system monitor, news, weather, clock and more.',
     'widgets.headAria': 'widget header', 'widgets.remove': 'remove widget', 'widgets.resize': 'resize', 'widgets.pickerAria': 'add widget', 'widgets.pickerTitle': 'Add widget',
-    // каталог типов (WIDGETS[type].title/description)
+    // the type catalog
+    // (WIDGETS[type].title/description)
     'widgets.monitor.title': 'System monitor', 'widgets.monitor.desc': 'CPU, memory, disks, load, top containers and workspaces',
     'widgets.news.title': 'News', 'widgets.news.desc': 'RSS/Atom: AI and Hi-tech presets or your own feeds, top N by freshness',
     'widgets.clock.title': 'Clock', 'widgets.clock.desc': 'Time and date, optional second time zone',
@@ -16,7 +18,7 @@ export default defineMessages({
     'widgets.notes.title': 'Note', 'widgets.notes.desc': 'A text note on the desktop',
     'widgets.apps.title': 'Apps', 'widgets.apps.desc': 'Quick launch for installed apps',
     'widgets.weather.title': 'Weather', 'widgets.weather.desc': 'Open-Meteo, no API key: now and 5 days',
-    // новости: пресеты, настройки, статусы
+    // news: presets, settings, statuses
     'widgets.news.preset.ai': 'AI', 'widgets.news.preset.hitech': 'Hi-tech', 'widgets.news.preset.custom': 'Custom feeds', 'widgets.news.presetOwn': 'Custom',
     'widgets.news.presetLabel': 'preset:', 'widgets.news.langLabel': 'language:', 'widgets.news.both': 'both', 'widgets.news.showLabel': 'show:', 'widgets.news.refreshLabel': 'refresh:',
     'widgets.news.images': 'images', 'widgets.news.compact': 'compact', 'widgets.news.feedPlaceholder': 'https://…/rss.xml — your own feed', 'widgets.news.addFeed': 'Add',
@@ -26,18 +28,19 @@ export default defineMessages({
     'widgets.news.updatedNow': 'updated just now', 'widgets.news.updatedAgo': 'updated {ago} ago', 'widgets.news.refresh': 'refresh', 'widgets.news.feedSettings': 'feed settings',
     'widgets.news.all': 'all', 'widgets.news.openOriginal': 'open the original in a new tab', 'widgets.news.none': 'no news',
     'widgets.news.feedsDown.one': '{n} feed unavailable', 'widgets.news.feedsDown.few': '{n} feeds unavailable', 'widgets.news.feedsDown.many': '{n} feeds unavailable', 'widgets.news.feedsDown.other': '{n} feeds unavailable',
-    // монитор
+    // monitor
     'widgets.monitor.noData': 'no data: {error}', 'widgets.monitor.collecting': 'collecting metrics…', 'widgets.monitor.openSystem': 'open System',
     'widgets.monitor.cpuLine': 'CPU · {cores} · load {load}',
     'widgets.monitor.cores.one': '{n} core', 'widgets.monitor.cores.few': '{n} cores', 'widgets.monitor.cores.many': '{n} cores', 'widgets.monitor.cores.other': '{n} cores',
     'widgets.monitor.free': '{size} free', 'widgets.monitor.summary': 'uptime {uptime} · containers {containers} · instances {instances}',
     'widgets.monitor.uptimeDH': '{d}d {h}h', 'widgets.monitor.uptimeHM': '{h}h {m}m', 'widgets.monitor.topMem': 'Top by memory',
-    // погода: настройка города и описания кодов WMO
+    // weather: the city setting and WMO code
+    // descriptions
     'widgets.weather.city': 'city', 'widgets.weather.changeCity': 'double-click to change city', 'widgets.weather.humidity': 'humidity {n}%', 'widgets.weather.wind': 'wind {n} km/h',
     'widgets.weather.clear': 'clear', 'widgets.weather.mainlyClear': 'mostly clear', 'widgets.weather.cloudy': 'partly cloudy', 'widgets.weather.overcast': 'overcast',
     'widgets.weather.fog': 'fog', 'widgets.weather.rime': 'rime fog', 'widgets.weather.drizzle': 'drizzle', 'widgets.weather.rain': 'rain', 'widgets.weather.heavyRain': 'heavy rain',
     'widgets.weather.snow': 'snow', 'widgets.weather.snowfall': 'heavy snow', 'widgets.weather.showers': 'showers', 'widgets.weather.thunder': 'thunderstorm', 'widgets.weather.thunderHail': 'thunderstorm with hail',
-    // часы, проекты, заметка, приложения
+    // clock, projects, note, apps
     'widgets.clock.tzPlaceholder': 'time zone, e.g. Europe/Kyiv (empty — local)', 'widgets.clock.seconds': 'seconds', 'widgets.clock.dblSettings': 'double-click for settings',
     'widgets.projects.none': 'no projects', 'widgets.projects.new': '+ new project', 'widgets.projects.stop': 'Stop', 'widgets.projects.start': 'Start',
     'widgets.notes.placeholder': 'Note… saves itself', 'widgets.apps.openStore': 'open Store',

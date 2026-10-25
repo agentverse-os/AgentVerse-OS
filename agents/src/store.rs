@@ -1,5 +1,6 @@
-//! Собственное хранилище сервиса: SQLite с таблицей kv (JSON по ключу). Здесь живёт то, чего нет у ядра: цены моделей,
-//! умолчания по агентам, лимиты расходов, позже — рутины и чаты scratch. Всё, что про workspace'ы и сессии, — у ядра.
+//! The service's own storage: SQLite with a kv table (JSON by key). What the core does not have lives here: model
+//! prices, per-agent defaults, spending limits, later — routines and scratch chats. Everything about workspaces and
+//! sessions is at the core.
 use anyhow::{Context, Result};
 use rusqlite::{params, Connection};
 use serde_json::Value;
@@ -14,22 +15,33 @@ impl Store {
     pub fn open(dir: &Path) -> Result<Self> {
         std::fs::create_dir_all(dir).with_context(|| format!("каталог {}", dir.display()))?;
         let conn = Connection::open(dir.join("agents.db"))?;
+        // kv holds provider keys (search, voice): the database is readable only by the owner; SQLite creates -wal/-shm with the
+        // same permissions
+        #[cfg(unix)]
+        for f in ["agents.db", "agents.db-wal", "agents.db-shm"] {
+            use std::os::unix::fs::PermissionsExt;
+            let p = dir.join(f);
+            if p.exists() { let _ = std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o600)); }
+        }
         conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=3000; CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, routine TEXT, routine_name TEXT, agent TEXT NOT NULL, agent_name TEXT NOT NULL, project TEXT NOT NULL, session TEXT, trigger_kind TEXT NOT NULL, status TEXT NOT NULL, started_at INTEGER NOT NULL, ended_at INTEGER, cost_usd REAL NOT NULL DEFAULT 0, summary TEXT, reason TEXT, prompt TEXT);
             CREATE INDEX IF NOT EXISTS runs_started ON runs(started_at DESC);
             CREATE TABLE IF NOT EXISTS scheduled (id TEXT PRIMARY KEY, project TEXT NOT NULL, session TEXT NOT NULL, content TEXT NOT NULL, at INTEGER NOT NULL, status TEXT NOT NULL, created_at INTEGER NOT NULL, sent_at INTEGER, error TEXT, note TEXT);
             CREATE INDEX IF NOT EXISTS scheduled_at ON scheduled(status, at);")?;
-        // таблица из первой сборки среза — без note: добираем колонку (повторный ALTER падает «duplicate column», это норма)
+        // a table from the slice's first build — without note: add the column (a repeated ALTER fails with "duplicate
+        // column", that is normal)
         let _ = conn.execute("ALTER TABLE scheduled ADD COLUMN note TEXT", []);
-        // простой чат (simplechat.rs): чаты и сообщения; инкогнито сюда не пишется
+        // simple chat (simplechat.rs): chats and messages; incognito is not
+        // written here
         conn.execute_batch("CREATE TABLE IF NOT EXISTS chats (id TEXT PRIMARY KEY, title TEXT NOT NULL DEFAULT '', route TEXT NOT NULL, model TEXT NOT NULL, system TEXT NOT NULL DEFAULT '', tools TEXT NOT NULL DEFAULT '{}', created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, cost_usd REAL NOT NULL DEFAULT 0, tokens_in INTEGER NOT NULL DEFAULT 0, tokens_out INTEGER NOT NULL DEFAULT 0);
             CREATE TABLE IF NOT EXISTS chat_messages (id TEXT PRIMARY KEY, chat TEXT NOT NULL, seq INTEGER NOT NULL, role TEXT NOT NULL, text TEXT NOT NULL DEFAULT '', attachments TEXT NOT NULL DEFAULT '[]', tools TEXT NOT NULL DEFAULT '[]', tokens_in INTEGER NOT NULL DEFAULT 0, tokens_out INTEGER NOT NULL DEFAULT 0, cost_usd REAL NOT NULL DEFAULT 0, created_at INTEGER NOT NULL, error TEXT);
             CREATE INDEX IF NOT EXISTS chat_messages_chat ON chat_messages(chat, seq);")?;
-        // почта между агентами (routines.rs): отправитель, запуск-источник, длина цепочки
+        // mail between agents (routines.rs): sender, source run, chain length
         for ddl in ["ALTER TABLE runs ADD COLUMN from_agent TEXT", "ALTER TABLE runs ADD COLUMN reply_to TEXT", "ALTER TABLE runs ADD COLUMN hops INTEGER NOT NULL DEFAULT 0"] { let _ = conn.execute(ddl, []); }
         Ok(Self { conn: Mutex::new(conn) })
     }
-    /// Запуски рутин (routines.rs): вставка/обновление всей строки, выборка по фильтру, «висящие», расход за период.
+    /// Routine runs (routines.rs): insert/update of the whole row, selection by filter, "hanging" ones, usage over a
+    /// period.
     pub fn put_run(&self, r: &crate::routines::Run) -> Result<()> {
         self.conn.lock().unwrap().execute(
             "INSERT INTO runs (id, routine, routine_name, agent, agent_name, project, session, trigger_kind, status, started_at, ended_at, cost_usd, summary, reason, prompt, from_agent, reply_to, hops) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18)
@@ -55,7 +67,7 @@ impl Store {
         let rows = st.query_map([], row_run)?.collect::<rusqlite::Result<Vec<_>>>()?;
         Ok(rows)
     }
-    /// Отложенные сообщения (scheduled.rs): вставка, список (по сессии или все ожидающие), обновление статуса, удаление.
+    /// Scheduled messages (scheduled.rs): insert, list (by session or all pending), status update, deletion.
     pub fn put_scheduled(&self, m: &crate::scheduled::Scheduled) -> Result<()> {
         self.conn.lock().unwrap().execute("INSERT INTO scheduled (id, project, session, content, at, status, created_at, sent_at, error, note) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10) ON CONFLICT(id) DO UPDATE SET status = excluded.status, sent_at = excluded.sent_at, error = excluded.error, note = excluded.note",
             params![m.id, m.project, m.session, m.content, m.at, m.status, m.created_at, m.sent_at, m.error, m.note])?;
@@ -68,7 +80,8 @@ impl Store {
         Ok(rows)
     }
     pub fn delete_scheduled(&self, id: &str) -> Result<bool> { Ok(self.conn.lock().unwrap().execute("DELETE FROM scheduled WHERE id = ?1", params![id])? > 0) }
-    /// Забрать к отправке все ожидающие с at <= now: статус меняется атомарно, второй тик их не увидит.
+    /// Take all pending ones with at <= now for sending: the status changes atomically, the next tick
+    /// will not see them.
     pub fn claim_due_scheduled(&self, now: i64) -> Result<Vec<crate::scheduled::Scheduled>> {
         let due = self.scheduled(None, None, true)?.into_iter().filter(|m| m.at <= now).collect::<Vec<_>>();
         let c = self.conn.lock().unwrap();
@@ -82,7 +95,8 @@ impl Store {
         let c = self.conn.lock().unwrap();
         Ok(c.query_row("SELECT COALESCE(SUM(cost_usd), 0) FROM runs WHERE routine = ?1 AND started_at >= ?2", params![routine, since], |r| r.get::<_, f64>(0))?)
     }
-    /// Простой чат (simplechat.rs): чаты и сообщения.
+    /// Simple chat (simplechat.rs): chats and
+    /// messages.
     pub fn chat_put(&self, c: &crate::simplechat::Chat) -> Result<()> {
         self.conn.lock().unwrap().execute("INSERT INTO chats (id, title, route, model, system, tools, created_at, updated_at, cost_usd, tokens_in, tokens_out) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11) ON CONFLICT(id) DO UPDATE SET title = excluded.title, route = excluded.route, model = excluded.model, system = excluded.system, tools = excluded.tools, updated_at = excluded.updated_at, cost_usd = excluded.cost_usd, tokens_in = excluded.tokens_in, tokens_out = excluded.tokens_out",
             params![c.id, c.title, c.route, c.model, c.system, serde_json::to_string(&c.tools)?, c.created_at, c.updated_at, c.cost_usd, c.tokens_in as i64, c.tokens_out as i64])?;
@@ -110,8 +124,9 @@ impl Store {
             params![m.id, m.chat, m.seq as i64, m.role, m.text, serde_json::to_string(&m.attachments)?, serde_json::to_string(&m.tools)?, m.tokens_in as i64, m.tokens_out as i64, m.cost_usd, m.created_at, m.error])?;
         Ok(())
     }
-    /// Поиск по сообщениям простых чатов (срез 34): линейный проход по последним `scan` сообщениям, все слова (без регистра и
-    /// ё/е — SQLite lower() не знает кириллицу); одна строка на чат с последним совпадением и их числом.
+    /// Search across simple chat messages (slice 34): a linear pass over the last `scan` messages, all words
+    /// (case-insensitive and ё/е-insensitive — SQLite lower() does not know Cyrillic); one row per chat with the last match
+    /// and their count.
     pub fn chat_search(&self, words: &[String], scan: usize) -> Result<Vec<serde_json::Value>> {
         let c = self.conn.lock().unwrap();
         let mut st = c.prepare("SELECT m.chat, m.id, m.seq, m.role, m.text, m.created_at, c.title, c.model FROM chat_messages m JOIN chats c ON c.id = m.chat ORDER BY m.created_at DESC LIMIT ?1")?;

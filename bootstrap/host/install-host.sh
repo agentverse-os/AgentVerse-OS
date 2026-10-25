@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Spike 0 · хост: Ubuntu 24.04 → Docker Engine + Incus (LTS, Zabbly) + Tailscale + sysctl + firewall-совместимость.
-# Запускать после 04-zfs/zfs-layout.sh (нужны /var/lib/docker и tank/workspaces).
+# Spike 0 · host: Ubuntu 24.04 → Docker Engine + Incus (LTS, Zabbly) + Tailscale + sysctl + firewall compatibility.
+# Run after 04-zfs/zfs-layout.sh (/var/lib/docker and tank/workspaces are needed).
 #
 #   sudo ./install-host.sh all
 #   sudo ./install-host.sh docker | incus | tailscale | firewall | verify
 set -euo pipefail
 
-INCUS_CHANNEL="${INCUS_CHANNEL:-lts-7.0}"     # проверьте актуальное имя канала на https://pkgs.zabbly.com/incus/
+INCUS_CHANNEL="${INCUS_CHANNEL:-lts-7.0}"     # check the current channel name at https://pkgs.zabbly.com/incus/
 POOL="${POOL:-tank}"
 CODENAME="$(. /etc/os-release && echo "$VERSION_CODENAME")"
 
@@ -37,12 +37,12 @@ EOF
   apt-get update -q
   apt-get install -y -q incus incus-client
   usermod -aG incus-admin "${SUDO_USER:-root}" || true
-  # Инициализация через preseed: пул default — на ZFS dataset, дефолтной сети нет (сети — по проектам, 02-networking).
-  # Не используем `incus admin init --minimal`: он сам создаёт пул `default` на драйвере dir и мост incusbr0,
-  # после чего `incus storage create default zfs …` падает с «already exists».
+  # Initialization via preseed: the default pool on a ZFS dataset, no default network (networks are per project,
+  # 02-networking). We do not use `incus admin init --minimal`: it creates the `default` pool on the dir driver and
+  # the incusbr0 bridge itself, after which `incus storage create default zfs …` fails with "already exists".
   if ! incus storage show default >/dev/null 2>&1; then
-    # Пул на ZFS dataset (блочный режим даёт ext4 внутри → overlay2 для Docker в workspace работает без оговорок);
-    # без пула tank (установка без DISKS) — драйвер dir в /var/lib/incus.
+    # The pool on a ZFS dataset (the block mode gives ext4 inside → overlay2 for Docker in the workspace works
+    # without caveats); without the tank pool (an install without DISKS) — the dir driver in /var/lib/incus.
     local storage
     if command -v zfs >/dev/null 2>&1 && zfs list "${POOL}/workspaces" >/dev/null 2>&1; then
       storage=$'  driver: zfs\n  config:\n    source: '"${POOL}"$'/workspaces\n    volume.zfs.block_mode: "true"'
@@ -72,7 +72,8 @@ EOF
 install_tailscale() {
   curl -fsSL https://tailscale.com/install.sh | sh
   cat > /etc/default/tailscaled <<'EOF'
-# Разрешить Caddy (в контейнере он root → uid 0 уже разрешён; для Caddy на хосте под своим пользователем — укажите его uid)
+# Allow Caddy (in a container it is root → uid 0 is already allowed; for Caddy on the host under its own user — give its
+# uid)
 PORT="41641"
 FLAGS=""
 TS_PERMIT_CERT_UID=""
@@ -86,14 +87,16 @@ configure_sysctl() {
   cat > /etc/sysctl.d/90-cloudos.conf <<'EOF'
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
-# br_netfilter включает Docker; оставляем как есть — это учитывается в 02-networking
+# br_netfilter is enabled by Docker; left as is — 02-networking takes it into
+# account
 EOF
   sysctl --system >/dev/null
 }
 
 configure_firewall() {
-  # Известный конфликт: Docker ставит FORWARD policy DROP и ломает NAT/forwarding для bridge-сетей Incus.
-  # Официальная рекомендация Incus: пропускать трафик Incus-мостов через DOCKER-USER. Мосты проектов называются net-*.
+  # A known conflict: Docker sets the FORWARD policy to DROP and breaks NAT/forwarding for Incus bridge networks. The
+  # official Incus recommendation: pass the Incus bridge traffic through DOCKER-USER. The project bridges are named
+  # net-*.
   install -m 0755 "$(dirname "$0")/docker-incus-firewall.sh" /usr/local/sbin/docker-incus-firewall.sh
   cat > /etc/systemd/system/docker-incus-firewall.service <<'EOF'
 [Unit]

@@ -1,5 +1,6 @@
-// Окно «Настройки» (Settings.svelte): темы, оформление, язык, заставка, бэкапы, система, устройства (сертификат, Coder), сброс.
-// Русские строки — дословно исходные тексты интерфейса (по ним ищут элементы e2e: «Акцентный цвет», «Устройства», title=показать и др.).
+// The "Settings" window (Settings.svelte): themes, appearance, language, screensaver, backups, system, devices (certificate, Coder),
+// reset. The Russian strings are literally the source texts of the UI (the e2e look up elements by them: "Акцентный цвет", "Устройства",
+// title=показать etc.).
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

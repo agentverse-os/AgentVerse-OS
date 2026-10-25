@@ -1,7 +1,7 @@
-//! Адаптер каталога Coolify (templates/compose/*.yaml, ветка v4.x): обычный compose + метаданные в комментариях
-//! (`# documentation`, `# slogan`, `# category`, `# tags`, `# logo`, `# port`) и магические переменные
-//! `SERVICE_{FQDN|URL|USER|PASSWORD|BASE64|REALBASE64|HEX_*|PASSWORD_64}_<SERVICE>[_PORT]`.
-//! id — `<файл>-coolify` (дубликаты с Runtipi допускаются, различаются плашкой источника).
+//! Coolify catalog adapter (templates/compose/*.yaml, the v4.x branch): regular compose + metadata in comments
+//! (`# documentation`, `# slogan`, `# category`, `# tags`, `# logo`, `# port`) and the magic variables
+//! `SERVICE_{FQDN|URL|USER|PASSWORD|BASE64|REALBASE64|HEX_*|PASSWORD_64}_<SERVICE>[_PORT]`. id —
+//! `<file>-coolify` (duplicates with Runtipi are allowed, distinguished by the source badge).
 
 use super::{bind_named_volumes, existing_origin, fetch_tarball, normalize_service, write_app, ImportReport, Imported};
 use anyhow::{anyhow, Result};
@@ -44,7 +44,7 @@ fn import_one(file: &Path, logos: &Path, id: &str, store_dir: &Path) -> Result<b
     }
     crate::service::validate_name(id).map_err(|e| anyhow!("{e}"))?;
     let text = std::fs::read_to_string(file)?;
-    // `${VAR:?сообщение}` → `${VAR}`: значение придёт из настроек приложения
+    // `${VAR:?message}` → `${VAR}`: the value comes from the app settings
     let re_req = regex_lite::Regex::new(r"\$\{([A-Z][A-Z0-9_]+):\?[^}]*\}").unwrap();
     let text = re_req.replace_all(&text, "${$1}").to_string();
     let yml: Value = serde_yaml_ng::from_str(&text).map_err(|e| anyhow!("yaml: {e}"))?;
@@ -53,7 +53,7 @@ fn import_one(file: &Path, logos: &Path, id: &str, store_dir: &Path) -> Result<b
     if services.is_empty() {
         return Err(anyhow!("пустой список сервисов"));
     }
-    // магические переменные Coolify по всему тексту
+    // Coolify magic variables throughout the text
     let re_magic = regex_lite::Regex::new(r"SERVICE_(FQDN|URL|USER|PASSWORD_64|PASSWORD|BASE64_128|BASE64_64|BASE64|REALBASE64_128|REALBASE64_64|REALBASE64|HEX_32|HEX_64|UUID)_([A-Z0-9]+)(?:_([0-9]{2,5}))?").unwrap();
     let mut env = Map::new();
     let mut settings = Vec::new();
@@ -75,14 +75,16 @@ fn import_one(file: &Path, logos: &Path, id: &str, store_dir: &Path) -> Result<b
         };
         env.insert(full, spec);
     }
-    // главный сервис: из FQDN/URL или первый; порт — из `# port:` если задан
+    // main service: from FQDN/URL or the first one; the port — from `#
+    // port:` if set
     let (mut main_service, mut main_port) = main.unwrap_or_else(|| (services.keys().next().unwrap().clone(), 80));
     if !services.contains_key(&main_service) {
-        // имя в переменной — без дефисов; ищем сервис по нормализованному имени
+        // the name in the variable has no hyphens; look the service up by
+        // normalized name
         if let Some((k, _)) = services.iter().find(|(k, _)| k.to_lowercase().replace(['-', '_', '.'], "") == main_service) { main_service = k.clone(); } else { main_service = services.keys().next().unwrap().clone(); }
     }
     if let Some(p) = meta(&text, "port").and_then(|p| p.parse::<u16>().ok()) { main_port = p; }
-    // сервисы: `- SERVICE_X` (без значения) → `SERVICE_X=${SERVICE_X}`; нормализация
+    // services: `- SERVICE_X` (no value) → `SERVICE_X=${SERVICE_X}`; normalization
     let mut notes = Vec::new();
     let mut host_docker = false;
     let mut uses_docker_ro = false;
@@ -103,7 +105,7 @@ fn import_one(file: &Path, logos: &Path, id: &str, store_dir: &Path) -> Result<b
     compose.remove("networks");
     compose.insert("networks".into(), json!({ "appnet": { "external": true, "name": "${APP_NET}" } }));
     for k in ["x-coolify", "version", "name"] { compose.remove(k); }
-    // настройки: ключи API и подобное, заданные как `${VAR}` без SERVICE_ — оставляем пользователю через settings с пустым значением
+    // settings: API keys and the like given as `${VAR}` without SERVICE_ — left to the user via settings with an empty value
     let re_plain = regex_lite::Regex::new(r"\$\{([A-Z][A-Z0-9_]+)(?::?[-?]([^}]*))?\}").unwrap();
     for cap in re_plain.captures_iter(&text) {
         let var = cap.get(1).unwrap().as_str().to_string();

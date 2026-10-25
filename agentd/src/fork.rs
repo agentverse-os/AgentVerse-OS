@@ -1,13 +1,14 @@
-//! Форк беседы (ADR-006, срез «правка и форк» по образцу CloudCLI): у Claude — копия транскрипта под новым id сессии с
-//! переписыванием `uuid` / `parentUuid` / `sessionId` (то же, что делает `forkSession` Agent SDK), у Codex — `thread/fork`
-//! app-server. Наш журнал копируется до выбранного места. Новая запись не запускается — возобновляется из чата.
+//! Conversation fork (ADR-006, the "edit and fork" slice modelled on CloudCLI): for Claude a copy of the transcript under
+//! a new session id with `uuid` / `parentUuid` / `sessionId` rewritten (the same thing the Agent SDK's `forkSession`
+//! does), for Codex `thread/fork` of the app-server. Our journal is copied up to the chosen point. The new record is not
+//! started — it is resumed from the chat.
 use anyhow::{bail, Context, Result};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-/// Копия транскрипта Claude Code до строки с `uuid == anchor` включительно (или целиком) под новым id.
-/// Возвращает путь новой копии и число строк.
+/// Copy of a Claude Code transcript up to and including the line with `uuid == anchor` (or whole)
+/// under a new id. Returns the path of the new copy and the line count.
 pub fn copy_claude_transcript(src: &Path, new_id: &str, anchor: Option<&str>) -> Result<(PathBuf, u64)> {
     let text = std::fs::read_to_string(src).with_context(|| format!("чтение {}", src.display()))?;
     let dst = src.with_file_name(format!("{new_id}.jsonl"));
@@ -34,7 +35,7 @@ pub fn copy_claude_transcript(src: &Path, new_id: &str, anchor: Option<&str>) ->
     if !found { bail!("в транскрипте нет сообщения {}", anchor.unwrap_or("")); }
     if lines == 0 { bail!("транскрипт пуст"); }
     std::fs::write(&dst, out).with_context(|| format!("запись {}", dst.display()))?;
-    // каталог с большими результатами инструментов — рядом, копируем как есть
+    // the directory with large tool results sits next to it — copy as is
     let side = src.with_extension("");
     if side.is_dir() {
         let _ = std::process::Command::new("cp").args(["-a", &side.to_string_lossy(), &dst.with_extension("").to_string_lossy()]).status();
@@ -42,7 +43,8 @@ pub fn copy_claude_transcript(src: &Path, new_id: &str, anchor: Option<&str>) ->
     Ok((dst, lines))
 }
 
-/// uuid последнего ответа ассистента в журнале не позже `at_seq` — точка, до которой сохраняется история.
+/// uuid of the last assistant answer in the journal not later than `at_seq` — the point up to which the
+/// history is kept.
 pub fn anchor_uuid(events: &[Value], at_seq: u64) -> Option<String> {
     events.iter().rev().filter(|e| e.get("seq").and_then(|s| s.as_u64()).unwrap_or(u64::MAX) <= at_seq)
         .find(|e| e.get("kind").and_then(|k| k.as_str()) == Some("assistant") && e.get("parent_tool_use_id").map(|p| p.is_null()).unwrap_or(true) && e.get("uuid").and_then(|u| u.as_str()).is_some())

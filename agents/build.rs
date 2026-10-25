@@ -1,5 +1,5 @@
-// Веб-приложение «Агенты» (agents/ui → npm run build → ui/dist) встраивается rust-embed при компиляции. Если статика не собрана,
-// вместо неё встраивается заглушка — сервис и API всё равно работают, а страница честно говорит, что интерфейс не собран.
+// The "Agents" web app (agents/ui → npm run build → ui/dist) is embedded with rust-embed at compile time. If the statics are not
+// built, a stub is embedded instead — the service and the API still work, and the page honestly says the UI is not built.
 fn main() {
     let dist = std::path::Path::new("ui/dist");
     if !dist.join("index.html").exists() {

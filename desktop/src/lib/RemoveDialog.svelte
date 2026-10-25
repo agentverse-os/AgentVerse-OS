@@ -1,5 +1,6 @@
 <script lang="ts">
-  // Удаление приложения с выбором: оставить данные и пароли (переустановка вернёт всё) или удалить полностью.
+  // App removal with a choice: keep the data and passwords (a reinstall brings everything back) or remove
+  // completely.
   import { api, type AppView } from './api';
   import { titleOf } from './store-utils';
   import { fade } from 'svelte/transition';

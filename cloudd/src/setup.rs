@@ -1,6 +1,7 @@
-//! Мастер первого запуска (docs/first-run.md): состояние Tailscale на хосте, адрес Entry Point и его сертификат,
-//! переключение ядра на MagicDNS-имя узла, отметка «настройка завершена». Источник правды о Tailscale — CLI
-//! `tailscale status --json` (cloudd работает от root, поэтому и вход `tailscale login` запускает сам).
+//! First-run wizard (docs/first-run.md): Tailscale state on the host, the Entry Point address and its
+//! certificate, switching the core to the node's MagicDNS name, the "setup done" mark. The source of truth about
+//! Tailscale is the CLI `tailscale status --json` (cloudd runs as root, so it starts the `tailscale login`
+//! sign-in itself too).
 
 use crate::service::Service;
 use crate::store;
@@ -11,24 +12,28 @@ use std::time::Duration;
 use utoipa::ToSchema;
 
 pub const DONE_KEY: &str = "setup.done";
-/// Админка tailnet: здесь включаются MagicDNS и HTTPS Certificates.
+/// Tailnet admin console: MagicDNS and HTTPS Certificates are
+/// enabled here.
 pub const TAILSCALE_ADMIN_DNS: &str = "https://login.tailscale.com/admin/dns";
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, ToSchema)]
 pub struct TailscaleInfo {
-    /// Есть ли бинарь tailscale на хосте.
+    /// Is the tailscale binary on the host.
     pub installed: bool,
-    /// Running | NeedsLogin | NeedsMachineAuth | Stopped | Starting | NoState | Missing (не установлен) | Error
+    /// Running | NeedsLogin | NeedsMachineAuth | Stopped | Starting | NoState | Missing (not installed) | Error
     pub state: String,
-    /// Ссылка для входа, пока узел ждёт авторизации.
+    /// Sign-in link while the node waits for
+    /// authorization.
     pub auth_url: Option<String>,
-    /// MagicDNS-имя узла без точки на конце: `box.tail1234.ts.net`.
+    /// MagicDNS name of the node without the trailing dot:
+    /// `box.tail1234.ts.net`.
     pub dns_name: Option<String>,
     pub ips: Vec<String>,
-    /// Суффикс tailnet: `tail1234.ts.net`.
+    /// Tailnet suffix: `tail1234.ts.net`.
     pub tailnet: Option<String>,
     pub magic_dns: bool,
-    /// В tailnet включены HTTPS Certificates (у узла есть домены для сертификатов).
+    /// HTTPS Certificates are enabled in the tailnet (the node has certificate
+    /// domains).
     pub https_certs: bool,
     pub cert_domains: Vec<String>,
     pub health: Vec<String>,
@@ -40,13 +45,17 @@ pub struct TailscaleInfo {
 pub struct EdgeInfo {
     pub host: String,
     pub alt_hosts: Vec<String>,
-    /// Сертификат от внутреннего CA edge (нужно доверять cloudos-ca.crt) вместо Let's Encrypt через tailscaled.
+    /// A certificate from the edge's internal CA (cloudos-ca.crt must be trusted) instead of Let's Encrypt via
+    /// tailscaled.
     pub tls_internal: bool,
-    /// Адрес ядра совпадает с MagicDNS-именем узла Tailscale.
+    /// The core address equals the Tailscale node's MagicDNS
+    /// name.
     pub matches_tailscale: bool,
-    /// Проверка с хоста: `https://<host>/api/status`.
+    /// Check from the host:
+    /// `https://<host>/api/status`.
     pub reachable: bool,
-    /// null — неизвестно (до имени не дошли).
+    /// null — unknown (did not get as far as
+    /// the name).
     pub dns_ok: Option<bool>,
     pub cert_ok: Option<bool>,
     pub error: Option<String>,
@@ -62,7 +71,8 @@ pub struct SetupState {
     pub apps_installed: usize,
     pub backups_enabled: bool,
     pub coder_ok: bool,
-    /// Имя, на которое стоит переключить ядро (edge_host ≠ MagicDNS-имя узла).
+    /// The name the core should switch to (edge_host ≠ the node's MagicDNS
+    /// name).
     pub suggested_host: Option<String>,
     pub tailscale_admin_url: String,
     pub version: String,
@@ -81,7 +91,7 @@ pub struct HostBody { pub host: String }
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct DoneBody { pub done: bool }
 
-/// Разбор `tailscale status --json` (только нужные поля; неизвестное состояние → NoState).
+/// Parsing `tailscale status --json` (needed fields only; an unknown state → NoState).
 pub fn parse_status(json: &str) -> TailscaleInfo {
     let v: serde_json::Value = match serde_json::from_str(json) {
         Ok(v) => v,
@@ -109,7 +119,7 @@ pub fn parse_status(json: &str) -> TailscaleInfo {
     }
 }
 
-/// Внешняя команда с ограничением по времени.
+/// External command with a time limit.
 pub(crate) async fn run(cmd: &str, args: &[&str], timeout: Duration) -> Result<std::process::Output> {
     let fut = tokio::process::Command::new(cmd).args(args).stdin(std::process::Stdio::null()).kill_on_drop(true).output();
     tokio::time::timeout(timeout, fut).await.map_err(|_| anyhow::anyhow!("{cmd} {}: не ответил за {} с", args.join(" "), timeout.as_secs()))?.with_context(|| format!("{cmd} {}", args.join(" ")))
@@ -136,7 +146,8 @@ pub async fn tailscale_status() -> TailscaleInfo {
     }
 }
 
-/// `KEY=value` в env-файле: заменить первую строку с ключом или дописать в конец; комментарии и порядок сохраняются.
+/// `KEY=value` in an env file: replace the first line with the key or append at the end; comments and order are
+/// preserved.
 pub fn env_file_set(text: &str, pairs: &[(&str, &str)]) -> String {
     let mut lines: Vec<String> = text.lines().map(String::from).collect();
     for (k, v) in pairs {
@@ -160,7 +171,8 @@ fn write_env_file(path: &Path, text: &str) -> Result<()> {
     Ok(())
 }
 
-/// Текст ошибки вместе с цепочкой причин: у reqwest верхнее сообщение общее («error sending request»), суть — в source().
+/// Error text together with the cause chain: reqwest's top message is generic ("error sending request"), the essence is
+/// in source().
 pub(crate) fn err_chain(e: &dyn std::error::Error) -> String {
     let mut parts = vec![e.to_string()];
     let mut cur = e.source();
@@ -178,7 +190,7 @@ fn classify(err: &str) -> (Option<bool>, Option<bool>) {
         return (Some(true), Some(false));
     }
     if m.contains("connection refused") || m.contains("timed out") || m.contains("connect error") {
-        return (Some(true), None);   // имя разрешилось, но edge не отвечает
+        return (Some(true), None);   // the name resolved, but the edge does not answer
     }
     (None, None)
 }
@@ -188,7 +200,8 @@ impl Service {
         self.store.get_kv(DONE_KEY).ok().flatten().and_then(|v| v.as_bool()).unwrap_or(false)
     }
 
-    /// Проверка адреса ядра с хоста: имя резолвится, TLS проходит (для внутреннего CA — с корнем из state_dir/ca.crt).
+    /// Check of the core address from the host: the name resolves, TLS passes (for the internal CA — with the root
+    /// from state_dir/ca.crt).
     pub async fn edge_check(&self, ts: &TailscaleInfo) -> EdgeInfo {
         let host = self.cfg.edge_host.clone();
         let mut b = reqwest::Client::builder().timeout(Duration::from_secs(7)).connect_timeout(Duration::from_secs(4));
@@ -239,7 +252,8 @@ impl Service {
         Ok(())
     }
 
-    /// Войти в Tailscale: Stopped → `tailscale up`; NeedsLogin → `tailscale login` в фоне, ссылка — из status.
+    /// Sign in to Tailscale: Stopped → `tailscale up`; NeedsLogin → `tailscale login` in the background, the
+    /// link — from status.
     pub async fn tailscale_login(&self) -> Result<TailscaleInfo> {
         let ts = tailscale_status().await;
         match ts.state.as_str() {
@@ -254,7 +268,8 @@ impl Service {
             _ => {}
         }
         if ts.auth_url.is_none() {
-            // интерактивный вход ждёт подтверждения в браузере; сама команда живёт до 30 минут, ссылку читаем из status
+            // the interactive sign-in waits for confirmation in the browser; the command itself lives up to 30 minutes,
+            // the link is read from status
             std::fs::create_dir_all(&self.cfg.state_dir)?;
             let log = std::fs::File::create(self.cfg.state_dir.join("tailscale-login.log"))?;
             let err = log.try_clone()?;
@@ -269,8 +284,9 @@ impl Service {
         Ok(tailscale_status().await)
     }
 
-    /// Переключить ядро на MagicDNS-имя узла: cloudd.env (EDGE_HOST, TLS_INTERNAL=false, прежний адрес и IP Tailscale — в ALT_HOSTS)
-    /// и перезапуск cloudd; edge получит конфигурацию с новым именем и возьмёт сертификат у tailscaled.
+    /// Switch the core to the node's MagicDNS name: cloudd.env (EDGE_HOST, TLS_INTERNAL=false, the previous address and the
+    /// Tailscale IP — into ALT_HOSTS) and a cloudd restart; the edge gets a configuration with the new name and takes a certificate
+    /// from tailscaled.
     pub async fn setup_switch_host(&self, host: &str) -> Result<SwitchResult> {
         let ts = tailscale_status().await;
         let host = host.trim().trim_end_matches('.').to_lowercase();

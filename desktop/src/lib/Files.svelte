@@ -1,7 +1,7 @@
 <script lang="ts">
-  // «Файлы»: три корня (данные приложений, Store, home workspace'ов), список или плитки (запоминается), сортировка,
-  // редактор текстов, предпросмотр картинок, загрузка/скачивание. Десктоп — боковая панель корней и таблица/плитки;
-  // телефон — крупные строки или плитки, меню действий листом снизу, редактор на весь экран.
+  // "Files": three roots (app data, Store, the workspaces' home), a list or tiles (remembered), sorting, a text
+  // editor, image preview, upload/download. Desktop — a side panel of roots and a table/tiles; phone — large rows
+  // or tiles, the action menu as a bottom sheet, the editor full screen.
   import { api } from './api';
   import Dropdown from './Dropdown.svelte';
   import { device, NAV_H } from './device.svelte';
@@ -74,7 +74,8 @@
   function del(e: Entry) { if (confirm(t(e.dir ? 'files.confirmDeleteDir' : 'files.confirmDeleteFile', { name: e.name }))) act(t('files.busyDeleting'), () => api.fileDelete(root, join(path, e.name))); }
   function download(e: Entry) { const a = document.createElement('a'); a.href = api.fileReadUrl(root, join(path, e.name)); a.download = e.name; a.click(); }
   function onDrop(ev: DragEvent) { ev.preventDefault(); upload(ev.dataTransfer?.files ?? null); }
-  // меню действий: лист снизу на телефоне, всплывающее меню у курсора на десктопе
+  // action menu: a bottom sheet on the phone, a popup menu at the cursor on
+  // desktop
   function folderSheet(ev?: MouseEvent) {
     sheet = { title: path ? `/${path}` : roots.find(r => r.id === root)?.title ?? '/', x: ev?.clientX, y: ev?.clientY, items: [
       { label: t('files.newFile'), icon: '📄', run: newFile },
@@ -254,7 +255,7 @@
   .nowrap { white-space: nowrap; }
   .view { display: inline-flex; gap: 0; } .view button { padding: 0 10px; min-height: 32px; } .view button:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); } .view button:last-child { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
   .up { width: 34px; height: 34px; padding: 0; font-size: 1.2rem; line-height: 1; flex: none; }
-  /* десктоп: таблица/плитки и редактор рядом */
+  /* desktop: the table/tiles and the editor side by side */
   .split { display: grid; grid-template-columns: 1fr; gap: 10px; flex: 1; min-height: 0; }
   .split.with-editor { grid-template-columns: minmax(280px, 1fr) 2fr; }
   .list { width: 100%; border-collapse: collapse; font-size: .9rem; align-self: start; }
@@ -266,10 +267,10 @@
   .row-entry.sel { background: rgb(var(--accent-rgb) / .1); }
   .editor { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
   .editor textarea { flex: 1; min-height: 50vh; width: 100%; font: .85rem/1.45 ui-monospace, Menlo, Consolas, monospace; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px; resize: vertical; }
-  .split.with-editor .list th:nth-child(3), .split.with-editor .list td:nth-child(3) { display: none; } /* рядом с редактором таблица узкая — без столбца даты */
+  .split.with-editor .list th:nth-child(3), .split.with-editor .list td:nth-child(3) { display: none; } /* next to the editor the table is narrow — without the date column */
   .split.with-editor .list td { white-space: normal; }
   @media (max-width: 900px) { .split.with-editor { grid-template-columns: 1fr; } .list th:nth-child(3), .list td:nth-child(3) { display: none; } }
-  /* плитки */
+  /* tiles */
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; align-content: start; overflow: auto; }
   .tile { position: relative; border-radius: var(--r); }
   .tile.sel, .tile:hover { background: rgb(var(--accent-rgb) / .08); }
@@ -283,7 +284,7 @@
   .tile:hover .tmenu, .tile.sel .tmenu, .phone .tmenu { opacity: 1; }
   .phone .grid { grid-template-columns: repeat(3, 1fr); }
   .phone .tmenu { width: 36px; height: 36px; }
-  /* телефон */
+  /* phone */
   .mbar { flex-wrap: nowrap; }
   .mnav { flex-wrap: nowrap; }
   .mnav .crumbs { flex: 1; min-width: 0; white-space: nowrap; scrollbar-width: none; }
@@ -300,7 +301,7 @@
   .mfull { position: absolute; inset: 0; background: var(--bg); z-index: 3; padding-top: 4px; }
   .mebar { flex-wrap: wrap; gap: 8px; }
   .mebar .mname { flex: 1 1 100%; }
-  .mfull textarea { min-height: 0; font-size: 16px; line-height: 1.4; } /* 16px — иначе iOS увеличивает страницу при фокусе */
+  .mfull textarea { min-height: 0; font-size: 16px; line-height: 1.4; } /* 16px — otherwise iOS zooms the page on focus */
   .mprev { max-width: 100%; max-height: 80%; object-fit: contain; border-radius: var(--r-sm); }
   .backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / .45); z-index: 4000; }
   .backdrop.clear { background: transparent; }

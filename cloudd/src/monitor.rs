@@ -1,5 +1,6 @@
-//! Монитор (2.9: только health и потребление, без time series на диске): сборщик метрик хоста, контейнеров Docker и
-//! инстансов Incus раз в 5 с с кольцевой историей на 5 минут — для виджета «Монитор системы» и вкладки Система.
+//! Monitor (2.9: health and consumption only, no time series on disk): a collector of host, Docker container and
+//! Incus instance metrics every 5 s with a 5-minute ring history — for the "System monitor" widget and the System
+//! tab.
 
 use crate::docker::DockerRt;
 use crate::incus::Incus;
@@ -59,7 +60,7 @@ pub struct Snapshot {
     pub disks: Vec<DiskInfo>,
     pub containers: Vec<ContainerStat>,
     pub instances: Vec<InstanceStat>,
-    /// история CPU% и памяти хоста, старые → новые
+    /// history of host CPU% and memory, old → new
     pub history_cpu: Vec<f32>,
     pub history_mem: Vec<u64>,
     pub cores: usize,
@@ -75,7 +76,8 @@ struct Inner {
     snap: Snapshot,
     hist_cpu: VecDeque<f32>,
     hist_mem: VecDeque<u64>,
-    /// для CPU% инстансов Incus: предыдущее cpu usage (ns) и время
+    /// for the CPU% of Incus instances: the previous cpu usage
+    /// (ns) and time
     incus_prev: HashMap<String, (u64, std::time::Instant)>,
 }
 
@@ -91,7 +93,7 @@ impl Monitor {
         self.inner.read().map(|i| i.snap.clone()).unwrap_or_default()
     }
 
-    /// Фоновый сборщик: раз в 5 с.
+    /// Background collector: every 5 s.
     pub fn spawn(self, docker: DockerRt, incus: Incus, apps: impl Fn() -> Vec<String> + Send + Sync + 'static) {
         tokio::spawn(async move {
             loop {
@@ -102,7 +104,7 @@ impl Monitor {
     }
 
     async fn tick(&self, docker: &DockerRt, incus: &Incus, apps: &(impl Fn() -> Vec<String> + Send + Sync)) {
-        // ---- хост ----
+        // ---- host ----
         let (host, cores) = {
             let mut g = match self.inner.write() { Ok(g) => g, Err(_) => return };
             g.sys.refresh_cpu_usage();
@@ -127,7 +129,7 @@ impl Monitor {
             .map(|d| DiskInfo { mount: d.mount_point().to_string_lossy().to_string(), total: d.total_space(), avail: d.available_space(), fs: d.file_system().to_string_lossy().to_string() })
             .collect();
 
-        // ---- контейнеры (одноразовая статистика, параллельно) ----
+        // ---- containers (one-shot stats, in parallel) ----
         let app_names = apps();
         let mut containers = Vec::new();
         if let Ok(list) = docker.docker.list_containers(Some(bollard::query_parameters::ListContainersOptions { all: false, ..Default::default() })).await {
@@ -160,7 +162,7 @@ impl Monitor {
             containers.sort_by(|a, b| b.mem_used.cmp(&a.mem_used));
         }
 
-        // ---- инстансы Incus ----
+        // ---- Incus instances ----
         let mut instances = Vec::new();
         if let Ok(list) = incus.instances_full().await {
             let now = std::time::Instant::now();

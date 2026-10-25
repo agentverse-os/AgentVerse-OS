@@ -1,5 +1,6 @@
-//! Edge Caddy: `cloudd` владеет конфигурацией целиком и загружает её через Admin API (`POST /load`, идемпотентно; 3.1).
-//! Один hostname, режимы `path` и `port` (2.2). TLS — внутренний CA Caddy (NetBird) или сертификат от tailscaled (Tailscale).
+//! Edge Caddy: `cloudd` owns the whole configuration and loads it through the Admin API (`POST /load`, idempotent; 3.1). One
+//! hostname, the `path` and `port` modes (2.2). TLS — Caddy's internal CA (NetBird) or a certificate from tailscaled
+//! (Tailscale).
 
 use crate::model::{AppState, RouteMode};
 use anyhow::{anyhow, Context, Result};
@@ -11,22 +12,36 @@ pub struct EdgeCaddy {
     http: reqwest::Client,
 }
 
-/// Срок листовых сертификатов внутреннего CA. По умолчанию Caddy выпускает их на 12 часов и перевыпускает каждые ~8: браузер без
-/// установленного корня (исключение «принять риск», Firefox) теряет исключение при каждом перевыпуске — оболочка открывается из кеша,
-/// а запросы к API отклоняются. 90 дней и подпись корнем (без промежуточного, живущего 7 дней) делают исключение стабильным.
+/// Lifetime of the internal CA's leaf certificates. By default Caddy issues them for 12 hours and reissues every ~8: a browser
+/// without the root installed (the "accept the risk" exception, Firefox) loses the exception on every reissue — the shell opens from
+/// the cache while API requests are rejected. 90 days and signing by the root (without the intermediate that lives 7 days) make the
+/// exception stable.
 pub const LEAF_LIFETIME: &str = "2160h";
+
+/// Preview for the render: project name, dev server port, edge port, upstream `ip:port` (None — the workspace is not running: only the
+/// error page)
+#[derive(Debug, Clone, PartialEq)]
+pub struct PreviewRoute { pub project: String, pub port: u16, pub edge_port: u16, pub upstream: Option<String> }
 
 pub struct EdgeInput<'a> {
     pub host: &'a str,
-    /// Дополнительные имена/IP того же Entry Point: те же маршруты и сертификат (internal CA умеет IP SAN).
+    /// Additional names/IPs of the same Entry Point: the same routes and certificate (the internal CA can
+    /// do IP SANs).
     pub alt_hosts: &'a [String],
     pub cloudd_upstream: &'a str,
-    /// Сервис «Агенты» на хосте: `/agents/*` уходит ему, минуя ядро.
+    /// The "Agents" service on the host: `/agents/*` goes to it,
+    /// bypassing the core.
     pub agents_upstream: &'a str,
     pub coder_upstream: &'a str,
     pub coder_port: u16,
+    /// "Agents" as a separate app (§9.8): its own server on this port, the same service, `/` → `/agents/`
+    pub agents_port: u16,
     pub apps: &'a [AppState],
-    /// `internal` — внутренний CA; `auto` — обычный ACME/tailscale (без явного issuer).
+    /// Dev server previews (§4.9): a server on the edge port → the workspace IP and the dev
+    /// server port
+    pub previews: &'a [PreviewRoute],
+    /// `internal` — the internal CA; `auto` — regular ACME/tailscale (no explicit
+    /// issuer).
     pub tls_internal: bool,
 }
 
@@ -43,6 +58,15 @@ impl EdgeCaddy {
         Ok(())
     }
 
+    /// Does the live edge configuration have our server (after the container is recreated Caddy starts with the bootstrap config
+    /// without it)
+    pub async fn has_server(&self, name: &str) -> Result<bool> {
+        let r = self.http.get(format!("{}/config/apps/http/servers/{name}", self.admin)).send().await.context("caddy admin")?;
+        if r.status().is_success() { let body = r.text().await.unwrap_or_default(); return Ok(body.trim() != "null" && !body.trim().is_empty()) }
+        if r.status().as_u16() == 404 { return Ok(false) }
+        Err(anyhow!("caddy admin: HTTP {}", r.status()))
+    }
+
     pub async fn load(&self, config: &Value) -> Result<()> {
         let r = self.http.post(format!("{}/load", self.admin)).json(config).send().await.context("caddy /load")?;
         if !r.status().is_success() {
@@ -51,17 +75,19 @@ impl EdgeCaddy {
         Ok(())
     }
 
-    /// Полная JSON-конфигурация edge.
+    /// Full JSON configuration of the edge.
     pub fn render(input: &EdgeInput<'_>) -> Value {
         let host = input.host;
         let mut hosts: Vec<String> = vec![host.to_string()];
         hosts.extend(input.alt_hosts.iter().filter(|h| !h.is_empty() && h.as_str() != host).cloned());
-        let origins = hosts.iter().map(|h| format!("https://{h}")).collect::<Vec<_>>().join(" ");
+        // origins allowed to frame previews, apps and Coder: Desktop (:443) and "Agents" on its own port (§9.8)
+        let origins = hosts.iter().flat_map(|h| [format!("https://{h}"), format!("https://{h}:{}", input.agents_port)]).collect::<Vec<_>>().join(" ");
         let mut servers = serde_json::Map::new();
 
-        // ---- Desktop + cloudd API (:443), плюс path-приложения под /apps/<name>/ ----
+        // ---- Desktop + cloudd API (:443), plus path apps under /apps/<name>/ ----
         let mut desktop_routes = Vec::new();
-        // приложение «Агенты» — отдельный сервис на том же хосте; префикс не срезаем, сервис сам живёт под /agents/
+        // the "Agents" app is a separate service on the same host; the prefix is not stripped, the service itself
+        // lives under /agents/
         desktop_routes.push(json!({
             "match": [{ "path": ["/agents", "/agents/*"] }],
             "handle": [ { "handler": "encode", "encodings": { "gzip": {}, "zstd": {} }, "prefer": ["zstd", "gzip"], "minimum_length": 1024 }, reverse_proxy(input.agents_upstream) ]
@@ -80,7 +106,8 @@ impl EdgeCaddy {
             "handle": [
                 { "handler": "headers", "response": { "set": {
                     "X-Frame-Options": ["DENY"], "Content-Security-Policy": ["frame-ancestors 'none'"] }, "delete": ["Server"] } },
-                // каталог Store — 2 МБ JSON; через WireGuard с MTU 1200 без сжатия это секунды
+                // the Store catalog is 2 MB of JSON; over WireGuard with MTU 1200 without
+                // compression that is seconds
                 { "handler": "encode", "encodings": { "gzip": {}, "zstd": {} }, "prefer": ["zstd", "gzip"], "minimum_length": 1024 },
                 reverse_proxy(input.cloudd_upstream)
             ],
@@ -88,8 +115,8 @@ impl EdgeCaddy {
         }));
         servers.insert("desktop".into(), json!({ "listen": [":443"], "routes": desktop_routes }));
 
-        // ---- Coder: route: port. Coder ставит `frame-ancestors 'self'` (origin :8444) — расширяем до origin Desktop,
-        // чтобы VS Code Web и терминал открывались в окнах Desktop (3.12: точечная перезапись только на origin Desktop'а).
+        // ---- Coder: route: port. Coder sets `frame-ancestors 'self'` (origin :8444) — extend it to the Desktop origin so
+        // VS Code Web and the terminal open in Desktop windows (3.12: a targeted rewrite only to the Desktop origin).
         servers.insert(
             "coder".into(),
             json!({ "listen": [format!(":{}", input.coder_port)], "routes": [ { "match": [{ "host": hosts.clone() }], "handle": [
@@ -99,7 +126,19 @@ impl EdgeCaddy {
             ], "terminal": true } ] }),
         );
 
-        // ---- приложения route: port — отдельный origin на порт ----
+        // ---- "Agents" as a separate app (§9.8): its own origin on a port so Chrome installs it separately from Desktop ----
+        servers.insert(
+            "agents".into(),
+            json!({ "listen": [format!(":{}", input.agents_port)], "routes": [
+                { "match": [{ "host": hosts.clone(), "path": ["/"] }], "handle": [ { "handler": "static_response", "status_code": 302, "headers": { "Location": ["/agents/"] } } ], "terminal": true },
+                { "match": [{ "host": hosts.clone() }], "handle": [
+                    { "handler": "encode", "encodings": { "gzip": {}, "zstd": {} }, "prefer": ["zstd", "gzip"], "minimum_length": 1024 },
+                    reverse_proxy(input.agents_upstream)
+                ], "terminal": true }
+            ], "errors": error_page(host, "agents", "Агенты") }),
+        );
+
+        // ---- route: port apps — a separate origin on a port ----
         for app in input.apps.iter().filter(|a| a.manifest.route.mode == RouteMode::Port) {
             let Some(port) = app.port else { continue };
             servers.insert(
@@ -112,13 +151,25 @@ impl EdgeCaddy {
             );
         }
 
-        // Клиент без SNI (браузер по IP-адресу) получает сертификат IP: default_sni на всех серверах. Иначе Caddy отвечает alert internal error.
+        // ---- dev server previews (§4.9): like route: port apps, the upstream is the workspace IP
+        // ----
+        for pv in input.previews {
+            let name = format!("preview-{}-{}", pv.project, pv.port);
+            let title = format!("превью {} :{}", pv.project, pv.port);
+            let mut handle = vec![frame_ancestors_rewrite(&origins)];
+            handle.push(reverse_proxy(pv.upstream.as_deref().unwrap_or("127.0.0.1:9")));
+            servers.insert(name.clone(), json!({ "listen": [format!(":{}", pv.edge_port)], "routes": [ { "match": [{ "host": hosts.clone() }], "handle": handle, "terminal": true } ],
+                "errors": error_page(host, &name, &title) }));
+        }
+
+        // A client without SNI (a browser by IP address) gets the IP certificate: default_sni on all servers. Otherwise Caddy answers with alert
+        // internal error.
         if let Some(ip) = hosts.iter().find(|h| h.parse::<std::net::IpAddr>().is_ok()) {
             for (_, srv) in servers.iter_mut() {
                 srv["tls_connection_policies"] = json!([{ "default_sni": ip }]);
             }
         }
-        // Только h1/h2: контейнер edge публикует лишь TCP, а заголовок Alt-Svc h3 заставляет браузеры (особенно Firefox) пробовать QUIC и ждать
+        // h1/h2 only: the edge container publishes only TCP, and an Alt-Svc h3 header makes browsers (especially Firefox) try QUIC and wait
         for (_, srv) in servers.iter_mut() {
             srv["protocols"] = json!(["h1", "h2"]);
         }
@@ -130,9 +181,9 @@ impl EdgeCaddy {
         if input.tls_internal {
             cfg["apps"]["tls"] = json!({ "automation": { "policies": [ { "subjects": hosts.clone(), "issuers": [ { "module": "internal", "lifetime": LEAF_LIFETIME, "sign_with_root": true } ] } ] } });
         } else {
-            // Tailscale: для имени машины (<box>.<tailnet>.ts.net) Caddy сам берёт сертификат Let's Encrypt у tailscaled через
-            // /var/run/tailscale/tailscaled.sock — политику для него не задаём. Запасные имена и IP публичного сертификата не получат:
-            // им остаётся внутренний CA (с исключением в браузере).
+            // Tailscale: for the machine name (<box>.<tailnet>.ts.net) Caddy itself takes a Let's Encrypt certificate from tailscaled
+            // via /var/run/tailscale/tailscaled.sock — no policy is set for it. Fallback names and IPs get no public certificate: the
+            // internal CA remains for them (with a browser exception).
             let others: Vec<String> = hosts.iter().skip(1).cloned().collect();
             if !others.is_empty() {
                 cfg["apps"]["tls"] = json!({ "automation": { "policies": [ { "subjects": others, "issuers": [ { "module": "internal", "lifetime": LEAF_LIFETIME, "sign_with_root": true } ] } ] } });
@@ -146,14 +197,15 @@ fn reverse_proxy(upstream: &str) -> Value {
     json!({ "handler": "reverse_proxy", "upstreams": [{ "dial": upstream }] })
 }
 
-/// Приложение с `open: iframe` фреймит Desktop: снимаем запрет фреймить только на origin Desktop'а (3.12).
+/// An app with `open: iframe` is framed by Desktop: lift the framing ban only for the Desktop origin
+/// (3.12).
 fn frame_ancestors_rewrite(origins: &str) -> Value {
     json!({ "handler": "headers", "response": { "deferred": true, "delete": ["X-Frame-Options"],
         "set": { "Content-Security-Policy": [format!("frame-ancestors 'self' {origins}")] } } })
 }
 
-/// Вместо голого 502/503/504 от reverse_proxy — страница AgentVerse OS: приложение ещё запускается или упало, ссылка на карточку и логи,
-/// автообновление раз в 5 секунд. Пользователь работает только из браузера, и это единственное, что он увидит.
+/// Instead of a bare 502/503/504 from reverse_proxy — an AgentVerse OS page: the app is still starting or has crashed, a link to the
+/// card and the logs, auto-refresh every 5 seconds. The user works only from the browser, and this is all they will see.
 fn error_page(host: &str, name: &str, title: &str) -> Value {
     let esc = |s: &str| s.replace('&', "&amp;").replace('<', "&lt;").replace('"', "&quot;");
     let body = format!(

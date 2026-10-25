@@ -1,5 +1,5 @@
 <script lang="ts">
-  // Экран «Готово, данные для входа» после установки (docs/userflow-apps.md, шаг 2.3).
+  // The "Done, sign-in data" screen after install (docs/userflow-apps.md, step 2.3).
   import { api, type AppView } from './api';
   import { wm } from './windows.svelte';
   import { iconOf, isImg, titleOf, sourceOf, openUrl } from './store-utils';

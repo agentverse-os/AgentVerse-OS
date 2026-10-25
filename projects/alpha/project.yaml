@@ -1,11 +1,12 @@
-# projects/alpha/project.yaml — источник истины проекта (2.7); Desktop правит этот файл, cloudd применяет идемпотентно.
+# projects/alpha/project.yaml — the project's source of truth (2.7); Desktop edits this file, cloudd applies it
+# idempotently.
 schema: 1
 project: alpha
-description: витрина стенда — на ней проверяются capabilities, gate и обновления   # заметка для людей, ядро её не читает
+description: витрина стенда — на ней проверяются capabilities, gate и обновления   # a note for people, the core does not read it
 workspace:
-  runtime: incus-nesting        # incus | incus-nesting (Docker внутри) | incus-vm
+  runtime: incus-nesting        # incus | incus-nesting (Docker inside) | incus-vm
   cpu: 2
   memory: 4GiB
   home: 50GiB
 agents: [claude-code, codex]
-capabilities: [demo.http]       # → http://demo.http.gate из workspace, когда установлен whoami
+capabilities: [demo.http]       # → http://demo.http.gate from the workspace once whoami is installed

@@ -1,6 +1,6 @@
-// Оконный менеджер Desktop (3.12): всё — окна. Системные приложения (Проекты, Store, Система, Настройки, карточка приложения)
-// рендерятся как Svelte-компоненты, внешние приложения и VS Code Web — как iframes. Собственный WM на CSS transform.
-// Каноническое состояние — список окон и раскладка per device-class; хранится в ядре (kv) и в localStorage.
+// Desktop window manager (3.12): everything is a window. System apps (Projects, Store, System, Settings, the app card) render
+// as Svelte components, external apps and VS Code Web — as iframes. Its own WM on CSS transform. The canonical state is the
+// window list and the layout per device class; stored in the core (kv) and in localStorage.
 import { api } from './api';
 import { t } from './i18n.svelte';
 
@@ -10,9 +10,9 @@ export interface Win {
   id: string;
   kind: WinKind;
   title: string;
-  /** Ключ словаря для заголовка системного окна: заголовок следует за языком интерфейса (title — снимок на момент открытия). */
+  /** Dictionary key for a system window title: the title follows the UI language (title is a snapshot at open time). */
   titleKey?: string;
-  icon?: string | null;      // URL картинки или emoji
+  icon?: string | null;      // an image URL or an emoji
   url?: string;              // iframe
   component?: SysApp;        // component
   props?: Record<string, unknown>;
@@ -28,7 +28,7 @@ export const TASKBAR_H = 48;
 const KEY = () => `cloudos.windows.${deviceClass()}`;
 let zTop = 10;
 
-/** title — ключ словаря (i18n/messages/common.ts, sys.*): показывать через sysTitle(app) или t(meta.title). */
+/** title — a dictionary key (i18n/messages/common.ts, sys.*): show via sysTitle(app) or t(meta.title). */
 export const SYS_APPS: Record<SysApp, { title: string; icon: string; w: number; h: number }> = {
   projects: { title: 'sys.projects', icon: '🗂️', w: 1040, h: 720 },
   store: { title: 'sys.store', icon: '🛍️', w: 1180, h: 780 },
@@ -42,13 +42,14 @@ export const SYS_APPS: Record<SysApp, { title: string; icon: string; w: number; 
   reader: { title: 'sys.reader', icon: '📰', w: 780, h: 680 },
   setup: { title: 'sys.setup', icon: '🧭', w: 860, h: 700 },
   updates: { title: 'sys.updates', icon: '⬆️', w: 1000, h: 740 },
-  agents: { title: 'sys.agents', icon: '🤖', w: 1180, h: 760 },  // ADR-006: сессии агентов и терминалы workspace'ов
+  agents: { title: 'sys.agents', icon: '🤖', w: 1180, h: 760 },  // ADR-006: agent sessions and workspace terminals
 };
-/** Название системного приложения на текущем языке. */
+/** System app name in the current language. */
 export function sysTitle(app: SysApp) { return t(SYS_APPS[app].title); }
-/** Заголовок окна на текущем языке: системные окна без своего имени — по ключу словаря, остальные — как открыты. */
+/** Window title in the current language: system windows without their own name — by the dictionary key, the rest —
+ *  as opened. */
 export function winTitle(w: Win) { return w.titleKey ? t(w.titleKey) : w.title; }
-// Сессии, сохранённые до локализации, хранят русские заголовки системных окон — такие окна получают ключ словаря при загрузке.
+// Sessions saved before localization hold Russian titles of system windows — such windows get a dictionary key on load.
 const LEGACY_TITLES: Record<string, SysApp> = { 'Проекты': 'projects', 'Store': 'store', 'Система': 'system', 'Настройки': 'settings', 'Файлы': 'files', 'Пароли и доступы': 'vault', 'Первый запуск': 'setup', 'Обновления': 'updates', 'Готово': 'appready' };
 function migrate(ws: Win[]) { for (const w of ws) if (w.kind === 'component' && !w.titleKey && w.component && LEGACY_TITLES[w.title] === w.component) w.titleKey = SYS_APPS[w.component].title; return ws; }
 
@@ -82,7 +83,7 @@ class WindowManager {
     return { x: phone ? 0 : Math.max(20, Math.min(innerWidth - W - 20, 60 + (n % 6) * 32)), y: phone ? 0 : Math.max(20, Math.min(innerHeight - TASKBAR_H - H - 10, 40 + (n % 6) * 28)), w: phone ? innerWidth : W, h: phone ? innerHeight - TASKBAR_H : H, maximized: phone };
   }
 
-  /** Внешнее приложение или VS Code Web — iframe. */
+  /** An external app or VS Code Web — an iframe. */
   open(id: string, title: string, url: string, icon?: string | null, size?: { w: number; h: number }) {
     const ex = this.wins.find(w => w.id === id);
     if (ex) { ex.minimized = false; this.focus(id); this.persist(); return; }
@@ -90,7 +91,7 @@ class WindowManager {
     this.wins.push({ id, kind: 'iframe', title, url, icon, ...p, z: ++zTop, minimized: false });
     this.active = id; this.startOpen = false; this.persist();
   }
-  /** Системное приложение — компонент. */
+  /** A system app — a component. */
   openSys(app: SysApp, props?: Record<string, unknown>, title?: string) {
     const id = props?.name ? `${app}:${props.name}` : props?.root ? `${app}:${props.root}` : props?.link ? `${app}:${props.link}` : `sys:${app}`;
     const ex = this.wins.find(w => w.id === id);

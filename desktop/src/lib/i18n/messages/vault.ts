@@ -1,5 +1,5 @@
-// «Пароли и доступы»: шапка, поиск, экспорт текстом, блок Coder, короткие подписи режимов входа. Заголовок окна — sys.vault (common.ts).
-// Подписи полей «логин»/«пароль» внутри строк приложений задаёт access.ts/AccessPanel, здесь — только свои.
+// "Passwords and access": header, search, text export, the Coder block, short sign-in mode labels. The window title — sys.vault
+// (common.ts). The "login"/"password" field labels inside app rows are set by access.ts/AccessPanel, here — only its own.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

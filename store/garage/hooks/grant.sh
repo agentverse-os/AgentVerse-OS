@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# on_grant storage.s3: бакет и ключ проекта (идемпотентно), права ключа только на этот бакет. stdout → env проекта.
+# on_grant storage.s3: the project's bucket and key (idempotent), the key's rights only on this bucket. stdout →
+# the project env.
 . "$(dirname "$0")/common.sh"
 
-# бакет
+# bucket
 if ! bid=$(api GET "/v2/GetBucketInfo?globalAlias=$BUCKET" 2>/dev/null | jq -r '.id // empty'); then bid=""; fi
 if [[ -z "$bid" ]]; then
   bid=$(api POST /v2/CreateBucket "{\"globalAlias\":\"$BUCKET\"}" | jq -r .id)
 fi
-# ключ: пересоздаём на каждый grant, чтобы секрет был известен (Admin API отдаёт secret только при создании / с showSecretKey)
+# key: recreated on every grant so the secret is known (the Admin API returns the secret only at creation / with
+# showSecretKey)
 existing=$(api GET /v2/ListKeys | jq -r ".[] | select(.name==\"$KEYNAME\") | .id" | head -1 || true)
 if [[ -n "$existing" ]]; then
   key=$(api GET "/v2/GetKeyInfo?id=$existing&showSecretKey=true")

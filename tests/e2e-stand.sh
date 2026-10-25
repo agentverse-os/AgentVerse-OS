@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# E2E среза 1 на живом стенде (запускать на хосте с установленным cloudd, под sudo):
-#   sudo tests/e2e-stand.sh [project]        # по умолчанию проект e2e-<pid>; в конце всё удаляется
-# Проверяет DoD: project → сеть+gate+workspace, app install → авто-grant, маршрут через gate из workspace,
-# отсутствие прямого доступа и docker.sock хоста, revoke/grant без рестарта gate, stop/start без пересоздания, app remove.
+# Slice 1 E2E on the live stand (run on the host with cloudd installed, under sudo):
+#   sudo tests/e2e-stand.sh [project]        # by default the project e2e-<pid>; everything is removed at the end
+# Checks the DoD: project → network+gate+workspace, app install → auto-grant, a route through the gate from the workspace,
+# no direct access and no host docker.sock, revoke/grant without a gate restart, stop/start without recreation, app remove.
 set -uo pipefail
 P="${1:-e2e-$$}"; APP=whoami; CAP=demo.http; fails=0; ERR=/tmp/e2e-$P.err; : > "$ERR"
 trap '[ -s "$ERR" ] && { echo; echo "== stderr команд cloudd:"; tail -20 "$ERR"; }' EXIT

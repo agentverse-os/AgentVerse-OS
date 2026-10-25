@@ -1,27 +1,28 @@
 #!/usr/bin/env bash
-# AgentVerse OS · установка на чистый Ubuntu одной командой. Идемпотентно: повторный запуск ничего не ломает, любой шаг
-# можно вызвать отдельно. Порядок: preflight → zfs → host (Docker, Incus, firewall) → tailscale (ссылка и QR на авторизацию,
-# ожидание подтверждения, MagicDNS и HTTPS Certificates) → coder → komodo → edge → cloudd → catalog → template → verify.
+# AgentVerse OS · installation on a clean Ubuntu with one command. Idempotent: a repeated run breaks nothing, any step can
+# be called separately. Order: preflight → zfs → host (Docker, Incus, firewall) → tailscale (a link and QR for
+# authorization, waiting for confirmation, MagicDNS and HTTPS Certificates) → coder → komodo → edge → cloudd → catalog →
+# template → verify.
 #
-#   sudo bootstrap/install.sh                                    # всё; дальше — Desktop в браузере
-#   sudo bootstrap/install.sh <шаг>                              # preflight | zfs | host | tailscale | coder | komodo | edge | cloudd | catalog | template | verify
-#   sudo DISKS="/dev/disk/by-id/…" bootstrap/install.sh          # создать пул ZFS на этих дисках (иначе пул не создаётся, Incus на dir)
-#   sudo PACKAGE=agentverse-os-0.2.0-x86_64.tar.gz bootstrap/install.sh   # ядро из пакета обновления (файл или https-URL); он же — источник bootstrap/ и шаблона
+#   sudo bootstrap/install.sh                                    # everything; then — Desktop in the browser
+#   sudo bootstrap/install.sh <step>                             # preflight | zfs | host | tailscale | coder | komodo | edge | cloudd | catalog | template | verify
+#   sudo DISKS="/dev/disk/by-id/…" bootstrap/install.sh          # create the ZFS pool on these disks (otherwise no pool is created, Incus on dir)
+#   sudo PACKAGE=agentverse-os-0.2.0-x86_64.tar.gz bootstrap/install.sh   # the core from an update package (a file or an https URL); it is also the source of bootstrap/ and the template
 #   sudo bootstrap/install.sh --help
 #
-# Переменные:
-#   EDGE_HOST            имя ядра; по умолчанию — MagicDNS-имя узла Tailscale (когда узел авторизован, MagicDNS и HTTPS включены),
-#                        иначе уже записанное в /etc/cloudos/cloudd.env, иначе IPv4 хоста (временно, внутренний CA)
-#   DISKS                диски под пул tank (через пробел); DISKS_FORCE=1 — не спрашивать подтверждение (данные на дисках будут уничтожены)
-#   PACKAGE              пакет agentverse-os-<версия>-<arch>.tar.gz (файл или https-URL); PACKAGE_SHA256 — ожидаемый sha256 файла
-#   CLOUDD_BIN           собранный бинарь, если пакета нет (по умолчанию ../cloudd/target/release/cloudd или ../cloudd рядом с bootstrap/)
-#   TAILSCALE_AUTH_KEY   авторизовать узел ключом (или TAILSCALE_AUTH_KEY_FILE — путь к файлу с ключом; ключ не попадает в ps и журнал)
-#   TAILSCALE_HOSTNAME   имя узла в tailnet (по умолчанию hostname машины); задаётся через tailscale set после входа
-#   TAILSCALE_WAIT       сколько ждать авторизацию и включение MagicDNS/HTTPS: Ns | Nm | Nh (по умолчанию 15m; 0 — не ждать)
-#   NONINTERACTIVE=1     не ждать и не спрашивать (то же самое без терминала); ADMIN_EMAIL, ADMIN_PASSWORD (или ADMIN_PASSWORD_FILE) — администратор Coder/Komodo
-#   IMPORT_CATALOG=1     импортировать каталог upstream (Runtipi, Coolify, Umbrel) даже если манифесты уже есть
-#   ARC_MAX_GB           лимит ARC для ZFS (2 на 14 GB RAM, 6 на 64 GB); LOG — журнал (по умолчанию /var/log/agentverse-install.log, 0600)
-# Секреты (пароль admin, токен Coder, ключ Komodo) генерируются один раз и живут в /etc/cloudos/cloudd.env (0600); в git не попадают.
+# Variables:
+#   EDGE_HOST            the core name; by default the Tailscale node's MagicDNS name (when the node is authorized and MagicDNS and HTTPS are on),
+#                        otherwise the one already written in /etc/cloudos/cloudd.env, otherwise the host IPv4 (temporarily, the internal CA)
+#   DISKS                disks for the tank pool (space-separated); DISKS_FORCE=1 — do not ask for confirmation (the data on the disks will be destroyed)
+#   PACKAGE              the agentverse-os-<version>-<arch>.tar.gz package (a file or an https URL); PACKAGE_SHA256 — the expected sha256 of the file
+#   CLOUDD_BIN           a built binary if there is no package (by default ../cloudd/target/release/cloudd or ../cloudd next to bootstrap/)
+#   TAILSCALE_AUTH_KEY   authorize the node with a key (or TAILSCALE_AUTH_KEY_FILE — the path to a file with the key; the key does not get into ps and the log)
+#   TAILSCALE_HOSTNAME   the node name in the tailnet (by default the machine hostname); set via tailscale set after sign-in
+#   TAILSCALE_WAIT       how long to wait for authorization and enabling MagicDNS/HTTPS: Ns | Nm | Nh (default 15m; 0 — do not wait)
+#   NONINTERACTIVE=1     do not wait and do not ask (the same without a terminal); ADMIN_EMAIL, ADMIN_PASSWORD (or ADMIN_PASSWORD_FILE) — the Coder/Komodo administrator
+#   IMPORT_CATALOG=1     import the upstream catalog (Runtipi, Coolify, Umbrel) even if the manifests already exist
+#   ARC_MAX_GB           the ZFS ARC limit (2 for 14 GB RAM, 6 for 64 GB); LOG — the log (default /var/log/agentverse-install.log, 0600)
+# Secrets (the admin password, the Coder token, the Komodo key) are generated once and live in /etc/cloudos/cloudd.env (0600); they never get into git.
 set -Eeuo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/.." && pwd)"
@@ -47,9 +48,9 @@ TLS_INTERNAL=true
 PKG_DIR=""
 TEE_PID=""
 STEP=""
-TTY=0; [[ -z "${NONINTERACTIVE:-}" && -t 0 && -t 1 ]] && TTY=1   # до exec > >(tee): после него stdout — канал
+TTY=0; [[ -z "${NONINTERACTIVE:-}" && -t 0 && -t 1 ]] && TTY=1   # before exec > >(tee): after it stdout is a pipe
 
-# ------------------------------------------------------------------------------------------------------------ утилиты
+# ------------------------------------------------------------------------------------------------------------ helpers
 c_bold=$'\033[1m'; c_ok=$'\033[32m'; c_warn=$'\033[33m'; c_err=$'\033[31m'; c_off=$'\033[0m'
 log()  { printf '\n%s== %s%s\n' "$c_bold" "$*" "$c_off"; }
 ok()   { printf '%s✓%s %s\n' "$c_ok" "$c_off" "$*"; }
@@ -60,18 +61,19 @@ need_root() { [[ $EUID -eq 0 ]] || die "запускать через sudo"; }
 rand() { openssl rand -hex "${1:-16}"; }
 interactive() { [[ "$TTY" == 1 ]]; }
 usage() { sed -n '2,/^set /{/^set /!p}' "$0" | sed 's/^# \{0,1\}//'; }
-# длительность Ns | Nm | Nh | N (секунды) → секунды; иначе — ошибка
+# a duration Ns | Nm | Nh | N (seconds) → seconds; otherwise an
+# error
 to_secs() {
   local v="${1:-0}"
   [[ "$v" =~ ^[0-9]+[smh]?$ ]] || die "TAILSCALE_WAIT=«$v»: ожидаю форму 15m, 90s, 2h или 0"
   case "$v" in *h) echo $(( ${v%h} * 3600 )) ;; *m) echo $(( ${v%m} * 60 )) ;; *s) echo "${v%s}" ;; *) echo "$v" ;; esac
 }
-human_dur() { # секунды → «15 мин» / «2 ч» / «90 с»
+human_dur() { # seconds → "15 min" / "2 h" / "90 s"
   local s="$1"
   if (( s >= 3600 && s % 3600 == 0 )); then echo "$((s / 3600)) ч"; elif (( s >= 60 && s % 60 == 0 )); then echo "$((s / 60)) мин"; else echo "$s с"; fi
 }
 env_get() { grep -E "^$1=" "$2" 2>/dev/null | head -1 | cut -d= -f2- || true; }
-env_set() { # env_set FILE KEY VALUE — заменить строку KEY= на месте или дописать; без sed, спецсимволы в значении безопасны
+env_set() { # env_set FILE KEY VALUE — replace the KEY= line in place or append; no sed, special characters in the value are safe
   local f="$1" k="$2" v="$3" tmp
   mkdir -p "$(dirname "$f")"; [[ -f "$f" ]] || { : > "$f"; chmod 0600 "$f"; }
   tmp="$(mktemp "$f.XXXXXX")"
@@ -80,7 +82,7 @@ env_set() { # env_set FILE KEY VALUE — заменить строку KEY= на
 }
 lan_ip() { ip -4 route get 1.1.1.1 2>/dev/null | awk '{for (i = 1; i <= NF; i++) if ($i == "src") { print $(i + 1); exit }}' || true; }
 is_ipv4() { [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; }
-wait_for() { # wait_for <сек> <описание> <команда…> — ждать успеха команды
+wait_for() { # wait_for <sec> <description> <command…> — wait for the command to succeed
   local secs="$1" what="$2"; shift 2
   local end=$(( $(date +%s) + secs ))
   while ! "$@" >/dev/null 2>&1; do
@@ -88,15 +90,15 @@ wait_for() { # wait_for <сек> <описание> <команда…> — жд
     sleep 2
   done
 }
-confirm() { # confirm <вопрос> — да без вопросов только явно (NONINTERACTIVE не считается согласием)
+confirm() { # confirm <question> — yes without asking only explicitly (NONINTERACTIVE does not count as consent)
   if ! interactive; then return 1; fi
   local a=""; read -r -p "$1 [y/N] " a </dev/tty; [[ "$a" == [yY] ]]
 }
-coder_cli() { # coder CLI под root: сессия — токен cloudd из env-файла, если он уже есть
+coder_cli() { # the coder CLI as root: the session is the cloudd token from the env file, if it already exists
   local tok; tok="$(env_get CLOUDD_CODER_TOKEN "$ENV_FILE")"
   if [[ -n "$tok" ]]; then CODER_URL=http://127.0.0.1:7080 CODER_SESSION_TOKEN="$tok" coder "$@" </dev/null; else coder "$@" </dev/null; fi
 }
-admin_password() { # заданный явно — сохраняется; иначе генерируется один раз и живёт в cloudd.env
+admin_password() { # set explicitly — kept; otherwise generated once and lives in cloudd.env
   local p
   if [[ -n "$ADMIN_PASSWORD" ]]; then
     [[ "$(env_get CLOUDOS_ADMIN_PASSWORD "$ENV_FILE")" == "$ADMIN_PASSWORD" ]] || env_set "$ENV_FILE" CLOUDOS_ADMIN_PASSWORD "$ADMIN_PASSWORD"
@@ -124,12 +126,13 @@ ts_magicdns() { ts_json | jq -r '.CurrentTailnet.MagicDNSEnabled // false'; }
 ts_https()    { ts_json | jq -r 'if (.CertDomains // []) | length > 0 then "true" else "false" end'; }
 ts_ipv4()     { ts_json | jq -r '(.Self.TailscaleIPs // [])[]' | grep -m1 '\.' || true; }
 ts_control_reachable() { curl -fsS -m 8 -o /dev/null https://controlplane.tailscale.com/ 2>/dev/null || curl -fsS -m 8 -o /dev/null https://login.tailscale.com/ 2>/dev/null; }
-# после входа: имя узла и приём DNS из админки — через tailscale set (не требует перечислять все флаги, как up)
+# after sign-in: the node name and accepting DNS from the admin console — via tailscale set (does not require
+# listing all flags, unlike up)
 ts_apply_prefs() {
   tailscale set --accept-dns=true 2>/dev/null || true
   if [[ -n "$TAILSCALE_HOSTNAME" ]]; then tailscale set --hostname="$TAILSCALE_HOSTNAME" 2>/dev/null || warn "не удалось задать имя узла $TAILSCALE_HOSTNAME (tailscale set --hostname)"; sleep 2; fi
 }
-ts_report_state() { # что делать в текущем состоянии узла, если он не Running
+ts_report_state() { # what to do in the node's current state if it is not Running
   case "$(ts_state)" in
     NeedsMachineAuth) warn "узел вошёл в tailnet и ждёт одобрения администратора: $TS_ADMIN_MACHINES (Machines → Needs approval → Approve). После одобрения соединение поднимется само; затем выполните sudo $0 tailscale" ;;
     NeedsLogin) local url; url="$(ts_authurl)"
@@ -139,8 +142,9 @@ ts_report_state() { # что делать в текущем состоянии �
   esac
 }
 
-# Авторизация узла. `tailscale up` без пользовательских флагов (иначе на узле с настройками он требует перечислить их все):
-# печатает ссылку и QR и ждёт, пока узел не станет Running (или до --timeout). Без терминала — только получить ссылку.
+# Node authorization. `tailscale up` without user flags (otherwise on a node with settings it demands listing them all):
+# prints a link and a QR and waits until the node becomes Running (or until --timeout). Without a terminal — only get the
+# link.
 ts_authorize() {
   local wait_s; wait_s="$(to_secs "$TAILSCALE_WAIT")"
   local key="${TAILSCALE_AUTH_KEY:-}"
@@ -149,7 +153,7 @@ ts_authorize() {
     log "Tailscale: авторизация ключом"
     if tailscale up --auth-key="$key" --timeout 2m; then ok "узел авторизован ключом"; else warn "tailscale up с ключом не удался — ниже обычная авторизация по ссылке"; fi
   fi
-  if [[ "$(ts_state)" == Stopped ]]; then   # уже вошёл, но выключен: «простой up» без флагов
+  if [[ "$(ts_state)" == Stopped ]]; then   # already signed in but turned off: a "plain up" without flags
     if timeout 70 tailscale up --timeout 60s; then ok "Tailscale включён"; fi
   fi
   case "$(ts_state)" in Running) ts_apply_prefs; return 0 ;; NeedsMachineAuth) ts_report_state; return 1 ;; esac
@@ -172,13 +176,15 @@ ts_authorize() {
     warn "Подключить Tailscale позже: мастер первого запуска в браузере или sudo $0 tailscale (шаг сам переключит ядро и Coder на имя узла)."
     return 1
   fi
-  # без терминала (или TAILSCALE_WAIT=0): запустить вход (он остаётся ждать в tailscaled), забрать ссылку из status и продолжить
+  # without a terminal (or TAILSCALE_WAIT=0): start the sign-in (it keeps waiting in tailscaled), take the link from status and
+  # continue
   timeout 10 tailscale up --timeout 6s >/dev/null 2>&1 || true
   ts_report_state
   return 1
 }
 
-# MagicDNS и HTTPS Certificates — настройки tailnet в админке; без них имя не резолвится на устройствах, а сертификат не выдаётся.
+# MagicDNS and HTTPS Certificates are tailnet settings in the admin console; without them the name does not resolve on devices and
+# no certificate is issued.
 ts_wait_dns_https() {
   local wait_s; wait_s="$(to_secs "$TAILSCALE_WAIT")"; interactive || wait_s=0
   local end=$(( $(date +%s) + wait_s )) shown=0 magic https
@@ -201,8 +207,9 @@ ts_wait_dns_https() {
   done
 }
 
-# Имя ядра — один раз за запуск: явный EDGE_HOST → своё имя из cloudd.env (не IP и не устаревшее *.ts.net) → имя Tailscale
-# (Running, MagicDNS и HTTPS включены) → уже записанный IP → IPv4 хоста. С IP на имя переходим сами, со своего имени — нет.
+# The core name — once per run: an explicit EDGE_HOST → its own name from cloudd.env (not an IP and not a stale *.ts.net) →
+# the Tailscale name (Running, MagicDNS and HTTPS on) → the already written IP → the host IPv4. We move from an IP to a
+# name by ourselves, away from our own name — never.
 resolve_edge_host() {
   if (( EDGE_RESOLVED )); then return 0; fi
   local existing tsname=""
@@ -222,7 +229,8 @@ resolve_edge_host() {
   EDGE_RESOLVED=1
 }
 
-# Записать имя ядра в cloudd.env: EDGE_HOST, TLS_INTERNAL, запасные входы по IP (объединяются с уже записанными).
+# Write the core name into cloudd.env: EDGE_HOST, TLS_INTERNAL, fallback entries by IP (merged with the already
+# written ones).
 write_edge_env() {
   resolve_edge_host
   env_set "$ENV_FILE" CLOUDD_EDGE_HOST "$EDGE_HOST"
@@ -238,7 +246,8 @@ write_edge_env() {
   env_set "$ENV_FILE" CLOUDD_EDGE_ALT_HOSTS "$(IFS=,; echo "${out[*]}")"
 }
 
-# Пакет обновления (PACKAGE): скачать, распаковать во временный каталог, сверить sha256 бинаря с manifest.json (и файла с PACKAGE_SHA256).
+# Update package (PACKAGE): download, unpack into a temporary directory, check the binary sha256 against manifest.json (and the file
+# against PACKAGE_SHA256).
 resolve_package() {
   [[ -n "$PACKAGE" && -z "$PKG_DIR" ]] || return 0
   local src="$PACKAGE"
@@ -260,7 +269,8 @@ resolve_package() {
   chmod 0755 "$PKG_DIR/cloudd"
   ok "пакет: AgentVerse OS $(jq -r .version "$PKG_DIR/manifest.json") ($(jq -r '.build // "?"' "$PKG_DIR/manifest.json"))"
 }
-# источник бинаря cloudd: пакет → CLOUDD_BIN → сборка в checkout → бинарь в корне распакованного пакета
+# the cloudd binary source: the package → CLOUDD_BIN → a build in the checkout → the binary at the root
+# of the unpacked package
 cloudd_source() {
   if [[ -n "$PKG_DIR" ]]; then echo "$PKG_DIR/cloudd"; return; fi
   for c in "$CLOUDD_BIN" "$REPO/cloudd/target/release/cloudd" "$REPO/cloudd"; do [[ -n "$c" && -f "$c" && -x "$c" ]] && { echo "$c"; return; }; done
@@ -268,7 +278,8 @@ cloudd_source() {
 }
 templates_dir() { for d in "$REPO/templates/incus" "${PKG_DIR:+$PKG_DIR/templates/incus}"; do [[ -n "$d" && -f "$d/main.tf" ]] && { echo "$d"; return; }; done; echo ""; }
 
-# -------------------------------------------------------------------------------------------------------------- шаги
+# --------------------------------------------------------------------------------------------------------------
+# steps
 step_preflight() {
   log "проверка хоста"
   need_root
@@ -289,7 +300,7 @@ step_preflight() {
   if (( free >= 20 )); then ok "свободно на /: ${free} ГБ"; else warn "на / свободно ${free} ГБ — мало (рекомендуется от 20 ГБ; образы Docker живут в /var/lib/docker, если не на ZFS)"; fi
   if curl -fsS -m 8 -o /dev/null https://tailscale.com/ && curl -fsS -m 8 -o /dev/null https://download.docker.com/; then ok "интернет доступен"; else warn "нет доступа к tailscale.com или download.docker.com — установка пакетов может не пройти"; fi
   local p
-  for p in 80 443 8444; do
+  for p in 80 443 8444 8445; do
     if ss -ltn 2>/dev/null | awk '{print $4}' | grep -qE "[:.]$p\$" && ! docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^cloudos-edge$'; then warn "порт $p уже занят — edge Caddy не поднимется"; fi
   done
   resolve_package
@@ -345,7 +356,8 @@ step_tailscale() {
   fi
   resolve_edge_host
   ok "адрес ядра: https://$EDGE_HOST/ (сертификат: $([[ $TLS_INTERNAL == false ]] && echo "Let's Encrypt через tailscaled" || echo 'внутренний CA — временно, до имени Tailscale'))"
-  # шаг вызван отдельно после установки: применить новое имя к ядру и Coder
+  # the step was called separately after the install: apply the new name to
+  # the core and Coder
   if [[ -f "$ENV_FILE" && -n "$(env_get CLOUDD_EDGE_HOST "$ENV_FILE")" && "$(env_get CLOUDD_EDGE_HOST "$ENV_FILE")" != "$EDGE_HOST" ]]; then
     warn "имя ядра меняется: $(env_get CLOUDD_EDGE_HOST "$ENV_FILE") → $EDGE_HOST — обновляю cloudd.env, перезапускаю cloudd и Coder"
     write_edge_env
@@ -354,15 +366,16 @@ step_tailscale() {
   fi
 }
 
-# Coder, развёрнутый раньше под другим именем compose-проекта (например, спайком): проект и файл из меток контейнера.
-# Иначе `compose -p cloudos-coder up` поднял бы второй Coder и второй PostgreSQL на том же /srv/postgres/coder.
+# Coder deployed earlier under a different compose project name (e.g. by the spike): the project and file from the
+# container labels. Otherwise `compose -p cloudos-coder up` would bring up a second Coder and a second PostgreSQL on
+# the same /srv/postgres/coder.
 existing_coder_project() {
   local c; c="$(docker ps -q --filter ancestor=ghcr.io/coder/coder --filter status=running 2>/dev/null | head -1)"
   [[ -z "$c" ]] && c="$(docker ps -q --filter name=coder --filter status=running 2>/dev/null | while read -r id; do docker inspect "$id" --format '{{.Config.Image}} {{.Id}}' | grep -E '^ghcr.io/coder/coder' | cut -d' ' -f2; done | head -1)"
   [[ -n "$c" ]] || return 1
   docker inspect "$c" --format '{{index .Config.Labels "com.docker.compose.project"}}|{{index .Config.Labels "com.docker.compose.project.config_files"}}|{{index .Config.Labels "com.docker.compose.project.working_dir"}}'
 }
-step_coder_compose() { # поднять/пересобрать compose Coder с текущим EDGE_HOST
+step_coder_compose() { # bring up/rebuild the Coder compose with the current EDGE_HOST
   resolve_edge_host
   mkdir -p /srv/postgres/coder
   export EDGE_HOST INCUS_ADMIN_GID; INCUS_ADMIN_GID="$(getent group incus-admin | cut -d: -f3)"
@@ -391,7 +404,8 @@ step_coder() {
     coder login http://127.0.0.1:7080 --first-user-username admin --first-user-email "$ADMIN_EMAIL" --first-user-password "$pw" --first-user-trial=false </dev/null >/dev/null 2>&1 || true
   fi
   if [[ -z "$(env_get CLOUDD_CODER_TOKEN "$ENV_FILE")" ]]; then
-    # сессия без интерактива: логин по паролю администратора через API, затем токен на год с уникальным именем
+    # a non-interactive session: sign in with the administrator password via the API, then a one-year token
+    # with a unique name
     local sess tok
     sess="$(curl -fsS -m 10 -X POST http://127.0.0.1:7080/api/v2/users/login -H 'Content-Type: application/json' -d "$(jq -cn --arg e "$ADMIN_EMAIL" --arg p "$pw" '{email: $e, password: $p}')" 2>/dev/null | jq -r '.session_token // empty' || true)"
     if [[ -n "$sess" ]]; then
@@ -443,13 +457,13 @@ step_edge() {
   docker compose -p cloudos-docker-proxy -f "$HERE/docker-proxy/docker-compose.yml" up -d
   log "edge Caddy (конфигурацию загружает cloudd)"
   docker network inspect coder-net >/dev/null 2>&1 || docker network create coder-net
-  mkdir -p /var/run/tailscale   # каталог сокета tailscaled монтируется в edge; без Tailscale он пустой
+  mkdir -p /var/run/tailscale   # the tailscaled socket directory is mounted into the edge; without Tailscale it is empty
   docker compose -p cloudos-edge -f "$HERE/edge/docker-compose.yml" up -d
   wait_for 60 "Admin API Caddy" curl -fs -m 2 http://127.0.0.1:2019/config/ || die "edge Caddy не поднялся: docker logs cloudos-edge"
   ok "edge поднят (корень внутреннего CA появится после загрузки конфигурации ядром — шаг cloudd)"
 }
 
-capture_ca() { # корень внутреннего CA Caddy → $STATE/ca.crt (создаётся Caddy при первой конфигурации с tls internal)
+capture_ca() { # the root of Caddy's internal CA → $STATE/ca.crt (created by Caddy on the first configuration with tls internal)
   mkdir -p "$STATE"
   if wait_for 60 "корень внутреннего CA" docker cp cloudos-edge:/data/caddy/pki/authorities/local/root.crt "$STATE/ca.crt"; then
     chmod 0644 "$STATE/ca.crt"; ok "корень CA: $STATE/ca.crt (для устройств: https://$EDGE_HOST/api/ca.crt)"
@@ -463,15 +477,18 @@ step_cloudd() {
   [[ -n "$src" ]] || die "нет бинаря cloudd: задайте PACKAGE=…tar.gz (scripts/release.sh) или CLOUDD_BIN=…"
   install -m 0755 "$src" /usr/local/bin/cloudd
   mkdir -p "$STATE/repo/store" "$STATE/repo/projects" /etc/cloudos
-  # каталог Store: из checkout — только чего ещё нет (не откатывать более свежие манифесты рантайма); из пакета — рукописные манифесты, они авторитетны
+  # the Store catalog: from the checkout — only what is not there yet (do not roll back fresher runtime manifests); from the package — hand-written
+  # manifests, they are authoritative
   if [[ -d "$REPO/store" ]]; then rsync -a --ignore-existing --exclude compose.override.yaml --exclude login.yaml "$REPO/store/" "$STATE/repo/store/"; fi
   if [[ -n "$PKG_DIR" && -d "$PKG_DIR/store" ]]; then rsync -a --exclude compose.override.yaml --exclude login.yaml "$PKG_DIR/store/" "$STATE/repo/store/"; fi
-  # projects/ — состояние рантайма, из checkout не копируется (примеры воскрешали бы удалённые проекты)
+  # projects/ is runtime state, not copied from the checkout (the examples would resurrect deleted
+  # projects)
   write_edge_env
   env_set "$ENV_FILE" CLOUDD_REPO_DIR "$STATE/repo"
   env_set "$ENV_FILE" CLOUDD_STATE_DIR "$STATE"
   env_set "$ENV_FILE" CLOUDD_CODER_URL http://127.0.0.1:7080
   env_set "$ENV_FILE" CLOUDD_CODER_PORT 8444
+  env_set "$ENV_FILE" CLOUDD_AGENTS_PORT 8445
   env_set "$ENV_FILE" CLOUDD_CODER_TEMPLATE cloudos-incus
   env_set "$ENV_FILE" CLOUDD_KOMODO_URL http://127.0.0.1:9120
   env_set "$ENV_FILE" CLOUDD_KOMODO_SERVER Local
@@ -519,6 +536,7 @@ step_verify() {
   printf '\n%s┌ AgentVerse OS установлен%s\n' "$c_bold" "$c_off"
   printf '│ Desktop:    https://%s/\n' "$EDGE_HOST"
   printf '│ Coder:      https://%s:8444/  (вход: %s; пароль: sudo grep CLOUDOS_ADMIN_PASSWORD %s — он же у admin в Komodo)\n' "$EDGE_HOST" "$ADMIN_EMAIL" "$ENV_FILE"
+  printf '│ Агенты:     https://%s/agents/  · как отдельное приложение на телефон: https://%s:8445/agents/\n' "$EDGE_HOST" "$EDGE_HOST"
   if [[ "$(ts_state)" == Running ]]; then printf '│ Tailscale:  %s · %s\n' "$(ts_dnsname)" "$(ts_ipv4)"; else printf '│ Tailscale:  не подключён — мастер первого запуска даст ссылку на авторизацию\n'; fi
   if [[ "$TLS_INTERNAL" == true ]]; then
     printf '│ Сертификат: внутренний CA (браузер предупредит; корень: https://%s/api/ca.crt).\n' "$EDGE_HOST"
@@ -530,7 +548,7 @@ step_verify() {
   printf '└ Журнал:     %s\n' "$LOG"
 }
 
-# ------------------------------------------------------------------------------------------------------------- запуск
+# ------------------------------------------------------------------------------------------------------------- run
 main() {
   local arg="${1:-all}"
   case "$arg" in -h|--help|help) usage; exit 0 ;; esac

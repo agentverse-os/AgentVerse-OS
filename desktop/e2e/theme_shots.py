@@ -15,15 +15,15 @@ with sync_playwright() as p:
     pg.goto(f"https://{HOST}/#projects", wait_until="networkidle"); pg.wait_for_selector("text=capabilities", timeout=15000); time.sleep(1)
     ok("theme: persists across navigation", pg.evaluate("document.documentElement.dataset.theme") == "light")
     pg.screenshot(path="shots/t3-projects-light.png")
-    # сохранено в ядре?
+    # saved in the core?
     r = pg.request.get(f"https://{HOST}/api/settings/desktop"); j = r.json()
     ok("theme: saved in cloudd", j.get("appearance", {}).get("mode") == "light" and j["appearance"]["accent"].lower() == "#d65db1", json.dumps(j)[:120])
-    # новый браузерный контекст (другое устройство) получает те же настройки
+    # a new browser context (another device) gets the same settings
     ctx2 = b.new_context(locale="ru-RU", ignore_https_errors=True, viewport={"width": 1280, "height": 860}); p2 = ctx2.new_page()
     p2.goto(f"https://{HOST}/#store", wait_until="networkidle"); time.sleep(1.5)
     ok("theme: roams to another device", p2.evaluate("document.documentElement.dataset.theme") == "light")
     p2.screenshot(path="shots/t4-store-light.png")
-    # вернуть тёмную по умолчанию
+    # restore the default dark one
     pg.goto(f"https://{HOST}/#settings", wait_until="networkidle"); pg.wait_for_selector("text=Сброс", timeout=15000); pg.click("text=Вернуть оформление по умолчанию"); time.sleep(1.2)
     ok("theme: reset to dark", pg.evaluate("document.documentElement.dataset.theme") == "dark")
     b.close()

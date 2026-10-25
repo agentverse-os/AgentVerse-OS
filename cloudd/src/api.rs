@@ -1,5 +1,6 @@
-//! HTTP API `cloudd` (`/api/*`) и статика Desktop (`/`). Слушает только на localhost и docker-мосте;
-//! наружу — через edge-Caddy. Identity v1 — периметр overlay-сети (2.3), поэтому авторизации у API нет.
+//! `cloudd` HTTP API (`/api/*`) and Desktop statics (`/`). Listens only on localhost and the docker
+//! bridge; outside — through the edge Caddy. Identity v1 is the overlay network perimeter (2.3), so the
+//! API has no authorization.
 
 use crate::model::*;
 use crate::service::Service;
@@ -20,7 +21,7 @@ pub struct ApiError(anyhow::Error);
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let msg = format!("{:#}", self.0);
-        let code = if msg.contains("не найден") || msg.contains("не установлено") { StatusCode::NOT_FOUND } else if msg.contains("имя ") || msg.contains("требует") || msg.contains("зависят") || msg.contains("не объявлена") || msg.contains("недопустимый путь") || msg.contains("за пределы корня") || msg.contains("описание проекта") || msg.contains("раскладка") || msg.contains("политика — объект") || msg.contains("каталог входа") || msg.contains("вход: claude") || msg.contains("вход по ссылке") || msg.contains("state не найден") || msg.contains("пустой код") || msg.contains("обмен кода") || msg.contains("agentd: 400") { StatusCode::BAD_REQUEST } else if msg.contains("agentd не отвечает") { StatusCode::BAD_GATEWAY } else if msg.contains("agentd: 404") { StatusCode::NOT_FOUND } else { StatusCode::INTERNAL_SERVER_ERROR };
+        let code = if msg.contains("дневной лимит") && msg.contains("исчерпан") { StatusCode::PAYMENT_REQUIRED } else if msg.contains("не найден") || msg.contains("не установлено") { StatusCode::NOT_FOUND } else if msg.contains("имя ") || msg.contains("требует") || msg.contains("зависят") || msg.contains("не объявлена") || msg.contains("недопустимый путь") || msg.contains("за пределы корня") || msg.contains("описание проекта") || msg.contains("раскладка") || msg.contains("политика — объект") || msg.contains("каталог входа") || msg.contains("вход: claude") || msg.contains("вход по ссылке") || msg.contains("state не найден") || msg.contains("пустой код") || msg.contains("обмен кода") || msg.contains("agentd: 400") { StatusCode::BAD_REQUEST } else if msg.contains("agentd не отвечает") { StatusCode::BAD_GATEWAY } else if msg.contains("agentd: 404") { StatusCode::NOT_FOUND } else { StatusCode::INTERNAL_SERVER_ERROR };
         tracing::warn!("api error {}: {msg}", code.as_u16());
         (code, Json(serde_json::json!({ "error": msg }))).into_response()
     }
@@ -52,25 +53,36 @@ pub fn router(svc: Service) -> Router {
         .route("/projects/{name}/workspace/stop", post(workspace_stop))
         .route("/projects/{name}/grants", post(grant))
         .route("/projects/{name}/grants/{capability}", delete(revoke))
-        // Agent Runtime (ADR-006): терминалы workspace через cloudos-agentd; поток терминала — WebSocket-прокси
+        // Agent Runtime (ADR-006): workspace terminals via cloudos-agentd; the terminal stream is a WebSocket
+        // proxy
         .route("/projects/{name}/agentd", get(agentd_health))
         .route("/projects/{name}/agentd/restart", post(agentd_restart))
         .route("/projects/{name}/ptys", get(pty_list).post(pty_create))
         .route("/projects/{name}/ptys/{id}", get(pty_get).delete(pty_delete))
         .route("/projects/{name}/ptys/{id}/resize", post(pty_resize))
         .route("/projects/{name}/ptys/{id}/ws", get(pty_ws))
+        .route("/projects/{name}/events", get(events_ws))
+        .route("/projects/{name}/previews", get(previews_list).post(previews_add))
+        .route("/projects/{name}/browser", get(browser_status).post(browser_set))
+        .route("/projects/{name}/browser/install", post(browser_install))
+        .route("/projects/{name}/browser/ws", get(browser_ws))
+        .route("/projects/{name}/previews/{port}", delete(previews_remove))
         .route("/projects/{name}/sessions", get(session_list).post(session_create))
         .route("/projects/{name}/sessions/{id}", get(session_get).delete(session_delete))
         .route("/projects/{name}/sessions/{id}/events", get(session_events))
+        .route("/projects/{name}/sessions/{id}/events/{seq}", get(session_event))
         .route("/projects/{name}/sessions/{id}/download", get(session_download))
         .route("/projects/{name}/search", get(project_search))
         .route("/projects/{name}/mcp", get(project_mcp).post(project_mcp_set))
+        .route("/projects/{name}/mcp/health", get(project_mcp_health))
         .route("/projects/{name}/sessions/{id}/ws", get(session_ws))
         .route("/projects/{name}/sessions/{id}/prompt", post(session_prompt))
         .route("/projects/{name}/sessions/{id}/permission", post(session_permission))
         .route("/projects/{name}/sessions/{id}/interrupt", post(session_interrupt))
         .route("/projects/{name}/sessions/{id}/mode", post(session_mode))
         .route("/projects/{name}/sessions/{id}/model", post(session_model))
+        .route("/projects/{name}/sessions/{id}/label", post(session_label))
+        .route("/projects/{name}/sessions/{id}/limit_hit", post(session_limit_hit))
         .route("/projects/{name}/sessions/{id}/tui", post(session_tui).delete(session_tui_stop))
         .route("/projects/{name}/sessions/{id}/effort", post(session_effort))
         .route("/projects/{name}/sessions/{id}/control", post(session_control))
@@ -82,10 +94,11 @@ pub fn router(svc: Service) -> Router {
         .route("/projects/{name}/fs/rename", post(fs_rename))
         .route("/projects/{name}/git/{*op}", get(git_op).post(git_op_post))
         .route("/projects/{name}/llm/quick", post(llm_quick))
-        // каталог движков workspace'а (agentd engines.rs): что установлено, установка в терминале
+        // workspace engine catalog (agentd engines.rs): what is installed, install in a terminal
         .route("/projects/{name}/engines", get(engines_list))
         .route("/projects/{name}/engines/{id}/install", post(engine_install))
-        // маршруты к моделям для простого чата (llm.rs): список, модели, потоковый прокси; расход не из agentd — в книгу
+        // model routes for the simple chat (llm.rs): list, models, streaming proxy; usage not from agentd — into the
+        // ledger
         .route("/llm/routes", get(llm_routes))
         .route("/llm/routes/{id}/models", get(llm_route_models))
         .route("/llm/routes/{id}/chat", post(llm_route_chat))
@@ -96,8 +109,11 @@ pub fn router(svc: Service) -> Router {
         .route("/usage/export.csv", get(usage_csv))
         .route("/agents", get(agents_all))
         .route("/accounts", get(accounts_list).post(account_create))
+        .route("/accounts/limits", get(accounts_limits))
+        .route("/accounts/{id}/limits", get(account_limits))
         .route("/accounts/import", post(account_import))
         .route("/accounts/login", post(account_login))
+        .route("/accounts/login/{pty}", get(account_login_status))
         .route("/accounts/oauth/start", post(oauth_start))
         .route("/accounts/oauth/finish", post(oauth_finish))
         .route("/accounts/oauth/status", get(oauth_status))
@@ -110,10 +126,11 @@ pub fn router(svc: Service) -> Router {
         .route("/gate/plugins/install", post(gate_plugin_install))
         .route("/gate/plugins/enabled", post(gate_plugin_enabled))
         .route("/projects/{name}/ptys/{id}/input", post(pty_input))
+        .route("/projects/{name}/ptys/{id}/text", get(pty_text))
         .route("/projects/{name}/sessions/{id}/thinking", post(session_thinking))
         .route("/projects/{name}/sessions/{id}/tier", post(session_tier))
         .route("/projects/{name}/sessions/{id}/cache", post(session_cache))
-        .route("/accounts/{id}", delete(account_delete))
+        .route("/accounts/{id}", delete(account_delete).patch(account_update))
         .route("/projects/{name}/account", axum::routing::put(project_account_set))
         .route("/projects/{name}/sessions/{id}/account", post(session_account))
         .route("/projects/{name}/sessions/{id}/move", post(session_move))
@@ -125,6 +142,8 @@ pub fn router(svc: Service) -> Router {
         .route("/projects/{name}/permissions", get(permissions_get).put(permissions_put))
         .route("/agents/notify", get(agents_notify).post(agents_notify_push))
         .route("/agents/layout", get(agents_layout_get).put(agents_layout_put))
+        .route("/agents/budgets", get(budgets_get).put(budgets_put))
+        .route("/agents/budgets/state", get(budgets_state))
         .route("/apps", get(list_apps))
         .route("/apps/{name}/install", post(install_app))
         .route("/apps/{name}", get(get_app).delete(remove_app))
@@ -161,7 +180,7 @@ pub fn router(svc: Service) -> Router {
         .route("/files/{root}/rename", post(files_rename))
         .route("/files/{root}/delete", delete(files_delete))
         .route("/settings/desktop", get(desktop_settings_get).put(desktop_settings_put))
-        // мастер первого запуска (setup.rs) и обновления (updates.rs)
+        // first-run wizard (setup.rs) and updates (updates.rs)
         .route("/setup", get(setup_get))
         .route("/setup/tailscale/login", post(setup_login))
         .route("/setup/edge-host", post(setup_host))
@@ -201,7 +220,8 @@ async fn desktop(uri: Uri) -> Response {
 
 #[utoipa::path(get, path = "/api/status", responses((status = 200, body = SystemStatus)))]
 async fn status(State(s): State<Service>, headers: axum::http::HeaderMap) -> R<SystemStatus> {
-    // присутствие: видимая вкладка Desktop опрашивает статус с этим заголовком; без него полторы минуты — и человек «ушёл»
+    // presence: a visible Desktop tab polls the status with this header; without it a minute and a half — and the person
+    // is "away"
     if headers.get("x-desktop-presence").and_then(|v| v.to_str().ok()) == Some("visible") { s.agents.touch_presence(); }
     Ok(Json(s.status().await?))
 }
@@ -209,12 +229,12 @@ async fn status(State(s): State<Service>, headers: axum::http::HeaderMap) -> R<S
 #[derive(Deserialize)]
 struct DaysQuery { #[serde(default = "d_days")] days: u64 }
 fn d_days() -> u64 { 30 }
-/// Книга расходов LLM за последние `days` дней: итог, по проектам, по моделям, по дням.
+/// LLM expense ledger for the last `days` days: total, by project, by model, by day.
 async fn usage_summary(State(s): State<Service>, Query(q): Query<DaysQuery>) -> R<UsageSummary> {
     let since = crate::agents::now_ms().saturating_sub(q.days.clamp(1, 3650) * 86_400_000);
     Ok(Json(s.store.usage_summary(since)?))
 }
-/// Книга расходов в CSV (срез 34): строка на ход — время ISO, workspace, сессия, движок, модель, токены, стоимость; UTF-8 с BOM.
+/// Expense ledger as CSV (slice 34): a row per turn — ISO time, workspace, session, engine, model, tokens, cost; UTF-8 with BOM.
 async fn usage_csv(State(s): State<Service>, Query(q): Query<DaysQuery>) -> Result<axum::response::Response, ApiError> {
     let since = crate::agents::now_ms().saturating_sub(q.days.clamp(1, 3650) * 86_400_000);
     let rows = s.store.usage_rows(since)?;
@@ -227,10 +247,10 @@ async fn usage_csv(State(s): State<Service>, Query(q): Query<DaysQuery>) -> Resu
     let name = format!("usage-{}d.csv", q.days.clamp(1, 3650));
     Ok(([(axum::http::header::CONTENT_TYPE, "text/csv; charset=utf-8".to_string()), (axum::http::header::CONTENT_DISPOSITION, format!("attachment; filename=\"{name}\""))], out).into_response())
 }
-/// Подписка на уведомления ядра с телефона: сервер ntfy, тема, пользователь, пароль (секрет — только по этому запросу).
+/// Phone subscription to core notifications: ntfy server, topic, user, password (the secret — only on this request).
 async fn agents_notify(State(s): State<Service>) -> R<serde_json::Value> { Ok(Json(s.notify_settings().await?)) }
-/// Уведомление от сервиса «Агенты» (рутины): событие в ленту всегда, push в ntfy — по правилу присутствия Desktop
-/// (`force` — всегда). Тело: {project, title, body, tag?, force?}.
+/// Notification from the "Agents" service (routines): an event into the feed always, a push to ntfy — by the
+/// Desktop presence rule (`force` — always). Body: {project, title, body, tag?, force?}.
 async fn agents_notify_push(State(s): State<Service>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> {
     let f = |k: &str| body.get(k).and_then(|v| v.as_str()).unwrap_or("").trim().to_string();
     let (project, title, text) = (f("project"), f("title"), f("body"));
@@ -243,7 +263,8 @@ async fn agents_notify_push(State(s): State<Service>, Json(body): Json<serde_jso
     } else { s.notify_agent(&project, &title, &text, &tag).await; s.agents.desktop_away() };
     Ok(Json(serde_json::json!({ "ok": true, "pushed": pushed, "away": s.agents.desktop_away() })))
 }
-/// Кэш сводок по сессиям агентов всех запущенных workspace'ов и присутствие Desktop (push идёт, когда `away`).
+/// Cache of agent session summaries of all running workspaces and Desktop presence (the push goes when
+/// `away`).
 async fn agents_all(State(s): State<Service>) -> R<serde_json::Value> {
     let projects = s.agents.cache.read().unwrap().clone();
     Ok(Json(serde_json::json!({ "away": s.agents.desktop_away(), "presence_seen_ms": s.agents.presence_seen_ms(), "projects": projects })))
@@ -254,7 +275,7 @@ async fn events(State(s): State<Service>) -> R<Vec<Event>> { Ok(Json(s.store.rec
 
 #[utoipa::path(get, path = "/api/projects", responses((status = 200, body = Vec<ProjectView>)))]
 async fn list_projects(State(s): State<Service>, Query(q): Q) -> R<Vec<ProjectView>> {
-    // служебные проекты (`hidden`, например scratch быстрых чатов) — только по ?all=1
+    // service projects (`hidden`, e.g. the scratch of quick chats) — only with ?all=1
     let all = matches!(q.get("all").map(String::as_str), Some("1") | Some("true"));
     Ok(Json(s.projects().await?.into_iter().filter(|p| all || !p.spec.hidden).collect()))
 }
@@ -262,7 +283,7 @@ async fn list_projects(State(s): State<Service>, Query(q): Q) -> R<Vec<ProjectVi
 #[utoipa::path(get, path = "/api/projects/{name}", responses((status = 200, body = ProjectView)))]
 async fn get_project(State(s): State<Service>, Path(name): Path<String>) -> R<ProjectView> { Ok(Json(s.project(&name).await?)) }
 
-/// Создать или изменить проект = записать `project.yaml` и применить.
+/// Create or change a project = write `project.yaml` and apply.
 #[utoipa::path(post, path = "/api/projects", request_body = ProjectSpec, responses((status = 200, body = ProjectView)))]
 async fn apply_project(State(s): State<Service>, Json(spec): Json<ProjectSpec>) -> R<ProjectView> { Ok(Json(detached(async move { s.project_apply(spec).await }).await?)) }
 
@@ -279,7 +300,7 @@ async fn workspace_start(State(s): State<Service>, Path(name): Path<String>) -> 
 async fn workspace_stop(State(s): State<Service>, Path(name): Path<String>) -> R<ProjectView> { Ok(Json(detached(async move { s.workspace_transition(&name, "stop").await }).await?)) }
 
 #[derive(Deserialize, ToSchema)]
-pub struct GrantBody { pub capability: String, /// какой провайдер использовать (по умолчанию — которым уже пользуются другие проекты, иначе первый по имени)
+pub struct GrantBody { pub capability: String, // / which provider to use (default — the one other projects already use, otherwise the first by name)
     #[serde(default)] pub app: Option<String> }
 
 #[utoipa::path(post, path = "/api/projects/{name}/grants", request_body = GrantBody, responses((status = 200, body = ProjectView)))]
@@ -296,7 +317,7 @@ async fn install_app(State(s): State<Service>, Path(name): Path<String>) -> R<Ap
 
 #[derive(Deserialize, ToSchema)]
 pub struct RemoveQuery {
-    /// Удалить вместе с данными в tank/apps, секретами и переопределениями.
+    /// Delete together with the data in tank/apps, secrets and overrides.
     pub purge: Option<bool>,
 }
 
@@ -307,10 +328,13 @@ async fn remove_app(State(s): State<Service>, Path(name): Path<String>, Query(q)
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// Долгие изменяющие операции выполняются в отдельной задаче: если клиент оборвал соединение (закрыл вкладку, сменилась сеть),
-/// axum отменяет future обработчика, и операция осталась бы на середине — стек снесён, запись и данные остались.
-// ---- Agent Runtime: agentd и терминалы (ADR-006) ----
-/// Перезапуск agentd в workspace'е (срез 38): живые беседы возвращаются сами (автовозобновление agentd).
+/// Long mutating operations run in a separate task: if the client dropped the connection (closed the tab, the network
+/// changed), axum cancels the handler future, and the operation would be left halfway — the stack torn down, the record and
+/// data still there.
+// ---- Agent Runtime: agentd and terminals (ADR-006)
+// ----
+/// Restart agentd in a workspace (slice 38): live conversations come back by themselves (agentd
+/// auto-resume).
 async fn agentd_restart(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> {
     let inst = s.workspace_instance(&name).await;
     s.incus.exec(&inst, &["systemctl", "restart", "cloudos-agentd"]).await.map_err(|e| anyhow::anyhow!("перезапуск agentd в {name}: {e:#}"))?;
@@ -326,9 +350,47 @@ async fn pty_delete(State(s): State<Service>, Path((name, id)): Path<(String, St
     Ok(StatusCode::from_u16(s.agentd_client(&name).await?.pty_delete(&id).await?).unwrap_or(StatusCode::NO_CONTENT))
 }
 
-/// Desktop ↔ cloudd ↔ agentd: кадры пересылаются как есть в обе стороны (протокол терминала v1 описан в agentd).
+/// Desktop ↔ cloudd ↔ agentd: frames are forwarded as is in both directions (terminal protocol v1 is described
+/// in agentd).
 async fn pty_ws(State(s): State<Service>, Path((name, id)): Path<(String, String)>, ws: axum::extract::ws::WebSocketUpgrade) -> Result<Response, ApiError> {
     agentd_ws(&s, &name, &format!("/v1/ptys/{id}/ws"), ws).await
+}
+
+/// Agent browser (docs/agents-ux.md §4.9 step 2): headless Chromium in the workspace — status, enable/disable, install, screencast
+async fn browser_status(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get("/v1/browser").await?)) }
+#[derive(serde::Deserialize)]
+struct BrowserSet { enabled: bool }
+async fn browser_set(State(s): State<Service>, Path(name): Path<String>, Json(b): Json<BrowserSet>) -> R<serde_json::Value> {
+    let c = s.agentd_client(&name).await?;
+    let v = c.post_slow(if b.enabled { "/v1/browser/enable" } else { "/v1/browser/disable" }, &serde_json::json!({}), 60).await?;
+    let _ = s.store.event("workspace", &name, if b.enabled { "браузер агента включён" } else { "браузер агента выключен" });
+    Ok(Json(v))
+}
+async fn browser_install(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post("/v1/browser/install", &serde_json::json!({})).await?)) }
+async fn browser_ws(State(s): State<Service>, Path(name): Path<String>, Query(q): Query<std::collections::HashMap<String, String>>, ws: axum::extract::ws::WebSocketUpgrade) -> Result<Response, ApiError> {
+    let path = match q.get("target") { Some(t) if !t.is_empty() => format!("/v1/browser/ws?target={}", t), _ => "/v1/browser/ws".to_string() };
+    agentd_ws(&s, &name, &path, ws).await
+}
+
+/// Workspace dev server preview (docs/agents-ux.md §4.9): a port inside the workspace → an edge port
+/// route
+async fn previews_list(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> {
+    let list = s.previews(&name)?;
+    Ok(Json(serde_json::json!({ "previews": list.iter().map(|p| serde_json::json!({ "project": p.project, "port": p.port, "edge_port": p.edge_port, "url": s.preview_url(p.edge_port), "created_at": p.created_at })).collect::<Vec<_>>() })))
+}
+#[derive(serde::Deserialize)]
+struct PreviewBody { port: u16 }
+async fn previews_add(State(s): State<Service>, Path(name): Path<String>, Json(b): Json<PreviewBody>) -> R<serde_json::Value> {
+    let p = s.preview_add(&name, b.port).await?;
+    Ok(Json(serde_json::json!({ "project": p.project, "port": p.port, "edge_port": p.edge_port, "url": s.preview_url(p.edge_port), "created_at": p.created_at })))
+}
+async fn previews_remove(State(s): State<Service>, Path((name, port)): Path<(String, u16)>) -> Result<StatusCode, ApiError> {
+    Ok(if s.preview_remove(&name, port).await? { StatusCode::NO_CONTENT } else { StatusCode::NOT_FOUND })
+}
+
+/// Workspace registry change hub (ADR-007): session and terminal snapshots from agentd — relayed one to one.
+async fn events_ws(State(s): State<Service>, Path(name): Path<String>, ws: axum::extract::ws::WebSocketUpgrade) -> Result<Response, ApiError> {
+    agentd_ws(&s, &name, "/v1/events", ws).await
 }
 
 fn query_string(q: &std::collections::HashMap<String, String>) -> String {
@@ -337,7 +399,8 @@ fn query_string(q: &std::collections::HashMap<String, String>) -> String {
     format!("?{}", parts.join("&"))
 }
 
-/// Общий WebSocket-прокси к agentd: терминалы и потоки событий сессий.
+/// Shared WebSocket proxy to agentd: terminals and session event
+/// streams.
 async fn agentd_ws(s: &Service, name: &str, path: &str, ws: axum::extract::ws::WebSocketUpgrade) -> Result<Response, ApiError> {
     use tokio_tungstenite::tungstenite::client::IntoClientRequest;
     let c = s.agentd_client(name).await?;
@@ -347,18 +410,24 @@ async fn agentd_ws(s: &Service, name: &str, path: &str, ws: axum::extract::ws::W
     Ok(ws.on_upgrade(move |sock| pty_relay(sock, upstream)))
 }
 
-// ---- сессии агентов (ADR-006): прокси к agentd один в один ----
+// ---- agent sessions (ADR-006): a one-to-one proxy to agentd
+// ----
 type Q = Query<std::collections::HashMap<String, String>>;
 async fn session_list(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get("/v1/sessions").await?)) }
-/// Создание сессии: аккаунт из тела (`account`, `""` — без аккаунта) или умолчание проекта материализуется в workspace,
-/// его переменные и `unset` уезжают в agentd вместе с запросом.
+/// Session creation: the account from the body (`account`, `""` — no account) or the project default is materialized in
+/// the workspace, its variables and `unset` travel to agentd with the request.
 async fn session_create(State(s): State<Service>, Path(name): Path<String>, Json(mut body): Json<serde_json::Value>) -> R<serde_json::Value> {
     s.resolve_session_account(&name, &mut body).await?;
     Ok(Json(s.agentd_client(&name).await?.post("/v1/sessions", &body).await?))
 }
 
-// ---- аккаунты агентов (ADR-006, решение 6) ----
-/// Раскладка холста «Агентов» (ADR-006, этап 2): kv `agents.layout`, общая для всех устройств владельца.
+// ---- agent accounts (ADR-006, decision 6) ----
+/// "Agents" canvas layout (ADR-006, stage 2): kv `agents.layout`, shared across all of the owner's
+/// devices. Spending limits (§8.3): a mirror of the service's `settings.limits` and the state with the
+/// 24 h usage
+async fn budgets_get(State(s): State<Service>) -> R<Vec<crate::budgets::Budget>> { Ok(Json(s.budgets()?)) }
+async fn budgets_put(State(s): State<Service>, Json(list): Json<Vec<crate::budgets::Budget>>) -> Result<StatusCode, ApiError> { s.put_budgets(&list)?; Ok(StatusCode::NO_CONTENT) }
+async fn budgets_state(State(s): State<Service>) -> R<Vec<crate::budgets::BudgetState>> { Ok(Json(s.budgets_state()?)) }
 async fn agents_layout_get(State(s): State<Service>) -> R<serde_json::Value> {
     Ok(Json(s.store.get_kv("agents.layout")?.unwrap_or(serde_json::json!({}))))
 }
@@ -368,8 +437,9 @@ async fn agents_layout_put(State(s): State<Service>, Json(body): Json<serde_json
     s.store.put_kv("agents.layout", &body)?;
     Ok(StatusCode::NO_CONTENT)
 }
-/// Политика workspace'ов для Claude Code: разрешён ли режим обхода разрешений (managed-settings). Смена применяется ко всем
-/// запущенным workspace'ам сразу и к новым при деплое agentd; живые процессы Claude читают файл при старте — им нужен перезапуск.
+/// Workspace policy for Claude Code: whether the permission bypass mode is allowed (managed-settings). A change applies to all
+/// running workspaces at once and to new ones at agentd deploy; live Claude processes read the file at start — they need a
+/// restart.
 async fn agents_policy_get(State(s): State<Service>) -> R<serde_json::Value> {
     Ok(Json(serde_json::json!({ "bypass": crate::agentd::policy_bypass(&s.store) })))
 }
@@ -379,24 +449,44 @@ async fn agents_policy_put(State(s): State<Service>, Json(body): Json<serde_json
     let changed = s.apply_agents_policy().await?;
     Ok(Json(serde_json::json!({ "bypass": bypass, "applied": changed })))
 }
+/// Subscription limits (docs/agents-ux.md §9.2): all subscription accounts in parallel, 60 s cache, `?refresh=1`
+/// — anew.
+async fn accounts_limits(State(s): State<Service>, Query(q): Q) -> R<serde_json::Value> {
+    let refresh = matches!(q.get("refresh").map(|v| v.as_str()), Some("1") | Some("true"));
+    Ok(Json(serde_json::json!({ "limits": s.all_limits(refresh).await })))
+}
+async fn account_limits(State(s): State<Service>, Path(id): Path<String>, Query(q): Q) -> R<serde_json::Value> {
+    let refresh = matches!(q.get("refresh").map(|v| v.as_str()), Some("1") | Some("true"));
+    Ok(Json(serde_json::to_value(s.account_limits(&id, refresh).await).map_err(anyhow::Error::from)?))
+}
 async fn accounts_list(State(s): State<Service>) -> R<serde_json::Value> {
     let mut defaults = serde_json::Map::new();
     for st in s.store.list_projects()? {
         if let Some(id) = s.project_account(&st.name)? { defaults.insert(st.name, serde_json::Value::String(id)); }
     }
-    Ok(Json(serde_json::json!({ "accounts": s.accounts()?, "defaults": defaults })))
+    Ok(Json(serde_json::json!({ "accounts": s.accounts()?, "defaults": defaults, "blocked": s.blocked_accounts() })))
 }
+async fn account_update(State(s): State<Service>, Path(id): Path<String>, Json(body): Json<crate::accounts::AccountPatch>) -> R<crate::accounts::Account> { Ok(Json(s.account_update(&id, body)?)) }
 async fn account_create(State(s): State<Service>, Json(body): Json<crate::accounts::AccountCreate>) -> R<crate::accounts::Account> { Ok(Json(s.account_create(body)?)) }
 async fn account_import(State(s): State<Service>, Json(body): Json<crate::accounts::AccountImport>) -> R<crate::accounts::Account> { Ok(Json(s.account_import(body).await?)) }
 async fn account_delete(State(s): State<Service>, Path(id): Path<String>) -> Result<StatusCode, ApiError> { s.account_delete(&id)?; Ok(StatusCode::NO_CONTENT) }
 #[derive(Deserialize)]
-struct OauthStartBody { provider: String }
-/// Вход Claude по ссылке и коду: ссылка с PKCE → владелец входит на своём устройстве → `code#state` → токены → аккаунт.
-async fn oauth_start(State(s): State<Service>, Json(b): Json<OauthStartBody>) -> R<serde_json::Value> { Ok(Json(s.oauth_start(&b.provider).await?)) }
+struct OauthStartBody { provider: String, #[serde(default)] project: Option<String> }
+/// Claude sign-in by link and code: a link with PKCE → the owner signs in on their device → `code#state` → tokens →
+/// account. Antigravity (§9.11): agy's own link from a hidden terminal in workspace `project` (without it — the first
+/// running one).
+async fn oauth_start(State(s): State<Service>, Json(b): Json<OauthStartBody>) -> R<serde_json::Value> {
+    if b.provider == "antigravity" {
+        let project = match b.project.filter(|p| !p.is_empty()) { Some(p) => p, None => s.running_project_names().await.into_iter().next().ok_or_else(|| anyhow::anyhow!("нет запущенного workspace'а для терминала входа"))? };
+        return Ok(Json(s.oauth_start_agy(&project).await?));
+    }
+    Ok(Json(s.oauth_start(&b.provider).await?))
+}
 #[derive(Deserialize)]
 struct StateQuery { state: String }
 async fn oauth_status(State(s): State<Service>, Query(q): Query<StateQuery>) -> R<serde_json::Value> { Ok(Json(s.oauth_status(&q.state).await?)) }
-// ---- провайдеры через gate: OAuth-входы в прокси провайдера llm (Antigravity, Kimi, xAI, Codex, Claude, плагины) ----
+// ---- providers through the gate: OAuth sign-ins in the llm provider proxy (Antigravity, Kimi, xAI, Codex, Claude,
+// plugins) ----
 async fn gate_auth(State(s): State<Service>) -> R<serde_json::Value> { Ok(Json(s.gate_auth_overview().await?)) }
 #[derive(Deserialize)]
 struct GateStartBody { app: String, provider: String }
@@ -429,49 +519,58 @@ async fn session_tier(State(s): State<Service>, Path((name, id)): Path<(String, 
 async fn session_cache(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/cache"), &body).await?)) }
 #[derive(Deserialize)]
 struct LoginBody { provider: String, project: String }
-/// Вход в подписку из «Агентов» без браузера на стенде: терминал в workspace с `claude auth login` / `codex login --device-auth`
-/// и отдельным каталогом конфигурации; CLI печатает ссылку, владелец открывает её на своём устройстве и вставляет код обратно.
-/// После выхода терминала интерфейс импортирует вход из этого каталога (`/accounts/import {dir}`).
+/// Subscription sign-in from "Agents" without a browser on the stand: a terminal in the workspace with `claude auth login` /
+/// `codex login --device-auth` and a separate configuration directory; the CLI prints a link, the owner opens it on their device
+/// and pastes the code back. After the terminal exits the UI imports the sign-in from that directory (`/accounts/import {dir}`).
 async fn account_login(State(s): State<Service>, Json(b): Json<LoginBody>) -> R<serde_json::Value> {
     let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
     let (dir, cmd, title) = match b.provider.as_str() {
         "claude" => { let d = format!("/home/coder/.cloudos/logins/claude-{stamp}"); (d.clone(), format!("mkdir -p {d} && export CLAUDE_CONFIG_DIR={d} && echo 'Вход в Claude: откройте ссылку ниже на любом устройстве, войдите и вставьте код сюда.' && claude auth login; echo; echo \"[выход: $?] закройте окно — вход будет импортирован\"; sleep 1"), "вход Claude") }
         "codex" => { let d = format!("/home/coder/.cloudos/logins/codex-{stamp}"); (d.clone(), format!("mkdir -p {d} && export CODEX_HOME={d} && echo 'Вход в Codex: откройте ссылку ниже на любом устройстве и введите код.' && codex login --device-auth; echo; echo \"[выход: $?] закройте окно — вход будет импортирован\"; sleep 1"), "вход Codex") }
-        other => return Err(anyhow::anyhow!("вход: claude | codex, получено {other}").into()),
+        // Antigravity (§9.11): Google OAuth in agy itself under a separate home directory; the core watches the sign-in
+        // (agy_login_watch)
+        "antigravity" => { let d = format!("/home/coder/.cloudos/logins/antigravity-{stamp}"); (d.clone(), format!("mkdir -p {d} && export HOME={d} && echo 'Вход в Antigravity: выберите «Google OAuth», откройте ссылку на любом устройстве, войдите и вставьте код авторизации в поле под терминалом. Вход определится сам.' && agy; echo; echo \"[выход: $?] закройте окно\"; sleep 1"), "вход Antigravity") }
+        other => return Err(anyhow::anyhow!("вход: claude | codex | antigravity, получено {other}").into()),
     };
     let body = serde_json::json!({ "cmd": ["bash", "-lic", cmd], "cwd": "/home/coder", "title": title });
     let pty = s.agentd_client(&b.project).await?.pty_create(&body).await?;
+    let pty_id = pty.get("id").and_then(|i| i.as_str()).unwrap_or("").to_string();
+    if b.provider == "antigravity" && !pty_id.is_empty() {
+        let (s2, project, d, p) = (s.clone(), b.project.clone(), dir.clone(), pty_id.clone());
+        tokio::spawn(async move { s2.agy_login_watch(project, d, p).await; });
+    }
     Ok(Json(serde_json::json!({ "pty": pty.get("id"), "dir": dir, "project": b.project, "provider": b.provider })))
 }
+/// Antigravity sign-in state by terminal id (§9.11): waiting | done (account) | error | cancelled | timeout
+async fn account_login_status(State(s): State<Service>, Path(pty): Path<String>) -> R<serde_json::Value> {
+    Ok(Json(s.store.get_kv(&format!("accounts.agylogin.{pty}"))?.unwrap_or(serde_json::json!({ "status": "unknown" }))))
+}
+/// Terminal text (the output tail without control sequences) — the UI cuts the sign-in link out of it
+async fn pty_text(State(s): State<Service>, Path((name, id)): Path<(String, String)>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get(&format!("/v1/ptys/{id}/text")).await?)) }
 #[derive(Deserialize)]
 struct AccountBody { account: Option<String> }
 async fn project_account_set(State(s): State<Service>, Path(name): Path<String>, Json(b): Json<AccountBody>) -> Result<StatusCode, ApiError> {
     s.set_project_account(&name, b.account.as_deref().filter(|a| !a.is_empty()))?;
     Ok(StatusCode::NO_CONTENT)
 }
-/// Переназначить аккаунт работающей сессии: остановить, дождаться выхода, поднять resume'ом с новым окружением (журнал тот же).
+/// Reassign the account of a running session: stop, wait for exit, bring up with resume and the new environment (same journal).
 async fn session_account(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(b): Json<AccountBody>) -> R<serde_json::Value> {
-    let c = s.agentd_client(&name).await?;
-    let alive = c.get(&format!("/v1/sessions/{id}")).await?.pointer("/info/alive").and_then(|v| v.as_bool()).unwrap_or(false);
-    if alive {
-        c.delete(&format!("/v1/sessions/{id}")).await?;
-        for _ in 0..30 {
-            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-            if c.get(&format!("/v1/sessions/{id}")).await?.pointer("/info/alive").and_then(|v| v.as_bool()) == Some(false) { break }
-        }
-    }
-    let mut body = serde_json::json!({ "resume": id, "reassign": true, "account": b.account.clone().unwrap_or_default(), "env": {}, "unset": [] });
-    s.resolve_session_account(&name, &mut body).await?;
-    if body.get("account").and_then(|v| v.as_str()) == Some("") { body["account"] = serde_json::Value::Null; }
-    Ok(Json(c.post("/v1/sessions", &body).await?))
+    Ok(Json(s.reassign_session_account(&name, &id, b.account.as_deref().filter(|a| !a.is_empty()), false, None).await?))
 }
+/// Simulated limit hit (§9.7, e2e and a manual check) — relayed to agentd; the poller switches the account on the next round
+async fn session_limit_hit(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/limit_hit"), &body).await?)) }
 async fn session_get(State(s): State<Service>, Path((name, id)): Path<(String, String)>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get(&format!("/v1/sessions/{id}")).await?)) }
-/// MCP-серверы workspace'а (срез 36) — список и раскладка движкам у agentd.
+/// Workspace MCP servers (slice 36) — the list and the rollout to the
+/// engines at agentd.
 async fn project_mcp(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get("/v1/mcp").await?)) }
 async fn project_mcp_set(State(s): State<Service>, Path(name): Path<String>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post_slow("/v1/mcp", &body, 120).await?)) }
-/// Поиск по беседам workspace'а (срез 34) — у agentd, query как есть.
+/// MCP server health via `claude mcp list` (slice 70) — at agentd; not fast, 120 s timeout
+async fn project_mcp_health(State(s): State<Service>, Path(name): Path<String>, Query(q): Q) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post_slow_get(&format!("/v1/mcp/health{}", query_string(&q)), 150).await?)) }
+/// Search across workspace conversations (slice 34) — at agentd, the
+/// query as is.
 async fn project_search(State(s): State<Service>, Path(name): Path<String>, Query(q): Q) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get(&format!("/v1/search{}", query_string(&q))).await?)) }
-/// Выгрузка беседы для чтения (Markdown/JSON) — тело и заголовки agentd как есть.
+/// Conversation download for reading (Markdown/JSON) — agentd body and headers as
+/// is.
 async fn session_download(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Query(q): Q) -> Result<axum::response::Response, ApiError> {
     let (status, headers, body) = s.agentd_client(&name).await?.raw_get(&format!("/v1/sessions/{id}/download{}", query_string(&q))).await?;
     let mut out = axum::response::Response::new(axum::body::Body::from(body));
@@ -479,24 +578,31 @@ async fn session_download(State(s): State<Service>, Path((name, id)): Path<(Stri
     for k in ["content-type", "content-disposition"] { if let Some(v) = headers.get(k) { out.headers_mut().insert(axum::http::header::HeaderName::from_static(if k == "content-type" { "content-type" } else { "content-disposition" }), v.clone()); } }
     Ok(out)
 }
+/// One journal event in full (§4.3.16, after a lightweight replay)
+async fn session_event(State(s): State<Service>, Path((name, id, seq)): Path<(String, String, u64)>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get(&format!("/v1/sessions/{id}/events/{seq}")).await?)) }
 async fn session_events(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Query(q): Q) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get(&format!("/v1/sessions/{id}/events{}", query_string(&q))).await?)) }
-async fn session_prompt(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/prompt"), &body).await?)) }
+/// A turn: spending limits first (budgets.rs, §8.3) — "stop" with an exhausted limit does not let it
+/// through
+async fn session_prompt(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { s.budget_check(&name).await?; Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/prompt"), &body).await?)) }
 async fn session_permission(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/permission"), &body).await?)) }
 async fn session_interrupt(State(s): State<Service>, Path((name, id)): Path<(String, String)>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/interrupt"), &serde_json::json!({})).await?)) }
 async fn session_mode(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/mode"), &body).await?)) }
 async fn session_model(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/model"), &body).await?)) }
-// Терминальный режим (как в CloudCLI): родной TUI агента на той же беседе в PTY сессии; POST подключает (headless-процесс
-// останавливается), DELETE отключает. Поток терминала — обычный /ptys/{id}/ws.
+/// Own session name (§4.8) — relayed to agentd
+async fn session_label(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/label"), &body).await?)) }
+// Terminal mode (as in CloudCLI): the agent's native TUI on the same conversation in the session PTY; POST attaches (the
+// headless process is stopped), DELETE detaches. The terminal stream is the regular /ptys/{id}/ws.
 async fn session_tui(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/tui"), &body).await?)) }
 async fn session_effort(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/effort"), &body).await?)) }
-// Запрос к провайдеру для композера (контекст, подсказки файлов, usage): Claude control_request / Codex JSON-RPC
+// Provider request for the composer (context, file suggestions, usage): Claude control_request / Codex JSON-RPC
 async fn session_control(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/control"), &body).await?)) }
 async fn fs_find(State(s): State<Service>, Path(name): Path<String>, axum::extract::RawQuery(q): axum::extract::RawQuery) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get(&format!("/v1/fs/find?{}", q.unwrap_or_default())).await?)) }
 async fn session_tui_stop(State(s): State<Service>, Path((name, id)): Path<(String, String)>) -> Result<StatusCode, ApiError> {
     Ok(StatusCode::from_u16(s.agentd_client(&name).await?.delete(&format!("/v1/sessions/{id}/tui")).await?).unwrap_or(StatusCode::NO_CONTENT))
 }
 
-// Файлы и git workspace'а (ADR-006, рендеринги Files и Git карточки): прокси к agentd с тем же query.
+// Workspace files and git (ADR-006, the Files and Git renderings of the card): a proxy to agentd with
+// the same query.
 async fn fs_list(State(s): State<Service>, Path(name): Path<String>, axum::extract::RawQuery(q): axum::extract::RawQuery) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get(&format!("/v1/fs?{}", q.unwrap_or_default())).await?)) }
 async fn fs_remove(State(s): State<Service>, Path(name): Path<String>, axum::extract::RawQuery(q): axum::extract::RawQuery) -> Result<StatusCode, ApiError> {
     Ok(StatusCode::from_u16(s.agentd_client(&name).await?.delete(&format!("/v1/fs?{}", q.unwrap_or_default())).await?).unwrap_or(StatusCode::NO_CONTENT))
@@ -516,7 +622,8 @@ async fn git_op(State(s): State<Service>, Path((name, op)): Path<(String, String
     if !matches!(op.as_str(), "status" | "diff" | "log" | "branches" | "worktrees") { return Err(anyhow::anyhow!("git: не найдено — {op}").into()); }
     Ok(Json(s.agentd_client(&name).await?.get(&format!("/v1/git/{op}?{}", q.unwrap_or_default())).await?))
 }
-/// Действия git-панели (agentd fs.rs): индекс, коммит, ветки, remote, worktrees, подсказка сообщения; коммит, push и слияние — в ленту событий.
+/// Git panel actions (agentd fs.rs): index, commit, branches, remote, worktrees, message suggestion; commit, push and merge — into the event
+/// feed.
 async fn git_op_post(State(s): State<Service>, Path((name, op)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> {
     if !matches!(op.as_str(), "init" | "remote" | "stage" | "unstage" | "discard" | "commit" | "checkout" | "fetch" | "pull" | "push" | "worktrees/add" | "worktrees/remove" | "worktrees/merge" | "suggest") { return Err(anyhow::anyhow!("git: не найдено — {op}").into()); }
     let r = if op == "suggest" { s.agentd_client(&name).await?.post_slow(&format!("/v1/git/{op}"), &body, 150).await? } else { s.agentd_client(&name).await?.post(&format!("/v1/git/{op}"), &body).await? };
@@ -529,11 +636,11 @@ async fn git_op_post(State(s): State<Service>, Path((name, op)): Path<(String, S
     }
     Ok(Json(r))
 }
-/// Маршруты к моделям (llm.rs): без адресов и ключей.
+/// Model routes (llm.rs): without addresses and keys.
 async fn llm_routes(State(s): State<Service>) -> R<serde_json::Value> { Ok(Json(serde_json::json!({ "routes": s.llm_routes().await? }))) }
 async fn llm_route_models(State(s): State<Service>, Path(id): Path<String>) -> R<serde_json::Value> { Ok(Json(s.llm_models(&id).await?)) }
-/// Потоковый прокси chat/completions: статус и тип ответа upstream — как есть, тело — потоком.
-/// Картинка на маршруте (срез 37): тело как у OpenAI `/images/generations`, ответ провайдера как есть.
+/// Streaming chat/completions proxy: upstream status and content type as is, the body as a stream.
+/// Image on a route (slice 37): the body as OpenAI `/images/generations`, the provider answer as is.
 async fn llm_route_images(State(s): State<Service>, Path(id): Path<String>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.llm_images(&id, &body).await?)) }
 async fn llm_route_chat(State(s): State<Service>, Path(id): Path<String>, Json(body): Json<serde_json::Value>) -> Result<Response, ApiError> {
     let up = s.llm_chat(&id, &body).await?;
@@ -545,12 +652,14 @@ async fn llm_route_chat(State(s): State<Service>, Path(id): Path<String>, Json(b
     resp.headers_mut().insert(header::CACHE_CONTROL, "no-store".parse().unwrap());
     Ok(resp)
 }
-/// Расход не из agentd (простой чат сервиса «Агенты»): строка книги `llm_usage` с источником `api`; ключ project+session+seq.
+/// Usage not from agentd (the "Agents" service's simple chat): an `llm_usage` ledger row with source `api`; key
+/// project+session+seq.
 async fn usage_record(State(s): State<Service>, Json(b): Json<serde_json::Value>) -> R<serde_json::Value> {
     let str_of = |k: &str| b.get(k).and_then(|v| v.as_str()).map(str::to_string);
     let num = |k: &str| b.get(k).and_then(|v| v.as_u64()).unwrap_or(0);
     let (project, session) = (str_of("project").filter(|p| !p.is_empty()).ok_or_else(|| anyhow::anyhow!("usage: нет project"))?, str_of("session").filter(|p| !p.is_empty()).ok_or_else(|| anyhow::anyhow!("usage: нет session"))?);
-    // ts книги — миллисекунды (как у agentd); секунды из тела переводятся
+    // ledger ts is in milliseconds (as at agentd); seconds from the body
+    // are converted
     let ts = b.get("ts").and_then(|v| v.as_u64()).map(|t| if t < 1_000_000_000_000 { t * 1000 } else { t }).unwrap_or_else(crate::agents::now_ms);
     let row = UsageRow { project, session, seq: num("seq"), ts,
         agent: str_of("agent").unwrap_or_else(|| "api".into()), model: str_of("model"), input: num("input"), output: num("output"), cache_read: num("cache_read"), cache_create: num("cache_create"),
@@ -558,14 +667,16 @@ async fn usage_record(State(s): State<Service>, Json(b): Json<serde_json::Value>
     let inserted = s.store.insert_usage(&row)?;
     Ok(Json(serde_json::json!({ "inserted": inserted })))
 }
-/// Движки workspace'а (Claude Code, Codex, Gemini CLI, pi…): что установлено и версии; установка — PTY с npm, как терминал.
-async fn engines_list(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post_slow_get("/v1/engines", 40).await?)) }
+/// Workspace engines (Claude Code, Codex, Gemini CLI, pi…): what is installed and the versions; install — a PTY with npm,
+/// like a terminal.
+async fn engines_list(State(s): State<Service>, Path(name): Path<String>, Query(q): Q) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post_slow_get(&format!("/v1/engines{}", query_string(&q)), 40).await?)) }
 async fn engine_install(State(s): State<Service>, Path((name, id)): Path<(String, String)>) -> R<serde_json::Value> {
     let r = s.agentd_client(&name).await?.post(&format!("/v1/engines/{id}/install"), &serde_json::json!({})).await?;
     let _ = s.store.event("agent", &name, &format!("установка движка {id}"));
     Ok(Json(r))
 }
-/// Быстрый одноразовый вызов модели внутри workspace (agentd llm.rs): служебные задачи сервиса «Агенты» — рефлексия памяти, черновик брифа.
+/// Quick one-shot model call inside the workspace (agentd llm.rs): service tasks of the "Agents" service — memory reflection, a brief
+/// draft.
 async fn llm_quick(State(s): State<Service>, Path(name): Path<String>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> {
     let secs = body.get("timeout_secs").and_then(|t| t.as_u64()).unwrap_or(120).clamp(10, 300) + 15;
     Ok(Json(s.agentd_client(&name).await?.post_slow("/v1/llm/quick", &body, secs).await?))
@@ -573,30 +684,32 @@ async fn llm_quick(State(s): State<Service>, Path(name): Path<String>, Json(body
 async fn session_delete(State(s): State<Service>, Path((name, id)): Path<(String, String)>) -> Result<StatusCode, ApiError> {
     Ok(StatusCode::from_u16(s.agentd_client(&name).await?.delete(&format!("/v1/sessions/{id}")).await?).unwrap_or(StatusCode::NO_CONTENT))
 }
-/// Форк беседы, правка отправленного сообщения и очередь сообщений — прокси в agentd (см. agentd fork.rs / session.rs).
+/// Conversation fork, editing a sent message and the message queue — proxied to agentd (see agentd fork.rs /
+/// session.rs).
 async fn session_fork(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> {
     let r = s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/fork"), &body).await?;
     let _ = s.store.event("agent", &name, &format!("форк беседы {} → {}", &id[..8.min(id.len())], r.get("id").and_then(|i| i.as_str()).map(|i| &i[..8.min(i.len())]).unwrap_or("?")));
     Ok(Json(r))
 }
 async fn session_edit(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/edit"), &body).await?)) }
-async fn session_queue(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/queue"), &body).await?)) }
+async fn session_queue(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { s.budget_check(&name).await?; Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/queue"), &body).await?)) }
 async fn session_unqueue(State(s): State<Service>, Path((name, id, qid)): Path<(String, String, String)>) -> Result<StatusCode, ApiError> {
     Ok(StatusCode::from_u16(s.agentd_client(&name).await?.delete(&format!("/v1/sessions/{id}/queue/{qid}")).await?).unwrap_or(StatusCode::NO_CONTENT))
 }
-/// Фоновая задача Claude Code (Bash в фоне, Agent, Workflow…): остановить через agentd (control `stop_task`).
+/// Claude Code background task (background Bash, Agent, Workflow…): stop via agentd (control `stop_task`).
 async fn session_task_stop(State(s): State<Service>, Path((name, id, task)): Path<(String, String, String)>) -> R<serde_json::Value> {
     Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/tasks/{task}/stop"), &serde_json::json!({})).await?))
 }
-/// Правила инструментов Claude Code в settings workspace'а (области user | project, см. agentd perms.rs): чтение и запись.
+/// Claude Code tool rules in the workspace settings (scopes user | project, see agentd perms.rs): read and write.
 async fn permissions_get(State(s): State<Service>, Path(name): Path<String>, axum::extract::RawQuery(q): axum::extract::RawQuery) -> R<serde_json::Value> {
     Ok(Json(s.agentd_client(&name).await?.get(&format!("/v1/permissions?{}", q.unwrap_or_default())).await?))
 }
 async fn permissions_put(State(s): State<Service>, Path(name): Path<String>, axum::extract::RawQuery(q): axum::extract::RawQuery, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> {
     Ok(Json(s.agentd_client(&name).await?.put(&format!("/v1/permissions?{}", q.unwrap_or_default()), &body).await?))
 }
-/// Перенос сессии в другой workspace (ADR-006, «поднять в проект»): архив от agentd-источника → agentd-приёмник (тот же id,
-/// cwd — дом проекта, файлы чата по прежнему пути), затем исходная запись удаляется. Тело: {to, cwd?}.
+/// Moving a session to another workspace (ADR-006, "promote to a project"): an archive from the source agentd → the target
+/// agentd (same id, cwd — the project home, chat files at the previous path), then the source record is deleted. Body: {to,
+/// cwd?}.
 async fn session_move(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> {
     let to = body.get("to").and_then(|t| t.as_str()).unwrap_or("").trim().to_string();
     if to.is_empty() { return Err(anyhow::anyhow!("перенос — объект {{to: workspace}}").into()); }
@@ -604,7 +717,8 @@ async fn session_move(State(s): State<Service>, Path((name, id)): Path<(String, 
     let cwd = body.get("cwd").and_then(|c| c.as_str()).map(|c| format!("?cwd={}", urlencoding::encode(c))).unwrap_or_default();
     let src = s.agentd_client(&name).await?;
     let dst = s.agentd_client(&to).await?;
-    // каталог беседы (под домом, не сам дом) уезжает с ней — у источника его потом убираем
+    // the conversation directory (under home, not home itself) travels with it — removed
+    // at the source afterwards
     let src_cwd = src.get(&format!("/v1/sessions/{id}")).await.ok().and_then(|v| v.pointer("/info/cwd").and_then(|c| c.as_str()).map(str::to_string)).unwrap_or_default();
     let (_, _, tar) = src.raw_get(&format!("/v1/sessions/{id}/export")).await?;
     let size = tar.len();
@@ -661,13 +775,13 @@ async fn app_logs(State(s): State<Service>, Path(name): Path<String>, Query(q): 
     Ok(s.app_logs(&name, q.tail.unwrap_or(100)).await?)
 }
 
-/// Настройки приложения: значения env из манифеста; секреты, присланные как маска, не меняются.
+/// App settings: env values from the manifest; secrets sent as a mask are not changed.
 #[utoipa::path(put, path = "/api/apps/{name}/settings", request_body = std::collections::BTreeMap<String, String>, responses((status = 200, body = AppView)))]
 async fn app_settings(State(s): State<Service>, Path(name): Path<String>, Json(values): Json<std::collections::BTreeMap<String, String>>) -> R<AppView> {
     Ok(Json(detached(async move { s.app_configure(&name, values).await }).await?))
 }
 
-// ---------- переопределения приложения ----------
+// ---------- app overrides ----------
 
 #[utoipa::path(get, path = "/api/apps/{name}/overrides", responses((status = 200, body = crate::service::AppOverrides)))]
 async fn app_overrides_get(State(s): State<Service>, Path(name): Path<String>) -> R<crate::service::AppOverrides> { Ok(Json(s.app_overrides(&name)?)) }
@@ -677,7 +791,8 @@ async fn app_overrides_put(State(s): State<Service>, Path(name): Path<String>, J
     Ok(Json(detached(async move { s.app_set_overrides(&name, &o.env, &o.compose).await }).await?))
 }
 
-// ---------- монитор и виджеты ----------
+// ---------- monitor and widgets
+// ----------
 
 #[utoipa::path(get, path = "/api/monitor", responses((status = 200, body = crate::monitor::Snapshot)))]
 async fn monitor_snapshot(State(s): State<Service>) -> Json<crate::monitor::Snapshot> { Json(s.monitor.snapshot()) }
@@ -697,7 +812,7 @@ pub struct GeoQuery { pub q: String }
 #[utoipa::path(get, path = "/api/widgets/geocode", params(("q" = String, Query)), responses((status = 200, body = serde_json::Value)))]
 async fn widget_geocode(State(s): State<Service>, Query(q): Query<GeoQuery>) -> R<serde_json::Value> { Ok(Json(s.feeds.geocode(&q.q).await?)) }
 
-// ---------- файлы ----------
+// ---------- files ----------
 
 #[derive(Deserialize, ToSchema)]
 pub struct PathQuery { pub path: Option<String> }
@@ -710,7 +825,8 @@ async fn files_list(State(s): State<Service>, Path(root): Path<String>, Query(q)
     Ok(Json(s.file_list(&root, q.path.as_deref().unwrap_or("")).await?))
 }
 
-/// Содержимое файла: текст — inline, остальное — attachment.
+/// File content: text — inline, everything else —
+/// attachment.
 #[utoipa::path(get, path = "/api/files/{root}/read", params(("path" = String, Query)), responses((status = 200, body = String)))]
 async fn files_read(State(s): State<Service>, Path(root): Path<String>, Query(q): Query<PathQuery>) -> Result<Response, ApiError> {
     let rel = q.path.ok_or_else(|| anyhow::anyhow!("имя: path обязателен"))?;
@@ -727,7 +843,7 @@ async fn files_write(State(s): State<Service>, Path(root): Path<String>, Query(q
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// Загрузка файла как есть (тело запроса — содержимое).
+/// File upload as is (the request body is the content).
 #[utoipa::path(post, path = "/api/files/{root}/upload", params(("path" = String, Query)), request_body(content = Vec<u8>, content_type = "application/octet-stream"), responses((status = 204)))]
 async fn files_upload(State(s): State<Service>, Path(root): Path<String>, Query(q): Query<PathQuery>, body: axum::body::Bytes) -> Result<StatusCode, ApiError> {
     let rel = q.path.ok_or_else(|| anyhow::anyhow!("имя: path обязателен"))?;
@@ -755,14 +871,14 @@ async fn files_delete(State(s): State<Service>, Path(root): Path<String>, Query(
 
 #[derive(Deserialize, ToSchema)]
 pub struct OpenBody { pub open: String }
-/// Режим открытия приложения в Desktop: iframe (окно) | newtab.
+/// App open mode in Desktop: iframe (window) | newtab.
 #[utoipa::path(put, path = "/api/apps/{name}/open", request_body = OpenBody, responses((status = 200, body = AppView)))]
 async fn app_open(State(s): State<Service>, Path(name): Path<String>, Json(b): Json<OpenBody>) -> R<AppView> {
     s.app_set_open(&name, &b.open)?;
     Ok(Json(s.app(&name).await?))
 }
 
-/// Показать значение секрета приложения (пароль веб-интерфейса и т.п.); один пользователь, периметр — overlay-сеть.
+/// Show an app secret value (the web UI password etc.); a single user, the perimeter is the overlay network.
 async fn app_setting_reveal(State(s): State<Service>, Path((name, key)): Path<(String, String)>) -> Result<Json<serde_json::Value>, ApiError> {
     let m = s.manifest(&name)?;
     if !m.env.contains_key(&key) {
@@ -773,7 +889,7 @@ async fn app_setting_reveal(State(s): State<Service>, Path((name, key)): Path<(S
     Ok(Json(serde_json::json!({ "key": key, "value": v })))
 }
 
-/// Длинное описание приложения (markdown) из каталога.
+/// Long app description (markdown) from the catalog.
 async fn app_readme(State(s): State<Service>, Path(name): Path<String>) -> Response {
     let Ok(m) = s.manifest(&name) else { return StatusCode::NOT_FOUND.into_response() };
     let Some(r) = m.readme.as_deref().filter(|i| i.starts_with("./") && !i.contains("..")) else { return (StatusCode::NOT_FOUND, "").into_response() };
@@ -783,7 +899,7 @@ async fn app_readme(State(s): State<Service>, Path(name): Path<String>) -> Respo
     }
 }
 
-/// Иконка приложения из каталога Store (`icon: ./logo.jpg` в манифесте).
+/// App icon from the Store catalog (`icon: ./logo.jpg` in the manifest).
 async fn app_icon(State(s): State<Service>, Path(name): Path<String>) -> Response {
     let Ok(m) = s.manifest(&name) else { return StatusCode::NOT_FOUND.into_response() };
     let Some(icon) = m.icon.as_deref().filter(|i| i.starts_with("./") && !i.contains("..")) else { return StatusCode::NOT_FOUND.into_response() };
@@ -793,16 +909,16 @@ async fn app_icon(State(s): State<Service>, Path(name): Path<String>) -> Respons
     }
 }
 
-/// Настройки Desktop (оформление, раскладки) — один пользователь, поэтому один документ; хранится в ядре, чтобы
-/// быть общим для всех устройств; браузер держит копию в localStorage для мгновенного применения.
+/// Desktop settings (appearance, layouts) — a single user, hence a single document; stored in the core to be
+/// shared across all devices; the browser keeps a copy in localStorage for instant application.
 #[utoipa::path(get, path = "/api/settings/desktop", responses((status = 200, body = serde_json::Value)))]
 async fn desktop_settings_get(State(s): State<Service>) -> R<serde_json::Value> {
     Ok(Json(s.store.get_kv("desktop.settings")?.unwrap_or(serde_json::json!({}))))
 }
 #[utoipa::path(put, path = "/api/settings/desktop", request_body = serde_json::Value, responses((status = 200, body = serde_json::Value)))]
 async fn desktop_settings_put(State(s): State<Service>, Json(v): Json<serde_json::Value>) -> R<serde_json::Value> {
-    // разделы документа (appearance, widgets, session…) присылают разные части Desktop независимо друг от друга:
-    // сливаем по ключам верхнего уровня, иначе сохранение оформления стирало бы виджеты и наоборот
+    // document sections (appearance, widgets, session…) are sent by different parts of Desktop independently of
+    // each other: merge by top-level keys, otherwise saving the appearance would wipe the widgets and vice versa
     let mut doc = s.store.get_kv("desktop.settings")?.unwrap_or(serde_json::json!({}));
     match (doc.as_object_mut(), v.as_object()) {
         (Some(cur), Some(new)) => { for (k, val) in new { cur.insert(k.clone(), val.clone()); } }
@@ -815,10 +931,11 @@ async fn desktop_settings_put(State(s): State<Service>, Json(v): Json<serde_json
     Ok(Json(doc))
 }
 
-/// Корневой сертификат внутреннего CA (страница «Устройства» в Desktop).
+/// Root certificate of the internal CA (the "Devices" page in Desktop).
 #[utoipa::path(get, path = "/api/ca.crt", responses((status = 200, body = String)))]
 async fn ca_cert(State(s): State<Service>) -> Response {
-    // копия в state_dir (bootstrap) либо напрямую корень внутреннего CA edge из тома Caddy
+    // a copy in state_dir (bootstrap) or directly the edge's internal CA root from the
+    // Caddy volume
     let candidates = [s.cfg.state_dir.join("ca.crt"), std::path::PathBuf::from(std::env::var("CLOUDD_EDGE_CA_PATH").unwrap_or_else(|_| "/var/lib/docker/volumes/03-edge_caddy-data/_data/caddy/pki/authorities/local/root.crt".into()))];
     match candidates.iter().find_map(|p| std::fs::read(p).ok()).ok_or(()) {
         Ok(b) => ([(header::CONTENT_TYPE, "application/x-pem-file"), (header::CONTENT_DISPOSITION, "attachment; filename=\"cloudos-ca.crt\"")], b).into_response(),
@@ -831,7 +948,8 @@ pub struct LinkBody { pub provider: String }
 #[derive(Deserialize, ToSchema)]
 pub struct SharedBody { pub shared: bool }
 
-/// Связь приложений: потребитель получает сеть провайдера, `<ПРОВАЙДЕР>_URL` и ключи из хуков провайдера.
+/// App link: the consumer gets the provider network, `<PROVIDER>_URL` and the keys from the provider
+/// hooks.
 #[utoipa::path(post, path = "/api/apps/{name}/links", request_body = LinkBody, responses((status = 200, body = AppView)))]
 async fn app_link(State(s): State<Service>, Path(name): Path<String>, Json(b): Json<LinkBody>) -> R<AppView> { Ok(Json(detached(async move { s.app_link(&name, &b.provider).await }).await?)) }
 
@@ -844,7 +962,7 @@ async fn app_shared(State(s): State<Service>, Path(name): Path<String>, Json(b):
 #[derive(Deserialize, ToSchema)]
 pub struct NoteBody { pub text: String }
 
-/// Сменить сгенерированный секрет (новый пароль/токен) и перевыкатить стек.
+/// Rotate a generated secret (new password/token) and redeploy the stack.
 #[utoipa::path(post, path = "/api/apps/{name}/settings/{key}/rotate", responses((status = 200, body = AppView)))]
 async fn app_setting_rotate(State(s): State<Service>, Path((name, key)): Path<(String, String)>) -> R<AppView> { Ok(Json(detached(async move { s.app_rotate_secret(&name, &key).await }).await?)) }
 
@@ -854,7 +972,8 @@ async fn app_note_get(State(s): State<Service>, Path(name): Path<String>) -> Res
 #[utoipa::path(put, path = "/api/apps/{name}/note", request_body = NoteBody, responses((status = 204)))]
 async fn app_note_put(State(s): State<Service>, Path(name): Path<String>, Json(b): Json<NoteBody>) -> Result<StatusCode, ApiError> { s.app_set_note(&name, &b.text)?; Ok(StatusCode::NO_CONTENT) }
 
-/// Учётные данные администратора Coder (из bootstrap): один пользователь, периметр — overlay-сеть; показ пишется в события.
+/// Coder admin credentials (from bootstrap): a single user, the perimeter is the overlay network; the reveal is written to
+/// events.
 #[utoipa::path(get, path = "/api/system/credentials/coder/reveal", responses((status = 200, body = String)))]
 async fn coder_credentials(State(s): State<Service>) -> Result<Json<serde_json::Value>, ApiError> {
     let Some(pw) = s.cfg.admin_password.clone() else { return Err(anyhow::anyhow!("пароль администратора Coder ядру не известен: задайте CLOUDOS_ADMIN_PASSWORD в /etc/cloudos/cloudd.env").into()) };
@@ -862,14 +981,16 @@ async fn coder_credentials(State(s): State<Service>) -> Result<Json<serde_json::
     Ok(Json(serde_json::json!({ "url": s.cfg.coder_public_url(), "user": s.cfg.admin_email, "password": pw })))
 }
 
-/// Починить права на каталоги данных приложения (владелец по compose/образу, см. appdata.rs) и перевыкатить; список изменений.
+/// Repair permissions on the app data directories (the owner per compose/image, see appdata.rs) and redeploy; the list of
+/// changes.
 #[utoipa::path(post, path = "/api/apps/{name}/repair", responses((status = 200, body = Vec<String>)))]
 async fn repair_app(State(s): State<Service>, Path(name): Path<String>) -> R<Vec<String>> { Ok(Json(detached(async move { s.app_repair(&name).await }).await?)) }
 
 #[utoipa::path(get, path = "/api/apps/{name}/snapshots", responses((status = 200, body = Vec<crate::backup::RestorePoint>)))]
 async fn app_snapshots(State(s): State<Service>, Path(name): Path<String>) -> R<Vec<crate::backup::RestorePoint>> { Ok(Json(s.app_restore_points(&name).await?)) }
 
-/// Откат данных приложения к снимку tank/apps (текущее состояние сохраняется снимком pre-restore).
+/// Roll the app data back to a tank/apps snapshot (the current state is kept as a pre-restore
+/// snapshot).
 #[utoipa::path(post, path = "/api/apps/{name}/restore/{snap}", responses((status = 200, body = AppView)))]
 async fn app_restore(State(s): State<Service>, Path((name, snap)): Path<(String, String)>) -> R<AppView> { Ok(Json(detached(async move { s.app_restore(&name, &snap).await }).await?)) }
 
@@ -879,16 +1000,17 @@ async fn backups_get(State(s): State<Service>) -> R<crate::backup::BackupStatus>
 #[utoipa::path(put, path = "/api/backups", request_body = crate::backup::BackupConfig, responses((status = 200, body = crate::backup::BackupConfig)))]
 async fn backups_put(State(s): State<Service>, Json(c): Json<crate::backup::BackupConfig>) -> R<crate::backup::BackupConfig> { Ok(Json(s.set_backup_config(&c)?)) }
 
-/// Снимок всех датасетов сейчас (kind manual, политикой не удаляется).
+/// Snapshot of all datasets now (kind manual, not deleted by the
+/// policy).
 #[utoipa::path(post, path = "/api/backups/snapshot", responses((status = 200, body = serde_json::Value)))]
 async fn backups_snapshot(State(s): State<Service>) -> R<serde_json::Value> { Ok(Json(detached(async move { s.backup_cycle("manual", false).await }).await?)) }
 
-/// Снимок + restic сейчас.
+/// Snapshot + restic now.
 #[utoipa::path(post, path = "/api/backups/run", responses((status = 200, body = serde_json::Value)))]
 async fn backups_run(State(s): State<Service>) -> R<serde_json::Value> { Ok(Json(detached(async move { s.backup_cycle("manual", true).await }).await?)) }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// первый запуск и обновления
+// first run and updates
 // ---------------------------------------------------------------------------------------------------------------------
 
 async fn setup_get(State(s): State<Service>) -> R<crate::setup::SetupState> { Ok(Json(s.setup_state().await?)) }

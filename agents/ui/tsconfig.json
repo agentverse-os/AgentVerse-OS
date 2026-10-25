@@ -1,1 +1,1 @@
-{ "compilerOptions": { "target": "ES2022", "module": "ESNext", "moduleResolution": "bundler", "strict": true, "verbatimModuleSyntax": true, "isolatedModules": true, "skipLibCheck": true, "types": ["vite/client"] }, "include": ["src/**/*.ts", "src/**/*.svelte"] }
+{ "compilerOptions": { "target": "ES2022", "module": "ESNext", "moduleResolution": "bundler", "strict": true, "verbatimModuleSyntax": true, "isolatedModules": true, "skipLibCheck": true, "types": ["vite/client", "vite-plugin-pwa/client"] }, "include": ["src/**/*.ts", "src/**/*.svelte"] }

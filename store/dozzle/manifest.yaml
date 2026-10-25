@@ -1,4 +1,5 @@
-# Живые логи контейнеров (3.10). Docker — через read-only прокси cloudos-docker-ro (DOCKER_HOST), сокет хоста не монтируется.
+# Live container logs (3.10). Docker — through the read-only proxy cloudos-docker-ro (DOCKER_HOST), the host socket is not
+# mounted.
 schema: 1
 origin: manual
 name: dozzle
@@ -20,6 +21,7 @@ data: []
 health: http://dozzle:8080/healthcheck
 endpoint: { service: dozzle, port: 8080 }
 
-# входа нет: доступ ограничен сетью Cloud OS
+# no sign-in: access is limited by the Cloud
+# OS network
 login:
   mode: none

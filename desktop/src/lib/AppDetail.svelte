@@ -40,7 +40,8 @@
     } catch (e) { error = e instanceof Error ? e.message : String(e); }
   }
   $effect(() => { load(); });
-  // результат запроса (AppView) применяем сразу — полный load() перечитывает весь каталог и приходит на секунды позже
+  // the request result (AppView) is applied at once — a full load() re-reads the whole catalog and arrives seconds
+  // later
   async function run(label: string, f: () => Promise<unknown>) { busy = label; try { const r = await f(); if (r && typeof r === 'object' && 'manifest' in r) { app = r as AppView; form = { ...app.settings_values }; } error = ''; } catch (e) { error = e instanceof Error ? e.message : String(e); } finally { busy = ''; await load(); } }
   function open(a: AppView) { if (!a.url) return; if (a.manifest.route.open === 'iframe') wm.open(`app:${a.name}`, titleOf(a), openUrl(a), iconOf(a)); else window.open(openUrl(a), '_blank', 'noopener'); }
   function key(e: KeyboardEvent) {

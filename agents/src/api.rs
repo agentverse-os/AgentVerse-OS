@@ -1,5 +1,5 @@
-//! Собственные представления сервиса поверх API ядра: рабочие места (проекты + сессии + терминалы + расход за сегодня),
-//! входящие (всё, что ждёт человека), модели (маршруты, расход по моделям за период, цены, умолчания, лимиты), настройки.
+//! The service's own views on top of the core API: workplaces (projects + sessions + terminals + today's usage), inbox
+//! (everything waiting for a human), models (routes, usage by model over a period, prices, defaults, limits), settings.
 use crate::{App, ApiError};
 use anyhow::Result;
 use axum::extract::{Query, State};
@@ -15,14 +15,17 @@ type R = Result<Json<Value>, ApiError>;
 
 pub async fn health(State(app): State<Arc<App>>) -> Json<Value> {
     let core = app.core_get("/status").await;
-    Json(json!({ "ok": true, "version": crate::VERSION, "cloudd": core.is_ok(), "cloudd_version": core.ok().and_then(|v| v.get("version").cloned()) }))
+    let derived = { let (i, c) = app.hub.derived(); json!({ "inbox": !i.is_null(), "chat": !c.is_null() }) };
+    Json(json!({ "ok": true, "version": crate::VERSION, "cloudd": core.is_ok(), "cloudd_version": core.ok().and_then(|v| v.get("version").cloned()), "hub_subscriptions": app.hub.subscribed(), "hub_derived": derived }))
 }
 
-/// Проект с живыми сессиями и терминалами (из agentd через ядро) и расходом за сегодня.
-struct Collected { projects: Vec<Value>, today: Value }
+/// Project with live sessions and terminals (from agentd through the core) and today's
+/// usage.
+pub struct Collected { pub projects: Vec<Value>, pub today: Value }
 
-async fn collect(app: &App) -> Result<Collected> {
-    // служебные проекты (scratch) — тоже: их сессии нужны «Входящим» и Thread, а дерево «Рабочих мест» их прячет по `hidden`
+pub async fn collect(app: &App) -> Result<Collected> {
+    // service projects (scratch) too: their sessions are needed by "Inbox" and Thread, while the "Workplaces" tree hides
+    // them by `hidden`
     let projects = app.core_get("/projects?all=1").await?;
     let projects = projects.as_array().cloned().unwrap_or_default();
     let usage = app.core_get("/usage?days=1").await.unwrap_or(json!({}));
@@ -38,6 +41,9 @@ async fn collect(app: &App) -> Result<Collected> {
         let reachable = s.is_ok();
         live.insert(name, (reachable, s.unwrap_or(json!([])), p.unwrap_or(json!([]))));
     }
+    // engine catalog version — from hub snapshots (agentd puts it into the registry snapshot; the core REST
+    // does not return it)
+    let hub_v: HashMap<String, Value> = app.hub.engines_versions();
     let out = projects.iter().map(|p| {
         let name = p.get("name").and_then(|n| n.as_str()).unwrap_or("").to_string();
         let (reachable, sessions, ptys) = live.get(&name).cloned().unwrap_or((false, json!([]), json!([])));
@@ -45,6 +51,7 @@ async fn collect(app: &App) -> Result<Collected> {
             "name": name, "description": p.pointer("/spec/description"), "status": p.pointer("/workspace/status").cloned().unwrap_or(json!("none")),
             "apps": p.pointer("/workspace/apps").cloned().unwrap_or(json!([])), "reachable": reachable, "cost_today": by_project.get(&name).copied().unwrap_or(0.0),
             "sessions": sessions, "ptys": ptys, "agents": p.get("agents").cloned(), "hidden": p.pointer("/spec/hidden").and_then(|h| h.as_bool()).unwrap_or(false),
+            "engines_v": hub_v.get(&name).cloned().unwrap_or(json!(0)),
         })
     }).collect();
     Ok(Collected { projects: out, today: usage.get("total").cloned().unwrap_or(json!({ "cost_usd": 0.0, "turns": 0 })) })
@@ -55,28 +62,43 @@ pub async fn workspaces(State(app): State<Arc<App>>) -> R {
     Ok(Json(json!({ "projects": c.projects, "today": c.today })))
 }
 
-/// Входящие: ждущие решения (с телом запроса из agentd), упавшие, завершившиеся с итогом.
+/// Inbox: pending decisions (with the request body from agentd), failed, finished with a
+/// result.
 pub async fn inbox(State(app): State<Arc<App>>) -> R {
     let c = collect(&app).await?;
+    Ok(Json(inbox_from(&app, &c.projects, &c.today).await))
+}
+
+/// "Inbox" from the project list (a hub snapshot or a fresh `collect`): the bodies of pending
+/// requests are at the core
+pub async fn inbox_from(app: &App, projects: &[Value], today: &Value) -> Value {
     let mut waiting = Vec::new(); let mut failed = Vec::new(); let mut done = Vec::new();
     let mut pending_fetch = Vec::new();
-    for p in &c.projects {
+    for p in projects {
         let name = p.get("name").and_then(|n| n.as_str()).unwrap_or("").to_string();
         for s in p.get("sessions").and_then(|s| s.as_array()).cloned().unwrap_or_default() {
             match s.get("status").and_then(|x| x.as_str()).unwrap_or("") {
                 "waiting" => pending_fetch.push((name.clone(), s)),
                 "error" => failed.push(json!({ "project": name, "session": s })),
-                // в терминальном режиме (`tui`) беседа продолжается в TUI — это не «завершилась»
+                // in terminal mode (`tui`) the conversation continues in the TUI — that is not
+                // "finished"
                 "exited" => { if s.get("tui").and_then(|t| t.as_str()).is_none() && s.get("last_text").and_then(|t| t.as_str()).map(|t| !t.is_empty()).unwrap_or(false) { done.push(json!({ "project": name, "session": s })); } }
-                // «готов», но с фоновыми задачами — ещё работает, во «Входящие» не попадает
+                // "ready" but with background tasks — still working, does not go to "Inbox"
                 _ => {}
             }
         }
     }
-    let app_ref: &App = &app;
+    // the bodies of pending requests are at the core, but only when the session's pending count or last activity
+    // changed (the recompute runs on every hub delta; the cache is in the hub, key "project:session")
+    let app_ref: &App = app;
     let details = join_all(pending_fetch.iter().map(|(name, s)| async move {
         let id = s.get("id").and_then(|i| i.as_str()).unwrap_or("");
-        app_ref.core_get(&format!("/projects/{name}/sessions/{id}")).await.ok().and_then(|v| v.get("pending").cloned())
+        let stamp = (s.get("pending").and_then(|v| v.as_u64()).unwrap_or(0), s.get("updated_at").and_then(|v| v.as_u64()).unwrap_or(0), s.get("last_seq").and_then(|v| v.as_u64()).unwrap_or(0));
+        let key = format!("{name}:{id}");
+        if let Some(v) = app_ref.hub.pending_cached(&key, stamp) { return Some(v) }
+        let v = app_ref.core_get(&format!("/projects/{name}/sessions/{id}")).await.ok().and_then(|v| v.get("pending").cloned());
+        if let Some(v) = &v { app_ref.hub.pending_store(&key, stamp, v.clone()); }
+        v
     })).await;
     for ((name, s), pend) in pending_fetch.into_iter().zip(details) {
         waiting.push(json!({ "project": name, "session": s, "pending": pend.unwrap_or(json!([])) }));
@@ -84,7 +106,7 @@ pub async fn inbox(State(app): State<Arc<App>>) -> R {
     let created = |v: &Value| v.pointer("/session/created_at").and_then(|c| c.as_u64()).unwrap_or(0);
     done.sort_by(|a, b| created(b).cmp(&created(a)));
     done.truncate(20);
-    Ok(Json(json!({ "waiting": waiting, "failed": failed, "done": done, "today": c.today })))
+    json!({ "waiting": waiting, "failed": failed, "done": done, "today": today })
 }
 
 #[derive(Deserialize)]
@@ -96,32 +118,22 @@ fn agent_of(model: &str) -> &'static str {
     if m.starts_with("claude") { "Claude" } else if m.starts_with("gpt") || m.starts_with("o1") || m.starts_with("o3") || m.contains("codex") { "Codex" } else { "—" }
 }
 
-/// Цены по умолчанию ($ за 1M токенов): вход, выход, чтение кэша, запись кэша. Правятся в настройках сервиса.
-fn default_prices() -> Value {
-    json!({
-        "claude-fable-5-1": { "input": 10.0, "output": 50.0, "cache_read": 1.0, "cache_write": 12.5 },
-        "claude-opus-5-5": { "input": 15.0, "output": 75.0, "cache_read": 1.50, "cache_write": 18.75 },
-        "claude-sonnet-5": { "input": 3.0, "output": 15.0, "cache_read": 0.30, "cache_write": 3.75 },
-        "claude-haiku-4-5-20251001": { "input": 1.0, "output": 5.0, "cache_read": 0.10, "cache_write": 1.25 },
-        "gpt-6-astra": { "input": 0.0, "output": 0.0, "cache_read": 0.0, "cache_write": 0.0, "note": "подписка" },
-        "gpt-oss-120b-medium": { "input": 0.15, "output": 0.60, "cache_read": 0.0, "cache_write": 0.0 }
-    })
-}
+fn default_prices() -> Value { crate::prices::default_prices() }
 
-fn settings_of(app: &App) -> Result<Value> {
+pub fn settings_of(app: &App) -> Result<Value> {
     let mut s = app.store.get_kv("settings")?.unwrap_or(json!({}));
     if !s.is_object() { s = json!({}); }
     if s.get("prices").map(|p| !p.is_object()).unwrap_or(true) { s["prices"] = default_prices(); }
     if s.get("defaults").map(|p| !p.is_object()).unwrap_or(true) { s["defaults"] = json!({ "claude": "", "codex": "" }); }
     if s.get("limits").map(|p| !p.is_array()).unwrap_or(true) { s["limits"] = json!([]); }
     if !s.get("mail_paused").map(|p| p.is_boolean()).unwrap_or(false) { s["mail_paused"] = json!(false); }
-    // простой чат: маршрут и модель по умолчанию, поиск (searxng | brave | tavily | none)
+    // simple chat: the default route and model, search (searxng | brave | tavily | none)
     if !s.get("chat").map(|c| c.is_object()).unwrap_or(false) { s["chat"] = json!({ "route": "", "model": "", "search": { "kind": "none", "url": "", "key": "" } }); }
     Ok(s)
 }
-/// Настройки целиком (с умолчаниями) — для модулей, которым нужны несколько ключей.
+/// Whole settings (with defaults) — for modules that need several keys.
 pub fn settings_value(app: &App) -> Value { settings_of(app).unwrap_or(json!({})) }
-/// Булев флаг настроек (например `mail_paused` — почта агентов на паузе).
+/// Boolean settings flag (e.g. `mail_paused` — agent mail is paused).
 pub fn settings_flag(app: &App, key: &str) -> bool { settings_of(app).ok().and_then(|s| s.get(key).and_then(|v| v.as_bool())).unwrap_or(false) }
 
 pub async fn settings_get(State(app): State<Arc<App>>) -> R { Ok(Json(settings_of(&app)?)) }
@@ -130,10 +142,26 @@ pub async fn settings_put(State(app): State<Arc<App>>, Json(body): Json<Value>) 
     let mut cur = settings_of(&app)?;
     for (k, v) in body.as_object().unwrap() { cur[k] = v.clone(); }
     app.store.put_kv("settings", &cur)?;
+    // spending limits are applied by the core (§8.3, slice 67): mirror on every save
+    if body.get("limits").is_some() {
+        mirror_budgets(&app).await.map_err(|e| ApiError(StatusCode::BAD_GATEWAY, format!("лимиты сохранены, но ядро их не приняло: {e:#}")))?;
+        app.hub.limits_changed(cur.get("limits").cloned().unwrap_or(json!([])));
+    }
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// Модели: маршруты (gate + аккаунты ядра), расход по моделям за период из книги расходов, цены, умолчания, лимиты.
+/// `settings.limits` → the core's `PUT /api/agents/budgets` (on save and at service start)
+pub async fn mirror_budgets(app: &App) -> anyhow::Result<()> {
+    let limits = settings_of(app)?.get("limits").cloned().unwrap_or(json!([]));
+    let list: Vec<Value> = limits.as_array().cloned().unwrap_or_default().into_iter().filter_map(|l| {
+        let scope = l.get("scope")?.as_str()?.trim().to_string(); if scope.is_empty() { return None }
+        Some(json!({ "scope": scope, "per_day": l.get("per_day").and_then(|v| v.as_f64()).unwrap_or(0.0), "action": if l.get("action").and_then(|a| a.as_str()) == Some("stop") { "stop" } else { "warn" } }))
+    }).collect();
+    app.core_call(reqwest::Method::PUT, "/agents/budgets", Some(&json!(list))).await.map(|_| ())
+}
+
+/// Models: routes (gate + core accounts), usage by model over a period from the expense ledger, prices, defaults,
+/// limits.
 pub async fn models(State(app): State<Arc<App>>, Query(q): Query<Days>) -> R {
     let days = q.days.clamp(1, 365);
     let usage = app.core_get(&format!("/usage?days={days}")).await.unwrap_or(json!({}));
@@ -147,7 +175,7 @@ pub async fn models(State(app): State<Arc<App>>, Query(q): Query<Days>) -> R {
     }
     let mut models: Vec<Value> = usage.get("by_model").and_then(|m| m.as_array()).cloned().unwrap_or_default().into_iter().map(|b| {
         let id = b.get("key").and_then(|k| k.as_str()).unwrap_or("").to_string();
-        json!({ "id": id, "agent": agent_of(&id), "turns": b.get("turns"), "input": b.get("input"), "output": b.get("output"), "cache_read": b.get("cache_read"), "cache_create": b.get("cache_create"), "cost_usd": b.get("cost_usd"), "price": prices.get(&id) })
+        json!({ "id": id, "agent": agent_of(&id), "turns": b.get("turns"), "input": b.get("input"), "output": b.get("output"), "cache_read": b.get("cache_read"), "cache_create": b.get("cache_create"), "cost_usd": b.get("cost_usd"), "price": prices.get(&id).or_else(|| prices.get(&crate::prices::base_id(&id))) })
     }).collect();
     for (id, price) in prices.as_object().map(|o| o.iter().collect::<Vec<_>>()).unwrap_or_default() {
         if !models.iter().any(|m| m.get("id").and_then(|i| i.as_str()) == Some(id.as_str())) {
@@ -156,7 +184,7 @@ pub async fn models(State(app): State<Arc<App>>, Query(q): Query<Days>) -> R {
     }
     Ok(Json(json!({
         "period_days": days, "total": usage.get("total").cloned().unwrap_or(json!({})), "by_day": usage.get("by_day").cloned().unwrap_or(json!([])), "by_project": usage.get("by_project").cloned().unwrap_or(json!([])),
-        "routes": routes, "models": models, "defaults": settings.get("defaults"), "limits": settings.get("limits"), "project_defaults": accounts.get("defaults"),
+        "routes": routes, "models": models, "defaults": settings.get("defaults"), "limits": settings.get("limits"), "project_defaults": accounts.get("defaults"), "prices_sync": settings.get("prices_sync"),
     })))
 }
 

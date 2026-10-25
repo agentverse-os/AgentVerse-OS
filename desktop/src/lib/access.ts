@@ -1,5 +1,5 @@
-// Данные для входа в приложение (docs/userflow-apps.md, раздел 4): манифест `login` ссылается на переменные env
-// или содержит литералы; значения несекретных переменных приходят в settings_values, секреты — по reveal.
+// App sign-in data (docs/userflow-apps.md, section 4): the manifest `login` refers to env variables or contains
+// literals; the values of non-secret variables come in settings_values, secrets — via reveal.
 import type { AppView, LoginSpec } from './api';
 import { sameHost } from './store-utils';
 import { t } from './i18n.svelte';
@@ -33,7 +33,8 @@ export function modeText(mode: LoginSpec['mode']): string {
   }
 }
 
-/** Строка «Что понадобится» в карточке Store — из класса входа, обязательных настроек, capabilities и режима открытия. */
+/** The "What you will need" line in the Store card — from the sign-in class, required settings, capabilities and the open
+ *  mode. */
 export function needsOf(a: AppView, catalog?: AppView[]): string[] {
   const out: string[] = [];
   const l = a.manifest.login;

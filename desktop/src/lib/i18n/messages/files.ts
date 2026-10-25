@@ -1,5 +1,5 @@
-// «Файлы»: корни, панель действий, сортировка, таблица, редактор, лист действий, диалоги prompt/confirm и статусы операций.
-// Названия корней приходят из ядра и не переводятся.
+// "Files": roots, the action bar, sorting, the table, the editor, the action sheet, prompt/confirm dialogs and operation
+// statuses. Root names come from the core and are not translated.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

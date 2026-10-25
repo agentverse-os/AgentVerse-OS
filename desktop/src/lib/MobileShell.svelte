@@ -1,6 +1,6 @@
 <script lang="ts">
-  // Мобильная оболочка (3.13: телефон — режим «пульт»): статус-бар, домашний экран (поиск, виджеты, сетка иконок),
-  // приложения на весь экран, нижняя навигация назад/домой/недавние, ящик приложений.
+  // Mobile shell (3.13: the phone is the "remote" mode): status bar, home screen (search, widgets, icon grid),
+  // full-screen apps, bottom navigation back/home/recents, the app drawer.
   import { wm, SYS_APPS, winTitle, type SysApp } from './windows.svelte';
   import { t, i18n } from './i18n.svelte';
   import { NAV_H, STATUS_H } from './device.svelte';
@@ -74,9 +74,9 @@
 </div>
 
 <style>
-  /* оболочка выше окон (z 2000), но прозрачна для касаний — окна под ней кликабельны; свои элементы включают pointer-events */
+  /* the shell is above the windows (z 2000) but transparent to touches — the windows under it are clickable; its own elements enable pointer-events */
   .mobile { position: fixed; inset: 0; display: flex; flex-direction: column; z-index: 2000; pointer-events: none; }
-  .mobile > :global(*) { pointer-events: auto; } /* :global — иначе Svelte ограничит правило своими элементами, и дочерние компоненты (ящик) останутся без событий */
+  .mobile > :global(*) { pointer-events: auto; } /* :global — otherwise Svelte scopes the rule to its own elements, and the child components (the drawer) are left without events */
   .status { display: flex; align-items: center; gap: 8px; height: var(--status); padding: env(safe-area-inset-top) 12px 0; font-size: .9rem; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
   .status .clock { font-weight: 700; }
   .spacer { flex: 1; }

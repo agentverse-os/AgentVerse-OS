@@ -1,8 +1,8 @@
 import json, os, sys, time, urllib.request
 import websocket  # pip install websocket-client
-# Дымовая проверка cloudos-agentd на живом workspace: создать терминал, подключиться по WebSocket, выполнить команду,
-# отключиться и подключиться снова (хвост вывода должен сохраниться — процесс не привязан к клиенту), изменить размер,
-# убить. Запуск: AGENTD=http://10.77.7.146:7200 AGENTD_TOKEN=… python3 smoke.py
+# Smoke check of cloudos-agentd on a live workspace: create a terminal, attach over WebSocket, run a command, detach
+# and attach again (the output tail must survive — the process is not tied to the client), resize, kill. Run:
+# AGENTD=http://10.77.7.146:7200 AGENTD_TOKEN=… python3 smoke.py
 BASE = os.environ.get("AGENTD", "http://127.0.0.1:7200"); TOKEN = os.environ.get("AGENTD_TOKEN", ""); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 def api(path, method="GET", body=None):
@@ -30,10 +30,11 @@ try:
     urllib.request.urlopen(urllib.request.Request(BASE + "/v1/ptys", headers={"authorization": "Bearer wrong"}), timeout=10); ok("wrong token rejected", False)
 except urllib.error.HTTPError as e: ok("wrong token rejected", e.code == 401, str(e.code))
 st, p = api("/v1/ptys", "POST", {"title": "smoke", "cols": 100, "rows": 30}); ok("pty created", st == 200 and p and p["alive"], json.dumps(p)[:120]); pid = p["id"]
-hello, out = attach(pid, wait_for="agentd-ok 42", send="echo agentd-ok $((6*7))\n")  # ждём результат, а не эхо набранной строки
+hello, out = attach(pid, wait_for="agentd-ok 42", send="echo agentd-ok $((6*7))\n")  # wait for the result, not the echo of the typed line
 ok("command ran, output streamed", b"agentd-ok 42" in out, out[-80:].decode(errors="replace").strip())
 ok("hello frame", hello.get("t") == "hello" and hello.get("cols") == 100)
-# отключились — процесс жив, хвост цел
+# detached — the process is alive, the
+# tail is intact
 time.sleep(0.5); st, info = api(f"/v1/ptys/{pid}"); ok("survives client disconnect", info and info["alive"] and info["clients"] == 0, json.dumps(info)[:100])
 hello2, replay = attach(pid, timeout=2)
 ok("reattach replays scrollback", hello2.get("replay", 0) > 0 and b"agentd-ok 42" in replay, f"replay={hello2.get('replay')}")

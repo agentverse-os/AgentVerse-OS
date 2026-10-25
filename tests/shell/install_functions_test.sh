@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Shell-тесты функций bootstrap/install.sh с шимом tailscale (tests/shell/tailscale). Ничего системного не трогает:
-# функции извлекаются из install.sh без вызова main (строка `main "$@"` вырезается), ENV_FILE подменяется временным
-# файлом, каждый случай идёт в отдельном процессе bash — в install.sh действуют set -euo pipefail и trap ERR, и они
-# не должны ронять сам прогон. Внешние зависимости: bash ≥ 4.4, jq, coreutils (timeout, date, mktemp, stat), hostname.
+# Shell tests of the bootstrap/install.sh functions with a tailscale shim (tests/shell/tailscale). Touches nothing on
+# the system: the functions are extracted from install.sh without calling main (the `main "$@"` line is cut out),
+# ENV_FILE is replaced with a temporary file, every case runs in a separate bash process — install.sh has set -euo
+# pipefail and trap ERR in effect, and they must not break the run itself. External dependencies: bash ≥ 4.4, jq,
+# coreutils (timeout, date, mktemp, stat), hostname.
 #
-#   tests/shell/install_functions_test.sh               # все проверки; код 0 — все прошли
-#   VERBOSE=1 tests/shell/install_functions_test.sh     # печатать вывод каждого случая
-#   ONLY=resolve tests/shell/install_functions_test.sh  # один раздел: to_secs | env_set | ts_shim | authorize | dns_https | resolve
-# Проверки с пометкой «(доп.)» — сверх задания; их падение — повод посмотреть, но не блокер.
+#   tests/shell/install_functions_test.sh               # all checks; code 0 — all passed
+#   VERBOSE=1 tests/shell/install_functions_test.sh     # print the output of every case
+#   ONLY=resolve tests/shell/install_functions_test.sh  # one section: to_secs | env_set | ts_shim | authorize | dns_https | resolve
+# Checks marked "(extra)" go beyond the task; their failure is a reason to look, not a blocker.
 set -uo pipefail
 TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$TESTS_DIR/../.." && pwd)"
@@ -25,12 +26,14 @@ TS_NAME="box.tail1234.ts.net"
 [[ -x "$SHIM" ]] || { echo "шим $SHIM не исполняемый" >&2; exit 2; }
 command -v jq >/dev/null || { echo "нужен jq" >&2; exit 2; }
 
-# ---------------------------------------------------------------------------------------------- извлечение функций
+# ---------------------------------------------------------------------------------------------- function
+# extraction
 sed '/^main "\$@"$/d' "$INSTALL_SH" > "$FUNCS"
 grep -q '^main "\$@"$' "$FUNCS" && { echo "не удалось вырезать вызов main из install.sh" >&2; exit 2; }
 grep -q '^main()' "$FUNCS" || { echo "в install.sh нет main() — тест устарел" >&2; exit 2; }
 
-# Прелюдия каждого случая: шим впереди PATH, состояние шима в $FAKE, функции install.sh, подмена ENV_FILE/TTY/TAILSCALE_WAIT.
+# Prelude of every case: the shim ahead in PATH, the shim state in $FAKE, the install.sh functions,
+# ENV_FILE/TTY/TAILSCALE_WAIT replaced.
 cat > "$WORK/prelude.sh" <<EOF
 export PATH="$TESTS_DIR:\$PATH"
 export TS_FAKE_DIR="$FAKE"
@@ -40,15 +43,16 @@ TTY=0
 TAILSCALE_WAIT=15m
 EOF
 
-# ------------------------------------------------------------------------------------------------------- каркас
+# -------------------------------------------------------------------------------------------------------
+# harness
 PASS=0 FAIL=0 SKIP=0; FAILED=()
 OUT="" RC=0 ELAPSED=0 CASE_ENV=() SECTION=""
 fake_reset() { rm -rf "$FAKE" "$ENVF"; mkdir -p "$FAKE"; }
 fake_state() { echo "$1" > "$FAKE/state"; }
 section()    { SECTION="$1"; printf '\n== %s\n' "$1"; }
 want()       { [[ -z "${ONLY:-}" || "$ONLY" == "$1" ]]; }
-# run_case <фрагмент> — выполнить фрагмент после прелюдии в отдельном bash; результат в OUT (stdout+stderr), RC, ELAPSED.
-# Переменные окружения для случая — через CASE_ENV=(K=V …) перед вызовом (сбрасываются после).
+# run_case <snippet> — run the snippet after the prelude in a separate bash; the result in OUT (stdout+stderr), RC,
+# ELAPSED. Environment variables for the case — via CASE_ENV=(K=V …) before the call (reset afterwards).
 run_case() {
   local t0; t0=$(date +%s)
   OUT="$(env -u EDGE_HOST -u TAILSCALE_AUTH_KEY -u TAILSCALE_HOSTNAME -u TAILSCALE_WAIT -u NONINTERACTIVE -u LOG \
@@ -58,16 +62,17 @@ run_case() {
   [[ -n "${VERBOSE:-}" ]] && printf -- '--- rc=%s · %s с\n%s\n---\n' "$RC" "$ELAPSED" "$OUT"
   return 0
 }
-# условия для check — работают с OUT/RC/ELAPSED последнего run_case
+# conditions for check — work with OUT/RC/ELAPSED of the last
+# run_case
 contains()   { [[ "$OUT" == *"$1"* ]]; }
-matches()    { [[ "$OUT" == $1 ]]; }             # glob; «*» покрывает и переводы строк
+matches()    { [[ "$OUT" == $1 ]]; }             # glob; "*" covers line breaks too
 out_is()     { [[ "$OUT" == "$1" ]]; }
 rc_is()      { [[ "$RC" == "$1" ]]; }
 rc_contains(){ [[ "$RC" == "$1" && "$OUT" == *"$2"* ]]; }
 faster()     { (( ELAPSED < $1 )); }
 elapsed_in() { (( ELAPSED >= $1 && ELAPSED < $2 )); }
-calls_match(){ grep -qE -- "$1" "$FAKE/calls.log" 2>/dev/null; }   # журнал вызовов шима
-check() { # check <описание> <условие…>
+calls_match(){ grep -qE -- "$1" "$FAKE/calls.log" 2>/dev/null; }   # the shim call log
+check() { # check <description> <condition…>
   local what="$1"; shift
   if "$@"; then PASS=$((PASS+1)); printf '  ok    %s\n' "$what"
   else
@@ -109,7 +114,8 @@ run_case 'printf "K=old\n" > "$ENV_FILE"; env_set "$ENV_FILE" K "a|b"; cat "$ENV
 check "(доп.) значение с «|» записывается буквально" out_is 'K=a|b'
 fi
 
-# ======================================================================================================== ts_* на шиме
+# ======================================================================================================== ts_* on the
+# shim
 if want ts_shim; then
 section "ts_state/ts_dnsname/ts_https/ts_magicdns/ts_ipv4/ts_authurl на шиме"
 fake_reset
@@ -212,10 +218,11 @@ fi
 # ======================================================================================================== resolve_edge_host
 if want resolve; then
 section "resolve_edge_host: явный EDGE_HOST → имя Tailscale → CLOUDD_EDGE_HOST из env-файла → IPv4 хоста"
-# Логика выбора имени проверяется через `|| rc=$?` (set -e внутри функции при этом отключён), а код возврата — отдельно:
-# в install.sh функция вызывается напрямую под set -e (step_tailscale/coder/cloudd/verify), и ненулевой код = обрыв установки.
+# The name choice logic is checked via `|| rc=$?` (set -e inside the function is off then), and the return code — separately:
+# in install.sh the function is called directly under set -e (step_tailscale/coder/cloudd/verify), and a non-zero code = the
+# install aborts.
 R='rc=0; resolve_edge_host || rc=$?; echo "EDGE_HOST=$EDGE_HOST TLS_INTERNAL=$TLS_INTERNAL rc=$rc"'
-D='resolve_edge_host; echo "direct EDGE_HOST=$EDGE_HOST TLS_INTERNAL=$TLS_INTERNAL"'   # как в step_*: напрямую под set -e
+D='resolve_edge_host; echo "direct EDGE_HOST=$EDGE_HOST TLS_INTERNAL=$TLS_INTERNAL"'   # as in step_*: directly under set -e
 
 fake_reset; fake_state Running; touch "$FAKE/magic" "$FAKE/https"; echo "CLOUDD_EDGE_HOST=old.tail1.ts.net" > "$ENVF"
 CASE_ENV=(EDGE_HOST=my.example.com); run_case "$R"
@@ -263,7 +270,8 @@ fi
 run_case 'lan_ip() { echo; }; '"$R"
 check "lan_ip пустой → die «задайте EDGE_HOST», код 1"             rc_contains 1 "задайте EDGE_HOST"
 
-# Прямой вызов под set -e — ровно так функция вызывается в step_tailscale/coder/cloudd/verify.
+# A direct call under set -e — exactly how the function is called in
+# step_tailscale/coder/cloudd/verify.
 fake_reset; fake_state Running; touch "$FAKE/magic" "$FAKE/https"; echo "CLOUDD_EDGE_HOST=old.example.com" > "$ENVF"
 run_case "$D"
 check "прямой вызов под set -e: своё имя в env-файле остаётся, скрипт идёт дальше"     rc_contains 0 "direct EDGE_HOST=old.example.com"
@@ -278,6 +286,7 @@ run_case "$D"
 check "прямой вызов под set -e: первая установка без env-файла → скрипт идёт дальше"  rc_contains 0 "direct EDGE_HOST="
 fi
 
-# ======================================================================================================== итог
+# ========================================================================================================
+# summary
 printf '\n== итог: %d ok, %d FAIL, %d skip\n' "$PASS" "$FAIL" "$SKIP"
 if (( FAIL )); then printf '  падения:\n'; printf '   - %s\n' "${FAILED[@]}"; exit 1; fi

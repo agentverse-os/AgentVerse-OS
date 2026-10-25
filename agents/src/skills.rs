@@ -1,8 +1,9 @@
-//! Каталог навыков сервиса (docs/agents-ux.md §7.1). Навык — повторяемая процедура: когда применять, шаги, что проверить.
-//! Хранится в kv `skills`; агент получает свои навыки в задании (routines::compose), у Claude они ещё материализуются в
-//! `~/.claude/skills/<имя>/SKILL.md` workspace'а (доступны как /имя и в интерактивных сессиях). Агенты сами предлагают
-//! навыки строками «НАВЫК: имя: текст» в итоге запуска — такие навыки помечены источником `agent:<id>`; навык владельца
-//! (`user`) агент не перезаписывает. Стартовый набор кладётся при первом обращении к пустому каталогу.
+//! Service skills catalog (docs/agents-ux.md §7.1). A skill is a repeatable procedure: when to apply it, the steps, what
+//! to check. Stored in kv `skills`; the agent gets its skills in the task (routines::compose), for Claude they are also
+//! materialized in the workspace's `~/.claude/skills/<name>/SKILL.md` (available as /name and in interactive sessions).
+//! Agents themselves propose skills with "НАВЫК: name: text" (skill) lines in the run result — such skills are marked
+//! with source `agent:<id>`; an owner's skill (`user`) is never overwritten by an agent. The starter set is placed on the
+//! first access to an empty catalog.
 use crate::{App, ApiError};
 use anyhow::{anyhow, bail, Result};
 use axum::extract::{Path, State};
@@ -28,7 +29,8 @@ pub struct Skill {
 fn s_user() -> String { "user".into() }
 fn now() -> i64 { chrono::Utc::now().timestamp() }
 
-/// Имя навыка: латиница строчными, цифры, дефис; 1–40 символов, не начинается с дефиса.
+/// Skill name: lower-case Latin letters, digits, hyphen; 1–40 characters, not starting
+/// with a hyphen.
 pub fn valid_name(s: &str) -> bool {
     let n = s.len();
     (1..=40).contains(&n) && !s.starts_with('-') && s.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
@@ -52,14 +54,15 @@ pub fn load(app: &App) -> Result<Vec<Skill>> {
 }
 pub fn save(app: &App, v: &[Skill]) -> Result<()> { app.store.put_kv("skills", &serde_json::to_value(v)?) }
 
-/// Навыки агента в порядке его списка; пропавшие из каталога пропускаются.
+/// Agent skills in the order of its list; ones missing from the catalog
+/// are skipped.
 pub fn for_agent(app: &App, agent: &crate::routines::AgentDef) -> Vec<Skill> {
     let all = load(app).unwrap_or_default();
     agent.skills.iter().filter_map(|n| all.iter().find(|s| &s.name == n).cloned()).collect()
 }
 
-/// Навык, предложенный агентом строкой «НАВЫК: имя: текст»: новый — в каталог с источником `agent:<id>`; свой прежний —
-/// обновляется; навык владельца (`user`) не трогается.
+/// A skill proposed by an agent with a "НАВЫК: name: text" line: a new one — into the catalog with source `agent:<id>`;
+/// its own previous one — updated; an owner's skill (`user`) is left alone.
 pub fn upsert_from_agent(app: &App, agent_id: &str, name: &str, text: &str) -> Result<()> {
     if !valid_name(name) { bail!("неверное имя навыка: {name}"); }
     let mut all = load(app)?;
@@ -73,7 +76,8 @@ pub fn upsert_from_agent(app: &App, agent_id: &str, name: &str, text: &str) -> R
     save(app, &all)
 }
 
-/// Первая фраза (до точки или 160 символов) — описание, весь текст — тело.
+/// The first sentence (up to a period or 160 characters) is the
+/// description, the whole text is the body.
 fn split_desc(text: &str) -> (String, String) {
     let t = text.trim();
     let first = t.split_once(['.', '\n']).map(|(a, _)| a).unwrap_or(t).trim();
@@ -82,13 +86,14 @@ fn split_desc(text: &str) -> (String, String) {
     (desc, body)
 }
 
-/// Содержимое SKILL.md (frontmatter Claude Code + тело).
+/// SKILL.md content (Claude Code frontmatter + body).
 pub fn skill_md(s: &Skill) -> String {
     let desc = s.description.replace('\n', " ").replace('"', "'");
     format!("---\nname: {}\ndescription: \"{}\"\n---\n\n{}\n", s.name, desc, s.body.trim())
 }
 
-/// Разложить навыки агента файлами в `~/.claude/skills/<имя>/SKILL.md` workspace'а (через ядро → agentd fs). Ошибки только в журнал.
+/// Lay out the agent's skills as files in the workspace's `~/.claude/skills/<name>/SKILL.md` (through the core → agentd fs). Errors
+/// only into the log.
 pub async fn materialize(app: &App, project: &str, skills: &[Skill]) {
     for s in skills {
         let dir = format!(".claude/skills/{}", s.name);
@@ -173,7 +178,8 @@ mod tests {
 
 #[derive(serde::Deserialize)]
 pub struct MaterializeIn { pub project: String, #[serde(default)] pub names: Vec<String> }
-/// Разложить выбранные навыки каталога в `~/.claude/skills` workspace'а (срез 36: навыки в интерактивной беседе Claude).
+/// Lay out the chosen catalog skills into the workspace's `~/.claude/skills` (slice 36: skills in an interactive Claude
+/// conversation).
 pub async fn materialize_api(State(app): State<Arc<App>>, Json(b): Json<MaterializeIn>) -> Result<Json<serde_json::Value>, ApiError> {
     if b.project.trim().is_empty() { return Err(ApiError(StatusCode::BAD_REQUEST, "нужен project".into())) }
     let all = load(&app)?;

@@ -1,5 +1,5 @@
-// Общие строки: кнопки, заголовки системных окон, экран загрузки, оверлей связи, контекстное меню, предупреждение о сертификате,
-// единицы и относительное время. Компонентные словари — рядом, по одному файлу на раздел.
+// Common strings: buttons, system window titles, the loading screen, the connection overlay, the context menu, the certificate
+// warning, units and relative time. Component dictionaries are next to it, one file per section.
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

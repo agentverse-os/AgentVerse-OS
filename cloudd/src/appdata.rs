@@ -1,32 +1,39 @@
-//! Каталоги данных приложений (`${APP_DATA_DIR}/…`): кто их владелец и починка прав.
+//! App data directories (`${APP_DATA_DIR}/…`): who owns them and permission repair.
 //!
-//! Первопричина «502 после установки»: образы из каталогов часто работают не от root (Umbrel: `user: 1000:1000`, linuxserver: PUID/PGID,
-//! bitnami: 1001, grafana: 472…), а bind-каталог, созданный ядром от root, им недоступен → EACCES → контейнер перезапускается по кругу,
-//! edge отдаёт 502. Docker решает это только для named volumes (копирует содержимое и владельца пути из образа); для bind-монтирований
-//! платформы-источники полагаются на соглашение хоста (Umbrel и Runtipi: всё под 1000:1000). Здесь владелец выводится из compose и образа:
-//!   1. `user:` сервиса — число, `uid:gid`, `${VAR:-default}`; имя — через /etc/passwd образа;
-//!   2. PUID/PGID из environment сервиса (соглашение linuxserver);
-//!   3. `USER` из конфигурации образа (число или имя через /etc/passwd);
-//!   4. владелец пути монтирования внутри образа, если не root (то, что сделал бы Docker для named volume);
-//!   5. иначе 1000:1000 — соглашение Umbrel/Runtipi; для образов, работающих от root, владелец безразличен.
-//! Новым и ещё пустым каталогам владелец выставляется до `compose up` ([`Service::prepare_data_dirs`]); уже наполненным — [`Service::app_repair`]
-//! (кнопка в карточке и автоматически из [`Service::spawn_watch`], если после выкатки контейнер перезапускается с ошибкой прав в логах).
+//! Root cause of "502 after install": catalog images often do not run as root (Umbrel: `user: 1000:1000`, linuxserver: PUID/PGID, bitnami:
+//! 1001, grafana: 472…), while a bind directory created by the core as root is inaccessible to them → EACCES → the container restarts in a
+//! loop, the edge returns 502. Docker solves this only for named volumes (copies the content and the path owner from the image); for bind
+//! mounts the source platforms rely on a host convention (Umbrel and Runtipi: everything under 1000:1000). Here the owner is derived from
+//! compose and the image:
+//! 1. the service's `user:` — a number, `uid:gid`, `${VAR:-default}`; a name — via the image's
+//! /etc/passwd;
+//! 2. PUID/PGID from the service environment (the linuxserver
+//! convention);
+//! 3. `USER` from the image configuration (a number or a name via
+//! /etc/passwd);
+//! 4. the owner of the mount path inside the image, if not root (what Docker would do for a named volume);
+//! 5. otherwise 1000:1000 — the Umbrel/Runtipi convention; for images running as root the owner does not
+//! matter.
+//! New and still empty directories get their owner before `compose up` ([`Service::prepare_data_dirs`]); already populated ones —
+//! [`Service::app_repair`] (the button in the card and automatically from [`Service::spawn_watch`] if after a deploy the container restarts with
+//! a permission error in the logs).
 use crate::service::{data_subdirs, ensure_data_dir, Service};
 use anyhow::{bail, Result};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::Path;
 
-/// Соглашение Umbrel/Runtipi: данные приложений принадлежат первому пользователю хоста.
+/// Umbrel/Runtipi convention: app data belongs to the host's first user.
 pub const DEFAULT_OWNER: (u32, u32) = (1000, 1000);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Owner {
     pub uid: u32,
     pub gid: u32,
-    /// Откуда взят (для событий и отладки).
+    /// Where it was taken from (for events and
+    /// debugging).
     pub why: String,
-    /// Выведен из compose или образа (true) — или взят по умолчанию (false): по умолчанию чужие данные не перекрашиваем.
+    /// Derived from compose or the image (true) — or taken by default (false): by default we do not re-own foreign data.
     pub strong: bool,
 }
 
@@ -34,14 +41,16 @@ fn default_owner(why: &str) -> Owner { Owner { uid: DEFAULT_OWNER.0, gid: DEFAUL
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Mount {
-    /// Подкаталог внутри `${APP_DATA_DIR}` ("" — сам каталог данных).
+    /// Subdirectory inside `${APP_DATA_DIR}` ("" — the data directory
+    /// itself).
     pub subdir: String,
     pub service: String,
-    /// Путь внутри контейнера.
+    /// Path inside the container.
     pub target: String,
 }
 
-/// `${APP_DATA_DIR}/<subdir>` → subdir; сам `${APP_DATA_DIR}` → ""; файлы (точка в последнем сегменте) и выход наверх — None.
+/// `${APP_DATA_DIR}/<subdir>` → subdir; `${APP_DATA_DIR}` itself → ""; files (a dot in the last segment) and escaping upwards
+/// — None.
 fn subdir_of(src: &str) -> Option<String> {
     let s = src.trim();
     let rest = s.strip_prefix("${APP_DATA_DIR}")?;
@@ -53,8 +62,8 @@ fn subdir_of(src: &str) -> Option<String> {
     Some(rest.to_string())
 }
 
-/// bind-монтирования `${APP_DATA_DIR}/…:<target>` по сервисам (короткая и длинная форма). Named volumes, даже с driver_opts bind
-/// внутрь `${APP_DATA_DIR}`, не здесь: их Docker инициализирует сам.
+/// Bind mounts `${APP_DATA_DIR}/…:<target>` per service (short and long form). Named volumes, even with driver_opts bind into
+/// `${APP_DATA_DIR}`, are not here: Docker initializes them itself.
 pub fn data_mounts(compose: &Value) -> Vec<Mount> {
     let mut out = Vec::new();
     let Some(services) = compose.get("services").and_then(|s| s.as_object()) else { return out };
@@ -81,7 +90,8 @@ pub fn data_mounts(compose: &Value) -> Vec<Mount> {
     out
 }
 
-/// Подстановка `${VAR}`, `${VAR:-def}`, `${VAR-def}`, `${VAR:?e}`, `$VAR` по окружению приложения. None — переменная не задана и нет default.
+/// Substitution of `${VAR}`, `${VAR:-def}`, `${VAR-def}`, `${VAR:?e}`, `$VAR` from the app environment. None — the variable is unset and
+/// there is no default.
 pub fn expand(expr: &str, env: &HashMap<String, String>) -> Option<String> {
     let mut out = String::new();
     let b = expr.as_bytes();
@@ -116,7 +126,7 @@ pub fn expand(expr: &str, env: &HashMap<String, String>) -> Option<String> {
     Some(out)
 }
 
-/// "1000" / "1000:1000" → (uid, gid?); имена — None.
+/// "1000" / "1000:1000" → (uid, gid?); names — None.
 pub fn parse_ids(s: &str) -> Option<(u32, Option<u32>)> {
     let s = s.trim().trim_matches(|c| c == '"' || c == '\'');
     let (u, g) = match s.split_once(':') { Some((u, g)) => (u, Some(g)), None => (s, None) };
@@ -125,14 +135,16 @@ pub fn parse_ids(s: &str) -> Option<(u32, Option<u32>)> {
     Some((uid, gid))
 }
 
-/// `user:` сервиса с подстановкой окружения (число YAML тоже).
+/// The service's `user:` with environment substitution (a YAML
+/// number too).
 pub fn service_user(svc: &Value, env: &HashMap<String, String>) -> Option<String> {
     let u = svc.get("user")?;
     let s = match u { Value::String(s) => s.clone(), Value::Number(n) => n.to_string(), _ => return None };
     expand(&s, env).map(|s| s.trim().to_string()).filter(|s| !s.is_empty())
 }
 
-/// environment сервиса (список `K=V` или карта) с подстановкой окружения приложения.
+/// The service environment (a `K=V` list or a map) with app environment
+/// substitution.
 pub fn service_env(svc: &Value, env: &HashMap<String, String>) -> HashMap<String, String> {
     let mut out = HashMap::new();
     match svc.get("environment") {
@@ -148,7 +160,7 @@ pub fn service_env(svc: &Value, env: &HashMap<String, String>) -> HashMap<String
     out
 }
 
-/// Владелец только по compose (без Docker): числовой `user:` или PUID/PGID.
+/// Owner from compose only (no Docker): a numeric `user:` or PUID/PGID.
 pub fn owner_from_compose(svc: &Value, env: &HashMap<String, String>) -> Option<Owner> {
     if let Some(u) = service_user(svc, env) {
         if let Some((uid, gid)) = parse_ids(&u) { return Some(Owner { uid, gid: gid.unwrap_or(uid), why: format!("user: {u} в compose"), strong: true }); }
@@ -161,7 +173,8 @@ pub fn owner_from_compose(svc: &Value, env: &HashMap<String, String>) -> Option<
     None
 }
 
-/// `name`, `name:group`, `uid:group`, `name:gid` → (uid, gid) по /etc/passwd образа (группа по имени — первичная группа пользователя).
+/// `name`, `name:group`, `uid:group`, `name:gid` → (uid, gid) per the image's /etc/passwd (a group by name — the user's primary
+/// group).
 pub fn resolve_name(user: &str, passwd: &str) -> Option<(u32, u32)> {
     let (u, g) = match user.split_once(':') { Some((u, g)) => (u.trim(), Some(g.trim())), None => (user.trim(), None) };
     let mut uid = u.parse::<u32>().ok();
@@ -198,7 +211,8 @@ fn tar_first_file(buf: &[u8]) -> Option<String> {
     None
 }
 
-/// Похоже ли на ошибку прав в логах контейнера.
+/// Does it look like a permission error in the
+/// container logs.
 pub fn perm_error(logs: &str) -> bool {
     let re = regex_lite::Regex::new(r"(?i)permission denied|EACCES|EPERM|operation not permitted|not writable|read-only file system|unable to (create|open|write)|cannot (create|open|write|access)|mkdir[^\n]*(denied|failed)|chown[^\n]*(denied|not permitted|failed)").unwrap();
     re.is_match(logs)
@@ -210,7 +224,7 @@ fn owner_of(p: &Path) -> Option<(u32, u32)> {
     Some((m.uid(), m.gid()))
 }
 
-/// В дереве нет ни одного файла — только (возможно вложенные) пустые каталоги, созданные ядром под монтирования.
+/// Not a single file in the tree — only (possibly nested) empty directories created by the core for mounts.
 fn tree_has_no_files(dir: &Path) -> bool {
     let Ok(rd) = std::fs::read_dir(dir) else { return false };
     for e in rd.flatten() {
@@ -220,7 +234,7 @@ fn tree_has_no_files(dir: &Path) -> bool {
     true
 }
 
-/// chown -R без прохода по символьным ссылкам (lchown).
+/// chown -R without following symlinks (lchown).
 pub fn chown_recursive(dir: &Path, uid: u32, gid: u32) -> std::io::Result<()> {
     std::os::unix::fs::lchown(dir, Some(uid), Some(gid))?;
     if std::fs::symlink_metadata(dir)?.is_dir() {
@@ -233,14 +247,15 @@ pub fn chown_recursive(dir: &Path, uid: u32, gid: u32) -> std::io::Result<()> {
     Ok(())
 }
 
-/// Сервис по имени контейнера compose: `<project>-<service>-<n>` → service.
+/// Service by compose container name: `<project>-<service>-<n>` → service.
 pub fn service_of(project: &str, container: &str) -> String {
     let rest = container.strip_prefix(project).and_then(|r| r.strip_prefix('-')).unwrap_or(container);
     match rest.rsplit_once('-') { Some((s, n)) if n.chars().all(|c| c.is_ascii_digit()) => s.to_string(), _ => rest.to_string() }
 }
 
 impl Service {
-    /// Владелец каталогов сервиса: compose → образ → по умолчанию. Образ скачивается заранее (Komodo потом возьмёт из кеша).
+    /// Owner of the service directories: compose → image → default. The image is pulled in advance (Komodo later takes it
+    /// from the cache).
     pub async fn resolve_owner(&self, svc: &Value, target: &str, env: &HashMap<String, String>) -> Owner {
         if let Some(o) = owner_from_compose(svc, env) { return o; }
         let user = service_user(svc, env);
@@ -261,7 +276,7 @@ impl Service {
         default_owner("образ работает от root, владелец безразличен")
     }
 
-    /// Владельцы по монтированиям (один разбор compose и образов на сервис).
+    /// Owners per mount (one parse of compose and images per service).
     async fn mount_owners(&self, compose_text: &str, env: &[(String, String)]) -> Vec<(Mount, Owner)> {
         let compose: Value = serde_yaml_ng::from_str(compose_text).unwrap_or(Value::Null);
         let envm: HashMap<String, String> = env.iter().cloned().collect();
@@ -282,7 +297,8 @@ impl Service {
         out
     }
 
-    /// Создать каталоги данных до `compose up` и выставить владельца новым и ещё пустым (без файлов) каталогам. Возвращает список изменений.
+    /// Create the data directories before `compose up` and set the owner on new and still empty (no files) directories. Returns the list of
+    /// changes.
     pub async fn prepare_data_dirs(&self, name: &str, compose_text: &str, env: &[(String, String)]) -> Result<Vec<String>> {
         let root = self.cfg.apps_data_dir.join(name);
         ensure_data_dir(&root)?;
@@ -299,8 +315,8 @@ impl Service {
         Ok(notes)
     }
 
-    /// Починка прав уже наполненных каталогов по тем же правилам: рекурсивно, только при расхождении; владелец по умолчанию применяется,
-    /// лишь когда каталог принадлежит root (наследие ядра, а не приложения). При изменениях — перевыкатка.
+    /// Permission repair of already populated directories by the same rules: recursively, only on a mismatch; the default owner is
+    /// applied only when the directory belongs to root (the core's legacy, not the app's). On changes — a redeploy.
     pub async fn app_repair(&self, name: &str) -> Result<Vec<String>> {
         let _g = self.lock.lock().await;
         let m = self.manifest(name)?;
@@ -327,9 +343,9 @@ impl Service {
         Ok(notes)
     }
 
-    /// После выкатки: до 5 минут ждём контейнеры, затем 90 с смотрим за ними. Если контейнер перезапускается и в логах ошибка прав —
-    /// один раз чиним владельцев и перевыкатываем; иначе оставляем событие с последней строкой логов. Пользователь работает из браузера,
-    /// и это единственный способ узнать, почему «502».
+    /// After a deploy: wait up to 5 minutes for the containers, then watch them for 90 s. If a container restarts and the logs show a
+    /// permission error — repair the owners once and redeploy; otherwise leave an event with the last log line. The user works from the
+    /// browser, and this is the only way to learn why "502".
     pub fn spawn_watch(&self, name: &str) {
         let me = self.clone();
         let name = name.to_string();

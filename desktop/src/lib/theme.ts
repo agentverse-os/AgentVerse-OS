@@ -1,5 +1,6 @@
-// Оформление Desktop: как в настольной ОС — тема, акцент, фон, масштаб, плотность, скругления, шрифт, контраст, анимации.
-// Источник истины — ядро (/api/settings/desktop), копия в localStorage для мгновенного применения до ответа сети.
+// Desktop appearance: as in a desktop OS — theme, accent, background, scale, density, rounding, font, contrast,
+// animations. The source of truth is the core (/api/settings/desktop), a copy in localStorage for instant application
+// before the network answers.
 import { api } from './api';
 import { i18n, type LangSetting } from './i18n.svelte';
 
@@ -7,8 +8,8 @@ export type ThemeMode = 'dark' | 'light' | 'system';
 export interface Appearance {
   mode: ThemeMode;
   accent: string;              // hex
-  background: string;          // id пресета фона или 'none' | 'custom'
-  backgroundUrl: string;       // для 'custom'
+  background: string;          // background preset id or 'none' | 'custom'
+  backgroundUrl: string;       // for 'custom'
   backgroundBlur: number;      // 0..20 px
   textScale: number;           // 0.85..1.3
   density: 'compact' | 'normal' | 'comfortable';
@@ -16,19 +17,21 @@ export interface Appearance {
   font: 'system' | 'humanist' | 'grotesk' | 'mono';
   contrast: 'normal' | 'high';
   reduceMotion: boolean;
-  transparency: boolean;       // полупрозрачные панели поверх фона
+  transparency: boolean;       // translucent panels over the background
   iconSize: 'small' | 'medium' | 'large';
   showWorkspaceIps: boolean;
-  /** Закреплённые системные приложения на панели задач; по умолчанию панель показывает только открытые окна. */
+  /** Pinned system apps on the taskbar; by default the bar shows only open windows. */
   taskbarPinned?: boolean;
-  /** Заставка по бездействию, минуты; 0 — выключена. */
+  /** Idle screensaver, minutes; 0 — off. */
   screensaver?: number;
-  /** Поверхности: flat — плоские панели, glass — стекло (сильное размытие, блики, светлые кромки), oled — чистый чёрный. */
+  /** Surfaces: flat — flat panels, glass — glass (strong blur, highlights, light edges), oled — pure black. */
   surface?: 'flat' | 'glass' | 'oled';
-  /** Язык интерфейса Desktop (общий для всех устройств); auto — по языку браузера. */
+  /** Desktop UI language (shared across all devices); auto — by the browser language. */
   language?: LangSetting;
-  /** Облик оболочки: default — панель задач и окна как есть; umbrel — как umbrelOS 2 (док внизу, сетка приложений с приветствием,
-   *  окна-«листы», материал с тёмной тонировкой, акцент от обоев). Задаётся готовой темой, остальные настройки поверх. */
+  /** Shell look: default — the taskbar and windows as is; umbrel — like umbrelOS 2 (a dock at the bottom, an app grid with a
+   *  greeting,
+   * "sheet" windows, a material with dark tinting, the accent from the wallpaper). Set by a ready-made theme, the other
+   * settings on top. */
   look?: 'default' | 'umbrel';
 }
 
@@ -39,10 +42,14 @@ export const DEFAULTS: Appearance = {
 
 export const ACCENTS = ['#5BBFCB', '#4F8EF7', '#7C6CF6', '#D65DB1', '#EB5757', '#F2994A', '#F2C94C', '#6FCF97', '#2FB39B', '#9AA3A8'];
 type Layers = { dark: string; light: string; top?: { dark: string; light: string } };
-/** top — второй слой поверх, ползунок размытия трогает его впятеро слабее (знак остаётся резким); portrait — те же слои для вертикального экрана (телефон):
- *  альбомная картинка в режиме cover на телефоне обрезается до средней трети, и знак с надписью в кадр не попадают. */
-/** label — ключ словаря (i18n/messages/theme.ts): показывать через t(b.label). brand — цвет обоев для акцента (как brandColorHsl
- *  у обоев umbrelOS): в облике umbrel выбор таких обоев подставляет и акцент. */
+/** top — a second layer on top, the blur slider affects it five times weaker (the mark stays sharp); portrait — the same layers for a vertical screen
+ *  (phone):
+ * a landscape image in cover mode on the phone is cropped to the middle third, and the mark with the caption do not
+ * get into the frame. */
+/** label — a dictionary key (i18n/messages/theme.ts): show via t(b.label). brand — the wallpaper color for the accent (like
+ *  brandColorHsl
+ * of umbrelOS wallpapers): in the umbrel look choosing such a wallpaper sets the
+ * accent too. */
 export const BACKGROUNDS: ({ id: string; label: string; portrait?: Layers; brand?: string } & Layers)[] = [
   { id: 'none', label: 'theme.bg.none', dark: 'none', light: 'none' },
   { id: 'black', label: 'theme.bg.black', dark: '#000000', light: '#ffffff' },
@@ -51,7 +58,8 @@ export const BACKGROUNDS: ({ id: string; label: string; portrait?: Layers; brand
   { id: 'monolith-lockup', label: 'theme.bg.monolithLockup', dark: "url('/wallpaper-monolith-lockup-bg.webp') center / cover no-repeat #0B0D14", light: "url('/wallpaper-monolith-lockup-light-bg.webp') center / cover no-repeat #F4F7FF", top: { dark: "url('/wallpaper-monolith-lockup.webp') center / cover no-repeat", light: "url('/wallpaper-monolith-lockup-light.webp') center / cover no-repeat" },
     portrait: { dark: "url('/wallpaper-monolith-lockup-bg-portrait.webp') center / cover no-repeat #0B0D14", light: "url('/wallpaper-monolith-lockup-light-bg-portrait.webp') center / cover no-repeat #F4F7FF", top: { dark: "url('/wallpaper-monolith-lockup-portrait.webp') center / cover no-repeat", light: "url('/wallpaper-monolith-lockup-light-portrait.webp') center / cover no-repeat" } } },
   { id: 'monolith-quiet', label: 'theme.bg.monolithQuiet', dark: "url('/wallpaper-monolith-quiet.webp') center / cover no-repeat #0B0D14", light: "url('/wallpaper-monolith-light-bg.webp') center / cover no-repeat #F4F7FF" },
-  // сцены темы Umbrel (assets/scenes.py): пейзажи одинаковы для тёмного и светлого режима, как фотообои
+  // Umbrel theme scenes (assets/scenes.py): the landscapes are the same for the dark and light modes,
+  // like photo wallpaper
   { id: 'umbrel-sunset', label: 'theme.bg.umbrelSunset', brand: '#F2690D', dark: "url('/wallpaper-umbrel-sunset.webp') center / cover no-repeat #1B1030", light: "url('/wallpaper-umbrel-sunset.webp') center / cover no-repeat #1B1030" },
   { id: 'umbrel-dusk', label: 'theme.bg.umbrelDusk', brand: '#DD1371', dark: "url('/wallpaper-umbrel-dusk.webp') center / cover no-repeat #3B1560", light: "url('/wallpaper-umbrel-dusk.webp') center / cover no-repeat #3B1560" },
   { id: 'umbrel-dunes', label: 'theme.bg.umbrelDunes', brand: '#B86200', dark: "url('/wallpaper-umbrel-dunes.webp') center / cover no-repeat #2A2F63", light: "url('/wallpaper-umbrel-dunes.webp') center / cover no-repeat #2A2F63" },
@@ -83,7 +91,7 @@ function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace('#', ''); const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
-/** Контраст текста на акценте: тёмный текст на светлом акценте и наоборот. */
+/** Text contrast on the accent: dark text on a light accent and vice versa. */
 function onAccent(hex: string) { const [r, g, b] = hexToRgb(hex); return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#0b1416' : '#ffffff'; }
 
 const PORTRAIT = '(orientation: portrait)';
@@ -94,7 +102,8 @@ export function effectiveMode(a: Appearance): 'dark' | 'light' {
   return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 }
 
-/** Применить оформление к документу: атрибуты и CSS-переменные. */
+/** Apply the appearance to the document: attributes and CSS
+ *  variables. */
 export function apply(a: Appearance) {
   const root = document.documentElement;
   i18n.set(a.language ?? 'auto');
@@ -124,10 +133,12 @@ export function apply(a: Appearance) {
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', a.surface === 'oled' || a.look === 'umbrel' ? '#000000' : mode === 'dark' ? '#121416' : '#f4f6f7');
 }
 
-/** Цвет обоев для акцента (облик umbrel): у сцен Umbrel есть brand, у остальных фонов — нет. */
+/** Wallpaper color for the accent (the umbrel look): Umbrel scenes have a brand, the other
+ *  backgrounds do not. */
 export function backgroundBrand(id: string): string | undefined { return BACKGROUNDS.find(b => b.id === id)?.brand; }
 
-/** Следить за системной темой (режим system) и поворотом экрана (портретные слои обоев). */
+/** Watch the system theme (the system mode) and screen rotation (portrait wallpaper
+ *  layers). */
 export function watchSystem(get: () => Appearance) {
   const mq = matchMedia('(prefers-color-scheme: light)');
   const h = () => { if (get().mode === 'system') apply(get()); };
@@ -138,10 +149,12 @@ export function watchSystem(get: () => Appearance) {
   return () => { mq.removeEventListener('change', h); or.removeEventListener('change', ho); };
 }
 
-/** Готовые темы: набор настроек поверх текущего оформления. После выбора всё ниже можно крутить дальше. label и hint — ключи словаря. */
+/** Ready-made themes: a set of settings over the current appearance. After choosing, everything below can be tweaked further. label and
+ *  hint are dictionary keys. */
 export const THEMES: { id: string; label: string; hint: string; set: Partial<Appearance> }[] = [
   { id: 'monolith', label: 'theme.t.monolith', hint: 'theme.t.monolith.hint', set: { look: 'default', mode: 'dark', accent: '#5B8CFF', background: 'monolith', backgroundBlur: 12, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
-  // как umbrelOS 2: тёмный материал поверх пейзажа, акцент от обоев, Inter, док и сетка приложений вместо панели задач
+  // like umbrelOS 2: a dark material over a landscape, the accent from the wallpaper, Inter, a dock and an app grid
+  // instead of the taskbar
   { id: 'umbrel', label: 'theme.t.umbrel', hint: 'theme.t.umbrel.hint', set: { look: 'umbrel', mode: 'dark', accent: '#F2690D', background: 'umbrel-sunset', backgroundBlur: 0, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal', font: 'grotesk' } },
   { id: 'glass-dark', label: 'theme.t.glassDark', hint: 'theme.t.glassDark.hint', set: { look: 'default', mode: 'dark', accent: '#7C6CF6', background: 'monolith-quiet', backgroundBlur: 8, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
   { id: 'glass-light', label: 'theme.t.glassLight', hint: 'theme.t.glassLight.hint', set: { look: 'default', mode: 'light', accent: '#4F8EF7', background: 'monolith', backgroundBlur: 10, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },

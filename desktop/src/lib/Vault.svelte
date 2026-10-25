@@ -1,5 +1,5 @@
 <script lang="ts">
-  // «Пароли и доступы»: все данные для входа установленных приложений в одном месте (docs/userflow-apps.md, шаг 5).
+  // "Passwords and access": all sign-in data of the installed apps in one place (docs/userflow-apps.md, step 5).
   import { api, type AppView } from './api';
   import { wm } from './windows.svelte';
   import { iconOf, isImg, titleOf } from './store-utils';
@@ -31,7 +31,7 @@
         if (f.secret && f.env) { try { v = (await api.reveal(a.name, f.env)).value; } catch { v = '?'; } }
         lines.push(`${f.label}: ${v}`);
       }
-      if (a.has_note) { try { lines.push(`${t('vault.note')}: ${(await api.note(a.name)).text}`); } catch { /* пропускаем */ } }
+      if (a.has_note) { try { lines.push(`${t('vault.note')}: ${(await api.note(a.name)).text}`); } catch { /* skip */ } }
       lines.push('');
     }
     try { await navigator.clipboard?.writeText(lines.join('\n')); copied = t('vault.copiedAll'); } catch (e) { error = String(e); }

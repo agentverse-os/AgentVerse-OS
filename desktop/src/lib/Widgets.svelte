@@ -1,7 +1,7 @@
 <script lang="ts">
-  // Слой виджетов: между обоями/иконками и окнами. Перетаскивание за заголовок (появляется при наведении), размер за угол,
-  // ⚙ настройки внутри виджета, ✕ удалить. На телефоне — столбец под иконками без перетаскивания.
-  // В облике umbrel слой тот же (виджеты по умолчанию столбиком справа сверху), а сетка приложений освобождает под них место.
+  // Widget layer: between the wallpaper/icons and the windows. Dragging by the title (appears on hover), resize by the
+  // corner, ⚙ settings inside the widget, ✕ remove. On the phone — a column under the icons without dragging. In the umbrel
+  // look the layer is the same (widgets by default in a column on the top right), and the app grid makes room for them.
   import { widgets, WIDGETS, type WidgetInst } from './widgets.svelte';
   import { t } from './i18n.svelte';
   import { deviceClass, TASKBAR_H } from './windows.svelte';
@@ -31,7 +31,7 @@
     {#if !widgets.items.length}<button class="empty" onclick={() => widgets.picker = true}>{t('widgets.emptyHint')}</button>{/if}
   {/if}
   {#each widgets.items as w (w.id)}
-    <section class="widget" data-id={w.id} style={phone ? '' : `transform: translate(${Math.min(w.x, innerWidth - 80)}px, ${Math.min(w.y, innerHeight - 60)}px); width:${w.w}px; height:${w.h}px`} aria-label={t(WIDGETS[w.type].title)}>  <!-- координаты с более широкого экрана зажимаются в кадр (не сохраняются) -->
+    <section class="widget" data-id={w.id} style={phone ? '' : `transform: translate(${Math.min(w.x, innerWidth - 80)}px, ${Math.min(w.y, innerHeight - 60)}px); width:${w.w}px; height:${w.h}px`} aria-label={t(WIDGETS[w.type].title)}>  <!-- coordinates from a wider screen are clamped into the frame (not saved) -->
       <header class="whead" role="toolbar" tabindex="-1" aria-label={t('widgets.headAria')} onpointerdown={(e) => down(e, w, 'move')} onpointermove={move} onpointerup={up}>
         <span class="wt">{WIDGETS[w.type].icon} {t(WIDGETS[w.type].title)}</span>
         <span class="spacer"></span>

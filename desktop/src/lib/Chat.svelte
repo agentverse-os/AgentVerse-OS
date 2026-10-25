@@ -1,7 +1,7 @@
 <script lang="ts">
-  // Карточка сессии агента, представление Chat (ADR-006): журнал сессии из cloudos-agentd по WebSocket (сначала всё после
-  // последнего известного seq, потом живое), сообщения, вызовы инструментов с результатами, карточки разрешений и вопросов
-  // агента с ответом отсюда, композер с фото. Процесс живёт в workspace — окно и вкладку можно закрывать.
+  // Agent session card, the Chat view (ADR-006): the session journal from cloudos-agentd over WebSocket (first everything
+  // after the last known seq, then live), messages, tool calls with results, permission and agent question cards answered
+  // from here, a composer with photos. The process lives in the workspace — the window and the tab can be closed.
   import { onMount, tick } from 'svelte';
   import { api, type SessionInfo, type SessionEvent } from './api';
   import { t, tn } from './i18n.svelte';
@@ -19,7 +19,8 @@
 
   onMount(() => {
     let ws: WebSocket | null = null; let closed = false; let retry = 0;
-    // история — одним HTTP-запросом (без покадровой «промотки» реплея), WebSocket — только живое
+    // history — with one HTTP request (no frame-by-frame replay "fast-forward"), WebSocket —
+    // only live
     (async () => {
       try {
         const list = await api.sessionEvents(project, id, 0);
@@ -46,7 +47,7 @@
       let changed = false;
       for (const e of list) { if (e.seq > lastSeq) { events.push(e); lastSeq = e.seq; changed = true; if (replayLeft > 0) replayLeft--; } }
       if (!changed) return;
-      // реплей истории: без refresh на каждое событие (иначе шторм запросов к ядру), одно обновление по его окончании
+      // history replay: no refresh per event (otherwise a request storm at the core), one update when it ends
       if (replayLeft > 0) return;
       if (!replayDone) { replayDone = true; refresh(); scroll(); return; }
       if (list.some(e => e.kind === 'status' || e.kind === 'result' || e.kind === 'exit' || e.kind === 'init')) refresh();
@@ -81,7 +82,7 @@
   async function answer(req: SessionEvent, behavior: 'allow' | 'deny', extra: Record<string, unknown> = {}) {
     try { await api.sessionPermission(project, id, { request_id: req.request_id, behavior, ...extra }); } catch (e) { error = msg(e); }
   }
-  // ответы на AskUserQuestion: выбранные варианты по вопросу (multiSelect — несколько) или свой текст
+  // answers to AskUserQuestion: the chosen options per question (multiSelect — several) or free text
   let picks = $state<Record<string, Record<string, string[]>>>({});
   let custom = $state<Record<string, Record<string, string>>>({});
   function pick(rid: string, q: string, label: string, multi: boolean) {
@@ -118,7 +119,8 @@
     return m;
   });
   function fmtTokens(n?: number) { return n == null ? '—' : n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n); }
-  // модель и режим разрешений — прямо в композере (как у CloudCLI): у Claude через control-запросы, у Codex со следующим ходом
+  // model and permission mode — right in the composer (as in CloudCLI): for Claude via control requests, for Codex with the
+  // next turn
   const modelHints = $derived(info?.agent === 'codex' ? ['gpt-6-astra', 'gpt-5.5', 'gpt-5-codex', 'gpt-oss-120b-medium'] : ['claude-fable-5-1', 'claude-opus-5-5', 'claude-sonnet-5', 'claude-haiku-4-5-20251001']);
   const modes = $derived(info?.agent === 'codex'
     ? [{ v: 'on-request', l: t('agents.modeOnRequest') }, { v: 'untrusted', l: t('agents.modeUntrusted') }, { v: 'never', l: t('agents.modeNever') }]

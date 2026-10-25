@@ -1,5 +1,5 @@
 <script lang="ts">
-  // «Читалка»: статья из RSS внутри Desktop — заголовок, источник, время, картинка, очищенный HTML или анонс, ссылка на оригинал.
+  // "Reader": an RSS article inside Desktop — title, source, time, image, cleaned HTML or the teaser, a link to the original.
   import DOMPurify from 'dompurify';
   import { newsCache, decode, shortSource, cleanSummary, type NewsItem } from './widgets/news-util';
   import { t, fmt } from './i18n.svelte';
@@ -19,7 +19,7 @@
     return clean.replace(/<a\s/gi, '<a target="_blank" rel="noopener" ');
   });
   let copied = $state(false);
-  // «5 мин назад», но «только что» — без «назад»
+  // "5 min ago", but "just now" — without "ago"
   const agoText = (iso: string) => { const a = fmt.ago(iso); return a === t('time.now') ? a : t('reader.ago', { ago: a }); };
 </script>
 

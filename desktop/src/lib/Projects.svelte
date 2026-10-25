@@ -72,10 +72,10 @@
   .desc { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; resize: vertical; }
   .stack { position: relative; }
   .stack .open { position: absolute; right: 10px; top: -12px; z-index: 1; font-size: .78rem; padding: 2px 8px; background: var(--panel-2); }
-  /* облик umbrel: ярлык на кромке на полупрозрачной карточке читается как выпавшая кнопка — вместо него круглая кнопка «↗»
-     внутри карточки (имя проекта и так в заголовке), шапка карточки уступает ей место справа */
+  /* the umbrel look: a label on the edge of a translucent card reads as a fallen-out button — a round "↗" button inside the card
+     instead (the project name is in the heading anyway), the card header makes room for it on the right */
   :global(:root[data-look="umbrel"]) .stack .open { top: 10px; right: 10px; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgb(255 255 255 / .1); border: .5px solid rgb(255 255 255 / .16); box-shadow: inset 0 .5px 0 rgb(255 255 255 / .2); color: rgb(255 255 255 / .85); }
-  :global(:root[data-look="umbrel"]) .stack .open .lbl { display: none; }  /* текст ярлыка скрыт целиком, иначе он занимает место рядом со стрелкой */
+  :global(:root[data-look="umbrel"]) .stack .open .lbl { display: none; }  /* the label text is hidden entirely, otherwise it takes space next to the arrow */
   :global(:root[data-look="umbrel"]) .stack .open::after { content: '↗'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; line-height: 1; }
   :global(:root[data-look="umbrel"]) .stack .open:hover { background: rgb(255 255 255 / .18); }
   :global(:root[data-look="umbrel"]) .stack :global(.card > .row:has(> h3)) { padding-right: 36px; }

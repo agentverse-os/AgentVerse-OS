@@ -20,7 +20,7 @@ def rgb(c):
 def lerp(a, b, t): return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 def vgrad(w, h, stops):
-    """Вертикальный градиент по остановкам [(pos 0..1, '#rrggbb'), …]."""
+    """Vertical gradient by stops [(pos 0..1, '#rrggbb'), …]."""
     im = Image.new("RGB", (w, h)); d = ImageDraw.Draw(im)
     stops = [(p, rgb(c)) for p, c in stops]
     for y in range(h):
@@ -37,14 +37,14 @@ def layer_for(base, color):
     return Image.new("RGBA", base.size, rgb(color) + (0,))
 
 def glow(base, cx, cy, rx, ry, color, alpha, blur):
-    """Мягкое свечение: эллипс на слое, размытие, наложение."""
+    """Soft glow: an ellipse on a layer, blur, overlay."""
     layer = layer_for(base, color); d = ImageDraw.Draw(layer)
     d.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=rgb(color) + (round(alpha * 255),))
     layer = layer.filter(ImageFilter.GaussianBlur(blur))
     base.alpha_composite(layer)
 
 def ridge(w, y0, amp, seg, rnd, smooth=0.55):
-    """Линия хребта: срединное смещение — крупные формы плюс мелкая шероховатость."""
+    """Ridge line: midpoint displacement — large shapes plus fine roughness."""
     pts = [y0 + rnd.uniform(-amp, amp) for _ in range(seg + 1)]
     for _ in range(3):
         pts = [pts[0]] + [(pts[i - 1] + pts[i] * 2 + pts[i + 1]) / 4 for i in range(1, seg)] + [pts[-1]]
@@ -69,7 +69,7 @@ def mountains(base, y0, amp, color, alpha, seed, seg=18, blur=0):
     base.alpha_composite(layer)
 
 def treeline(base, y0, height, color, alpha, seed, density=6, blur=0):
-    """Ёлки: зубчатая кромка из треугольников разной высоты."""
+    """Fir trees: a jagged edge of triangles of varying height."""
     rnd = random.Random(seed)
     layer = layer_for(base, color); d = ImageDraw.Draw(layer)
     x = -20
@@ -88,7 +88,7 @@ def band(base, y, thickness, color, alpha, blur):
     base.alpha_composite(layer.filter(ImageFilter.GaussianBlur(blur)))
 
 def streaks(base, y_range, color, alpha, seed, n=9, blur=14):
-    """Перистые облака: длинные тонкие эллипсы."""
+    """Cirrus clouds: long thin ellipses."""
     rnd = random.Random(seed)
     layer = layer_for(base, color); d = ImageDraw.Draw(layer)
     for _ in range(n):
@@ -105,16 +105,17 @@ def vignette(base, strength=0.35):
     base.alpha_composite(layer.filter(ImageFilter.GaussianBlur(220)))
 
 def grain(base, amount=6, seed=1):
-    """Лёгкое зерно, чтобы градиенты не полосили."""
+    """Light grain so the gradients do not band."""
     rnd = random.Random(seed)
     noise = Image.effect_noise(base.size, amount).convert("L")
     layer = Image.merge("RGBA", (noise, noise, noise, Image.new("L", base.size, 18)))
     base.alpha_composite(Image.blend(Image.new("RGBA", base.size, (128, 128, 128, 18)), layer, 1.0))
 
-# ---------------------------------------------------------------------------------------------------------------- сцены
+# ----------------------------------------------------------------------------------------------------------------
+# scenes
 
 def peak_ridge(w, y0, amp, seg, rnd, peak_x, peak_h, peak_w):
-    """Хребет с доминантной вершиной: базовая линия плюс треугольный пик с шероховатыми склонами."""
+    """A ridge with a dominant peak: the base line plus a triangular peak with rough slopes."""
     pts = ridge(w, y0, amp, seg, rnd)
     out = []
     for x, y in pts:
@@ -131,7 +132,7 @@ def ridge_layer(base, pts, color, alpha, blur=0):
     base.alpha_composite(layer)
 
 def palm(layer_draw, x, yb, height, lean, color, rnd):
-    """Силуэт пальмы: изогнутый ствол и веер листьев."""
+    """Palm silhouette: a curved trunk and a fan of leaves."""
     pts = []
     for i in range(41):
         t = i / 40
@@ -149,16 +150,16 @@ def palm(layer_draw, x, yb, height, lean, color, rnd):
         layer_draw.polygon([(tx, ty), mid, end, mid2], fill=color)
 
 def scene_sunset():
-    """Закат в горах: пылающее небо, слои хребтов в дымке с одной вершиной, туман в долине, ели на переднем плане."""
+    """Sunset in the mountains: a blazing sky, layers of ridges in haze with one peak, fog in the valley, firs in the foreground."""
     im = vgrad(W, H, [(0, "#1B1030"), (0.2, "#4A1E4F"), (0.4, "#A0355A"), (0.55, "#E5643F"), (0.64, "#F5964B"), (0.72, "#F8B86A"), (1, "#F7C98A")]).convert("RGBA")
     glow(im, W * 0.56, H * 0.62, 1000, 300, "#FFC46B", 0.6, 140)
     glow(im, W * 0.56, H * 0.64, 420, 130, "#FFE9B0", 0.55, 60)
     streaks(im, (H * 0.1, H * 0.42), "#F2A3B0", 0.22, seed=3, n=6, blur=26)
     streaks(im, (H * 0.28, H * 0.5), "#FFCF9F", 0.25, seed=5, n=4, blur=18)
     rnd = random.Random(11)
-    ridge_layer(im, peak_ridge(W, H * 0.7, 40, 16, rnd, W * 0.58, H * 0.27, W * 0.16), "#7A4173", 0.7, blur=3)   # дальний хребет с вершиной
+    ridge_layer(im, peak_ridge(W, H * 0.7, 40, 16, rnd, W * 0.58, H * 0.27, W * 0.16), "#7A4173", 0.7, blur=3)   # the far ridge with the peak
     ridge_layer(im, ridge(W, H * 0.76, 70, 14, random.Random(23)), "#55305D", 0.85, blur=1)
-    band(im, H * 0.815, 150, "#EBA8A5", 0.55, 70)                                                                # туман в долине
+    band(im, H * 0.815, 150, "#EBA8A5", 0.55, 70)                                                                # fog in the valley
     ridge_layer(im, ridge(W, H * 0.84, 60, 18, random.Random(37)), "#2E1B3A", 0.95)
     treeline(im, H * 0.9, 170, "#170F20", 0.9, seed=41, density=7)
     treeline(im, H * 0.96, 120, "#0F0A15", 1.0, seed=43, density=9)
@@ -166,7 +167,7 @@ def scene_sunset():
     return im
 
 def scene_dusk():
-    """Тропические сумерки над водой: розово-оранжевое небо, дорожка бликов, острова и пальмы на берегу."""
+    """Tropical dusk over the water: a pink-orange sky, a trail of glints, islands and palms on the shore."""
     hz = int(H * 0.62)
     sky = vgrad(W, hz, [(0, "#3B1560"), (0.3, "#8E2A78"), (0.55, "#D8456C"), (0.78, "#F47D4D"), (1, "#FFC15A")])
     sea = vgrad(W, H - hz, [(0, "#F9B65A"), (0.12, "#E0664C"), (0.4, "#7A2A5E"), (1, "#1A0C2E")])
@@ -181,14 +182,14 @@ def scene_dusk():
         cx = W * 0.6 + rnd.uniform(-spread, spread); ln = rnd.uniform(30, 160) * (1 + (y - hz) / 350)
         d.line([(cx - ln / 2, y), (cx + ln / 2, y)], fill=(255, 236, 176, round(rnd.uniform(0.12, 0.55) * 255)), width=rnd.choice([2, 3, 4, 5]))
     im.alpha_composite(layer.filter(ImageFilter.GaussianBlur(1.4)))
-    ridge_layer(im, peak_ridge(W, hz + 4, 22, 12, random.Random(51), W * 0.2, H * 0.1, W * 0.12), "#4B1D4F", 0.8, blur=2)   # остров слева
+    ridge_layer(im, peak_ridge(W, hz + 4, 22, 12, random.Random(51), W * 0.2, H * 0.1, W * 0.12), "#4B1D4F", 0.8, blur=2)   # the island on the left
     ridge_layer(im, peak_ridge(W, hz + 6, 14, 10, random.Random(53), W * 0.86, H * 0.05, W * 0.09), "#5A2358", 0.7, blur=2)
-    # берег и пальмы
+    # the shore and palms
     shore = Image.new("RGBA", im.size, (0, 0, 0, 0)); d = ImageDraw.Draw(shore)
     d.polygon([(0, H), (0, H * 0.9), (W * 0.18, H * 0.87), (W * 0.36, H * 0.93), (W * 0.62, H * 0.95), (W * 0.8, H * 0.9), (W, H * 0.92), (W, H)], fill=(18, 8, 26, 255))
     for x, hgt, lean in [(W * 0.09, H * 0.34, 0.35), (W * 0.15, H * 0.26, -0.25), (W * 0.9, H * 0.3, -0.4), (W * 0.83, H * 0.2, 0.3)]:
         palm(d, x, H * 0.9, hgt, lean, (18, 8, 26, 255), rnd)
-    # кусты у воды
+    # bushes by the water
     for _ in range(40):
         x = rnd.uniform(0, W); r = rnd.uniform(30, 90); y = H * 0.9 + rnd.uniform(-10, 40)
         d.ellipse([x - r, y - r * 0.6, x + r, y + r * 0.6], fill=(18, 8, 26, 255))
@@ -197,7 +198,7 @@ def scene_dusk():
     return im
 
 def scene_dunes():
-    """Дюны на рассвете: индиго переходит в персиковый, низкое солнце, гребни песка от дымчатых дальних до тёмных ближних."""
+    """Dunes at dawn: indigo turns into peach, a low sun, sand crests from hazy far ones to dark near ones."""
     im = vgrad(W, H, [(0, "#2A2F63"), (0.28, "#6A5C97"), (0.48, "#D9896E"), (0.58, "#F4B77E"), (0.66, "#FBD7A6"), (1, "#F7C98A")]).convert("RGBA")
     glow(im, W * 0.34, H * 0.6, 900, 260, "#FFE0A8", 0.7, 130)
     glow(im, W * 0.34, H * 0.61, 300, 110, "#FFF6DC", 0.8, 50)
@@ -206,10 +207,10 @@ def scene_dunes():
     for i, (y0, amp, seg, col, alpha, blur) in enumerate(layers):
         rnd = random.Random(140 + i)
         pts = ridge(W, H * y0, amp, seg, rnd, smooth=0.9)
-        # гребень дюны: асимметрия — пологий наветренный склон и крутой подветренный
+        # dune crest: asymmetry — a gentle windward slope and a steep leeward one
         pts = [(x, y + math.sin(x / W * math.pi * 2 + i) * amp * 0.25) for x, y in pts]
         ridge_layer(im, pts, col, alpha, blur=blur)
-        # освещённая кромка вдоль гребня
+        # the lit edge along the crest
         lit = layer_for(im, "#FFE7BF"); d = ImageDraw.Draw(lit)
         d.line(pts, fill=rgb("#FFE7BF") + (round(0.55 * 255),), width=max(3, 12 - i * 2))
         im.alpha_composite(lit.filter(ImageFilter.GaussianBlur(6 + i * 2)))
@@ -217,7 +218,7 @@ def scene_dunes():
     return im
 
 def scene_aurora():
-    """Северное сияние: тёмно-синяя ночь, звёзды, занавесы с вертикальной структурой, снежные хребты."""
+    """Northern lights: a dark blue night, stars, curtains with a vertical structure, snowy ridges."""
     im = vgrad(W, H, [(0, "#040713"), (0.5, "#0A1533"), (0.8, "#0F1E44"), (1, "#0B1330")]).convert("RGBA")
     rnd = random.Random(101); layer = layer_for(im, "#FFFFFF"); d = ImageDraw.Draw(layer)
     for _ in range(1100):
@@ -247,7 +248,8 @@ def scene_aurora():
     return im
 
 SCENES = {
-    # имя → (функция, brand-цвет как в umbrelOS: hsl(h s% l%))
+    # name → (function, the brand color as in umbrelOS: hsl(h
+    # s% l%))
     "sunset": (scene_sunset, hsl(24, 90, 50)),
     "dusk": (scene_dusk, hsl(332, 84, 47)),
     "dunes": (scene_dunes, hsl(32, 100, 36)),
@@ -261,7 +263,7 @@ def main():
     for name, (fn, brand) in SCENES.items():
         if only and name not in only: continue
         im = fn().convert("RGB")
-        if "--png" in sys.argv: im.save(HERE / f"scene-{name}.png", optimize=True)   # полноразмерный PNG в git не хранится
+        if "--png" in sys.argv: im.save(HERE / f"scene-{name}.png", optimize=True)   # the full-size PNG is not stored in git
         prev = im.copy(); prev.thumbnail((960, 540)); prev.save(HERE / f"scene-{name}-preview.jpg", quality=85)
         if install:
             im.save(pub / f"wallpaper-umbrel-{name}.webp", quality=82, method=6)

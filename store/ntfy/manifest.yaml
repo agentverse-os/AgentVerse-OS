@@ -1,5 +1,6 @@
-# ntfy — provider capability notify (2.5, 3.10). Рукописный манифест поверх импортированного: доступ deny-all по умолчанию,
-# хук on_grant создаёт пользователя проекта, права rw на топик proj-<project> и токен; workspace получает NOTIFY_URL/TOPIC/TOKEN.
+# ntfy — the provider of the notify capability (2.5, 3.10). A hand-written manifest on top of the imported one: deny-all access
+# by default, the on_grant hook creates the project user, rw rights on the topic proj-<project> and a token; the workspace gets
+# NOTIFY_URL/TOPIC/TOKEN.
 schema: 1
 origin: manual
 name: ntfy
@@ -24,6 +25,7 @@ hooks:
   on_grant: ./hooks/grant.sh
   on_revoke: ./hooks/revoke.sh
 
-# входа нет: доступ ограничен сетью Cloud OS
+# no sign-in: access is limited by the Cloud
+# OS network
 login:
   mode: none

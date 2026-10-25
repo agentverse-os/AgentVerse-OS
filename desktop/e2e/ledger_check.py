@@ -1,7 +1,8 @@
 import os, time, json, ssl, urllib.request
 from playwright.sync_api import sync_playwright
-# Книга расходов и статусы агентов в ядре (ADR-006, этап 1, срез 4): ход сессии через API ядра попадает в /api/usage,
-# карточка проекта получает сводку сессий, удаление сессии не стирает расход; окно «Система» показывает раздел «Расход LLM».
+# The expense ledger and agent statuses in the core (ADR-006, stage 1, slice 4): a session turn through the core API gets
+# into /api/usage, the project card gets a session summary, deleting the session does not erase the usage; the "System"
+# window shows the "LLM usage" section.
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); P = os.environ.get("PROJECT", "alpha"); os.makedirs("shots", exist_ok=True); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 ctx_ssl = ssl.create_default_context(); ctx_ssl.check_hostname = False; ctx_ssl.verify_mode = ssl.CERT_NONE
@@ -22,7 +23,7 @@ before = api("/usage?days=30")[1]["total"]["turns"]
 st, s = api(f"/projects/{P}/sessions", "POST", {"agent": "claude", "title": "ledger"}); ok("session via core api", st == 200 and s and s["alive"], json.dumps(s)[:100]); sid = s["id"]
 api(f"/projects/{P}/sessions/{sid}/prompt", "POST", {"content": "Reply with exactly: ledger-ok"})
 r = wait_events(sid, lambda e: e["kind"] == "result"); ok("turn finished", r is not None and not r.get("is_error"), json.dumps(r)[:100] if r else "нет result")
-# опрос ядра — раз в 20 с
+# the core polls every 20 s
 deadline = time.time() + 75; got = None; agents = None
 while time.time() < deadline:
     u = api("/usage?days=30")[1]; pv = api(f"/projects/{P}")[1]

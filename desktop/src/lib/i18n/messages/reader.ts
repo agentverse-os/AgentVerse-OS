@@ -1,4 +1,4 @@
-// «Читалка»: подписи кнопок и состояний. Заголовок, источник, автор и текст статьи — контент ленты, не переводятся. Заголовок окна — sys.reader (common.ts).
+// "Reader": button and state labels. The title, source, author and article text are feed content, not translated. The window title — sys.reader (common.ts).
 import { defineMessages } from '../define';
 export default defineMessages({
   en: {

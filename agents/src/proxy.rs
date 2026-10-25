@@ -1,6 +1,6 @@
-//! Прокси к API ядра один в один: `/agents/api/core/<путь>` → `cloudd /api/<путь>` с тем же методом, query, телом и
-//! основными заголовками; WebSocket (журналы сессий, терминалы) ретранслируется в обе стороны. Так веб-приложение «Агентов»
-//! работает с ядром через свой origin и порт, а ядро остаётся единственным владельцем workspace'ов и agentd.
+//! One-to-one proxy to the core API: `/agents/api/core/<path>` → `cloudd /api/<path>` with the same method, query, body and
+//! main headers; WebSockets (session journals, terminals) are relayed in both directions. That way the "Agents" web app
+//! works with the core through its own origin and port, while the core remains the sole owner of workspaces and agentd.
 use crate::{App, ApiError};
 use axum::body::Body;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
@@ -46,7 +46,7 @@ pub async fn core(State(app): State<Arc<App>>, Path(path): Path<String>, req: Re
     Ok(out)
 }
 
-/// Двусторонняя ретрансляция кадров между браузером и ядром; закрытие любой стороны завершает обе.
+/// Two-way relay of frames between the browser and the core; closing either side ends both.
 async fn relay(client: WebSocket, upstream: tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>) {
     let (mut up_tx, mut up_rx) = upstream.split();
     let (mut cl_tx, mut cl_rx) = client.split();

@@ -1,0 +1,229 @@
+/* Color presets complement app.css. Classic deliberately keeps its original tokens. */
+
+:root[data-scheme="graphite"][data-theme="dark"] {
+  --bg-0: #111315; --bg-1: #17191c; --bg-2: #1d2024; --bg-3: #25292e; --bg-4: #181b1f;
+  --fg-1: #edf0f4; --fg-2: #b8c0cb; --fg-3: #9da7b5;
+  --line-1: rgb(255 255 255 / .08); --line-2: rgb(255 255 255 / .14); --line-3: rgb(255 255 255 / .24);
+  --accent: #96b4f4; --accent-2: #be9ff4; --accent-rgb: 150 180 244;
+  --accent-soft: rgb(150 180 244 / .08); --accent-fg: #0a0c10;
+  --ok: #6ae3a2; --warn: #ffd280; --bad: #ff9e9e; --info: #93c5ff;
+  --ok-soft: rgb(106 227 162 / .10); --warn-soft: rgb(255 210 128 / .10); --bad-soft: rgb(255 158 158 / .10);
+  --claude: #f5b78c; --codex: #93dacb; --shell: #b8c0cb;
+}
+
+:root[data-scheme="graphite"][data-theme="light"] {
+  --bg-0: #f0f1f3; --bg-1: #fafafb; --bg-2: #ffffff; --bg-3: #e7e9ee; --bg-4: #f5f6f8;
+  --fg-1: #202329; --fg-2: #4d5561; --fg-3: #525b69;
+  --line-1: rgb(20 30 40 / .08); --line-2: rgb(20 30 40 / .14); --line-3: rgb(20 30 40 / .24);
+  --accent: #315caf; --accent-2: #6844ae; --accent-rgb: 49 92 175;
+  --accent-soft: rgb(49 92 175 / .08); --accent-fg: #ffffff;
+  --ok: #12643e; --warn: #784900; --bad: #a01f35; --info: #1d539b;
+  --ok-soft: rgb(18 100 62 / .08); --warn-soft: rgb(120 73 0 / .08); --bad-soft: rgb(160 31 53 / .08);
+  --claude: #925322; --codex: #206b59; --shell: #4d5561;
+}
+
+:root[data-scheme="nord"][data-theme="dark"] {
+  --bg-0: #242933; --bg-1: #2a303c; --bg-2: #2e3440; --bg-3: #353d4b; --bg-4: #292f3a;
+  --fg-1: #eceff4; --fg-2: #c1cad8; --fg-3: #aeb9cc;
+  --line-1: rgb(255 255 255 / .08); --line-2: rgb(255 255 255 / .14); --line-3: rgb(255 255 255 / .24);
+  --accent: #88c0d0; --accent-2: #b48ead; --accent-rgb: 136 192 208;
+  --accent-soft: rgb(136 192 208 / .08); --accent-fg: #0a0c10;
+  --ok: #6ae3a2; --warn: #ffd280; --bad: #ff9e9e; --info: #93c5ff;
+  --ok-soft: rgb(106 227 162 / .10); --warn-soft: rgb(255 210 128 / .10); --bad-soft: rgb(255 158 158 / .10);
+  --claude: #f5b78c; --codex: #93dacb; --shell: #c1cad8;
+}
+
+:root[data-scheme="nord"][data-theme="light"] {
+  --bg-0: #e8eef2; --bg-1: #f8fafb; --bg-2: #ffffff; --bg-3: #e3eaf0; --bg-4: #edf2f6;
+  --fg-1: #273344; --fg-2: #445569; --fg-3: #4d5a6d;
+  --line-1: rgb(20 30 40 / .08); --line-2: rgb(20 30 40 / .14); --line-3: rgb(20 30 40 / .24);
+  --accent: #2b6176; --accent-2: #765789; --accent-rgb: 43 97 118;
+  --accent-soft: rgb(43 97 118 / .08); --accent-fg: #ffffff;
+  --ok: #12643e; --warn: #784900; --bad: #a01f35; --info: #1d539b;
+  --ok-soft: rgb(18 100 62 / .08); --warn-soft: rgb(120 73 0 / .08); --bad-soft: rgb(160 31 53 / .08);
+  --claude: #925322; --codex: #206b59; --shell: #445569;
+}
+
+:root[data-scheme="dracula"][data-theme="dark"] {
+  --bg-0: #1d1e28; --bg-1: #22232f; --bg-2: #282a36; --bg-3: #2f3140; --bg-4: #242633;
+  --fg-1: #f8f8f2; --fg-2: #d7d5e5; --fg-3: #b9b4cc;
+  --line-1: rgb(255 255 255 / .08); --line-2: rgb(255 255 255 / .14); --line-3: rgb(255 255 255 / .24);
+  --accent: #bd93f9; --accent-2: #ff92df; --accent-rgb: 189 147 249;
+  --accent-soft: rgb(189 147 249 / .08); --accent-fg: #0a0c10;
+  --ok: #6ae3a2; --warn: #ffd280; --bad: #ff9e9e; --info: #93c5ff;
+  --ok-soft: rgb(106 227 162 / .10); --warn-soft: rgb(255 210 128 / .10); --bad-soft: rgb(255 158 158 / .10);
+  --claude: #f5b78c; --codex: #93dacb; --shell: #d7d5e5;
+}
+
+:root[data-scheme="dracula"][data-theme="light"] {
+  --bg-0: #f1edf8; --bg-1: #faf8ff; --bg-2: #ffffff; --bg-3: #ebe4f4; --bg-4: #f5f0fa;
+  --fg-1: #30263e; --fg-2: #584c70; --fg-3: #605270;
+  --line-1: rgb(20 30 40 / .08); --line-2: rgb(20 30 40 / .14); --line-3: rgb(20 30 40 / .24);
+  --accent: #7740a9; --accent-2: #ab286a; --accent-rgb: 119 64 169;
+  --accent-soft: rgb(119 64 169 / .08); --accent-fg: #ffffff;
+  --ok: #12643e; --warn: #784900; --bad: #a01f35; --info: #1d539b;
+  --ok-soft: rgb(18 100 62 / .08); --warn-soft: rgb(120 73 0 / .08); --bad-soft: rgb(160 31 53 / .08);
+  --claude: #925322; --codex: #206b59; --shell: #584c70;
+}
+
+:root[data-scheme="monokai"][data-theme="dark"] {
+  --bg-0: #1d1e19; --bg-1: #23251f; --bg-2: #272a23; --bg-3: #34372e; --bg-4: #252820;
+  --fg-1: #f8f8ee; --fg-2: #d1d2c3; --fg-3: #b4b5a3;
+  --line-1: rgb(255 255 255 / .08); --line-2: rgb(255 255 255 / .14); --line-3: rgb(255 255 255 / .24);
+  --accent: #a6e22e; --accent-2: #f4c76a; --accent-rgb: 166 226 46;
+  --accent-soft: rgb(166 226 46 / .08); --accent-fg: #0a0c10;
+  --ok: #6ae3a2; --warn: #ffd280; --bad: #ff9e9e; --info: #93c5ff;
+  --ok-soft: rgb(106 227 162 / .10); --warn-soft: rgb(255 210 128 / .10); --bad-soft: rgb(255 158 158 / .10);
+  --claude: #f5b78c; --codex: #93dacb; --shell: #d1d2c3;
+}
+
+:root[data-scheme="monokai"][data-theme="light"] {
+  --bg-0: #f1f0e8; --bg-1: #fbfaf5; --bg-2: #fffffb; --bg-3: #e8e8da; --bg-4: #f5f5ed;
+  --fg-1: #2c3024; --fg-2: #545842; --fg-3: #5a5e49;
+  --line-1: rgb(20 30 40 / .08); --line-2: rgb(20 30 40 / .14); --line-3: rgb(20 30 40 / .24);
+  --accent: #406014; --accent-2: #916313; --accent-rgb: 64 96 20;
+  --accent-soft: rgb(64 96 20 / .08); --accent-fg: #ffffff;
+  --ok: #12643e; --warn: #784900; --bad: #a01f35; --info: #1d539b;
+  --ok-soft: rgb(18 100 62 / .08); --warn-soft: rgb(120 73 0 / .08); --bad-soft: rgb(160 31 53 / .08);
+  --claude: #925322; --codex: #206b59; --shell: #545842;
+}
+
+:root[data-scheme="solarized"][data-theme="dark"] {
+  --bg-0: #002b36; --bg-1: #04333e; --bg-2: #083b46; --bg-3: #0d414c; --bg-4: #03313b;
+  --fg-1: #f3eedf; --fg-2: #c8d0c7; --fg-3: #acbeb9;
+  --line-1: rgb(255 255 255 / .08); --line-2: rgb(255 255 255 / .14); --line-3: rgb(255 255 255 / .24);
+  --accent: #8fc2d6; --accent-2: #dcb76a; --accent-rgb: 143 194 214;
+  --accent-soft: rgb(143 194 214 / .08); --accent-fg: #0a0c10;
+  --ok: #6ae3a2; --warn: #ffd280; --bad: #ff9e9e; --info: #93c5ff;
+  --ok-soft: rgb(106 227 162 / .10); --warn-soft: rgb(255 210 128 / .10); --bad-soft: rgb(255 158 158 / .10);
+  --claude: #f5b78c; --codex: #93dacb; --shell: #c8d0c7;
+}
+
+:root[data-scheme="solarized"][data-theme="light"] {
+  --bg-0: #eee8d5; --bg-1: #fdf6e3; --bg-2: #fff9e9; --bg-3: #e9e2ce; --bg-4: #f5efdc;
+  --fg-1: #263e45; --fg-2: #40555b; --fg-3: #4b5a60;
+  --line-1: rgb(20 30 40 / .08); --line-2: rgb(20 30 40 / .14); --line-3: rgb(20 30 40 / .24);
+  --accent: #145e73; --accent-2: #855b16; --accent-rgb: 20 94 115;
+  --accent-soft: rgb(20 94 115 / .08); --accent-fg: #ffffff;
+  --ok: #12643e; --warn: #784900; --bad: #a01f35; --info: #1d539b;
+  --ok-soft: rgb(18 100 62 / .08); --warn-soft: rgb(120 73 0 / .08); --bad-soft: rgb(160 31 53 / .08);
+  --claude: #925322; --codex: #206b59; --shell: #40555b;
+}
+
+:root[data-scheme="contrast"][data-theme="dark"] {
+  --bg-0: #000000; --bg-1: #080808; --bg-2: #111111; --bg-3: #202020; --bg-4: #050505;
+  --fg-1: #ffffff; --fg-2: #e1e1e1; --fg-3: #c8c8c8;
+  --line-1: rgb(255 255 255 / .28); --line-2: rgb(255 255 255 / .45); --line-3: rgb(255 255 255 / .70);
+  --accent: #9bc8ff; --accent-2: #e4b5ff; --accent-rgb: 155 200 255;
+  --accent-soft: rgb(155 200 255 / .08); --accent-fg: #0a0c10;
+  --ok: #6ae3a2; --warn: #ffd280; --bad: #ff9e9e; --info: #93c5ff;
+  --ok-soft: rgb(106 227 162 / .10); --warn-soft: rgb(255 210 128 / .10); --bad-soft: rgb(255 158 158 / .10);
+  --claude: #f5b78c; --codex: #93dacb; --shell: #e1e1e1;
+}
+
+:root[data-scheme="contrast"][data-theme="light"] {
+  --bg-0: #ffffff; --bg-1: #ffffff; --bg-2: #ffffff; --bg-3: #e7e7e7; --bg-4: #f5f5f5;
+  --fg-1: #000000; --fg-2: #252525; --fg-3: #454545;
+  --line-1: rgb(20 30 40 / .22); --line-2: rgb(20 30 40 / .4); --line-3: rgb(20 30 40 / .65);
+  --accent: #004c99; --accent-2: #5c267f; --accent-rgb: 0 76 153;
+  --accent-soft: rgb(0 76 153 / .08); --accent-fg: #ffffff;
+  --ok: #12643e; --warn: #784900; --bad: #a01f35; --info: #1d539b;
+  --ok-soft: rgb(18 100 62 / .08); --warn-soft: rgb(120 73 0 / .08); --bad-soft: rgb(160 31 53 / .08);
+  --claude: #925322; --codex: #206b59; --shell: #252525;
+}
+
+:root[data-scheme="matrix"][data-theme="dark"] {
+  --bg-0: #030b07; --bg-1: #07110b; --bg-2: #0b1911; --bg-3: #12261b; --bg-4: #08160e;
+  --fg-1: #b9d8c1; --fg-2: #9dbda6; --fg-3: #8aa993;
+  --line-1: rgb(85 242 138 / .12); --line-2: rgb(85 242 138 / .22); --line-3: rgb(85 242 138 / .38);
+  --accent: #55f28a; --accent-2: #86edc6; --accent-rgb: 85 242 138;
+  --accent-soft: rgb(85 242 138 / .08); --accent-fg: #031008;
+  --ok: #66dda2; --warn: #f4d06f; --bad: #ff8f93; --info: #7dcde5;
+  --ok-soft: rgb(102 221 162 / .10); --warn-soft: rgb(244 208 111 / .10); --bad-soft: rgb(255 143 147 / .10);
+  --claude: #f1b58b; --codex: #95e6b6; --shell: #9dbda6;
+}
+
+:root[data-scheme="matrix"][data-theme="light"] {
+  --bg-0: #e5f2e9; --bg-1: #f3fbf6; --bg-2: #f8fff9; --bg-3: #dcece1; --bg-4: #edf8f0;
+  --fg-1: #203f2a; --fg-2: #3b5945; --fg-3: #496552;
+  --line-1: rgb(22 104 57 / .12); --line-2: rgb(22 104 57 / .20); --line-3: rgb(22 104 57 / .32);
+  --accent: #116c39; --accent-2: #256d58; --accent-rgb: 17 108 57;
+  --accent-soft: rgb(17 108 57 / .08); --accent-fg: #ffffff;
+  --ok: #12643e; --warn: #784900; --bad: #a01f35; --info: #1d539b;
+  --ok-soft: rgb(18 100 62 / .08); --warn-soft: rgb(120 73 0 / .08); --bad-soft: rgb(160 31 53 / .08);
+  --claude: #925322; --codex: #206b59; --shell: #3b5945;
+}
+
+:root[data-scheme="cyber"][data-theme="dark"] {
+  --bg-0: #0b0a18; --bg-1: #111020; --bg-2: #18162b; --bg-3: #242039; --bg-4: #151225;
+  --fg-1: #d8cbe5; --fg-2: #bdb0d0; --fg-3: #a497b9;
+  --line-1: rgb(216 133 255 / .12); --line-2: rgb(216 133 255 / .22); --line-3: rgb(216 133 255 / .38);
+  --accent: #f3db46; --accent-2: #ff79c8; --accent-rgb: 243 219 70;
+  --accent-soft: rgb(243 219 70 / .08); --accent-fg: #0b0a18;
+  --ok: #64dfa7; --warn: #f3db46; --bad: #ff8bb9; --info: #70e6ea;
+  --ok-soft: rgb(100 223 167 / .10); --warn-soft: rgb(243 219 70 / .10); --bad-soft: rgb(255 139 185 / .10);
+  --claude: #ffc98a; --codex: #70e6ea; --shell: #bdb0d0;
+}
+
+:root[data-scheme="cyber"][data-theme="light"] {
+  --bg-0: #eeecf9; --bg-1: #f8f6ff; --bg-2: #fdfbff; --bg-3: #e4def2; --bg-4: #f3effb;
+  --fg-1: #302444; --fg-2: #554368; --fg-3: #655274;
+  --line-1: rgb(58 32 101 / .12); --line-2: rgb(58 32 101 / .20); --line-3: rgb(58 32 101 / .32);
+  --accent: #774c00; --accent-2: #a52c70; --accent-rgb: 119 76 0;
+  --accent-soft: rgb(119 76 0 / .08); --accent-fg: #ffffff;
+  --ok: #146344; --warn: #774c00; --bad: #a72c59; --info: #1d6372;
+  --ok-soft: rgb(20 99 68 / .08); --warn-soft: rgb(119 76 0 / .08); --bad-soft: rgb(167 44 89 / .08);
+  --claude: #925322; --codex: #1d6372; --shell: #554368;
+}
+
+/* These stacks use fonts already loaded by the app or available on the device. */
+:root[data-ui-font="inter"] { --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+:root[data-ui-font="system"] { --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+:root[data-ui-font="humanist"] { --font: "Trebuchet MS", "Segoe UI", "Gill Sans", sans-serif; }
+:root[data-ui-font="mono"] { --font: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+:root[data-code-font="jetbrains"] { --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+:root[data-code-font="system"] { --mono: ui-monospace, SFMono-Regular, Menlo, monospace; }
+:root[data-code-font="consolas"] { --mono: Consolas, "Liberation Mono", "Courier New", monospace; }
+
+/* Text weight is independent of the selected color scheme and font family. */
+body { font-weight: var(--text-weight, 400); }
+:root body .md, :root body .font-sample { font-weight: var(--text-weight, 400); }
+:root body .md :is(strong, b, h1, h2, h3, h4, h5, h6, th),
+:root body .font-sample :is(strong, b, h1, h2, h3, h4, h5, h6, th) {
+  font-weight: var(--strong-weight, 600);
+}
+
+/* Explicit accent choices win over a preset; "scheme" uses the preset accent unchanged. */
+:root[data-accent="blue"][data-theme="dark"] {
+  --accent: #8fbbff; --accent-2: #b2a5ff; --accent-rgb: 143 187 255;
+  --accent-soft: rgb(143 187 255 / .08); --accent-fg: #0a0c10;
+}
+:root[data-accent="violet"][data-theme="dark"] {
+  --accent: #bbaeff; --accent-2: #d8a5ff; --accent-rgb: 187 174 255;
+  --accent-soft: rgb(187 174 255 / .08); --accent-fg: #0a0c10;
+}
+:root[data-accent="green"][data-theme="dark"] {
+  --accent: #53dda0; --accent-2: #8fdfff; --accent-rgb: 83 221 160;
+  --accent-soft: rgb(83 221 160 / .08); --accent-fg: #0a0c10;
+}
+:root[data-accent="orange"][data-theme="dark"] {
+  --accent: #ffbc73; --accent-2: #ffa0a0; --accent-rgb: 255 188 115;
+  --accent-soft: rgb(255 188 115 / .08); --accent-fg: #0a0c10;
+}
+:root[data-accent="blue"][data-theme="light"] {
+  --accent: #2950a6; --accent-2: #604bb5; --accent-rgb: 41 80 166;
+  --accent-soft: rgb(41 80 166 / .08); --accent-fg: #ffffff;
+}
+:root[data-accent="violet"][data-theme="light"] {
+  --accent: #523db6; --accent-2: #8758ba; --accent-rgb: 82 61 182;
+  --accent-soft: rgb(82 61 182 / .08); --accent-fg: #ffffff;
+}
+:root[data-accent="green"][data-theme="light"] {
+  --accent: #10623a; --accent-2: #246daf; --accent-rgb: 16 98 58;
+  --accent-soft: rgb(16 98 58 / .08); --accent-fg: #ffffff;
+}
+:root[data-accent="orange"][data-theme="light"] {
+  --accent: #854011; --accent-2: #a53939; --accent-rgb: 133 64 17;
+  --accent-soft: rgb(133 64 17 / .08); --accent-fg: #ffffff;
+}
+

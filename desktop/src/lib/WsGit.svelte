@@ -1,6 +1,6 @@
 <script lang="ts">
-  // Git workspace'а (ADR-006, рендеринг Git карточки; в этом срезе только чтение): ветка и upstream, изменения индекса,
-  // рабочего дерева и неотслеживаемые с дифом по клику, последние коммиты. Обновляется раз в 15 с.
+  // Workspace git (ADR-006, the Git rendering of the card; read-only in this slice): branch and upstream, index,
+  // working tree and untracked changes with a diff on click, the latest commits. Refreshes every 15 s.
   import { api, type GitStatus, type GitEntry, type GitCommit } from './api';
   import { t, tn } from './i18n.svelte';
   let { project, cwd }: { project: string; cwd: string } = $props();
@@ -12,8 +12,8 @@
   async function load() {
     try { st = await api.gitStatus(project, cwd); error = ''; if (st.repo) log = (await api.gitLog(project, cwd)).entries; } catch (e) { error = msg(e); }
   }
-  // статус — при реальной смене каталога и раз в 15 с; сам эффект не должен зависеть от пропа `cwd`, который опрос
-  // рабочих мест пересоздаёт каждые 5 с (иначе перезагрузка и сброс интервала при каждом опросе)
+  // status — on a real directory change and every 15 s; the effect itself must not depend on the `cwd` prop, which
+  // the workplaces poll recreates every 5 s (otherwise a reload and an interval reset on every poll)
   let loadedCwd = '';
   $effect(() => { if (cwd !== loadedCwd) { loadedCwd = cwd; load(); } });
   $effect(() => { const i = setInterval(load, 15000); return () => clearInterval(i); });

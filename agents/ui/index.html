@@ -1,17 +1,35 @@
 <!doctype html>
-<html lang="ru" data-theme="dark" data-density="normal" data-accent="blue">
+<html lang="ru" data-theme="dark" data-scheme="classic" data-density="normal" data-accent="scheme" data-ui-font="inter" data-code-font="jetbrains">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="color-scheme" content="dark light">
   <meta name="theme-color" content="#0a0c10">
   <title>Агенты · AgentVerse OS</title>
+  <link rel="icon" href="/agents/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/agents/apple-touch-icon.png">
+  <!-- PWA: its own manifest with scope /agents/ — Chrome offers "Install app" separately from Desktop (scope /) -->
+  <link rel="manifest" href="/agents/manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Agents">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script>
-    // тема до первого кадра: чтобы страница не мигала светлым/тёмным
-    try { var t = localStorage.getItem('agents.theme') || 'dark'; if (t === 'system') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; document.documentElement.dataset.theme = t; document.documentElement.style.colorScheme = t;
-      document.documentElement.dataset.density = localStorage.getItem('agents.density') || 'normal'; document.documentElement.dataset.accent = localStorage.getItem('agents.accent') || 'blue'; } catch (e) {}
+    // the theme before the first frame: so the page does not flash light/dark
+    try {
+      var choices = { theme: ['dark', 'light', 'system'], scheme: ['classic', 'graphite', 'nord', 'dracula', 'monokai', 'solarized', 'contrast', 'matrix', 'cyber'], accent: ['scheme', 'blue', 'violet', 'green', 'orange'], density: ['normal', 'compact'], uiFont: ['inter', 'system', 'humanist', 'mono'], codeFont: ['jetbrains', 'system', 'consolas'], textTone: ['soft', 'warm', 'cool', 'scheme', 'custom'], textWeight: ['normal', 'medium'] };
+      var root = document.documentElement;
+      Object.keys(choices).forEach(function (key) {
+        var stored = localStorage.getItem('agents.' + key);
+        root.dataset[key] = choices[key].indexOf(stored) >= 0 ? stored : choices[key][0];
+      });
+      if (root.dataset.theme === 'system') root.dataset.theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      root.style.colorScheme = root.dataset.theme;
+      root.style.setProperty('--text-weight', root.dataset.textWeight === 'medium' ? '500' : '400');
+      root.style.setProperty('--strong-weight', root.dataset.textWeight === 'medium' ? '700' : '600');
+    } catch (e) {}
   </script>
 </head>
 <body>

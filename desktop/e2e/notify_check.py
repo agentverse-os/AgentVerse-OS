@@ -1,7 +1,8 @@
 import os, time, json, ssl, subprocess, urllib.request
-# Уведомления Agent Runtime (ADR-006): сессия встаёт на разрешение → ядро замечает переход при опросе → событие «агент ждёт
-# решения» в ленте и, если Desktop «ушёл» (нет видимой вкладки 90 с), push в тему ntfy `cloudos` от системного пользователя.
-# Запускать на стенде (нужен docker для чтения токена подписки). Тратит немного токенов.
+# Agent Runtime notifications (ADR-006): a session stops at a permission → the core notices the transition on a poll → the
+# "agent waits for a decision" event in the feed and, if Desktop is "away" (no visible tab for 90 s), a push to the ntfy
+# topic `cloudos` from the system user. Run on the stand (docker is needed to read the subscription token). Spends a few
+# tokens.
 HOST = os.environ.get("EDGE_HOST", "box.tail1234.ts.net"); P = os.environ.get("PROJECT", "alpha"); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 ctx_ssl = ssl.create_default_context(); ctx_ssl.check_hostname = False; ctx_ssl.verify_mode = ssl.CERT_NONE
@@ -23,7 +24,8 @@ away = (api("/agents")[1] or {}).get("away"); print("Desktop away:", away, "(pus
 st, s = api(f"/projects/{P}/sessions", "POST", {"agent": "claude", "title": MARK}); ok("session created", st == 200, json.dumps(s)[:80]); sid = s["id"]
 api(f"/projects/{P}/sessions/{sid}/prompt", "POST", {"content": f"Create the file /home/coder/{MARK}.txt containing hello using the Write tool. Do not ask questions."})
 ok("session is waiting for permission", wait_status(sid, "waiting"))
-# ядро опрашивает раз в 20 с: ждём переход в ленте
+# the core polls every 20 s: wait for the
+# transition in the feed
 deadline = time.time() + 70; ev = None
 while time.time() < deadline and not ev:
     ev = next((e for e in (api("/events")[1] or []) if e["kind"] == "agent" and e["subject"] == P and "ждёт" in e["message"] and MARK in e["message"]), None)
@@ -40,7 +42,7 @@ if away:
     ok("ntfy: push delivered to topic cloudos", any(MARK in m for m in msgs), f"сообщений: {len(msgs)}")
 else:
     ok("push skipped: Desktop is present (visible tab polling) — by design", True)
-# ответить «отклонить», остановить и убрать
+# answer "deny", stop and remove
 st, info = api(f"/projects/{P}/sessions/{sid}"); pend = (info or {}).get("pending") or []
 if pend: api(f"/projects/{P}/sessions/{sid}/permission", "POST", {"request_id": pend[0]["request_id"], "behavior": "deny", "message": "test over"})
 time.sleep(5); api(f"/projects/{P}/sessions/{sid}", "DELETE"); time.sleep(3); api(f"/projects/{P}/sessions/{sid}", "DELETE")

@@ -1,5 +1,5 @@
-# Импортировано из каталога coolify командой `cloudd store import coolify`; правки руками перезапишутся —
-# для ручной версии поставьте `origin: manual`. Compose и метаданные — upstream, контракт (route/endpoint/env/data) — наш.
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
 auth: own
 compose: ./compose.yaml
 data:

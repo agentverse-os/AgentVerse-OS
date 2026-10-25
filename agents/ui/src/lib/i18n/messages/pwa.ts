@@ -1,0 +1,9 @@
+import { defineMessages } from '../define';
+
+// "Agents" as a separate app (docs/agents-ux.md §9.8): the address of the separate install in "About"
+export default defineMessages({
+  en: { 'set.installSeparate': 'Standalone install: open', 'set.installSeparateHint': 'On this address the app installs on its own, with its own icon, separately from the Desktop.', 'set.installSeparateHere': 'Opened at the standalone app address.', 'set.installCopy': 'copy', 'set.installCopied': 'Address copied', 'work.offlineTree': 'No connection — the tree is a copy from {when}; conversations open from the device cache' },
+  ru: { 'set.installSeparate': 'Отдельная установка: открыть', 'set.installSeparateHint': 'По этому адресу приложение ставится само по себе, со своей иконкой, отдельно от Desktop.', 'set.installSeparateHere': 'Открыто на отдельном адресе приложения.', 'set.installCopy': 'скопировать', 'set.installCopied': 'Адрес скопирован', 'work.offlineTree': 'Нет связи — дерево на момент {when}; беседы открываются из кэша устройства' },
+  uk: { 'set.installSeparate': 'Окреме встановлення: відкрити', 'set.installSeparateHint': 'За цією адресою застосунок встановлюється сам по собі, зі своєю іконкою, окремо від Desktop.', 'set.installSeparateHere': 'Відкрито на окремій адресі застосунку.', 'set.installCopy': 'скопіювати', 'set.installCopied': 'Адресу скопійовано', 'work.offlineTree': 'Немає зв’язку — дерево на момент {when}; бесіди відкриваються з кешу пристрою' },
+  es: { 'set.installSeparate': 'Instalación independiente: abrir', 'set.installSeparateHint': 'En esta dirección la app se instala por sí sola, con su propio icono, aparte del Desktop.', 'set.installSeparateHere': 'Abierto en la dirección independiente de la app.', 'set.installCopy': 'copiar', 'set.installCopied': 'Dirección copiada', 'work.offlineTree': 'Sin conexión — el árbol es una copia de las {when}; las conversaciones se abren desde la caché del dispositivo' },
+});
