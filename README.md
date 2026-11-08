@@ -158,6 +158,10 @@ When it finishes, open `https://<node>.<tailnet>.ts.net/` and the first-run wiza
 from the Updates window or `sudo agentverse-update`; the update channel is the `stable.json` of the latest release, e.g.
 `https://github.com/agentverse-os/AgentVerse-OS/releases/download/v0.2.0/stable.json`.
 
+## One-Click Deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/AgentVerse%20OS/)
+
 ## Repository
 
 | Directory | Contents |
