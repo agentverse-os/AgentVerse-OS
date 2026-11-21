@@ -25,6 +25,7 @@ portable-pty = "0.9"
 tokio-tungstenite = "0.29"   # CDP client to the workspace's headless Chromium (browser.rs); same version as in the core
 futures-util = "0.3"
 libc = "0.2"
+llm-budget = { version = "0.10.0", default-features = false }   # hard USD caps per session and per daemon (session.rs)
 
 [profile.release]
 strip = true
