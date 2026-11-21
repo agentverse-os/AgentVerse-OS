@@ -57,6 +57,9 @@ struct Args {
     /// Data directory (session journals); ~/.cloudos/agentd by default
     #[arg(long, env = "AGENTD_DATA")]
     data: Option<PathBuf>,
+    /// Hard USD cap over every session's turns since the daemon started: once spent, new turns are refused
+    #[arg(long, env = "AGENTD_MAX_COST_USD")]
+    max_cost_usd: Option<f64>,
 }
 
 struct AppState {
@@ -93,6 +96,7 @@ async fn main() -> Result<()> {
         None => anyhow::bail!("нет токена: положите его в {} или задайте --token / AGENTD_TOKEN (или --insecure для отладки)", args.token_file.display()),
     };
     let data = args.data.clone().unwrap_or_else(|| PathBuf::from(home()).join(".cloudos/agentd"));
+    if let Some(cap) = args.max_cost_usd { session::set_fleet_cap(cap)?; tracing::info!("agentd budget: ${cap:.2} across all sessions"); }
     let sessions = Manager::open(data.join("sessions")).with_context(|| format!("каталог данных {}", data.display()))?;
     let state = Arc::new(AppState { ptys: RwLock::new(HashMap::new()), sessions, token, started: Instant::now(), engines_cache: std::sync::Mutex::new(None), engines_flight: tokio::sync::Mutex::new(()), browser: browser::Browser::default() });
     // agent browser (browser.rs): enabled — the `browser` MCP server is in the workspace list; after a restart we start Chromium ourselves so sessions with

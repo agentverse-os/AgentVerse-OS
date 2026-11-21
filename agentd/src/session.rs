@@ -4,6 +4,7 @@
 //! on the home volume (`~/.cloudos/agentd/sessions/<id>/events.jsonl` + `meta.json`), served to clients in pages and as
 //! a live stream. Every `result` yields a usage record (tokens, cost, model) — cloudd keeps the expense ledger from it.
 use anyhow::{anyhow, bail, Context, Result};
+use llm_budget::budget::AtomicBudget;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -108,6 +109,10 @@ pub struct Meta {
     /// the `[1m]` tag works
     #[serde(default)]
     pub context_window: Option<u64>,
+    /// Hard USD cap for this conversation (llm-budget): the turn costs agentd books from `total_cost_usd` count against it, and
+    /// once they reach it `prompt` refuses the next turn instead of starting another paid one. None: no cap.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_cost_usd: Option<f64>,
 }
 
 impl Meta {
@@ -197,6 +202,9 @@ pub struct CreateOpts {
     /// does not know every model (GPT-6 Astra → 272k by default with a real ~1M)
     #[serde(default)]
     pub context_window: Option<u64>,
+    /// Hard USD cap for the session (Meta::max_cost_usd); on resume a given value replaces the saved one
+    #[serde(default)]
+    pub max_cost_usd: Option<f64>,
     pub permission_mode: Option<String>,
     /// Account and its environment (set by cloudd); on resume with a new account they replace the
     /// saved ones.
@@ -333,6 +341,9 @@ pub struct Session {
     /// processes and turns before pickup): the turn cost is the difference from the previous one, otherwise the sums
     /// inflate several times over
     last_total_cost: Mutex<f64>,
+    /// Spend against `Meta::max_cost_usd` (None: uncapped), rebuilt from the journal's turn costs on load so a restart
+    /// does not reset it
+    budget: Mutex<Option<AtomicBudget>>,
     /// Live answer text (slice 39): no journal and no seq, only over the session
     /// WebSocket
     live: Mutex<LiveBuf>,
@@ -349,10 +360,12 @@ impl Session {
         let mut usage = meta.usage_base.clone().unwrap_or_default();
         let mut last_total = meta.usage_base.as_ref().map(|b| b.cost_usd).unwrap_or(0.0);
         let mut last_text = None;
+        let budget = session_budget(meta.max_cost_usd);
         for ev in &journal.events {
             if ev.get("kind").and_then(|k| k.as_str()) == Some("result") {
                 let delta = cost_delta(&mut last_total, ev);
                 add_usage(&mut usage, ev, delta);
+                if let Some(b) = &budget { b.charge_force(delta); }
                 if let Some(t) = ev.get("text").and_then(|t| t.as_str()) {
                     last_text = Some(t.chars().take(200).collect());
                 }
@@ -380,6 +393,7 @@ impl Session {
             transcript_seen: Mutex::new((0, 0)),
             tasks: Mutex::new(HashMap::new()),
             last_total_cost: Mutex::new(last_total),
+            budget: Mutex::new(budget),
             live: Mutex::new(LiveBuf::default()),
             queue: Mutex::new(Vec::new()),
         }))
@@ -418,6 +432,9 @@ impl Session {
         let delta = cost_delta(&mut self.last_total_cost.lock().unwrap(), &ev);
         ev["cost_usd"] = json!(delta);
         add_usage(&mut self.usage.lock().unwrap(), &ev, delta);
+        // the turn already happened: book it whatever the cap says, so the cap sees the real bill
+        if let Some(b) = self.budget.lock().unwrap().as_ref() { b.charge_force(delta); }
+        if let Some(f) = fleet_budget() { f.charge_force(delta); }
         if let Some(t) = ev.get("text").and_then(|t| t.as_str()) { *self.last_text.lock().unwrap() = Some(t.chars().take(200).collect()); }
         // limit hit (§9.7): a turn error whose text is about the limit sets the mark, a successful
         // turn clears it
@@ -431,6 +448,16 @@ impl Session {
         }
         let ev = self.emit(ev);
         self.append_usage(&ev);
+    }
+
+    /// Set or clear the session's USD cap; spend already booked by agentd counts against the new cap at once.
+    pub fn set_max_cost(&self, cap: Option<f64>) {
+        let spent = self.usage.lock().unwrap().cost_usd - self.meta.lock().unwrap().usage_base.as_ref().map(|b| b.cost_usd).unwrap_or(0.0);
+        let b = session_budget(cap);
+        if let Some(b) = &b { b.charge_force(spent); }
+        *self.budget.lock().unwrap() = b;
+        self.meta.lock().unwrap().max_cost_usd = cap.filter(|c| c.is_finite() && *c > 0.0);
+        self.save_meta();
     }
 
     /// Limit-hit mark: in meta (visible to the core via Info), a note into the
@@ -1048,6 +1075,7 @@ impl Session {
     /// User message: text/image blocks as in the Messages API; status — working.
     pub async fn prompt(self: &Arc<Self>, content: Value) -> Result<Value> {
         if !self.alive() { bail!("сессия не запущена — возобновите её"); }
+        check_caps(self.budget.lock().unwrap().as_ref(), fleet_budget())?;
         let content = match content { Value::String(s) => json!([{ "type": "text", "text": s }]), c => c };
         // agy: the turn is still running — queue it (the protocol does not accept a second message before result);
         // model/effort/mode changed on a live session — restart the process with --conversation, the message leaves the
@@ -1839,7 +1867,7 @@ impl Manager {
         let meta = Meta {
             id: id.clone(), title: crate::import::title_of(&parsed, f.agent), label: None, limit_hit: None, agent: f.agent.to_string(), cwd: f.cwd.clone(), created_at: f.created_at,
             provider_session_id: Some(f.id.clone()), model: parsed.model.clone(), permission_mode: None, account: None, env: HashMap::new(), unset: Vec::new(),
-            imported: true, transcript: Some(f.path.to_string_lossy().into_owned()), synced_lines: Some(parsed.lines), usage_base: parsed.usage, effort: None, import_v: Some(crate::import::VERSION), max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None
+            imported: true, transcript: Some(f.path.to_string_lossy().into_owned()), synced_lines: Some(parsed.lines), usage_base: parsed.usage, effort: None, import_v: Some(crate::import::VERSION), max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None, max_cost_usd: None
         };
         let s = Session::load(self.dir.join(&id), meta)?;
         s.import_events(parsed.events);
@@ -1885,6 +1913,7 @@ impl Manager {
                     drop(m);
                     s.save_meta();
                 }
+                if let Some(cap) = opts.max_cost_usd { s.set_max_cost(Some(cap)); }
                 if let Some(n) = opts.note.as_deref().filter(|n| !n.trim().is_empty()) { s.emit(json!({ "kind": "system", "subtype": "agent_note", "data": { "message": n } })); }
                 s.spawn(true).await?;
                 if opts.retry_last {
@@ -1900,7 +1929,7 @@ impl Manager {
         let meta = Meta {
             id: id.clone(), title: opts.title.unwrap_or_else(|| crate::engines::title(&agent).to_string()), label: None, limit_hit: None, agent, cwd, created_at: now_ms() / 1000,
             provider_session_id: opts.resume.clone(), model: opts.model, permission_mode: opts.permission_mode,
-            account: opts.account, env: opts.env, unset: opts.unset, imported: false, transcript: None, synced_lines: None, usage_base: None, effort: opts.effort, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: opts.cache_ttl, allowed_tools: opts.allowed_tools, disallowed_tools: opts.disallowed_tools, resume_at: None, context_window: ctx_win
+            account: opts.account, env: opts.env, unset: opts.unset, imported: false, transcript: None, synced_lines: None, usage_base: None, effort: opts.effort, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: opts.cache_ttl, allowed_tools: opts.allowed_tools, disallowed_tools: opts.disallowed_tools, resume_at: None, context_window: ctx_win, max_cost_usd: opts.max_cost_usd
         };
         let s = Session::load(self.dir.join(&id), meta)?;
         s.save_meta();
@@ -1997,6 +2026,33 @@ impl Manager {
         out.sort_by_key(|r| r.get("ts").and_then(|t| t.as_u64()).unwrap_or(0));
         out
     }
+}
+
+/// Daemon-wide USD cap over every session's turns since start (`--max-cost-usd` / AGENTD_MAX_COST_USD); set once from main.
+static FLEET_BUDGET: std::sync::OnceLock<AtomicBudget> = std::sync::OnceLock::new();
+
+pub fn set_fleet_cap(cap_usd: f64) -> Result<()> {
+    let b = AtomicBudget::new(cap_usd).map_err(|e| anyhow!("--max-cost-usd: {e}"))?;
+    FLEET_BUDGET.set(b).map_err(|_| anyhow!("fleet cap already set"))
+}
+
+fn fleet_budget() -> Option<&'static AtomicBudget> { FLEET_BUDGET.get() }
+
+/// A per-session cap; a missing, zero, negative or non-finite value means no cap.
+fn session_budget(cap: Option<f64>) -> Option<AtomicBudget> {
+    cap.filter(|c| c.is_finite() && *c > 0.0).and_then(|c| AtomicBudget::new(c).ok())
+}
+
+/// Before a new turn: refuse it once the session or the daemon has spent its cap. Turn cost is only known after the
+/// result, so the check is on spend so far; the turn that crosses the cap is booked in full and the next one is refused.
+fn check_caps(session: Option<&AtomicBudget>, fleet: Option<&AtomicBudget>) -> Result<()> {
+    if let Some(b) = session.filter(|b| b.is_exhausted()) {
+        bail!("session budget exhausted: ${:.4} spent of ${:.2} cap", b.spent_usd(), b.limit_usd());
+    }
+    if let Some(f) = fleet.filter(|f| f.is_exhausted()) {
+        bail!("agentd budget exhausted: ${:.4} spent of ${:.2} cap", f.spent_usd(), f.limit_usd());
+    }
+    Ok(())
 }
 
 /// Turn cost from the cumulative `total_cost_usd` of the result: the difference from the session's previous value (verified
@@ -2222,6 +2278,49 @@ mod tests {
     }
 
     #[test]
+    fn usd_cap_refuses_the_next_turn_once_spent() {
+        // no cap configured: never refuses
+        assert!(session_budget(None).is_none() && session_budget(Some(0.0)).is_none() && session_budget(Some(f64::NAN)).is_none());
+        assert!(check_caps(None, None).is_ok());
+        // $0.05 cap, turns booked from cumulative total_cost_usd exactly as record_result does
+        let b = session_budget(Some(0.05)).unwrap();
+        let mut last = 0.0;
+        b.charge_force(cost_delta(&mut last, &json!({ "total_cost_usd": 0.02 })));
+        assert!(check_caps(Some(&b), None).is_ok());
+        // the turn that crosses the cap already happened: it is booked in full, the next one is refused
+        b.charge_force(cost_delta(&mut last, &json!({ "total_cost_usd": 0.07 })));
+        assert!((b.spent_usd() - 0.07).abs() < 1e-9);
+        let e = check_caps(Some(&b), None).unwrap_err().to_string();
+        assert!(e.contains("session budget exhausted"), "{e}");
+        // a daemon-wide cap refuses turns in every session, including uncapped ones
+        let fleet = AtomicBudget::new(0.10).unwrap();
+        fleet.charge_force(0.04);
+        assert!(check_caps(None, Some(&fleet)).is_ok());
+        fleet.charge_force(0.06);
+        assert!(check_caps(None, Some(&fleet)).unwrap_err().to_string().contains("agentd budget exhausted"));
+    }
+
+    #[test]
+    fn usd_cap_survives_reload_from_journal() {
+        let dir = std::env::temp_dir().join(format!("budget-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let mk = |cap| Meta { id: "b".into(), agent: "claude".into(), cwd: "/".into(), title: "t".into(), label: None, limit_hit: None, created_at: 0, provider_session_id: None, model: None, permission_mode: None, account: None, env: HashMap::new(), unset: vec![], imported: false, transcript: None, synced_lines: None, usage_base: None, effort: None, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None, max_cost_usd: cap };
+        let s = Session::load(dir.clone(), mk(Some(0.05))).unwrap();
+        s.record_result(json!({ "kind": "result", "total_cost_usd": 0.06, "usage": { "input_tokens": 1 } }));
+        assert!(check_caps(s.budget.lock().unwrap().as_ref(), None).is_err());
+        drop(s);
+        // a daemon restart rebuilds spend from the journal: still over the cap
+        let s = Session::load(dir.clone(), mk(Some(0.05))).unwrap();
+        assert!(check_caps(s.budget.lock().unwrap().as_ref(), None).is_err());
+        // raising the cap counts the spend so far against the new one
+        s.set_max_cost(Some(1.0));
+        let b = s.budget.lock().unwrap();
+        assert!(check_caps(b.as_ref(), None).is_ok() && (b.as_ref().unwrap().spent_usd() - 0.06).abs() < 1e-9);
+        drop(b); drop(s);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
     fn usage_accumulates_from_result_events() {
         // total_cost_usd is cumulative: 0.01 → 0.03 means turns of 0.01 and 0.02
         let mut u = Usage::default(); let mut last = 0.0;
@@ -2254,7 +2353,7 @@ mod tests {
 
     #[test]
     fn meta_public_hides_env_values() {
-        let m = Meta { id: "x".into(), agent: "claude".into(), cwd: "/".into(), title: "t".into(), label: None, limit_hit: None, created_at: 0, provider_session_id: None, model: None, permission_mode: None, account: Some("acc".into()), env: HashMap::from([("ANTHROPIC_API_KEY".to_string(), "sk-secret".to_string())]), unset: vec!["ANTHROPIC_BASE_URL".into()], imported: false, transcript: None, synced_lines: None, usage_base: None, effort: None, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None };
+        let m = Meta { id: "x".into(), agent: "claude".into(), cwd: "/".into(), title: "t".into(), label: None, limit_hit: None, created_at: 0, provider_session_id: None, model: None, permission_mode: None, account: Some("acc".into()), env: HashMap::from([("ANTHROPIC_API_KEY".to_string(), "sk-secret".to_string())]), unset: vec!["ANTHROPIC_BASE_URL".into()], imported: false, transcript: None, synced_lines: None, usage_base: None, effort: None, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None, max_cost_usd: None };
         let p = m.public();
         assert_eq!(p.env.get("ANTHROPIC_API_KEY").map(String::as_str), Some("•••"));
         assert_eq!(p.unset, vec!["ANTHROPIC_BASE_URL"]);

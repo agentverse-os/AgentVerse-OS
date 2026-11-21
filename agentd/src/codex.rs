@@ -672,7 +672,7 @@ mod tests {
 
     #[test]
     fn tui_args_resume_gate_and_bypass() {
-        let mut m = crate::session::Meta { id: "s1".into(), agent: "codex".into(), cwd: "/w".into(), title: "t".into(), label: None, limit_hit: None, created_at: 0, provider_session_id: Some("thread-1".into()), model: None, permission_mode: Some("plan".into()), account: None, env: Default::default(), unset: vec![], imported: false, transcript: None, synced_lines: None, usage_base: None, effort: None, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None };
+        let mut m = crate::session::Meta { id: "s1".into(), agent: "codex".into(), cwd: "/w".into(), title: "t".into(), label: None, limit_hit: None, created_at: 0, provider_session_id: Some("thread-1".into()), model: None, permission_mode: Some("plan".into()), account: None, env: Default::default(), unset: vec![], imported: false, transcript: None, synced_lines: None, usage_base: None, effort: None, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None, max_cost_usd: None };
         let env = parse_env_sh("export OPENAI_BASE_URL='http://llm.gate/v1'\n");
         let a = tui_args(&m, gate_config(&env).as_ref(), Some("gpt-5-codex"), false).join(" ");
         assert!(a.starts_with("codex -c model_provider=\"cloudos\" -c model_providers.cloudos.base_url=\"http://llm.gate/v1\""), "{a}");
