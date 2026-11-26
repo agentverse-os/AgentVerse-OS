@@ -19,7 +19,7 @@ services:
       - -f
       - http://127.0.0.1:8080/rest/v3/health
       timeout: 10s
-    image: shlinkio/shlink:stable
+    image: shlinkio/shlink:5.1.8
     networks:
       appnet:
         aliases:
@@ -41,7 +41,7 @@ services:
       - -f
       - http://127.0.0.1:8080
       timeout: 10s
-    image: shlinkio/shlink-web-client
+    image: shlinkio/shlink-web-client:4.9.0
     networks:
       appnet:
         aliases:

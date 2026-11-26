@@ -9,9 +9,11 @@ endpoint:
   port: 3000
   service: forgejo
 env:
+  FORGEJO_SSH_PORT: '22222'
   POSTGRESQL_DATABASE: forgejo
   POSTGRES_DB: ''
   POSTGRES_USER: ''
+  SERVICE_FQDN_FORGEJO: ${APP_DOMAIN}
   SERVICE_PASSWORD_POSTGRESQL:
     generate: password
   SERVICE_URL_FORGEJO: https://${APP_DOMAIN}
@@ -31,7 +33,7 @@ login:
   user: null
 name: forgejo-with-postgresql-coolify
 notes:
-- 'порт 22222:22 (forgejo) не публикуется: доступ только через edge/gate'
+- 'порт ${FORGEJO_SSH_PORT:-22222}:22 (forgejo) не публикуется: доступ только через edge/gate'
 origin: coolify
 provides: []
 readme: null
@@ -41,6 +43,12 @@ route:
   open: iframe
 schema: 1
 settings:
+- env: FORGEJO_SSH_PORT
+  hint: 'по умолчанию: 22222'
+  label: forgejo ssh port
+  options: null
+  required: false
+  type: text
 - env: POSTGRESQL_DATABASE
   hint: 'по умолчанию: forgejo'
   label: postgresql database

@@ -26,7 +26,7 @@ services:
       - --spider
       - http://127.0.0.1:8088/api/v1/healthz
       timeout: 10s
-    image: wealthfolio/wealthfolio:3.7.0@sha256:de137d64acf712c5c71093b27ecc98ccc1dbbbf00befdb684bed531cdb40069a
+    image: wealthfolio/wealthfolio:3.13.0@sha256:6600feaa06910a35854bc07a4cdf943a29b4a7a443190912e3d3c02288533ed2
     networks:
       appnet:
         aliases:

@@ -98,7 +98,7 @@ services:
       - -f
       - http://127.0.0.1:8088/health
       timeout: 20s
-    image: amancevice/superset:6.0.0
+    image: amancevice/superset:6.1.0
     networks:
       appnet:
         aliases:

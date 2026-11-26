@@ -6,10 +6,27 @@ use crate::model::{AppState, RouteMode};
 use anyhow::{anyhow, Context, Result};
 use serde_json::{json, Value};
 
+/// Does an answer of `GET /config/apps/http/servers/<name>` mean the server is there? A restarted edge comes up with the
+/// bootstrap config: with no `apps.http` in it Caddy answers 400 "invalid traversal path", with the app but without the
+/// server — 404 or `null`. Both mean "no server" (the watchdog then uploads the configuration again); only other statuses are
+/// an unknown state. The 400 used to count as "unknown", so a restarted edge stayed silent until a core restart.
+pub fn server_present(status: u16, body: &str) -> Option<bool> {
+    match status {
+        200..=299 => Some(body.trim() != "null" && !body.trim().is_empty()),
+        400 | 404 => Some(false),
+        _ => None,
+    }
+}
+
 #[derive(Clone)]
 pub struct EdgeCaddy {
+    /// Admin API over TCP (the host's 127.0.0.1:2019) — an edge container created before ADR-010.
     admin: String,
     http: reqwest::Client,
+    /// Admin API on a unix socket in the directory shared with the edge container: unlike a TCP listener inside the
+    /// container, nothing in the app networks can reach it.
+    sock: std::path::PathBuf,
+    uds: reqwest::Client,
 }
 
 /// Lifetime of the internal CA's leaf certificates. By default Caddy issues them for 12 hours and reissues every ~8: a browser
@@ -43,15 +60,86 @@ pub struct EdgeInput<'a> {
     /// `internal` — the internal CA; `auto` — regular ACME/tailscale (no explicit
     /// issuer).
     pub tls_internal: bool,
+    /// Where the admin API listens: a unix socket in the directory shared with the host, or `0.0.0.0:2019` for a container
+    /// created without it (ADR-010).
+    pub admin_listen: &'a str,
+    /// Sources that must not reach the control plane (Desktop, the API, "Agents") directly: the subnets of the docker networks
+    /// the edge is attached to — app containers share those networks with it.
+    pub deny_ranges: &'a [String],
+    /// …except these addresses inside them: the gateway of the edge's default route — connections to the published ports arrive
+    /// from it after NAT.
+    pub allow_ips: &'a [String],
+}
+
+/// The share target of the "Agents" PWA (manifest.webmanifest `share_target.action`).
+const SHARE_PATH: &str = "/agents/share";
+
+/// Methods that change state. `CONNECT` is how a browser opens a WebSocket over HTTP/2.
+const UNSAFE_METHODS: [&str; 5] = ["POST", "PUT", "PATCH", "DELETE", "CONNECT"];
+
+/// Guards in front of a route to cloudd or to "Agents" (ADR-010, stage 1); `scope` is the matcher of the guarded route (host
+/// and/or path), every guard is matched together with it.
+/// 1. Another site in the owner's browser: an `Origin` that is not ours on a request that changes state or opens a WebSocket.
+///    The browser sends no preflight for a POST without a body and does not apply the same-origin rule to WebSockets, so
+///    without this any page could read the event stream and drive conversations. Requests without `Origin` (curl, the server
+///    install script) pass as before.
+/// 2. A container that shares a docker network with the edge and comes to it directly, past the published ports.
+fn control_guards(scope: &Value, origins: &[String], deny_ranges: &[String], allow_ips: &[String]) -> Vec<Value> {
+    let with_scope = |extra: Value| {
+        let mut m = scope.as_object().cloned().unwrap_or_default();
+        for (k, v) in extra.as_object().cloned().unwrap_or_default() { m.insert(k, v); }
+        Value::Object(m)
+    };
+    let refuse = |text: &str| json!([{ "handler": "static_response", "status_code": 403, "headers": { "Content-Type": ["text/plain; charset=utf-8"], "Cache-Control": ["no-store"] }, "body": text }]);
+    // ours: the stand's own origins — and the share target of the installed app: the phone posts to it from the system share
+    // sheet, a navigation without a page behind it, which browsers mark with `Origin: null`. What lands there is a draft the
+    // owner still has to send.
+    let foreign = json!([{ "header": { "Origin": origins } }, { "path": [SHARE_PATH], "header": { "Origin": ["null"] } }]);
+    let mut out = vec![json!({
+        "match": [
+            with_scope(json!({ "method": UNSAFE_METHODS, "header": { "Origin": ["*"] }, "not": foreign })),
+            with_scope(json!({ "header": { "Origin": ["*"], "Upgrade": ["websocket", "WebSocket", "Websocket"] }, "not": foreign })),
+        ],
+        "handle": refuse("AgentVerse OS: запрос с другого сайта отклонён (заголовок Origin не принадлежит этому стенду).\n"),
+        "terminal": true
+    })];
+    if !deny_ranges.is_empty() {
+        let mut m = json!({ "remote_ip": { "ranges": deny_ranges } });
+        if !allow_ips.is_empty() { m["not"] = json!([{ "remote_ip": { "ranges": allow_ips } }]); }
+        out.push(json!({
+            "match": [with_scope(m)],
+            "handle": refuse("AgentVerse OS: панель управления и API недоступны из сетей приложений.\n"),
+            "terminal": true
+        }));
+    }
+    out
 }
 
 impl EdgeCaddy {
-    pub fn new(admin: &str) -> Self {
-        Self { admin: admin.trim_end_matches('/').to_string(), http: reqwest::Client::new() }
+    pub fn new(admin: &str, sock: &std::path::Path) -> Self {
+        let uds = reqwest::Client::builder().unix_socket(sock.to_path_buf()).build().unwrap_or_default();
+        Self { admin: admin.trim_end_matches('/').to_string(), http: reqwest::Client::new(), sock: sock.to_path_buf(), uds }
+    }
+
+    /// One admin request: through the socket when the file is there, over TCP otherwise — or when nothing accepts on the
+    /// socket (a file left behind by a container that was since replaced with one without the shared directory).
+    async fn send(&self, method: reqwest::Method, path: &str, body: Option<&Value>) -> Result<reqwest::Response> {
+        let build = |c: &reqwest::Client, base: &str| {
+            let r = c.request(method.clone(), format!("{base}{path}")).timeout(std::time::Duration::from_secs(30));
+            match body { Some(b) => r.json(b), None => r }
+        };
+        if self.sock.exists() {
+            match build(&self.uds, "http://edge").send().await {
+                Ok(r) => return Ok(r),
+                Err(e) if !e.is_connect() => return Err(e).context("caddy admin (сокет)"),
+                Err(_) => {}
+            }
+        }
+        build(&self.http, &self.admin).send().await.context("caddy admin")
     }
 
     pub async fn ping(&self) -> Result<()> {
-        let r = self.http.get(format!("{}/config/", self.admin)).send().await.context("caddy admin")?;
+        let r = self.send(reqwest::Method::GET, "/config/", None).await?;
         if !r.status().is_success() {
             return Err(anyhow!("caddy admin: HTTP {}", r.status()));
         }
@@ -61,14 +149,21 @@ impl EdgeCaddy {
     /// Does the live edge configuration have our server (after the container is recreated Caddy starts with the bootstrap config
     /// without it)
     pub async fn has_server(&self, name: &str) -> Result<bool> {
-        let r = self.http.get(format!("{}/config/apps/http/servers/{name}", self.admin)).send().await.context("caddy admin")?;
-        if r.status().is_success() { let body = r.text().await.unwrap_or_default(); return Ok(body.trim() != "null" && !body.trim().is_empty()) }
-        if r.status().as_u16() == 404 { return Ok(false) }
-        Err(anyhow!("caddy admin: HTTP {}", r.status()))
+        let r = self.send(reqwest::Method::GET, &format!("/config/apps/http/servers/{name}"), None).await?;
+        let status = r.status().as_u16();
+        let body = if r.status().is_success() { r.text().await.unwrap_or_default() } else { String::new() };
+        server_present(status, &body).ok_or_else(|| anyhow!("caddy admin: HTTP {status}"))
+    }
+
+    /// Where the live configuration says the admin API listens (None — the bootstrap config or no answer).
+    pub async fn admin_listen(&self) -> Option<String> {
+        let r = self.send(reqwest::Method::GET, "/config/admin/listen", None).await.ok()?;
+        if !r.status().is_success() { return None }
+        r.json::<Value>().await.ok()?.as_str().map(str::to_string)
     }
 
     pub async fn load(&self, config: &Value) -> Result<()> {
-        let r = self.http.post(format!("{}/load", self.admin)).json(config).send().await.context("caddy /load")?;
+        let r = self.send(reqwest::Method::POST, "/load", Some(config)).await.context("caddy /load")?;
         if !r.status().is_success() {
             return Err(anyhow!("caddy /load: HTTP {}: {}", r.status(), r.text().await.unwrap_or_default()));
         }
@@ -81,11 +176,14 @@ impl EdgeCaddy {
         let mut hosts: Vec<String> = vec![host.to_string()];
         hosts.extend(input.alt_hosts.iter().filter(|h| !h.is_empty() && h.as_str() != host).cloned());
         // origins allowed to frame previews, apps and Coder: Desktop (:443) and "Agents" on its own port (§9.8)
-        let origins = hosts.iter().flat_map(|h| [format!("https://{h}"), format!("https://{h}:{}", input.agents_port)]).collect::<Vec<_>>().join(" ");
+        let own_origins: Vec<String> = hosts.iter().flat_map(|h| [format!("https://{h}"), format!("https://{h}:{}", input.agents_port)]).collect();
+        let origins = own_origins.join(" ");
+        let guards = |scope: Value| control_guards(&scope, &own_origins, input.deny_ranges, input.allow_ips);
         let mut servers = serde_json::Map::new();
 
         // ---- Desktop + cloudd API (:443), plus path apps under /apps/<name>/ ----
         let mut desktop_routes = Vec::new();
+        desktop_routes.extend(guards(json!({ "path": ["/agents", "/agents/*"] })));
         // the "Agents" app is a separate service on the same host; the prefix is not stripped, the service itself
         // lives under /agents/
         desktop_routes.push(json!({
@@ -101,6 +199,8 @@ impl EdgeCaddy {
                 "terminal": true
             }));
         }
+        // the guards stand after the path apps: an app under /apps/<name>/ is not the control plane
+        desktop_routes.extend(guards(json!({ "host": hosts.clone() })));
         desktop_routes.push(json!({
             "match": [{ "host": hosts.clone() }],
             "handle": [
@@ -127,16 +227,13 @@ impl EdgeCaddy {
         );
 
         // ---- "Agents" as a separate app (§9.8): its own origin on a port so Chrome installs it separately from Desktop ----
-        servers.insert(
-            "agents".into(),
-            json!({ "listen": [format!(":{}", input.agents_port)], "routes": [
-                { "match": [{ "host": hosts.clone(), "path": ["/"] }], "handle": [ { "handler": "static_response", "status_code": 302, "headers": { "Location": ["/agents/"] } } ], "terminal": true },
-                { "match": [{ "host": hosts.clone() }], "handle": [
-                    { "handler": "encode", "encodings": { "gzip": {}, "zstd": {} }, "prefer": ["zstd", "gzip"], "minimum_length": 1024 },
-                    reverse_proxy(input.agents_upstream)
-                ], "terminal": true }
-            ], "errors": error_page(host, "agents", "Агенты") }),
-        );
+        let mut agents_routes = guards(json!({ "host": hosts.clone() }));
+        agents_routes.push(json!({ "match": [{ "host": hosts.clone(), "path": ["/"] }], "handle": [ { "handler": "static_response", "status_code": 302, "headers": { "Location": ["/agents/"] } } ], "terminal": true }));
+        agents_routes.push(json!({ "match": [{ "host": hosts.clone() }], "handle": [
+            { "handler": "encode", "encodings": { "gzip": {}, "zstd": {} }, "prefer": ["zstd", "gzip"], "minimum_length": 1024 },
+            reverse_proxy(input.agents_upstream)
+        ], "terminal": true }));
+        servers.insert("agents".into(), json!({ "listen": [format!(":{}", input.agents_port)], "routes": agents_routes, "errors": error_page(host, "agents", "Агенты") }));
 
         // ---- route: port apps — a separate origin on a port ----
         for app in input.apps.iter().filter(|a| a.manifest.route.mode == RouteMode::Port) {
@@ -175,7 +272,7 @@ impl EdgeCaddy {
         }
 
         let mut cfg = json!({
-            "admin": { "listen": "0.0.0.0:2019" },
+            "admin": { "listen": input.admin_listen },
             "apps": { "http": { "servers": Value::Object(servers) } }
         });
         if input.tls_internal {
@@ -217,4 +314,16 @@ fn error_page(host: &str, name: &str, title: &str) -> Value {
     );
     json!({ "routes": [ { "handle": [ { "handler": "headers", "response": { "set": { "Cache-Control": ["no-store"], "Content-Type": ["text/html; charset=utf-8"] } } },
         { "handler": "static_response", "status_code": "{http.error.status_code}", "body": body } ] } ] })
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn server_present_reads_the_admin_answer() {
+        assert_eq!(super::server_present(200, "{\"listen\":[\":443\"]}"), Some(true));
+        assert_eq!(super::server_present(200, "null\n"), Some(false));
+        assert_eq!(super::server_present(404, ""), Some(false));
+        assert_eq!(super::server_present(400, ""), Some(false), "a bootstrap config without apps.http: invalid traversal path");
+        assert_eq!(super::server_present(500, ""), None);
+    }
 }

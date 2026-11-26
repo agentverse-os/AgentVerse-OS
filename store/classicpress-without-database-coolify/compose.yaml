@@ -16,7 +16,7 @@ services:
       - -f
       - http://127.0.0.1
       timeout: 10s
-    image: classicpress/classicpress:latest
+    image: classicpress/classicpress:2.7.4-php8.5-apache
     networks:
       appnet:
         aliases:

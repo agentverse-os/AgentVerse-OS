@@ -24,7 +24,7 @@ services:
       - CMD-SHELL
       - bash -c ':> /dev/tcp/127.0.0.1/22300' || exit 1
       timeout: 20s
-    image: joplin/server:latest
+    image: joplin/server:3.7.5
     networks:
       appnet:
         aliases:

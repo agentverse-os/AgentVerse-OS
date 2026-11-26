@@ -40,6 +40,6 @@ upstream:
   - utilities
   - security
   source: https://github.com/gchq/CyberChef
-  tipi_version: 26
-  version: 11.4.0
+  tipi_version: 28
+  version: 11.5.0
 website: https://github.com/gchq/CyberChef

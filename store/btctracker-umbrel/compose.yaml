@@ -11,7 +11,7 @@ services:
     - DATABASE_URL=file:/app/data/bitcoin-tracker.db
     - NEXTAUTH_SECRET=${APP_SEED}
     - NEXTAUTH_URL=http://${DEVICE_DOMAIN_NAME}:3947
-    image: thewilqq/btc-tracker:v0.7.0@sha256:0c7beea5e0791cc39c9294f0a62faa24aa2ef42ed04571b63977c0afe085321b
+    image: thewilqq/btc-tracker:v0.8.0@sha256:f7780ebf7e5586efebc324d4532aa768208d9f4e79b9cd048a030be8c4929df5
     networks:
       appnet:
         aliases:

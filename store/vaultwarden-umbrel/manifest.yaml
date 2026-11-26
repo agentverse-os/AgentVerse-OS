@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/vaultwarden/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/vaultwarden/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/vaultwarden/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/vaultwarden/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/vaultwarden/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/vaultwarden/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,16 +42,18 @@ upstream:
   categories:
   - files
   release_notes: |-
-    Important: Bitwarden clients generally require an HTTPS server URL. If you use desktop, mobile, or browser extension clients, use Tailscale Serve or another HTTPS reverse proxy URL instead of http://umbrel.local, a plain Tailscale IP address, or an onion HTTP URL. See the app description for setup steps.
+    This update fixes security issues in website icons and emergency access, and updates the bundled Web Vault to 2026.10.1.
 
-    This release includes:
-      - Adds required compatibility support for Bitwarden clients version 2026.8.0 and newer
-      - Fixes sendmail executable permission checks
-      - Includes user email addresses in successful login logs for clearer audit trails
-      - Includes miscellaneous fixes and upstream build/test updates
+    It also improves two-step login compatibility, emergency account recovery, shared vault items and attachments, and fixes email two-factor authentication for SSO logins on iOS and Android.
 
-    Full release notes are available at https://github.com/dani-garcia/vaultwarden/releases/tag/1.37.2
+    If you have customized Vaultwarden's configuration, check your settings before updating: invalid numeric values and schedules now prevent startup.
+
+    For shared organizations upgrading from before 1.37.4: if you have admins you don’t fully trust, rotate the organization’s API key under Admin Console → Settings → Rotate API key.
+
+    For custom setups using IP_HEADER=X-Forwarded-For with multiple reverse proxies, list all trusted proxies in IP_HEADER_TRUSTED_PROXIES so rate limiting and logs use the correct client IP address. Standard Umbrel installations need no proxy changes.
+
+    Full release notes can be found at https://github.com/dani-garcia/vaultwarden/releases/tag/1.37.5
   source: https://github.com/dani-garcia/vaultwarden
-  version: 1.37.2
+  version: 1.37.5
   website: https://github.com/dani-garcia
 website: https://github.com/dani-garcia

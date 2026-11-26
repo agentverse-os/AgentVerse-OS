@@ -10,9 +10,9 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/influxdb2/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/influxdb2/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/influxdb2/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/influxdb2/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/influxdb2/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/influxdb2/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,9 +42,13 @@ upstream:
   categories:
   - developer
   release_notes: |-
-    This release updates InfluxDB to v2.9.1.
-    - Fixed an issue that could prevent level 3 storage compactions from running - Improved compaction queue accounting by separating queued work from active running compactions - Updated the Go toolchain used to build InfluxDB
+    If upgrading from a version older than 2.9.0, save any API tokens you still need before updating. Tokens are hashed on startup and their original values can no longer be recovered. Full backup restores require the operator token.
+
+    This update improves database reliability and startup diagnostics.
+    - Improved health and readiness checks with clearer startup failure details - Added configurable storage compaction throughput and query time-range limits - Improved query and write statistics, caching, and partial measurement results - Fixed compaction, shard loading, and cancelled query resource handling
+
+    Full release notes can be found at https://github.com/influxdata/influxdb/releases/tag/v2.10.1
   source: https://github.com/influxdata/influxdb
-  version: 2.9.1
+  version: 2.10.1
   website: https://www.influxdata.com/
 website: https://www.influxdata.com/

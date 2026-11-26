@@ -40,6 +40,6 @@ upstream:
   - books
   - media
   source: https://github.com/Suwayomi/docker-tachidesk
-  tipi_version: 95
-  version: v2.3.2333
+  tipi_version: 117
+  version: v2.4.2490
 website: https://github.com/Suwayomi/docker-tachidesk

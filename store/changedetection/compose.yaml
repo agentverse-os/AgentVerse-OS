@@ -6,7 +6,7 @@ networks:
 services:
   changedetection:
     hostname: changedetection
-    image: ghcr.io/dgtlmoon/changedetection.io:0.55.8
+    image: ghcr.io/dgtlmoon/changedetection.io:0.70.3
     networks:
       appnet:
         aliases:

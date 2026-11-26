@@ -56,6 +56,6 @@ upstream:
   - network
   - security
   source: https://github.com/pi-hole/pi-hole
-  tipi_version: 46
-  version: 2026.07.2
+  tipi_version: 54
+  version: 2026.11.0
 website: https://github.com/pi-hole/pi-hole

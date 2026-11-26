@@ -36,7 +36,7 @@ services:
     - NODE_DB_URI=mongodb://habitica_mongo_1/habitica
     - BASE_URL=http://${DEVICE_DOMAIN_NAME}:3944
     - INVITE_ONLY=false
-    image: awinterstein/habitica-server:5.50.1@sha256:7654b0e3c04e2ba5f737bafbbf83246ec989ee4f2c21c66ae590004dcf4d4d74
+    image: awinterstein/habitica-server:5.50.6@sha256:964caa1adddda20b7e11116f0892339bd0c740e4c7d9e2253b7991a0a610d5f1
     networks:
       appnet:
         aliases:

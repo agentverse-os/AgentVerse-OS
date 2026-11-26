@@ -85,9 +85,9 @@ services:
       PORT: 3000
       REDIS_URL: redis://outline_redis_1:6379
       SECRET_KEY: ${APP_SEED}
-      URL: http://${DEVICE_DOMAIN_NAME}:${APP_OUTLINE_PORT}
+      URL: https://${DEVICE_DOMAIN_NAME}:${APP_OUTLINE_PORT}
       UTILS_SECRET: ${APP_SEED}
-    image: outlinewiki/outline:1.7.1@sha256:361df7040e6f0d7abac768b99f40122197921626a7e69501aabb5fcb496fc1b4
+    image: outlinewiki/outline:1.13.0@sha256:4583bb244dbb4464d8a632c75044d3b2f9fe44382b6a4b84d97995f473b823e4
     networks:
       appnet:
         aliases:

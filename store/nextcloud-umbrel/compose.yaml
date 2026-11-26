@@ -10,8 +10,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    entrypoint: /cron.sh
-    image: nextcloud:34.0.3-apache@sha256:365baea128b5e0f45a8dc5111c9234b926f1e6082b4c14d75ae650324ce5d65c
+    entrypoint:
+    - bash
+    - /umbrel-migration-hook
+    - --guard
+    - cron
+    image: nextcloud:35.0.3-apache@sha256:8a7a65b8bae82a79568fec2ed9cf3e374a1944eda2a22ebe130d79463336fee3
     networks:
       appnet:
         aliases:
@@ -19,8 +23,15 @@ services:
     restart: on-failure
     volumes:
     - ${APP_DATA_DIR}/data/nextcloud:/var/www/html
+    - ${APP_DATA_DIR}/hooks/pre-start:/umbrel-migration-hook:ro
+    - ${APP_DATA_DIR}/data/migration:/umbrel-migration:ro
   db:
-    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-log-file-size=256M
+    entrypoint:
+    - bash
+    - /umbrel-migration-hook
+    - --guard
+    - db
     environment:
     - MYSQL_ROOT_PASSWORD=moneyprintergobrrr
     - MYSQL_PASSWORD=moneyprintergobrrr
@@ -37,15 +48,18 @@ services:
       - --connect
       - --innodb_initialized
       timeout: 5s
-    image: mariadb:10.6.21@sha256:8a16204dc96c08ed0ee2c52c0f9324aa5d2dd0e43ad23a471d447a39f75765b5
+    image: mariadb:10.11.19@sha256:7f22313fc130a377a44999965bcb0a08dd5b21e8502824c1b864f792f9bc66ab
     networks:
       appnet:
         aliases:
         - nextcloud_db_1
     restart: on-failure
+    stop_grace_period: 2m
     user: 1000:1000
     volumes:
     - ${APP_DATA_DIR}/data/db:/var/lib/mysql
+    - ${APP_DATA_DIR}/hooks/pre-start:/umbrel-migration-hook:ro
+    - ${APP_DATA_DIR}/data/migration:/umbrel-migration:ro
   redis:
     image: redis:6.2.2-buster@sha256:e10f55f92478715698a2cef97c2bbdc48df2a05081edd884938903aa60df6396
     networks:
@@ -57,11 +71,17 @@ services:
     volumes:
     - ${APP_DATA_DIR}/data/redis:/data
   web:
+    command: apache2-foreground
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
+    entrypoint:
+    - bash
+    - /umbrel-migration-hook
+    - --guard
+    - web
     environment:
     - MYSQL_HOST=nextcloud_db_1
     - REDIS_HOST=nextcloud_redis_1
@@ -73,7 +93,7 @@ services:
     - NEXTCLOUD_ADMIN_PASSWORD=${APP_PASSWORD}
     - NEXTCLOUD_TRUSTED_DOMAINS=${APP_DOMAIN}:${APP_NEXTCLOUD_PORT} ${APP_HIDDEN_SERVICE} ${DEVICE_HOSTNAME}:${APP_NEXTCLOUD_PORT} ${APP_NEXTCLOUD_LOCAL_IPS} nextcloud_web_1
     - PHP_UPLOAD_LIMIT=1024G
-    image: nextcloud:34.0.3-apache@sha256:365baea128b5e0f45a8dc5111c9234b926f1e6082b4c14d75ae650324ce5d65c
+    image: nextcloud:35.0.3-apache@sha256:8a7a65b8bae82a79568fec2ed9cf3e374a1944eda2a22ebe130d79463336fee3
     networks:
       appnet:
         aliases:
@@ -81,3 +101,5 @@ services:
     restart: on-failure
     volumes:
     - ${APP_DATA_DIR}/data/nextcloud:/var/www/html
+    - ${APP_DATA_DIR}/hooks/pre-start:/umbrel-migration-hook:ro
+    - ${APP_DATA_DIR}/data/migration:/umbrel-migration:ro

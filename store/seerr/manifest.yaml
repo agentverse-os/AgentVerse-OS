@@ -40,6 +40,6 @@ upstream:
   - media
   - utilities
   source: https://github.com/seerr-team/seerr
-  tipi_version: 12
-  version: v3.4.1
+  tipi_version: 18
+  version: v3.5.2
 website: https://github.com/seerr-team/seerr

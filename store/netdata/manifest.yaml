@@ -40,6 +40,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/netdata/netdata
-  tipi_version: 69
-  version: v2.11.0
+  tipi_version: 79
+  version: v2.12.3
 website: https://github.com/netdata/netdata

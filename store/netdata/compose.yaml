@@ -13,7 +13,7 @@ services:
     - SYS_ADMIN
     environment:
       DOCKER_HOST: tcp://cloudos-docker-ro:2375
-    image: netdata/netdata:v2.11.0
+    image: netdata/netdata:v2.12.3
     networks:
       appnet:
         aliases:

@@ -30,7 +30,7 @@ services:
       test:
       - CMD
       - php-fpm-healthcheck
-    image: ghcr.io/rahulhaque/soketi-app-manager-filament-alpine:latest
+    image: ghcr.io/rahulhaque/soketi-app-manager-filament-alpine:1.1.8
     networks:
       appnet:
         aliases:

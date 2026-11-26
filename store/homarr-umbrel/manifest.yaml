@@ -12,11 +12,11 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/homarr/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homarr/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homarr/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homarr/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homarr/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homarr/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homarr/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homarr/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homarr/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homarr/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,12 +46,17 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This point release fixes MCP tool responses and improves startup reliability by using stable internal service addresses.
+    If you're updating from before Homarr 2.8.0, Custom Widget HTTP sources can reach any address accessible to Homarr, including private, loopback, and link-local addresses. Existing network-scope settings no longer restrict requests.
 
-    It also reverts the custom User-Agent behavior for outbound integration requests to avoid integration compatibility issues.
+    This update fixes dashboard connections and display issues:
 
-    Full release notes can be found at https://github.com/homarr-labs/homarr/releases/tag/v1.76.2
+    - Restores WebSocket connections in production.
+    - Keeps board tab names visible and improves renaming with custom themes.
+    - Fixes widget previews on scaled boards.
+    - Keeps Beszel chart tooltips visible outside widgets and thermostat controls inside narrow tiles.
+
+    Full release notes can be found at https://github.com/homarr-labs/homarr/releases/tag/v2.13.1
   source: https://github.com/homarr-labs/homarr
-  version: 1.76.2
+  version: 2.13.1
   website: https://homarr.dev/
 website: https://homarr.dev/

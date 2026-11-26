@@ -7,7 +7,7 @@ services:
   crafty:
     environment:
       TZ: ${TZ}
-    image: registry.gitlab.com/crafty-controller/crafty-4:4.10.8
+    image: registry.gitlab.com/crafty-controller/crafty-4:4.11.0
     labels:
       traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto: https
       traefik.http.services.{{RUNTIPI_APP_ID}}.loadbalancer.server.scheme: https

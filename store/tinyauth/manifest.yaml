@@ -97,6 +97,6 @@ upstream:
   categories:
   - security
   source: https://github.com/tinyauthapp/tinyauth
-  tipi_version: 27
-  version: v5.1.3
+  tipi_version: 29
+  version: v5.2.0
 website: https://github.com/tinyauthapp/tinyauth

@@ -98,8 +98,9 @@ services:
     environment:
     - SERVICE_URL_HOMEPAGE_3000=${SERVICE_URL_HOMEPAGE_3000}
     - HOMEPAGE_VAR_BASE=${SERVICE_URL_HOMEPAGE}
+    - HOMEPAGE_ALLOWED_HOSTS=${SERVICE_FQDN_HOMEPAGE}
     - DOCKER_HOST=tcp://cloudos-docker-ro:2375
-    image: ghcr.io/gethomepage/homepage:latest
+    image: ghcr.io/gethomepage/homepage:v2.8.0
     networks:
       appnet:
         aliases:

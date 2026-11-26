@@ -15,7 +15,7 @@ services:
     - MM_SQLSETTINGS_DRIVERNAME=postgres
     - MM_SQLSETTINGS_DATASOURCE=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/$POSTGRES_DB?sslmode=disable&connect_timeout=10
     - MM_BLEVESETTINGS_INDEXDIR=/mattermost/bleve-indexes
-    image: mattermost/mattermost-team-edition:release-10
+    image: mattermost/mattermost-team-edition:10.11.26
     networks:
       appnet:
         aliases:
@@ -41,14 +41,14 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     networks:
       appnet:
         aliases:
         - mattermost-coolify_postgres_1
     restart: unless-stopped
     volumes:
-    - postgresql-data:/var/lib/postgresql/data
+    - postgresql-data:/var/lib/postgresql
 volumes:
   mattermost-data-bleve-indexes:
     driver: local

@@ -14,10 +14,11 @@ env:
   LANGUAGE: en/US
   MAXPLAYERS: '8'
   MOTD: Welcome to the server!
-  PASSWORD: mypassword
   SECURE: '1'
-  WORLD: /root/.local/share/Terraria/Worlds/world1.wld
-  WORLDNAME: world1
+  SERVICE_PASSWORD_TERRARIA:
+    generate: password
+  WORLD: world1.wld
+  WORLDPATH: /root/.local/share/Terraria/Worlds
 gallery: []
 health: null
 hooks: {}
@@ -26,7 +27,7 @@ icon: ./logo.svg
 login:
   mode: generated
   note: null
-  password: PASSWORD
+  password: SERVICE_PASSWORD_TERRARIA
   path: null
   user: null
 name: terraria-server-coolify
@@ -41,9 +42,9 @@ route:
   open: iframe
 schema: 1
 settings:
-- env: WORLD
-  hint: 'по умолчанию: /root/.local/share/Terraria/Worlds/world1.wld'
-  label: world
+- env: WORLDPATH
+  hint: 'по умолчанию: /root/.local/share/Terraria/Worlds'
+  label: worldpath
   options: null
   required: false
   type: text
@@ -53,9 +54,9 @@ settings:
   options: null
   required: false
   type: text
-- env: WORLDNAME
-  hint: 'по умолчанию: world1'
-  label: worldname
+- env: WORLD
+  hint: 'по умолчанию: world1.wld'
+  label: world
   options: null
   required: false
   type: text
@@ -71,12 +72,6 @@ settings:
   options: null
   required: false
   type: text
-- env: PASSWORD
-  hint: 'по умолчанию: mypassword'
-  label: password
-  options: null
-  required: false
-  type: password
 - env: MOTD
   hint: 'по умолчанию: Welcome to the server!'
   label: motd

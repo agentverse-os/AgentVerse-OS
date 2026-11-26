@@ -15,7 +15,7 @@ services:
     - APP_ACCOUNT_VALIDATION=${APP_ACCOUNT_VALIDATION:-false}
     - WHATSAPP_WEBHOOK=${WHATSAPP_WEBHOOK}
     - WHATSAPP_WEBHOOK_SECRET=${WHATSAPP_WEBHOOK_SECRET}
-    image: aldinokemal2104/go-whatsapp-web-multidevice:latest
+    image: aldinokemal2104/go-whatsapp-web-multidevice:v9.9.0
     networks:
       appnet:
         aliases:

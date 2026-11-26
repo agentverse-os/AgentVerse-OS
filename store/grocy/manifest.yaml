@@ -40,6 +40,6 @@ upstream:
   - automation
   - finance
   source: https://github.com/grocy/grocy
-  tipi_version: 10
-  version: 4.6.0
+  tipi_version: 12
+  version: 4.7.1
 website: https://github.com/grocy/grocy

@@ -4,7 +4,7 @@
   // from here, a composer with photos. The process lives in the workspace — the window and the tab can be closed.
   import { onMount, tick, untrack } from 'svelte';
   import { codeDraft } from './codeDrafts.svelte';
-  import { byProvider, api, agents, OfflineError, TimeoutError, type SessionInfo, type SessionEvent, type Scheduled , type GateModel, type Skill } from './api';
+  import { byProvider, byFamily, specialModels, api, agents, OfflineError, TimeoutError, type SessionInfo, type SessionEvent, type Scheduled , type GateModel, type Skill } from './api';
   import { actions, when, ui, phone, touch, same, data, money } from './state.svelte';
   import { t, tn } from './i18n';
   import Icon from './Icon.svelte';
@@ -18,6 +18,7 @@
   import { holdWake, dropWake } from './wakelock';
   import { enqueueOutbox, listOutbox, delOutbox, flushOutbox, type OutboxItem } from './outbox';
   import { getChat, putChat, delChat, PAGE } from './chatCache';
+  import { notify, kindName, kindIcon, withoutReportsNote } from './notify.svelte';
   let { project, id, onchange }: { project: string; id: string; onchange?: () => void } = $props();
   let events = $state<SessionEvent[]>([]);
   let info = $state<SessionInfo | null>(null);
@@ -29,9 +30,9 @@
   const queued = $derived(info?.queued ?? []);
   let scheduled = $state<Scheduled[]>([]);
   async function loadScheduled() { try { scheduled = (await agents.scheduled(project, id)).scheduled.filter(s => s.status === 'pending'); } catch {} }
-  const hist = $derived(events.filter(e => e.kind === 'user' && !e.parent_tool_use_id && !taskNote(e)).map(e => cleanUser(userText(e))).filter(Boolean));
+  const hist = $derived(events.filter(e => e.kind === 'user' && !e.parent_tool_use_id && !taskNote(e)).map(e => withoutReportsNote(cleanUser(userText(e))).text).filter(Boolean));
   let histIdx = $state<number | null>(null);
-  function startEdit(e: SessionEvent) { if (draftState.sending) return; if (!draftState.editing) draftState.beforeEdit = { text: draftState.text, images: [...draftState.images] }; draftState.editing = { seq: e.seq }; draftState.text = cleanUser(userText(e)); draftState.images = []; tick().then(() => { autoGrow(); ta?.focus(); }); }
+  function startEdit(e: SessionEvent) { if (draftState.sending) return; if (!draftState.editing) draftState.beforeEdit = { text: draftState.text, images: [...draftState.images] }; draftState.editing = { seq: e.seq }; draftState.text = withoutReportsNote(cleanUser(userText(e))).text; draftState.images = []; tick().then(() => { autoGrow(); ta?.focus(); }); }
   function cancelEdit() { if (draftState.sending) return; draftState.editing = null; draftState.text = draftState.beforeEdit?.text ?? ''; draftState.images = draftState.beforeEdit?.images ?? []; draftState.beforeEdit = null; tick().then(autoGrow); }
   function forkAt(e: SessionEvent) { actions.fork({ project, kind: 'session', id }, e.seq); }
   /** Answer read-aloud (§4.7, slice 64): without a provider key — a hint to the
@@ -109,8 +110,15 @@
   // feed on the device (§4.3.16): pages of PAGE events, a cache in IndexedDB, a lightweight
   // replay
   const HISTORY = PAGE;
+  /** The journal on the server is further ahead of the feed than this (events): what was missed is not replayed event by
+   *  event — the last page is taken instead and the socket goes on from its end (§4.3.16). What lies in between stays
+   *  within reach: "show earlier" and scrolling up load it in pages, down to the first message. */
+  const GAP = PAGE;
   let olderCount = $state(0);
-  let importV: number | null = null;
+  // the version of the journal a cached feed belongs to: the import parser's version and, once the journal was rewritten
+  // without duplicates, the number of that rewrite — a cache taken from another version is dropped
+  let importV: number | string | null = null;
+  const jver = (i: { import_v?: number | null; journal_rev?: number | null } | null | undefined): number | string | null => (i?.journal_rev ? `${i.import_v ?? ''}/${i.journal_rev}` : (i?.import_v ?? null));
   let fromCache = $state(false); let cachedAt = $state(0); let verified = $state(false); let staleShown = $state(false); let offline = $state(false);
   let saveT: ReturnType<typeof setTimeout> | undefined;
   function scheduleSave(ms = 1500) { clearTimeout(saveT); saveT = setTimeout(saveCache, ms); }
@@ -123,15 +131,54 @@
     try { const full = await api.sessionEvent(project, id, seq); events = events.map(e => (e.seq === seq ? full : e)); expanded = new Set([...expanded, seq]); scheduleSave(); } catch (e) { toast(msg(e), 'bad'); }
   }
   let showAll = $state(false);
+  let loadingOlder = $state(false);
   async function loadOlder() {
+    if (loadingOlder) return; loadingOlder = true;
     const from = Math.max(0, olderCount - HISTORY); const before = log?.scrollHeight ?? 0;
-    try { const older = await api.sessionEvents(project, id, from, olderCount, true); if (older.length) { events = [...older.filter(o => o.seq <= olderCount), ...events]; olderCount = from; showAll = true; await tick(); if (log) log.scrollTop += log.scrollHeight - before; } else olderCount = 0; } catch (e) { draftState.error = msg(e); }
+    try { const older = await api.sessionEvents(project, id, from, olderCount, true); if (older.length) { events = [...older.filter(o => o.seq <= olderCount), ...events]; olderCount = from; showAll = true; await tick(); if (log) log.scrollTop += log.scrollHeight - before; } else olderCount = 0; } catch (e) { draftState.error = msg(e); } finally { loadingOlder = false; }
   }
   // subagent messages (parent_tool_use_id) fold under the Agent call card and do not go into the main feed
   const top = $derived(events.filter(e => !e.parent_tool_use_id));
   const subs = $derived.by(() => { const m: Record<string, SessionEvent[]> = {}; for (const e of events) if (e.parent_tool_use_id && (e.kind === 'assistant' || e.kind === 'tool_result')) (m[e.parent_tool_use_id] ??= []).push(e); return m; });
-  const visible = $derived(showAll || top.length <= WINDOW ? top : top.slice(top.length - WINDOW));
-  const hiddenCount = $derived(top.length - visible.length);
+  // The window is counted in rows, not in events. Many events draw nothing of their own — tool results live inside the call's
+  // card, statuses and process marks are not shown — and a journal can end with hundreds of them in a row (a long turn, or
+  // results picked up from the provider journal). Counted in events, such a tail filled the whole window and the feed opened
+  // empty, with only the "show earlier" button.
+  const ROW_KINDS = new Set(['user', 'assistant', 'permission_request', 'permission_result', 'history_truncated', 'forked', 'task', 'result', 'exit', 'interrupt', 'error', 'model', 'permission_mode', 'effort', 'thinking', 'tier', 'cache_ttl']);
+  const SYSTEM_ROWS = new Set(['permission_denied', 'agent_note', 'agentd_restart', 'recap_sent']);
+  const drawsRow = (e: SessionEvent) => ROW_KINDS.has(e.kind) || (e.kind === 'system' && SYSTEM_ROWS.has((e as any).subtype));
+  const visible = $derived.by(() => {
+    if (showAll) return top;
+    let rows = 0, i = top.length;
+    while (i > 0 && rows < WINDOW) { i--; if (drawsRow(top[i])) rows++; }
+    return i === 0 ? top : top.slice(i);
+  });
+  /** Rows above the window (the label of the "show earlier" button) */
+  const hiddenCount = $derived.by(() => { let n = 0; const cut = top.length - visible.length; for (let i = 0; i < cut; i++) if (drawsRow(top[i])) n++; return n; });
+  /** The loaded tail may hold few rows or none: older pages are pulled until the feed has something to show — quietly, the
+   *  reader stays where they are (at the bottom on open). */
+  const MIN_ROWS = 40;
+  let filling = false;
+  async function fillRows() {
+    if (filling) return; filling = true;
+    try {
+      for (let n = 0; n < 8 && olderCount > 0 && events.reduce((k, e) => k + (!e.parent_tool_use_id && drawsRow(e) ? 1 : 0), 0) < MIN_ROWS; n++) {
+        const from = Math.max(0, olderCount - HISTORY);
+        const older = await api.sessionEvents(project, id, from, olderCount, true);
+        events = [...older.filter(o => o.seq <= olderCount), ...events]; olderCount = from;
+      }
+      await tick(); scroll();
+    } catch {} finally { filling = false; }
+  }
+  // the same note several times in a row (one line of text repeated by the core) is shown once, at its last place, with a
+  // counter: 0 — this one is absorbed by the next, otherwise the length of the run that ends here
+  const noteKey = (e: any) => (e?.kind === 'system' && e.subtype === 'agent_note' ? String(e.data?.message ?? '') : null);
+  function noteRepeat(i: number): number {
+    const k = noteKey(visible[i]); if (k === null) return 1;
+    if (noteKey(visible[i + 1]) === k) return 0;
+    let n = 1; while (i - n >= 0 && noteKey(visible[i - n]) === k) n++;
+    return n;
+  }
   // jump to a message from search (slice 34): load the history up to seq, show the whole window, scroll and
   // highlight
   async function focusSeq(seq: number) {
@@ -172,7 +219,16 @@
       { icon: 'key', label: t('perm.scopeUser'), on: () => answer(e, 'allow', { remember: true, scope: 'user' }) },
     ]);
   }
-  function onLogScroll() { if (!log || positioningLog) return; const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 48; if (atBottom !== stick) stick = atBottom; if (atBottom) unread = 0; }
+  // The whole history is within reach by scrolling: near the top the next chunk comes by itself — first the rows already
+  // loaded but folded away, then older pages from the server, down to the first message. Only a scroll upwards asks for it
+  // (not the feed being put in place on open, and not a feed shorter than the screen).
+  let lastTop = 0;
+  function onLogScroll() {
+    if (!log || positioningLog) return;
+    const top = log.scrollTop; const up = top < lastTop; lastTop = top;
+    const atBottom = log.scrollHeight - top - log.clientHeight < 48; if (atBottom !== stick) stick = atBottom; if (atBottom) unread = 0;
+    if (up && top < 240 && !loadingOlder && log.scrollHeight > log.clientHeight + 240) { if (hiddenCount > 0) void showEarlier(); else if (olderCount > 0) void loadOlder(); }
+  }
   async function showEarlier() { const before = log?.scrollHeight ?? 0; showAll = true; await tick(); if (log) log.scrollTop += log.scrollHeight - before; }
   function jumpDown() { stick = true; unread = 0; scroll(); }
   const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -208,7 +264,8 @@
       try {
         const cached = await getChat(project, id);
         const snap = data.infoOf({ project, kind: 'session', id }) as SessionInfo | undefined;
-        if (cached && !closed && (!snap || ((snap.import_v ?? null) === cached.import_v && (snap.last_seq ?? 0) >= cached.last_seq))) {
+        // a cache the journal has run far ahead of is not drawn at all: the fresh tail comes with the next request
+        if (cached && !closed && (!snap || (jver(snap) === cached.import_v && (snap.last_seq ?? 0) >= cached.last_seq && (snap.last_seq ?? 0) - cached.last_seq <= GAP))) {
           events = cached.events; lastSeq = cached.last_seq; olderCount = Math.max(0, cached.first_seq - 1); importV = cached.import_v; fromCache = true;
           cachedAt = cached.events[cached.events.length - 1]?.ts ?? cached.saved_at; replayDone = true; await tick(); scroll();
           setTimeout(() => { if (!verified) staleShown = true; }, 1000);   // the "as of …" mark — only if the reconciliation drags on
@@ -218,22 +275,54 @@
       // last page (lite)
       try {
         const r = await api.sessionGet(project, id); info = r.info; if (r.caps) caps = r.caps;
-        const srvLast = r.info.last_seq ?? 0; const srvImport = r.info.import_v ?? null;
+        const srvLast = r.info.last_seq ?? 0; const srvImport = jver(r.info);
         if (fromCache && (srvImport !== importV || srvLast < lastSeq)) { fromCache = false; void delChat(project, id); events = []; lastSeq = 0; olderCount = 0; replayDone = false; }
-        if (!fromCache) {
-          const from = Math.max(0, srvLast - HISTORY);
-          const list = await api.sessionEvents(project, id, from, undefined, true);
-          if (!closed && list.length) { events = list; lastSeq = list[list.length - 1].seq; olderCount = from; replayDone = true; await tick(); scroll(); }
-        }
+        // no cache, or the journal is more than a page ahead of it (a long work from another device): the last page
+        if (!fromCache || srvLast - lastSeq > GAP) await takeTail(srvLast);
         importV = srvImport; verified = true; staleShown = false; offline = false; scheduleSave();
+        void fillRows();
       } catch (e) {
         if (String(msg(e)).includes('404')) { void delChat(project, id); }
         else if (fromCache) { offline = true; staleShown = true; }
       }
       connect();
     })();
+    /** The last page of the journal instead of what the feed holds: one request, one render. Older events — the gap between
+     *  the old feed and this page included — load by "show earlier" and by scrolling up. */
+    async function takeTail(srvLast: number): Promise<boolean> {
+      const from = Math.max(0, srvLast - HISTORY);
+      const list = await api.sessionEvents(project, id, from, undefined, true);
+      if (closed || !list.length) return false;
+      inbox = []; inboxReplay = false; replayLeft = 0;
+      events = list; lastSeq = list[list.length - 1].seq; olderCount = from; showAll = false; live = ''; unread = 0; stick = true; fromCache = false; replayDone = true;
+      await tick(); scroll(); scheduleSave();
+      return true;
+    }
+    // Journal events from the socket are applied in batches: live ones once a frame, the replay of what was missed — in one
+    // go when its last event has come. Applied one by one, every frame of the socket recounted the whole feed: a thousand
+    // missed events took half a minute on a phone and looked like the history being fast-forwarded.
+    let inbox: SessionEvent[] = []; let inboxReplay = false; let flushRaf = 0; let flushT: ReturnType<typeof setTimeout> | undefined; let tailFails = 0;
+    function flush() {
+      if (flushRaf) { cancelAnimationFrame(flushRaf); flushRaf = 0; } clearTimeout(flushT); flushT = undefined;
+      if (!inbox.length) return;
+      const list = inbox; const replayed = inboxReplay; inbox = []; inboxReplay = false;
+      add(list, replayed);
+    }
+    function enqueue(e: SessionEvent) {
+      inbox.push(e);
+      if (replayLeft > 0) {
+        // the replay: wait for its last event; if the frames stall, show what has come after a couple of seconds
+        inboxReplay = true; replayLeft--;
+        if (replayLeft === 0) flush(); else if (!flushT) flushT = setTimeout(flush, 2000);
+        return;
+      }
+      // a frame of the screen when the page is visible; a timer besides, for a page in the background where frames stop
+      if (!flushRaf) flushRaf = requestAnimationFrame(flush);
+      if (!flushT) flushT = setTimeout(flush, 250);
+    }
     function connect() {
       if (closed) return;
+      flush(); replayLeft = 0;
       conn = 'connecting';
       const sock = new WebSocket(api.sessionWsUrl(project, id, lastSeq, true)); ws = sock;
       sock.onopen = () => { if (ws !== sock) return; retry = 0; connectedOnce = true; conn = 'live'; lastMsgAt = Date.now(); };
@@ -241,26 +330,53 @@
         if (ws !== sock) return;
         lastMsgAt = Date.now();
         let m: any; try { m = JSON.parse(ev.data); } catch { return; }
-        if (m.kind === 'delta') { if (m.reset) live = ''; if (m.text) live += m.text; if (stick) scroll(); return; }
-        if (m.kind === 'hello') { info = m.info; replayLeft = m.replay ?? 0; verified = true; staleShown = false; offline = false; if (!replayLeft) { replayDone = true; scroll(); } refresh(); scheduleCtx(); return; }
+        // the live text follows the journal in the order the frames came: events still waiting for their frame go first
+        if (m.kind === 'delta') { flush(); if (m.reset) live = ''; if (m.text) live += m.text; if (stick) scroll(); return; }
+        if (m.kind === 'hello') {
+          info = m.info; verified = true; staleShown = false; offline = false;
+          // The server is about to replay more than a page of missed events (the device was away while the work went on
+          // elsewhere). This socket is dropped before they come; the last page is taken over HTTP and a new socket
+          // continues from its end.
+          // (If the page cannot be had twice in a row, the replay is taken as it comes — in one batch.)
+          if ((m.replay ?? 0) > GAP && tailFails < 2) {
+            ws = null; sock.onclose = null; sock.onmessage = null; sock.onerror = null; try { sock.close(); } catch {}
+            const again = () => { if (closed) return; tailFails++; conn = 'lost'; if (reconnectT) clearTimeout(reconnectT); reconnectT = setTimeout(() => { reconnectT = null; connect(); }, Math.min(1000 * 2 ** retry++, 15000)); };
+            takeTail(m.info?.last_seq ?? lastSeq + m.replay).then((ok) => { if (closed) return; if (ok) { tailFails = 0; retry = 0; void fillRows(); connect(); } else again(); }, again);
+            return;
+          }
+          tailFails = 0;
+          replayLeft = m.replay ?? 0; if (!replayLeft) { replayDone = true; scroll(); } refresh(); scheduleCtx(); return;
+        }
         if (m.kind === 'pong') return;
-        if (m.kind === 'lagged') { api.sessionEvents(project, id, lastSeq, undefined, true).then(add).catch(() => {}); return; }
-        add([m]);
+        if (m.kind === 'lagged') { api.sessionEvents(project, id, lastSeq, undefined, true).then(l => add(l, true)).catch(() => {}); return; }
+        enqueue(m);
       };
-      sock.onclose = () => { if (closed || ws !== sock) return; conn = 'lost'; if (fromCache && !verified) { offline = true; staleShown = true; } if (reconnectT) clearTimeout(reconnectT); reconnectT = setTimeout(() => { reconnectT = null; connect(); }, Math.min(1000 * 2 ** retry++, 15000)); };
+      sock.onclose = () => { if (closed || ws !== sock) return; flush(); conn = 'lost'; if (fromCache && !verified) { offline = true; staleShown = true; } if (reconnectT) clearTimeout(reconnectT); reconnectT = setTimeout(() => { reconnectT = null; connect(); }, Math.min(1000 * 2 ** retry++, 15000)); };
       sock.onerror = () => { try { sock.close(); } catch {} };
     }
-    function add(list: SessionEvent[]) {
-      let changed = false, fresh = 0;
+    /** `replayed` — events that were missed and are being caught up: they are not read aloud and are not "new" for the
+     *  reader; only what happens live is. */
+    function add(list: SessionEvent[], replayed = false) {
+      let changed = false, fresh = 0, plan = false;
       // after an edit the journal numbering rolls back: the history_truncated mark is accepted with any seq and the feed
       // is cut by it
-      for (const e of list) { if (e.seq > lastSeq || e.kind === 'history_truncated') { if (e.kind === 'history_truncated') { events = events.filter(x => x.seq <= e.at); } events.push(e); lastSeq = e.seq; if (e.kind === 'assistant' && voice.auto && !e.local) { const ft = (e.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text ?? '').join('\n'); if (ft.trim()) speakLive(ft, turnGen, true); } if (e.kind === 'assistant' || e.kind === 'result' || e.kind === 'exit' || e.kind === 'user') live = ''; if (e.kind === 'queued' || e.kind === 'unqueued') refreshSoon(); if (e.kind === 'user' && !e.parent_tool_use_id && scheduled.length) loadScheduled(); changed = true; if (replayLeft > 0) replayLeft--; else if (e.kind === 'task' || e.kind === 'user' || e.kind === 'assistant' || e.kind === 'history_truncated' || e.kind === 'permission_request') fresh++; } }
+      for (const e of list) {
+        if (!(e.seq > lastSeq || e.kind === 'history_truncated')) continue;
+        if (e.kind === 'history_truncated') { events = events.filter(x => x.seq <= e.at); }
+        events.push(e); lastSeq = e.seq; changed = true;
+        if (e.kind === 'assistant' || e.kind === 'result' || e.kind === 'exit' || e.kind === 'user') live = '';
+        if (e.kind === 'queued' || e.kind === 'unqueued') refreshSoon();
+        if (e.kind === 'user' && !e.parent_tool_use_id) plan = true;
+        if (replayed) continue;
+        if (e.kind === 'assistant' && voice.auto && !e.local) { const ft = (e.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text ?? '').join('\n'); if (ft.trim()) speakLive(ft, turnGen, true); }
+        if (e.kind === 'task' || e.kind === 'user' || e.kind === 'assistant' || e.kind === 'history_truncated' || e.kind === 'permission_request') fresh++;
+      }
       if (!changed) return;
+      if (plan && scheduled.length) loadScheduled();
       scheduleSave();
-      // history replay: no state updates per event (otherwise a request storm), one scroll and one update when
-      // it ends; live events — a scroll only if the reader is at the bottom
-      if (replayLeft > 0) return;
-      if (replayLeft === 0 && !replayDone) { replayDone = true; refresh(); scheduleCtx(); scroll(); return; }
+      // a replay: one update and one scroll when it ends; live events — a scroll only if the reader is at the bottom
+      if (replayed) { if (replayLeft === 0) { replayDone = true; refresh(); scheduleCtx(); } scroll(); return; }
+      if (!replayDone) { replayDone = true; refresh(); scheduleCtx(); scroll(); return; }
       if (list.some(e => e.kind === 'status' || e.kind === 'result' || e.kind === 'exit' || e.kind === 'init' || e.kind === 'initialized' || e.kind === 'model' || e.kind === 'effort' || e.kind === 'permission_mode')) refresh();
       if (list.some(e => e.kind === 'result' || e.kind === 'initialized')) scheduleCtx();
       if (stick) scroll(); else unread += fresh;
@@ -270,7 +386,7 @@
     const tick10 = setInterval(() => (now = Date.now()), 10000);
     const onHide = () => { if (document.visibilityState === 'hidden') saveCache(); };
     document.addEventListener('visibilitychange', onHide);
-    return () => { closed = true; clearInterval(schedT); clearInterval(ping); clearInterval(tick10); clearTimeout(ctxTimer); if (reconnectT) clearTimeout(reconnectT); window.removeEventListener('online', onOnline); document.removeEventListener('visibilitychange', onVisible); document.removeEventListener('visibilitychange', onHide); saveCache(); void dropWake(`turn:${id}`); ws?.close(); };
+    return () => { closed = true; clearInterval(schedT); clearInterval(ping); clearInterval(tick10); clearTimeout(ctxTimer); if (reconnectT) clearTimeout(reconnectT); window.removeEventListener('online', onOnline); document.removeEventListener('visibilitychange', onVisible); document.removeEventListener('visibilitychange', onHide); flush(); saveCache(); void dropWake(`turn:${id}`); ws?.close(); };
   });
   let changeT: ReturnType<typeof setTimeout> | undefined;
   let refreshT: ReturnType<typeof setTimeout> | undefined;
@@ -280,7 +396,7 @@
       const r = await api.sessionGet(project, id); info = r.info; if (r.caps) caps = r.caps; clearTimeout(changeT); changeT = setTimeout(() => onchange?.(), 700);
       // the journal got shorter (an edit from another tab or before connecting) — re-read the whole
       // feed
-      if ((r.info.last_seq ?? 0) < lastSeq) { void delChat(project, id); const from = Math.max(0, (r.info.last_seq ?? 0) - PAGE); const list = await api.sessionEvents(project, id, from, undefined, true); events = list; lastSeq = list.length ? list[list.length - 1].seq : 0; olderCount = from; importV = r.info.import_v ?? null; await tick(); scroll(); scheduleSave(); }
+      if ((r.info.last_seq ?? 0) < lastSeq) { void delChat(project, id); const from = Math.max(0, (r.info.last_seq ?? 0) - PAGE); const list = await api.sessionEvents(project, id, from, undefined, true); events = list; lastSeq = list.length ? list[list.length - 1].seq : 0; olderCount = from; importV = jver(r.info); await tick(); scroll(); scheduleSave(); void fillRows(); }
     } catch {}
   }
   /** Exact context for Claude — control `get_context_usage` (summary: no API calls); called after a turn, at most once per 1.5 s. */
@@ -455,11 +571,30 @@
     return content ? JSON.stringify(content) : '';
   }
   const toolResults = $derived.by(() => {
-    const m: Record<string, { text: string; error: boolean; truncated: boolean; full: number; seq: number }> = {};
-    for (const e of events) if (e.kind === 'tool_result') for (const b of e.content ?? []) if (b.type === 'tool_result') m[b.tool_use_id] = { text: resultText(b.content), error: !!b.is_error, truncated: !!b.truncated, full: b.full_len ?? 0, seq: e.seq };
+    const m: Record<string, { text: string; error: boolean; truncated: boolean; full: number; seq: number; declined: boolean }> = {};
+    for (const e of events) if (e.kind === 'tool_result') for (const b of e.content ?? []) if (b.type === 'tool_result') m[b.tool_use_id] = { text: resultText(b.content), error: !!b.is_error, truncated: !!b.truncated, full: b.full_len ?? 0, seq: e.seq, declined: !!b.declined };
     return m;
   });
   function fmtTokens(n?: number) { if (n == null) return '—'; if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'; if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'k'; return String(n); }
+  // Turn summary (docs/agents-ux.md §4.3). The parts are joined here, not in the markup: Svelte drops the leading whitespace of
+  // every `{#if}` block, so a " · " written inside one lost its left half ("12.7 s· 1 ход"). The money is the turn's own
+  // (`cost_usd`, which agentd counts as the difference of the totals): Claude Code's `total_cost_usd` is the sum for the whole
+  // conversation, and a 12-second turn showed the hundreds of dollars the conversation had cost by then. A journal written
+  // before agentd counted the turn cost has no `cost_usd` — then the row shows no money rather than the wrong one.
+  function turnParts(e: SessionEvent): string[] {
+    const parts = [e.is_error ? '⚠️ ' + (e.subtype ?? 'error') : '✓', `${((e.duration_ms ?? 0) / 1000).toFixed(1)} s`];
+    if (e.num_turns) parts.push(tn('agents.turns', e.num_turns));
+    const u = e.usage;
+    if (u) {
+      parts.push(`${fmtTokens(u.input_tokens)}↑ ${fmtTokens(u.output_tokens)}↓`);
+      if (u.cache_read_input_tokens || u.cache_creation_input_tokens) {
+        parts.push(`${t('cmp.cache')} ${fmtTokens(u.cache_read_input_tokens)}↺`);
+        if (u.cache_creation_input_tokens) parts.push(`+${fmtTokens(u.cache_creation_input_tokens)}`);
+      }
+    }
+    if (typeof e.cost_usd === 'number' && e.cost_usd > 0) parts.push('$' + e.cost_usd.toFixed(e.cost_usd < 1 ? 3 : 2));
+    return parts;
+  }
   // model, effort and mode — menus in the composer (as in CloudCLI); labels and lists come from the adapter, facts —
   // from agentd caps
   $effect(() => { if (!working) live = ''; });
@@ -485,6 +620,13 @@
     untrack(() => speakLive(text, gen));
   });
   const modeValue = $derived(info?.permission_mode ?? caps?.current_mode ?? (info?.agent === 'codex' ? 'on-request' : 'default'));
+  // Antigravity in the "ask" mode cannot ask: a declined call gets the "allow and retry" button — a rule in the project scope,
+  // agy restart and a "continue" message (docs/agents-ux.md §4.3.17)
+  let allowRetrying = $state<string | null>(null);
+  async function allowRetry(toolUseId: string) {
+    if (allowRetrying) return; allowRetrying = toolUseId;
+    try { const r = await api.sessionAllowRetry(project, id, toolUseId); toast(t('agents.allowRetryDone', { rule: r.rule })); } catch (e) { toast(msg(e), 'bad'); } finally { allowRetrying = null; }
+  }
   async function setModel(v: string | null, ctxWindow?: number | null) { if ((v || null) === (info?.model ?? null)) return; try { await api.sessionModel(project, id, v || null, ctxWindow ?? null); await refresh(); } catch (e) { draftState.error = msg(e); } }
   async function setMode(v: string) { try { await api.sessionMode(project, id, v); await refresh(); } catch (e) { draftState.error = msg(e); } }
   async function setEffort(v: string | null) { try { await api.sessionEffort(project, id, v); await refresh(); } catch (e) { draftState.error = msg(e); } }
@@ -494,16 +636,31 @@
   async function loadGateModels() { if (Date.now() - gateAt < 60000) return; gateAt = Date.now(); try { gateModels = (await api.gateModels(project)).targets; } catch {} }
   $effect(() => { if (info) loadGateModels(); });
   const win = (n?: number | null) => (n ? (n >= 1e6 ? `${Math.round(n / 1e5) / 10}M` : `${Math.round(n / 1000)}k`) : '');
-  const gateItems = (cur: string | null) => {
+  // the gate submenu: channels (Claude Code, Codex, Antigravity, Gemini, Devin…) → families inside a big channel (Gemini 3.8, Gemini 3.5, …)
+  // → models; speech, image and special-purpose models are behind "special models (N)" — the id is real, Claude Code and Codex
+  // accept it through the gate
+  let gateSpecial = $state(false);
+  let gateAnchor: HTMLElement | null = null;
+  const gateItems = (cur: string | null): any[] => {
     const all = gateModels.flatMap(tg => tg.models);
     const groups = byProvider(all);
-    if (!groups.length) return [];
-    // gate models by account channels (Claude Code, Codex, Antigravity, Devin…); the id is real — Claude Code and Codex accept it through
-    // the gate
-    return [{ header: true, label: t('cmp.gateModels') }, ...groups.flatMap(g => [{ sub: true, label: `${g.title} · ${g.models.length}` },
-      ...g.models.map(m => { const label = m.name && m.name !== m.id ? m.name : m.id; return { label, hint: [label !== m.id ? m.id : '', win(m.context)].filter(Boolean).join(' · ') || undefined, checked: cur === m.id, on: () => setModel(m.id, m.context ?? null) }; })])];
+    const special = specialModels(all);
+    if (!groups.length && !special.length) return [];
+    const item = (m: GateModel) => { const label = m.name && m.name !== m.id ? m.name : m.id; return { label, hint: [label !== m.id ? m.id : '', win(m.context), (m.kind ?? 'chat') !== 'chat' ? t('cmp.kind.' + m.kind) : ''].filter(Boolean).join(' · ') || undefined, checked: cur === m.id, on: () => setModel(m.id, m.context ?? null) }; };
+    const out: any[] = [{ header: true, label: t('cmp.gateModels') }];
+    for (const g of groups) {
+      out.push({ sub: true, label: `${g.title} · ${g.models.length}` });
+      for (const f of byFamily(g.models)) { if (f.family) out.push({ sub: true, label: `  ${f.family}` }); out.push(...f.models.map(item)); }
+    }
+    if (special.length) {
+      // the toggle re-opens the menu on the same anchor with the special models unfolded (menu items close the menu on click)
+      out.push({ sep: true }, { label: gateSpecial ? t('cmp.gateSpecialHide') : t('cmp.gateSpecialShow', { n: special.length }), hint: t('cmp.gateSpecialHint'), on: () => { gateSpecial = !gateSpecial; if (gateAnchor) setTimeout(() => modelMenu(gateAnchor!), 0); } });
+      if (gateSpecial) for (const g of byProvider(special, true)) { out.push({ sub: true, label: `${g.title} · ${g.models.length}` }); out.push(...g.models.map(item)); }
+    }
+    return out;
   };
   function modelMenu(el: HTMLElement) {
+    gateAnchor = el;
     const cur = info?.model ?? null;
     if (adapter.id === 'codex') {
       menu.show(el, [{ header: true, label: t('cmp.selectModel') }, { label: 'Default', hint: t('cmp.modelDefaultSet'), checked: !cur, on: () => setModel(null) },
@@ -534,14 +691,21 @@
   // slice 61 (§9.7): the live subscription limit chip — the last rate_limit_event (Claude as is, Codex normalized by agentd to the
   // same shape)
   type LimitWin = { id: string; pct: number; resetsAt: number | null };
+  // a window whose reset time has passed says nothing about the subscription now: a conversation left for three weeks kept
+  // showing "5 h 99 %". Such windows are dropped; the minute tick re-evaluates an open chat when a window resets.
+  let limTick = $state(0);
+  $effect(() => { const h = setInterval(() => limTick++, 60_000); return () => clearInterval(h); });
   const limits = $derived.by(() => {
+    void limTick; const nowS = Date.now() / 1000;
     for (let i = events.length - 1; i >= 0; i--) {
       const e = events[i]; if (e.kind !== 'rate_limit_event') continue;
       const inf = e.data?.rate_limit_info; if (!inf || typeof inf !== 'object') continue;
       const secs = (r: unknown) => (typeof r === 'number' ? (r > 1e10 ? Math.round(r / 1000) : r) : null);
-      const wins: LimitWin[] = Object.entries((inf.unifiedWindows ?? {}) as Record<string, any>).filter(([, w]) => w && typeof w.utilization === 'number').map(([id, w]) => ({ id, pct: Math.round(w.utilization * 100), resetsAt: secs(w.resetsAt) }));
-      if (!wins.length && typeof inf.utilization === 'number') wins.push({ id: String(inf.rateLimitType ?? 'five_hour'), pct: Math.round(inf.utilization * 100), resetsAt: secs(inf.resetsAt) });
-      if (!wins.length) continue;
+      const all: LimitWin[] = Object.entries((inf.unifiedWindows ?? {}) as Record<string, any>).filter(([, w]) => w && typeof w.utilization === 'number').map(([id, w]) => ({ id, pct: Math.round(w.utilization * 100), resetsAt: secs(w.resetsAt) }));
+      if (!all.length && typeof inf.utilization === 'number') all.push({ id: String(inf.rateLimitType ?? 'five_hour'), pct: Math.round(inf.utilization * 100), resetsAt: secs(inf.resetsAt) });
+      if (!all.length) continue;
+      const wins = all.filter(w => !w.resetsAt || w.resetsAt > nowS);
+      if (!wins.length) return null;  // the latest report is about windows that have all reset
       const top = wins.reduce((a, b) => (b.pct > a.pct ? b : a));
       return { status: String(inf.status ?? 'allowed'), top, wins, plan: typeof inf.planType === 'string' ? inf.planType : null };
     }
@@ -581,10 +745,18 @@
   }
   /** An owner's message with a skills block is folded in the feed: the skill names and the
    *  question itself. */
-  function userParts(text: string): { skills: string[]; text: string } {
-    if (!text.startsWith(SKILLS_HEAD)) return { skills: [], text };
+  function userParts(text: string): { skills: string[]; text: string; reports: boolean } {
+    // the service's note about the report box (§9.12.4) stands last; the skills block, if any, is in front as before
+    const r = withoutReportsNote(text); text = r.text.trim();
+    if (!text.startsWith(SKILLS_HEAD)) return { skills: [], text, reports: r.note };
     const i = text.lastIndexOf('\n---\n'); const head = i >= 0 ? text.slice(0, i) : text;
-    return { skills: Array.from(head.matchAll(/^## (\S+)/gm)).map((m) => m[1]), text: i >= 0 ? text.slice(i + 5).trim() : '' };
+    return { skills: Array.from(head.matchAll(/^## (\S+)/gm)).map((m) => m[1]), text: i >= 0 ? text.slice(i + 5).trim() : '', reports: r.note };
+  }
+  /** "Send this message to a channel" (§9.12): the owner's own action; the channel is always picked, never assumed */
+  function toChannel(el: HTMLElement, e: SessionEvent) {
+    menu.show(el, [{ header: true, label: t('ntf.shareTo') }, ...notify.channels.filter(c => c.enabled).map(c => ({ icon: kindIcon(c.kind), label: `${kindName(c.kind)} · ${c.name}`, on: async () => {
+      try { await agents.notifyShare({ channel: c.id, project, session: id, seq: e.seq, title: info?.label || info?.title || '' }); toast(t('ntf.shared', { name: c.name }), 'info'); } catch (er) { toast(msg(er), 'bad'); }
+    } }))]);
   }
   let effortOpen = $state(false);
   const effortSteps = $derived(adapter.efforts(caps).map(e => e.value));
@@ -754,24 +926,24 @@
   {/if}
   {#if staleShown}<div class="cached-mark" role="status"><Icon name={offline ? 'alert' : 'refresh'} size="s" /> {offline ? t('chat.cachedOffline', { when: when(Math.floor(cachedAt / 1000)) }) : t('chat.cachedAt', { when: when(Math.floor(cachedAt / 1000)) })}</div>{/if}
   <div class="log" bind:this={log} data-following={stick} onscroll={onLogScroll}>
-    {#if hiddenCount > 0}<button class="earlier" onclick={showEarlier}>{t('chat.earlier', { n: hiddenCount })}</button>{:else if olderCount > 0}<button class="earlier" onclick={loadOlder}>{t('chat.earlier', { n: Math.min(olderCount, HISTORY) })}</button>{/if}
-    {#each visible as e (e.seq)}
+    {#if hiddenCount > 0}<button class="earlier" onclick={showEarlier}>{t('chat.earlier', { n: hiddenCount })}</button>{:else if olderCount > 0}<button class="earlier" disabled={loadingOlder} onclick={loadOlder}>{t('chat.earlier', { n: Math.min(olderCount, HISTORY) })}</button>{/if}
+    {#each visible as e, vi (e.seq)}
       {#if e.kind === 'user'}
         {@const note = taskNote(e)}
         {#if note}
           <details class="m sys muted task note"><summary>{note.status === 'completed' ? '✅' : note.status && note.status !== 'running' ? '⚠️' : '⏳'} {t('task.done')}{note.status ? ' · ' + note.status : ''}{note.summary ? ': ' + note.summary : ''}{note.meta ? ' · ' + note.meta : ''}</summary>{#if note.result}<pre class="mono res">{note.result.slice(0, 6000)}</pre>{/if}</details>
         {:else if cleanUser(userText(e)) || (e.content ?? []).some((b: any) => b.type === 'image')}
-          <div class="m user" data-seq={e.seq}>{#each e.content ?? [] as b}{#if b.type === 'text' && cleanUser(b.text ?? '')}{@const uv = userParts(cleanUser(b.text ?? ''))}{#if uv.skills.length}<div class="sk muted xs"><Icon name="sparkles" size="s" /> {t('chat.skillsLine', { list: uv.skills.join(', ') })}</div>{/if}{#if uv.text}<div class="txt">{uv.text}</div>{/if}{:else if b.type === 'image'}<div class="muted">📷 {t('agents.image')}{b.bytes ? ` · ${Math.round(b.bytes / 1024)} KB` : ''}</div>{/if}{/each}<span class="macts">{#if adapter.id === 'claude'}<button class="ma" title={t('edit.title')} onclick={() => startEdit(e)}><Icon name="edit" size="s" /></button>{/if}<button class="ma" title={t('fork.here')} onclick={() => forkAt(e)}><Icon name="git" size="s" /></button></span></div>
+          <div class="m user" data-seq={e.seq}>{#each e.content ?? [] as b}{#if b.type === 'text' && cleanUser(b.text ?? '')}{@const uv = userParts(cleanUser(b.text ?? ''))}{#if uv.reports}<div class="sk muted xs"><Icon name="bell" size="s" /> {t('ntf.introLine')}</div>{/if}{#if uv.skills.length}<div class="sk muted xs"><Icon name="sparkles" size="s" /> {t('chat.skillsLine', { list: uv.skills.join(', ') })}</div>{/if}{#if uv.text}<div class="txt">{uv.text}</div>{/if}{:else if b.type === 'image'}<div class="muted">📷 {t('agents.image')}{b.bytes ? ` · ${Math.round(b.bytes / 1024)} KB` : ''}</div>{/if}{/each}<span class="macts">{#if adapter.id === 'claude'}<button class="ma" title={t('edit.title')} onclick={() => startEdit(e)}><Icon name="edit" size="s" /></button>{/if}<button class="ma" title={t('fork.here')} onclick={() => forkAt(e)}><Icon name="git" size="s" /></button></span></div>
         {/if}
       {:else if e.kind === 'assistant' && e.local}
         <div class="m cmd"><div class="ph muted"><Icon name="terminal" size="s" /> {t('cmp.commandOut')}</div>{#each e.content ?? [] as b}{#if b.type === 'text'}<div class="out"><Md text={b.text} /></div>{/if}{/each}</div>
       {:else if e.kind === 'assistant'}
         {#each e.content ?? [] as b}
-          {#if b.type === 'text' && b.text?.trim()}{@const sk = `${id}:${e.seq}`}<div class="m agent" data-seq={e.seq} class:wide={/(^|\n)\s*(\||```|#{1,4} |[-*] |\d+\. )/.test(b.text)}><Md text={b.text} /><span class="macts"><button class="ma speak" class:on={voice.speaking === sk} class:busy={voice.speakLoading === sk} aria-pressed={voice.speaking === sk} title={voice.speaking === sk ? t('voice.stop') : t('voice.speak')} onclick={() => speakMsg(sk, b.text ?? '')}><Icon name={voice.speaking === sk ? 'square' : 'volume'} size="s" /></button>{#if canShare}<button class="ma share" title={t('chat.share')} aria-label={t('chat.share')} onclick={() => shareText(b.text ?? '')}><Icon name="share" size="s" /></button>{/if}</span></div>
+          {#if b.type === 'text' && b.text?.trim()}{@const sk = `${id}:${e.seq}`}<div class="m agent" data-seq={e.seq} class:wide={/(^|\n)\s*(\||```|#{1,4} |[-*] |\d+\. )/.test(b.text)}><Md text={b.text} /><span class="macts"><button class="ma speak" class:on={voice.speaking === sk} class:busy={voice.speakLoading === sk} aria-pressed={voice.speaking === sk} title={voice.speaking === sk ? t('voice.stop') : t('voice.speak')} onclick={() => speakMsg(sk, b.text ?? '')}><Icon name={voice.speaking === sk ? 'square' : 'volume'} size="s" /></button>{#if canShare}<button class="ma share" title={t('chat.share')} aria-label={t('chat.share')} onclick={() => shareText(b.text ?? '')}><Icon name="share" size="s" /></button>{/if}{#if notify.channels.some(c => c.enabled)}<button class="ma tochan" title={t('ntf.shareTo')} aria-label={t('ntf.shareTo')} aria-haspopup="menu" onclick={(ev) => toChannel(ev.currentTarget, e)}><Icon name="bell" size="s" /></button>{/if}</span></div>
           {:else if b.type === 'thinking' && b.thinking}<details class="m think"><summary>💭 {t('agents.thinking')}</summary><div class="txt muted">{b.thinking}</div></details>
           {:else if b.type === 'tool_use'}
             <details class="m tool" class:err={toolResults[b.id]?.error}><summary><b>{adapter.toolLabel(b.name)}</b> <span class="muted mono">{summary(b.name, b.input)}</span>{#if toolResults[b.id]} <span class="badge {toolResults[b.id].error ? 'bad' : 'ok'}">{toolResults[b.id].error ? t('agents.toolError') : t('agents.toolDone')}</span>{:else if working} <span class="badge run"><span class="spin"></span>{t('cmp.running')}</span>{/if}</summary>
-              <pre class="mono">{JSON.stringify(b.input, null, 1)}</pre>{#if b.truncated}<button class="xs ghost expand" onclick={() => expandEvent(e.seq)}>{t('chat.showFull', { kb: Math.round((b.full_len ?? 0) / 1024) })}</button>{/if}{#if toolResults[b.id]}{@const tr = toolResults[b.id]}<pre class="mono res">{expanded.has(tr.seq) ? tr.text : tr.text.slice(0, 4000)}</pre>{#if tr.truncated || (tr.text.length > 4000 && !expanded.has(tr.seq))}<button class="xs ghost expand" onclick={() => expandEvent(tr.seq)}>{t('chat.showFull', { kb: Math.round(Math.max(tr.full, tr.text.length) / 1024) })}</button>{/if}{/if}
+              <pre class="mono">{JSON.stringify(b.input, null, 1)}</pre>{#if b.truncated}<button class="xs ghost expand" onclick={() => expandEvent(e.seq)}>{t('chat.showFull', { kb: Math.round((b.full_len ?? 0) / 1024) })}</button>{/if}{#if toolResults[b.id]}{@const tr = toolResults[b.id]}<pre class="mono res">{expanded.has(tr.seq) ? tr.text : tr.text.slice(0, 4000)}</pre>{#if tr.truncated || (tr.text.length > 4000 && !expanded.has(tr.seq))}<button class="xs ghost expand" onclick={() => expandEvent(tr.seq)}>{t('chat.showFull', { kb: Math.round(Math.max(tr.full, tr.text.length) / 1024) })}</button>{/if}{/if}{#if toolResults[b.id]?.declined && adapter.id === 'antigravity'}<div class="row" style="gap:6px; margin-top:6px;"><button class="primary mini" disabled={allowRetrying !== null} onclick={() => allowRetry(b.id)} title={t('agents.allowRetryHint')}>{allowRetrying === b.id ? t('agents.allowRetrying') : t('agents.allowRetry')}</button></div>{/if}
               {#if subs[b.id]?.length}<details class="sub"><summary>🤖 {t('sub.title')} · {tn('sub.messages', subs[b.id].length)}</summary>{#each subs[b.id] as se (se.seq)}{#if se.kind === 'assistant'}{#each se.content ?? [] as sb}{#if sb.type === 'text' && sb.text?.trim()}<div class="sm"><Md text={sb.text} /></div>{:else if sb.type === 'tool_use'}<div class="muted mono xs">▸ {adapter.toolLabel(sb.name)} {summary(sb.name, sb.input)}</div>{/if}{/each}{/if}{/each}</details>{/if}</details>
           {/if}
         {/each}
@@ -810,9 +982,9 @@
         <div class="m sys muted">⑂ {t('fork.row', { from: (e.from ?? '').slice(0, 8) })}</div>
       {:else if e.kind === 'task'}
         {#if e.subtype === 'task_started'}<div class="m sys muted task">⏳ {t('task.started')}: {e.description || e.task_type || e.task_id}</div>
-        {:else if (e.subtype === 'task_notification' || ['completed', 'failed', 'killed', 'stopped', 'cancelled', 'error'].includes(e.status)) && !notedTasks.has(e.task_id)}<div class="m sys muted task">{e.status === 'completed' ? '✅ ' + t('task.done') : ['killed', 'stopped', 'cancelled'].includes(e.status) ? '⏹ ' + t('task.stopped') : '⚠️ ' + t('task.failed')}{e.summary ? ': ' + e.summary : ''}{#if e.output_file} · <span class="mono xs">{t('task.output')}: {e.output_file}</span>{/if}</div>{/if}
+        {:else if (e.subtype === 'task_notification' || ['completed', 'failed', 'killed', 'stopped', 'cancelled', 'error'].includes(e.status)) && !notedTasks.has(e.task_id)}<div class="m sys muted task">{e.status === 'completed' ? '✅ ' + t('task.done') : ['killed', 'stopped', 'cancelled'].includes(e.status) ? '⏹ ' + t('task.stopped') : '⚠️ ' + t('task.failed')}{e.summary ? ': ' + e.summary : ''}{#if e.output_file}{' '}· <span class="mono xs">{t('task.output')}: {e.output_file}</span>{/if}</div>{/if}
       {:else if e.kind === 'result'}
-        {#if e.num_turns !== 0}<div class="m sys muted turn">{e.is_error ? '⚠️ ' + (e.subtype ?? 'error') : '✓'} · {((e.duration_ms ?? 0) / 1000).toFixed(1)} s{#if e.num_turns} · {tn('agents.turns', e.num_turns)}{/if}{#if e.usage} · {fmtTokens(e.usage.input_tokens)}↑ {fmtTokens(e.usage.output_tokens)}↓{#if e.usage.cache_read_input_tokens || e.usage.cache_creation_input_tokens} · {t('cmp.cache')} {fmtTokens(e.usage.cache_read_input_tokens)}↺{#if e.usage.cache_creation_input_tokens} · +{fmtTokens(e.usage.cache_creation_input_tokens)}{/if}{/if}{/if}{#if e.total_cost_usd} · ${e.total_cost_usd.toFixed(3)}{/if}</div>{/if}
+        {#if e.num_turns !== 0}<div class="m sys muted turn">{turnParts(e).join(' · ')}</div>{/if}
       {:else if e.kind === 'exit'}
         <div class="m sys muted">⏹ {t('agents.sessionExited')}</div>
       {:else if e.kind === 'interrupt'}
@@ -834,7 +1006,8 @@
       {:else if e.kind === 'system' && e.subtype === 'permission_denied'}
         <div class="m sys muted">⛔ {JSON.stringify(e.data?.message ?? e.data).slice(0, 200)}</div>
       {:else if e.kind === 'system' && (e.subtype === 'agent_note' || e.subtype === 'agentd_restart' || e.subtype === 'recap_sent')}
-        <div class="m sys muted" class:restart={e.subtype === 'agentd_restart'}><Icon name={e.subtype === 'agentd_restart' || e.subtype === 'recap_sent' ? 'refresh' : 'info'} size="s" /> {String(e.data?.message ?? '').slice(0, 300)}</div>
+        {@const rep = noteRepeat(vi)}
+        {#if rep}<div class="m sys muted" class:restart={e.subtype === 'agentd_restart'}><Icon name={e.subtype === 'agentd_restart' || e.subtype === 'recap_sent' ? 'refresh' : 'info'} size="s" /> {String(e.data?.message ?? '').slice(0, 300)}{#if rep > 1}<span class="rep" title={t('feed.repeated', { n: rep })}>×{rep}</span>{/if}</div>{/if}
       {/if}
     {/each}
     {#if live}<div class="m agent live" class:wide={/(^|\n)\s*(\||```|#{1,4} |[-*] |\d+\. )/.test(live)}><Md text={live} live /><span class="caret"></span></div>
@@ -853,9 +1026,9 @@
     </div>
     {#if conn !== 'live' && connectedOnce}<div class="composer-notice" role="status"><Icon name="refresh" size="s" />{t('cmp.connectionLost')}</div>{/if}
     {#if resuming && conn === 'live'}<div class="composer-notice info"><Icon name="play" size="s" />{info?.tui ? t('agents.tuiHint') : t('agents.exitedHint')}</div>{/if}
-    {#if outbox.length}<div class="composer-notice outbox" role="status"><Icon name="cloudoff" size="s" /><span>{t('outbox.waiting', { n: outbox.length })}{#if outbox.some(o => o.error)} · {t('outbox.failed', { err: outbox.find(o => o.error)?.error ?? '' })}{/if}</span>{#each outbox as o (o.id)}<button class="xs ghost outbox-drop" title={o.text} onclick={() => dropOutbox(o.id)}>{t('outbox.drop')}</button>{/each}</div>{/if}
+    {#if outbox.length}<div class="composer-notice outbox" role="status"><Icon name="cloudoff" size="s" /><span>{t('outbox.waiting', { n: outbox.length })}{#if outbox.some(o => o.error)}{' '}· {t('outbox.failed', { err: outbox.find(o => o.error)?.error ?? '' })}{/if}</span>{#each outbox as o (o.id)}<button class="xs ghost outbox-drop" title={o.text} onclick={() => dropOutbox(o.id)}>{t('outbox.drop')}</button>{/each}</div>{/if}
     {#if budget}<div class="composer-notice budget" class:bad={budget.blocked} role={budget.blocked ? 'alert' : 'status'}><Icon name="alert" size="s" /><span>{budget.blocked ? t('budget.stopped', { scope: budget.scope === 'total' ? t('models.all') : budget.scope, spent: money(budget.spent), limit: money(budget.per_day) }) : t('budget.warn', { pct: Math.round(budget.pct), scope: budget.scope === 'total' ? t('models.all') : budget.scope, spent: money(budget.spent), limit: money(budget.per_day) })}</span><button class="xs ghost" onclick={() => { ui.section = 'models'; }}>{t('budget.open')}</button></div>{/if}
-    {#if status === 'waiting'}<div class="composer-notice decision"><Icon name="shield" size="s" /><span>{t('cmp.needsDecision')}{#if pendingRequest?.tool_name} · {pendingRequest.question ? t('agents.question') : pendingRequest.tool_name}{/if}</span><button class="xs ghost" onclick={jumpDecision}>{t('cmp.jumpDecision')} <Icon name="arrowUR" size="s" /></button></div>{/if}
+    {#if status === 'waiting'}<div class="composer-notice decision"><Icon name="shield" size="s" /><span>{t('cmp.needsDecision')}{#if pendingRequest?.tool_name}{' '}· {pendingRequest.question ? t('agents.question') : pendingRequest.tool_name}{/if}</span><button class="xs ghost" onclick={jumpDecision}>{t('cmp.jumpDecision')} <Icon name="arrowUR" size="s" /></button></div>{/if}
     {#if draftState.error}<div class="composer-error" role="alert">{draftState.error}</div>{/if}
     {#if draftState.images.length}<div class="thumbs">{#each draftState.images as im, i}<span class="thumb"><img src={im.url} alt={im.name} /><button class="x" aria-label={t('cmp.removeAttachment', { name: im.name })} onclick={() => draftState.images.splice(i, 1)}>×</button></span>{/each}</div>{/if}
     {#if draftState.editing}<div class="editbar"><Icon name="edit" size="s" /> {t('edit.banner', { n: draftState.editing.seq })}<span class="sp"></span><button class="xs ghost" onclick={cancelEdit}>{t('rt.cancel')}</button></div>{/if}
@@ -863,7 +1036,7 @@
     {#each scheduled as sm (sm.id)}<div class="qcard sched"><span class="muted xs">🕒 {t('sched.label')} · {when(sm.at)}</span><span class="txt ell">{sm.content}</span><button class="x" title={t('rt.cancel')} onclick={() => unschedule(sm.id)}>×</button></div>{/each}
     {#if popup}
       <div class="popup" role="listbox">
-        <div class="pk muted">{popup.kind === 'cmd' ? t('cmp.commands') : t('cmp.files')}{#if popup.loading} · {t('common.loading')}{/if}</div>
+        <div class="pk muted">{popup.kind === 'cmd' ? t('cmp.commands') : t('cmp.files')}{#if popup.loading}{' '}· {t('common.loading')}{/if}</div>
         {#each popup.items as it, i (it.insert)}<button class="pi" class:sel={i === popup.sel} role="option" aria-selected={i === popup.sel} onmousedown={(e) => e.preventDefault()} onclick={() => pickPopup(it)}><span class="pn mono">{it.label}</span>{#if it.hint}<span class="ph mono muted">{it.hint}</span>{/if}{#if it.desc}<span class="pd muted">{it.desc}</span>{/if}</button>{/each}
         {#if !popup.items.length && !popup.loading}<div class="pk muted">{t('cmp.noMatches')}</div>{/if}
       </div>
@@ -942,7 +1115,7 @@
         <button class="attach composer-attach" title={t('agents.attach')} aria-label={t('agents.attach')} onclick={() => attachmentInput?.click()}><Icon name="clip" /></button>
         {#if phone()}<input bind:this={cameraInput} type="file" accept="image/*" capture="environment" hidden onchange={attach} /><button class="attach cam composer-attach" title={t('chat.camera')} aria-label={t('chat.camera')} onclick={() => cameraInput?.click()}><Icon name="camera" /></button>{/if}
         {#if working || status === 'waiting'}<button class="stop composer-attach" onclick={interrupt} disabled={conn !== 'live'} title={t('agents.stopTurn')} aria-label={t('agents.stopTurn')}><Icon name="square" size="s" /></button>{/if}
-        <button class="send primary composer-send" class:queueing onclick={send} disabled={draftState.sending || draftState.readingImages > 0 || (conn !== 'live' && (!!draftState.editing || queueing)) || (!draftState.text.trim() && !draftState.images.length)} title={sendLabel} aria-label={sendLabel}><Icon name={draftState.sending ? 'refresh' : draftState.editing ? 'edit' : queueing ? 'plus' : 'send'} size="s" /><span class="action-label">{sendLabel}</span></button>
+        <button class="send primary composer-send" class:queueing class:no-draft={!draftState.text.trim() && !draftState.images.length} onclick={send} disabled={draftState.sending || draftState.readingImages > 0 || (conn !== 'live' && (!!draftState.editing || queueing)) || (!draftState.text.trim() && !draftState.images.length)} title={sendLabel} aria-label={sendLabel}><Icon name={draftState.sending ? 'refresh' : draftState.editing ? 'edit' : queueing ? 'plus' : 'send'} size="s" /><span class="action-label">{sendLabel}</span></button>
       </div>
     </div>
     {#if !phone()}<div class="composer-hint"><span>{t('cmp.commandsHint')}</span><span>{t('cmp.enterHint')}</span></div>{/if}
@@ -955,7 +1128,9 @@
   .m { max-width: 76%; border-radius: var(--r-3); padding: 9px 13px; line-height: 1.5; font-size: 13.5px; background: var(--bg-3); border: 1px solid var(--line-1); }
   .m.user { align-self: flex-end; background: var(--accent-soft); border-color: rgb(var(--accent-rgb) / .25); border-bottom-right-radius: 4px; }
   .m.agent { align-self: flex-start; border-bottom-left-radius: 4px; }
-  .m.sys { align-self: center; background: transparent; border: 0; font-size: 11.5px; color: var(--fg-3); padding: 0 8px; display: flex; align-items: center; gap: 5px; }
+  /* overflow-wrap: an error or a note may carry words of a hundred characters without a space (metric names, URLs,
+     paths) — they break anywhere instead of pushing the thread wider than a phone screen */
+  .m.sys { align-self: center; background: transparent; border: 0; font-size: 11.5px; color: var(--fg-3); padding: 0 8px; display: flex; align-items: center; gap: 5px; overflow-wrap: anywhere; }
   .m.tool { align-self: stretch; max-width: 100%; width: 100%; padding: 0; background: var(--bg-4); font-size: 12.5px; }
   .m.tool summary { display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 4px 10px; cursor: pointer; list-style: none; color: var(--fg-2); }
   .m.tool summary::-webkit-details-marker { display: none; }
@@ -1013,6 +1188,7 @@
   .spin { width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; display: inline-block; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .m.sys.turn { flex-wrap: wrap; }
+  .m.sys .rep { margin-left: 2px; padding: 0 6px; border-radius: 999px; border: 1px solid var(--line-1); font-variant-numeric: tabular-nums; }
   /* background task note (<task-notification>): a full-width block — the title as a line, the output below it with wrapping */
   .m.sys.task.note { display: block; align-self: stretch; max-width: 100%; padding: 6px 10px; border: 1px solid var(--line-1); border-radius: var(--r-2); background: var(--bg-3); }
   .m.sys.task.note summary { cursor: pointer; list-style: none; line-height: 1.45; }

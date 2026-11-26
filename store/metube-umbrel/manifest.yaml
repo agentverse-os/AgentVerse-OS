@@ -11,9 +11,9 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/metube/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/metube/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/metube/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/metube/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/metube/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/metube/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,14 +43,10 @@ upstream:
   categories:
   - media
   release_notes: |-
-    Key highlights:
-      - Adds collapsible Downloading, Completed, and Subscriptions sections
-      - Shows post-download processing progress in the web UI
-      - Improves HOST=* support for IPv6 and dual-stack bindings
+    This update improves security by preventing downloads from writing into MeTube's internal state directory and ensuring restored downloads respect restrictions on custom download options.
 
-
-    Full release notes can be found at https://github.com/alexta69/metube/releases/tag/2026.08.28
+    Full release notes can be found at https://github.com/alexta69/metube/releases/tag/2026.11.14
   source: https://github.com/alexta69/metube
-  version: 2026.08.28
+  version: 2026.11.14
   website: https://github.com/alexta69/metube
 website: https://github.com/alexta69/metube

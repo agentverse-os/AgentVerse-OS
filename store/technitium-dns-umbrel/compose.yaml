@@ -8,7 +8,7 @@ services:
     environment:
     - DNS_SERVER_DOMAIN=${DEVICE_DOMAIN_NAME}
     - DNS_SERVER_ADMIN_PASSWORD=${APP_PASSWORD}
-    image: technitium/dns-server:15.4.0@sha256:df7d90ef0f7b6fff6916d291a7022cd902290cc31c3141d4158b6c375a641b41
+    image: technitium/dns-server:15.6.2@sha256:eb48ac5c135f4ab936b536f74f853d53e15ab39ef37fdbc9598a089b90d9f245
     network_mode: host
     restart: on-failure
     volumes:

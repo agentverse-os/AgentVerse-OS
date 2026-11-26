@@ -1,0 +1,91 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/peertube-coolify
+description: Free, open-source and decentralized video platform.
+endpoint:
+  port: 9000
+  service: peertube
+env:
+  PEERTUBE_WEBSERVER_HTTPS: 'true'
+  PEERTUBE_WEBSERVER_PORT: '443'
+  POSTGRES_DB: peertube
+  POSTGRES_USER: ''
+  SERVICE_FQDN_PEERTUBE: ${APP_DOMAIN}
+  SERVICE_HEX_32_PEERTUBESECRET:
+    generate: token
+  SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_URL_PEERTUBE_9000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRESQL:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: peertube-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PEERTUBE_WEBSERVER_PORT
+  hint: 'по умолчанию: 443'
+  label: peertube webserver port
+  options: null
+  required: false
+  type: text
+- env: PEERTUBE_WEBSERVER_HTTPS
+  hint: 'по умолчанию: true'
+  label: peertube webserver https
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: peertube'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- video
+- fediverse
+- activitypub
+- youtube
+- streaming
+- self-hosted
+title: Peertube
+type: app
+upstream:
+  categories:
+  - media
+  source: https://docs.joinpeertube.org/install/docker
+  tags:
+  - video
+  - fediverse
+  - activitypub
+  - youtube
+  - streaming
+  - self-hosted
+  template: peertube.yaml
+website: https://docs.joinpeertube.org/install/docker

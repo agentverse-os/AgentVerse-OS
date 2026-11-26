@@ -50,6 +50,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/gristlabs/grist-core
-  tipi_version: 58
-  version: 1.7.17
+  tipi_version: 68
+  version: 1.7.22
 website: https://github.com/gristlabs/grist-core

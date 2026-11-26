@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/homebridge/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homebridge/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homebridge/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homebridge/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homebridge/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homebridge/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,16 +42,16 @@ upstream:
   categories:
   - automation
   release_notes: |-
-    ⚠️ Major update: Check Homebridge's plugin readiness indicators and update any outdated plugins before upgrading to Homebridge 2. Most plugins should continue to work, but older plugins that use removed Homebridge or HAP-NodeJS APIs may fail until updated.
+    ⚠️ Major update reminder: If you are upgrading from a pre-2.x Homebridge release, check plugin readiness indicators and update outdated plugins before upgrading. Older plugins that use removed Homebridge or HAP-NodeJS APIs may fail until updated.
 
-    If an incompatible plugin is running outside a child bridge, Homebridge may restart until that plugin is disabled or updated. Plugins in child bridges are isolated, so the Homebridge UI should remain accessible while the affected child bridge restarts.
+    This update includes Homebridge UI 5.30.1, which fixes config editor validation of valid UI options and prevents log and terminal text from being cut off in Safari. Custom plugin UIs can now read the accessory room layout. Homebridge remains at 2.5.0 with Node.js 26.13.1.
 
-    Homebridge 2 changes the default mDNS advertiser to Avahi when available. If your HomeKit devices show "No Response" after updating, open Homebridge Settings → mDNS Advertiser and switch back to Bonjour HAP.
+    If you use plugins with native dependencies, check their compatibility with Node.js 26 before updating.
 
-    This release logs the Matter.js version at bridge and child bridge startup, updates dependencies, and includes Homebridge UI 5.22.0 with Node.js 24.15.0.
+    HAP-NodeJS now uses a built-in file storage replacement for node-persist. Saved Homebridge data is not migrated or rewritten, but rare plugins that call removed storage methods may need plugin updates.
 
-    Full release notes can be found at https://github.com/homebridge/homebridge/releases/tag/v2.0.2
+    Full release notes can be found at https://github.com/homebridge/docker-homebridge/releases/tag/2026-11-15
   source: https://github.com/homebridge/homebridge
-  version: 2.0.2-2026-05-10
+  version: 2.5.0-2026-11-15
   website: https://homebridge.io/
 website: https://homebridge.io/

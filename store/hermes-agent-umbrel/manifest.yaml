@@ -10,10 +10,10 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/hermes-agent/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/hermes-agent/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/hermes-agent/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/hermes-agent/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/hermes-agent/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/hermes-agent/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/hermes-agent/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/hermes-agent/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,12 +43,18 @@ upstream:
   categories:
   - ai
   release_notes: |-
-    Hermes Agent v0.20.6 is a stable patch release that rolls up improvements since v0.20.5, including consent-gated real-profile browsing, a dedicated desktop Browser window, and managed SSH remote updates.
+    This update moves to Hermes 0.23.2. Your agents, chats and settings carry over.
 
-    This update also expands the remote MCP catalog, adds TTL caching for web search and extraction, improves tool search and result compression, and adds durable cron incident acknowledgements and clearer code-skew failures.
+    Key highlights:
+      - Work an agent hands to a helper agent survives a restart, and can be picked up where it left off.
+      - A reply that streamed while the agent updated its to-do list or memory now finishes, instead of leaving Stop showing.
+      - On Telegram and other messaging apps, an interrupted reply no longer shows up twice.
+      - Support for newer models, including Gemini 4 Carbon.
+      - Security and reliability fixes.
 
-    Full release notes can be found at https://github.com/NousResearch/hermes-agent/releases/tag/v2026.8.27
+
+    Full release notes can be found at https://github.com/NousResearch/hermes-agent/releases/tag/v0.23.2
   source: https://github.com/NousResearch/hermes-agent
-  version: 2026.8.27
+  version: 0.23.2
   website: https://hermes-agent.nousresearch.com
 website: https://hermes-agent.nousresearch.com

@@ -10,7 +10,7 @@ services:
     - /dev/dri
     environment:
       PORT: '11434'
-    image: ollama/ollama:0.32.15-rocm
+    image: ollama/ollama:0.40.16-rocm
     networks:
       appnet:
         aliases:

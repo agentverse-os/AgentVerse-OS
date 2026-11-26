@@ -16,7 +16,7 @@ services:
       - CMD-SHELL
       - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
       timeout: 20s
-    image: postgres:12
+    image: postgres:17
     networks:
       appnet:
         aliases:
@@ -25,9 +25,12 @@ services:
     volumes:
     - pg_data:/var/lib/postgresql/data
   fider:
+    depends_on:
+      database:
+        condition: service_healthy
     environment:
     - SERVICE_URL_FIDER_3000=${SERVICE_URL_FIDER_3000}
-    - BASE_URL=$SERVICE_URL_FIDER_3000
+    - BASE_URL=$SERVICE_URL_FIDER
     - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@database:5432/fider?sslmode=disable
     - JWT_SECRET=$SERVICE_PASSWORD_64_FIDER
     - EMAIL_NOREPLY=${EMAIL_NOREPLY:-noreply@example.com}
@@ -50,7 +53,7 @@ services:
       - /app/fider
       - ping
       timeout: 10s
-    image: getfider/fider:stable
+    image: getfider/fider:v0.40.0
     networks:
       appnet:
         aliases:

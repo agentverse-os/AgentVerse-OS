@@ -6,16 +6,16 @@ networks:
 services:
   terraria-server:
     environment:
-    - WORLD=${WORLD:-/root/.local/share/Terraria/Worlds/world1.wld}
-    - AUTOCREATE=${AUTOCREATE:-2}
-    - WORLDNAME=${WORLDNAME:-world1}
-    - DIFFICULTY=${DIFFICULTY:-1}
-    - MAXPLAYERS=${MAXPLAYERS:-8}
-    - PASSWORD=${PASSWORD:-mypassword}
-    - MOTD=${MOTD:-Welcome to the server!}
-    - LANGUAGE=${LANGUAGE:-en/US}
-    - SECURE=${SECURE:-1}
-    image: hexlo/terraria-server-docker:1.4.4.9
+    - worldpath=${WORLDPATH:-/root/.local/share/Terraria/Worlds}
+    - autocreate=${AUTOCREATE:-2}
+    - world=${WORLD:-world1.wld}
+    - difficulty=${DIFFICULTY:-1}
+    - maxplayers=${MAXPLAYERS:-8}
+    - password=${SERVICE_PASSWORD_TERRARIA}
+    - motd=${MOTD:-Welcome to the server!}
+    - language=${LANGUAGE:-en/US}
+    - secure=${SECURE:-1}
+    image: hexlo/terraria-server-docker:1.4.5.8
     networks:
       appnet:
         aliases:

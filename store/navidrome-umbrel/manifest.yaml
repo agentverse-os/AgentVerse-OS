@@ -11,9 +11,9 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/navidrome/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/navidrome/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/navidrome/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/navidrome/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/navidrome/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/navidrome/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,16 +43,12 @@ upstream:
   categories:
   - media
   release_notes: |-
-    This maintenance release fixes plugin loading, scanner symlink handling, and smart playlist validation.
+    This update lets you add Last.fm API credentials in Navidrome's app settings on umbrelOS 2.0, for artist info and scrobbling.
 
-    Bug fixes include:
-      - Surfaced host service failures when loading plugins
-      - Resolved file symlinks correctly with the production local storage filesystem
-      - Rejected invalid smart playlists that mix top-level "any" and "all" rules
+    Previous Navidrome 0.64.2 release notes:
 
-
-    Full release notes can be found at https://github.com/navidrome/navidrome/releases/tag/v0.63.2
+    This update includes important security improvements. We recommend updating as soon as possible.
   source: https://github.com/navidrome/navidrome
-  version: 0.63.2
+  version: 0.64.2-patch.2
   website: https://www.navidrome.org/
 website: https://www.navidrome.org/

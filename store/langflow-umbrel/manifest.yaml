@@ -46,10 +46,16 @@ upstream:
   categories:
   - ai
   release_notes: |-
-    Adds the foundations for role-based authorization, SSO identity flows, provider policies, and expanded telemetry.
-    Improves Knowledge Base and Memory Base vector database support, deployment workflows, and accessibility across the interface.
-    Includes security hardening for MCP, public sharing, model-provider SSRF protections, generated code, file/storage handling, and secret export redaction.
+    ⚠️ Before updating, back up Langflow's database and knowledge base data. Local Chroma knowledge and memory bases are automatically copied to SQLite on first startup; allow roughly four times each store's size in free disk space and wait for the bases to show Ready before using them.
+
+    Flows using Chroma or Local DB components need those components replaced with a knowledge base or supported remote vector store. Chroma Cloud requires manual migration, and retired ALTK components need replacing with Agent. See https://docs.langflow.org/knowledge-storage-upgrade for guidance.
+
+    External MCP and A2A clients may now require the project or flow owner's API key. Copy the updated configuration from the project's MCP Server tab, and configure webhook senders to include the flow owner's API key. Custom-code authoring now requires an administrator by default.
+
+    This update improves security by invalidating sessions after password changes and enforcing custom-component restrictions in background workflows. It also fixes file uploads in shared Playgrounds and restores NextPlaid component loading.
+
+    Full release notes can be found at https://github.com/langflow-ai/langflow/releases/tag/v1.13.3
   source: https://github.com/langflow-ai/langflow
-  version: 1.12.0
+  version: 1.13.3
   website: https://www.langflow.org/
 website: https://www.langflow.org/

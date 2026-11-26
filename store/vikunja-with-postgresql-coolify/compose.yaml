@@ -4,11 +4,24 @@ networks:
     external: true
     name: ${APP_NET}
 services:
+  init:
+    command:
+    - sh
+    - -c
+    - chown -R 1000 /app/vikunja/files
+    image: busybox:1.38.0
+    networks:
+      appnet:
+        aliases:
+        - vikunja-with-postgresql-coolify_init_1
+    restart: no
+    volumes:
+    - vikunja-data:/app/vikunja/files
   postgresql:
     environment:
     - POSTGRES_USER=${SERVICE_USER_POSTGRESQL}
     - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
-    - POSTGRES_DB=${POSTGRESQL_DATABASE}
+    - POSTGRES_DB=${POSTGRESQL_DATABASE:-vikunja}
     healthcheck:
       interval: 5s
       retries: 10
@@ -16,36 +29,47 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     networks:
       appnet:
         aliases:
         - vikunja-with-postgresql-coolify_postgresql_1
     restart: unless-stopped
     volumes:
-    - vikunja-postgresql-data:/var/lib/postgresql/data
+    - vikunja-postgresql-data:/var/lib/postgresql
   vikunja:
     depends_on:
+      init:
+        condition: service_completed_successfully
       postgresql:
         condition: service_healthy
     environment:
     - SERVICE_URL_VIKUNJA=${SERVICE_URL_VIKUNJA}
     - VIKUNJA_SERVICE_PUBLICURL=$SERVICE_URL_VIKUNJA
-    - VIKUNJA_SERVICE_JWTSECRET=$SERVICE_PASSWORD_JWTSECRET
+    - VIKUNJA_SERVICE_SECRET=$SERVICE_PASSWORD_JWTSECRET
     - VIKUNJA_SERVICE_ENABLEREGISTRATION=true
     - VIKUNJA_DATABASE_TYPE=postgres
     - VIKUNJA_DATABASE_HOST=postgresql
     - VIKUNJA_DATABASE_PASSWORD=${SERVICE_PASSWORD_POSTGRESQL}
     - VIKUNJA_DATABASE_USER=${SERVICE_USER_POSTGRESQL}
-    - VIKUNJA_DATABASE_DATABASE=${POSTGRESQL_DATABASE}
-    image: vikunja/vikunja
+    - VIKUNJA_DATABASE_DATABASE=${POSTGRESQL_DATABASE:-vikunja}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 15s
+      test:
+      - CMD
+      - /app/vikunja/vikunja
+      - healthcheck
+      timeout: 5s
+    image: vikunja/vikunja:2.8.0
     networks:
       appnet:
         aliases:
         - vikunja-with-postgresql-coolify_vikunja_1
     restart: unless-stopped
     volumes:
-    - vikunja-data:/app/vikunja/
+    - vikunja-data:/app/vikunja/files
 volumes:
   vikunja-data:
     driver: local

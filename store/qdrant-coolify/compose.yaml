@@ -15,7 +15,7 @@ services:
       - CMD-SHELL
       - bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1
       timeout: 5s
-    image: qdrant/qdrant:latest
+    image: qdrant/qdrant:v1.20.1
     networks:
       appnet:
         aliases:

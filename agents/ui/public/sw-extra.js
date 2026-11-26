@@ -54,6 +54,18 @@ async function onNotificationAction(action, d) {
       }
       return;
     }
+    // a command running for hours (ADR-009): "Interrupt turn" right from the notification
+    if (action === 'interrupt' && d.project && d.id) {
+      try {
+        const r = await fetch(`${API}/core/projects/${encodeURIComponent(d.project)}/sessions/${encodeURIComponent(d.id)}/interrupt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        if (!r.ok) await notify('Не удалось прервать ход', { body: `ответ ядра ${r.status} — откройте беседу`, icon: ICON, tag: `long-fail-${d.id}`, data: { url: d.url } });
+        tell(await windowsOf(), { kind: 'turn-interrupted', data: d, ok: r.ok, status: r.status });
+      } catch (e) {
+        await notify('Нет связи с сервером', { body: 'ход не прерван — откройте беседу', icon: ICON, tag: `long-fail-${d.id}`, data: { url: d.url } });
+        tell(await windowsOf(), { kind: 'turn-interrupted', data: d, ok: false, error: String(e) });
+      }
+      return;
+    }
     const url = d.url || '/agents/';
     const wins = await windowsOf();
     const mine = wins.find((w) => { try { return new URL(w.url).pathname.startsWith('/agents'); } catch { return false; } });

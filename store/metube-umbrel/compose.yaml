@@ -7,7 +7,7 @@ services:
   metube:
     environment:
     - DELETE_FILE_ON_TRASHCAN=true
-    image: ghcr.io/alexta69/metube:2026.08.28@sha256:397778fccf13d83adf9325fe813b260617a082d1772aff6d678c5b9256dd01fb
+    image: ghcr.io/alexta69/metube:2026.11.14@sha256:55ce41ab9a78069dc42bd808b20a96aeef4199560a02698a2205ea8a2bc4fef1
     networks:
       appnet:
         aliases:

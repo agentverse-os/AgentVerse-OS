@@ -7,7 +7,10 @@ services:
   rivet-engine:
     environment:
     - SERVICE_URL_RIVET_6420=${SERVICE_URL_RIVET_6420}
-    - RIVET__FILE_SYSTEM__PATH=/data
+    - RIVET__STORAGE__LOG_DIRECTORY=/var/lib/rivet/log
+    - RIVET__STORAGE__AUTO_PROVISION_PARTITIONS=1
+    - RIVET__STORAGE__BALANCING__ENABLED=false
+    - RIVET__OBJECT_STORAGE__PRIMARY__FILE_SYSTEM__PATH=/var/lib/rivet/objects
     - RIVET__AUTH__ADMIN_TOKEN=${SERVICE_BASE64_TOKEN}
     healthcheck:
       interval: 2s
@@ -19,18 +22,25 @@ services:
       - -f
       - http://127.0.0.1:6420/health
       timeout: 10s
-    image: rivetdev/engine:2.2.0
+    image: rivetdev/engine:3.1.1
     networks:
       appnet:
         aliases:
         - rivet-engine-coolify_rivet-engine_1
     restart: unless-stopped
     volumes:
-    - rivet-data:/data
+    - rivet-log:/var/lib/rivet/log
+    - rivet-objects:/var/lib/rivet/objects
 volumes:
-  rivet-data:
+  rivet-log:
     driver: local
     driver_opts:
-      device: ${APP_DATA_DIR}/rivet-data
+      device: ${APP_DATA_DIR}/rivet-log
+      o: bind
+      type: none
+  rivet-objects:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/rivet-objects
       o: bind
       type: none

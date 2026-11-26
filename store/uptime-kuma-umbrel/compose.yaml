@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   server:
-    image: louislam/uptime-kuma:2.5.3@sha256:3e24e96c89efff0e3a4b0698cbdd36c15ad3022371db57166e5588853002ee5c
+    image: louislam/uptime-kuma:2.5.12@sha256:8e4b6bef96417ec98a35dc103c99cc64fc229a01e584e56d95d9004d2003c02a
     networks:
       appnet:
         aliases:

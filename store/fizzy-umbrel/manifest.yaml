@@ -12,11 +12,11 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/fizzy/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,8 +45,13 @@ upstream:
   author: 37signals
   categories:
   - social
-  release_notes: https://github.com/basecamp/fizzy/releases
+  release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Fizzy 5f45e54 release notes:
+
+    https://github.com/basecamp/fizzy/releases
   source: https://github.com/basecamp/fizzy
-  version: 5f45e54
+  version: 5f45e54-patch.1
   website: https://www.fizzy.do
 website: https://www.fizzy.do

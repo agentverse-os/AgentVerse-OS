@@ -22,7 +22,7 @@ services:
     - SKIPUPDATE=${SKIP_UPDATE:-false}
     - STEAMBETA=${STEAM_BETA:-false}
     - TIMEOUT=${TIMEOUT:-30}
-    image: wolveix/satisfactory-server:v1.9.10
+    image: wolveix/satisfactory-server:v1.9.11
     networks:
       appnet:
         aliases:

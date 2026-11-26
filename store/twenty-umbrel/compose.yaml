@@ -52,7 +52,7 @@ services:
       start_period: 120s
       test: curl --fail http://localhost:3000/healthz
       timeout: 30s
-    image: twentycrm/twenty:v2.37.4@sha256:216aad464d45d41c09d7ad47ff39f328a05bce79a39ccf4e933187ab5671ccb5
+    image: twentycrm/twenty:v2.59.3@sha256:1a1e8a8db27fef92227e2817678968a17795d586c241be257c3c6305c65706a6
     networks:
       appnet:
         aliases:
@@ -78,7 +78,7 @@ services:
       PG_DATABASE_URL: postgres://postgres:postgres@twenty_db_1:5432/default
       REDIS_URL: redis://twenty_redis_1:6379
       SERVER_URL: http://${DEVICE_DOMAIN_NAME}:2020
-    image: twentycrm/twenty:v2.37.4@sha256:216aad464d45d41c09d7ad47ff39f328a05bce79a39ccf4e933187ab5671ccb5
+    image: twentycrm/twenty:v2.59.3@sha256:1a1e8a8db27fef92227e2817678968a17795d586c241be257c3c6305c65706a6
     networks:
       appnet:
         aliases:

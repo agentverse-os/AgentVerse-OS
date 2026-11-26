@@ -8,7 +8,7 @@ services:
     command:
     - gotenberg
     - --api-enable-basic-auth
-    - --api-disable-health-check-logging
+    - --api-disable-health-check-route-telemetry
     environment:
     - SERVICE_URL_GOTENBERG_3000=${SERVICE_URL_GOTENBERG_3000}
     - GOTENBERG_API_BASIC_AUTH_USERNAME=${SERVICE_USER_GOTENBERG}
@@ -22,7 +22,7 @@ services:
       - -f
       - http://127.0.0.1:3000/health
       timeout: 20s
-    image: gotenberg/gotenberg:latest
+    image: gotenberg/gotenberg:9.5.1
     networks:
       appnet:
         aliases:

@@ -40,5 +40,5 @@ upstream:
   - media
   source: https://github.com/jellyfin/jellyfin-vue
   tipi_version: 6
-  version: unstable.2024-10-14.a47a7d5
+  version: unstable
 website: https://github.com/jellyfin/jellyfin-vue

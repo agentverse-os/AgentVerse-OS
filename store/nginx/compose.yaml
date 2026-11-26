@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   nginx:
-    image: nginx:1.31.4
+    image: nginx:1.31.8
     networks:
       appnet:
         aliases:

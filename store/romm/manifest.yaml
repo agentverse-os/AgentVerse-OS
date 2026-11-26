@@ -94,6 +94,6 @@ upstream:
   categories:
   - gaming
   source: https://github.com/rommapp/romm
-  tipi_version: 61
-  version: 5.2.0
+  tipi_version: 67
+  version: 5.4.1
 website: https://github.com/rommapp/romm

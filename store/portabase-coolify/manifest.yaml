@@ -1,0 +1,177 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/portabase-coolify
+description: Self-hosted database backup & monitoring platform
+endpoint:
+  port: 80
+  service: portabase
+env:
+  API_ENABLED: 'false'
+  BACKUP_FOLDER_NAME: backups
+  LOG_LEVEL: info
+  MCP_ENABLED: 'false'
+  OPENAPI_ENABLED: 'false'
+  POSTGRES_DB: portabase
+  PROJECT_NAME: Portabase
+  RETENTION_CRON: 0 7 * * *
+  SERVICE_PASSWORD_64_PORTABASE:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_PORTABASE: https://${APP_DOMAIN}
+  SERVICE_URL_PORTABASE_80: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  SKIP_ONBOARDING: 'false'
+  SMTP_FROM: ''
+  SMTP_HOST: ''
+  SMTP_PASSWORD: ''
+  SMTP_PORT: ''
+  SMTP_SECURE: 'false'
+  SMTP_USER: ''
+  STALE_BACKUP_THRESHOLD_HOURS: '6'
+  TELEMETRY: 'true'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: portabase-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: portabase'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: PROJECT_NAME
+  hint: 'по умолчанию: Portabase'
+  label: project name
+  options: null
+  required: false
+  type: text
+- env: LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: RETENTION_CRON
+  hint: 'по умолчанию: 0 7 * * *'
+  label: retention cron
+  options: null
+  required: false
+  type: text
+- env: STALE_BACKUP_THRESHOLD_HOURS
+  hint: 'по умолчанию: 6'
+  label: stale backup threshold hours
+  options: null
+  required: false
+  type: text
+- env: BACKUP_FOLDER_NAME
+  hint: 'по умолчанию: backups'
+  label: backup folder name
+  options: null
+  required: false
+  type: text
+- env: TELEMETRY
+  hint: 'по умолчанию: true'
+  label: telemetry
+  options: null
+  required: false
+  type: text
+- env: SKIP_ONBOARDING
+  hint: 'по умолчанию: false'
+  label: skip onboarding
+  options: null
+  required: false
+  type: text
+- env: API_ENABLED
+  hint: 'по умолчанию: false'
+  label: api enabled
+  options: null
+  required: false
+  type: text
+- env: OPENAPI_ENABLED
+  hint: 'по умолчанию: false'
+  label: openapi enabled
+  options: null
+  required: false
+  type: text
+- env: MCP_ENABLED
+  hint: 'по умолчанию: false'
+  label: mcp enabled
+  options: null
+  required: false
+  type: text
+- env: SMTP_HOST
+  hint: null
+  label: smtp host
+  options: null
+  required: false
+  type: text
+- env: SMTP_PORT
+  hint: null
+  label: smtp port
+  options: null
+  required: false
+  type: text
+- env: SMTP_USER
+  hint: null
+  label: smtp user
+  options: null
+  required: false
+  type: text
+- env: SMTP_PASSWORD
+  hint: null
+  label: smtp password
+  options: null
+  required: false
+  type: password
+- env: SMTP_FROM
+  hint: null
+  label: smtp from
+  options: null
+  required: false
+  type: text
+- env: SMTP_SECURE
+  hint: 'по умолчанию: false'
+  label: smtp secure
+  options: null
+  required: false
+  type: text
+tags:
+- backup
+- database
+- monitoring
+- open-source
+title: Portabase
+type: app
+upstream:
+  categories: []
+  source: https://portabase.io/docs
+  tags:
+  - backup
+  - database
+  - monitoring
+  - open-source
+  template: portabase.yaml
+website: https://portabase.io/docs

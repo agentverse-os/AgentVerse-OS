@@ -40,6 +40,6 @@ upstream:
   categories:
   - social
   source: https://hub.docker.com/r/nephatrine/write-freely
-  tipi_version: 8
-  version: '0.16'
+  tipi_version: 10
+  version: '0.17'
 website: https://hub.docker.com/r/nephatrine/write-freely

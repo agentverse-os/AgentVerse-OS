@@ -54,12 +54,13 @@
 
 <style>
   .dd { position: relative; display: inline-block; min-width: 0; }
-  .dd-btn { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(10px * var(--sp)); }
+  .dd-btn { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: color-mix(in oklab, var(--ink) 5%, transparent); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(10px * var(--sp)); font-weight: 400; }
+  .dd-btn:hover { background: var(--fill-2); }
   .dd-cur { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dd-caret { color: var(--muted); font-size: .8rem; }
-  .dd-list { position: fixed; max-width: min(92vw, 520px); max-height: 50vh; overflow: auto; margin: 0; padding: 4px; list-style: none; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-sm); box-shadow: var(--shadow); z-index: 6000; font: inherit; }
-  .dd-list li { padding: 8px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
-  .dd-list li.hi { background: rgb(var(--accent-rgb) / .18); }
-  .dd-list li.sel { color: var(--accent); font-weight: 600; }
+  .dd-list { position: fixed; max-width: min(92vw, 520px); max-height: 50vh; overflow: auto; margin: 0; padding: 4px; list-style: none; background: var(--pop-bg); backdrop-filter: var(--pop-blur); -webkit-backdrop-filter: var(--pop-blur); border: 1px solid var(--line-2); border-radius: var(--pop-r); box-shadow: var(--pop-shadow); z-index: 6000; font: inherit; }
+  .dd-list li { padding: 8px 10px; border-radius: max(var(--r-xs), calc(var(--pop-r) - 4px)); cursor: pointer; white-space: nowrap; }
+  .dd-list li.hi { background: var(--accent-soft); }
+  .dd-list li.sel { color: var(--accent-ink); font-weight: 600; }
   @media (pointer: coarse) { .dd-list li { padding: 12px 12px; } }
 </style>

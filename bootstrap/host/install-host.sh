@@ -93,6 +93,33 @@ EOF
   sysctl --system >/dev/null
 }
 
+configure_modules() {
+  # A socket() call for a protocol family makes the host kernel load that family's module — from any container too:
+  # the workspaces and the app containers share the host kernel. Nothing in the stack uses these protocols, and each of
+  # them has been a way to root (the SCTP local root of November 2026 came without a fix). Ubuntu itself turns off the
+  # autoload of ax25, netrom, rose, x25, decnet and rds (blacklist-rare-network.conf); `install … /bin/false` also
+  # refuses an explicit modprobe. A module that is already loaded stays until it is removed or the host reboots.
+  cat > /etc/modprobe.d/cloudos-hardening.conf <<'EOF'
+# AgentVerse OS: network protocols and line disciplines nothing here uses (bootstrap/host/install-host.sh).
+# To allow one again, delete its line.
+install sctp /bin/false
+install dccp /bin/false
+install tipc /bin/false
+install rds /bin/false
+install appletalk /bin/false
+install ax25 /bin/false
+install netrom /bin/false
+install rose /bin/false
+install x25 /bin/false
+install atm /bin/false
+install can /bin/false
+install n_hdlc /bin/false
+EOF
+  local m; for m in sctp dccp tipc rds appletalk ax25 netrom rose x25 atm can n_hdlc; do
+    if grep -q "^$m " /proc/modules 2>/dev/null; then modprobe -r "$m" 2>/dev/null || echo "модуль $m уже загружен и занят — исчезнет после перезагрузки"; fi
+  done
+}
+
 configure_firewall() {
   # A known conflict: Docker sets the FORWARD policy to DROP and breaks NAT/forwarding for Incus bridge networks. The
   # official Incus recommendation: pass the Incus bridge traffic through DOCKER-USER. The project bridges are named
@@ -112,6 +139,12 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 EOF
+  # Docker after Incus: the project gates live on macvlan networks whose parents are the Incus bridges (net-*). When
+  # Docker starts first, the bridges do not exist yet, the macvlan driver does not load those networks and the gates
+  # stay down after a boot (the stand, 2026-11-04: three projects without their LLM route). cloudd repairs such gates
+  # itself (Service::ensure_gate_running), the start order removes the cause.
+  mkdir -p /etc/systemd/system/docker.service.d
+  printf '[Unit]\nAfter=incus.service\nWants=incus.service\n' > /etc/systemd/system/docker.service.d/10-after-incus.conf
   systemctl daemon-reload
   systemctl enable --now docker-incus-firewall.service
 }
@@ -128,9 +161,10 @@ case "${1:-all}" in
   docker)    install_docker ;;
   incus)     install_incus ;;
   tailscale) install_tailscale ;;
-  firewall)  configure_sysctl; configure_firewall ;;
+  firewall)  configure_sysctl; configure_modules; configure_firewall ;;
+  modules)   configure_modules ;;
   verify)    verify ;;
   all)       apt-get update -q; apt-get install -y -q curl ca-certificates gnupg zfsutils-linux
-             install_docker; install_incus; configure_sysctl; configure_firewall; install_tailscale; verify ;;
-  *) echo "usage: $0 {all|docker|incus|tailscale|firewall|verify}"; exit 1 ;;
+             install_docker; install_incus; configure_sysctl; configure_modules; configure_firewall; install_tailscale; verify ;;
+  *) echo "usage: $0 {all|docker|incus|tailscale|firewall|modules|verify}"; exit 1 ;;
 esac

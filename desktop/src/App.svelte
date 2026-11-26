@@ -63,7 +63,15 @@
   apply(initial);
   let remoteLoaded = false;
   $effect(() => { loadRemote().then(r => { if (r) appearance = r; remoteLoaded = true; }); });
-  $effect(() => { const a = $state.snapshot(appearance); apply(a); saveLocal(a); if (remoteLoaded) saveRemote(a); });
+  let lastLook = '';
+  $effect(() => {
+    const a = $state.snapshot(appearance);
+    const look = [a.mode, a.look, a.surface, a.background, a.contrast].join('|');
+    const fade = !!lastLook && look !== lastLook && !a.reduceMotion && typeof document.startViewTransition === 'function' && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    lastLook = look;
+    if (fade) document.startViewTransition(() => apply(a)); else apply(a);
+    saveLocal(a); if (remoteLoaded) saveRemote(a);
+  });
   $effect(() => watchSystem(() => appearance));
 
   // deep links: /#projects, /#store, /#system, /#settings, /#app=<name> open a window
@@ -117,7 +125,7 @@
     <Toasts />
   </div>
 {:else}
-<div class="desktop" role="application" aria-label="AgentVerse OS" oncontextmenu={(e) => { if ((e.target as HTMLElement).closest('.win, .taskbar, .menu, .widget, input, textarea, a')) return; e.preventDefault(); ctx = { x: e.clientX, y: e.clientY }; }} onclick={() => ctx = null}>
+<div class="desktop" role="application" aria-label="AgentVerse OS" oncontextmenu={(e) => { if ((e.target as HTMLElement).closest('.win, .taskbar, .dock, .menu, .widget, input, textarea, a')) return; e.preventDefault(); ctx = { x: e.clientX, y: e.clientY }; }} onclick={() => ctx = null}>
   {#if certWarn}<div class="certwarn"><span>{t('cert.desktop')} <a href="/api/ca.crt">{t('cert.download')}</a> · <button class="link" onclick={() => wm.openSys('settings')}>{t('cert.howLong')}</button></span><button class="x" title={t('cert.hide')} onclick={dismissCert}>✕</button></div>{/if}
   <DesktopIcons look={appearance.look ?? 'default'} />
   <Widgets />
@@ -125,10 +133,10 @@
   <Toasts />
   {#if ctx}
     <ul class="ctx" role="menu" style="left:{Math.min(ctx.x, innerWidth - 240)}px; top:{Math.min(ctx.y, innerHeight - 200)}px">
-      <li role="menuitem"><button onclick={() => { widgets.picker = true; ctx = null; }}>{t('ctx.addWidget')}</button></li>
-      <li role="menuitem"><button onclick={() => { wm.openSys('settings'); ctx = null; }}>{t('ctx.appearance')}</button></li>
-      <li role="menuitem"><button onclick={() => { wm.closeAll(); ctx = null; }}>{t('ctx.closeAll')}</button></li>
-      <li role="menuitem"><button onclick={() => { location.reload(); }}>{t('ctx.reload')}</button></li>
+      <li role="menuitem"><button class="plain" onclick={() => { widgets.picker = true; ctx = null; }}>{t('ctx.addWidget')}</button></li>
+      <li role="menuitem"><button class="plain" onclick={() => { wm.openSys('settings'); ctx = null; }}>{t('ctx.appearance')}</button></li>
+      <li role="menuitem"><button class="plain" onclick={() => { wm.closeAll(); ctx = null; }}>{t('ctx.closeAll')}</button></li>
+      <li role="menuitem"><button class="plain" onclick={() => { location.reload(); }}>{t('ctx.reload')}</button></li>
     </ul>
   {/if}
   <StartMenu />
@@ -137,16 +145,17 @@
 {/if}
 
 <style>
-  .standalone { position: fixed; inset: 0; padding: 0; box-sizing: border-box; display: flex; background: #0b0d12; }
+  .standalone { position: fixed; inset: 0; padding: 0; box-sizing: border-box; display: flex; background: #0b0d12; container: win / inline-size; }
   .standalone > :global(.agents) { flex: 1; min-height: 0; }
-  .certwarn { position: fixed; bottom: 58px; left: 50%; transform: translateX(-50%); z-index: 1900; width: max-content; max-width: min(92vw, 860px); display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: var(--r-sm, 8px); background: color-mix(in srgb, var(--bad, #c33) 18%, var(--panel, #222)); border: 1px solid var(--bad, #c33); color: var(--fg, #eee); font-size: .9rem; line-height: 1.35; }
-  .certwarn.phone { bottom: 66px; z-index: 2100; }
+  .certwarn { position: fixed; bottom: calc(var(--shell-b) + 10px); left: 50%; transform: translateX(-50%); z-index: 1900; width: max-content; max-width: min(92vw, 860px); display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: var(--r-sm, 8px); background: color-mix(in srgb, var(--bad, #c33) 18%, var(--panel, #222)); border: 1px solid var(--bad, #c33); color: var(--ink, #eee); font-size: .9rem; line-height: 1.35; box-shadow: var(--shadow-2); }
+  .certwarn.phone { bottom: calc(var(--m-nav-b) + env(safe-area-inset-bottom, 0px) + 10px); z-index: 2100; width: auto; left: 10px; right: calc(10px + var(--m-nav-r)); transform: none; }
   .certwarn a { color: inherit; text-decoration: underline; }
-  .certwarn .link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; }
-  .certwarn .x { background: none; border: 0; color: inherit; cursor: pointer; font-size: 1rem; padding: 0 4px; }
+  .certwarn .link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; border-radius: 0; box-shadow: none; }
+  .certwarn .x { background: none; border: 0; color: inherit; cursor: pointer; font-size: 1rem; padding: 0 4px; box-shadow: none; }
 
   .desktop { position: fixed; inset: 0; overflow: hidden; }
-  .ctx { position: fixed; z-index: 3000; list-style: none; margin: 0; padding: 4px; background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: var(--r-sm); box-shadow: var(--shadow); min-width: 220px; }
-  .ctx button { width: 100%; text-align: left; background: transparent; border-color: transparent; padding: 8px 10px; }
-  .ctx button:hover { background: var(--panel-2); }
+  .ctx { position: fixed; z-index: 3000; list-style: none; margin: 0; padding: 5px; background: var(--pop-bg); backdrop-filter: var(--pop-blur); -webkit-backdrop-filter: var(--pop-blur); border: 1px solid var(--line-2); border-radius: var(--pop-r); box-shadow: var(--pop-shadow); min-width: 220px; transition: opacity .14s var(--ease), transform .14s var(--ease); transform-origin: top left; }
+  @starting-style { .ctx { opacity: 0; transform: scale(.96); } }
+  .ctx button { width: 100%; text-align: left; background: transparent; border-color: transparent; padding: 8px 12px; border-radius: max(var(--r-xs), calc(var(--pop-r) - 5px)); box-shadow: none; font-weight: 400; }
+  .ctx button:hover { background: var(--fill-2); border-color: transparent; }
 </style>

@@ -19,7 +19,7 @@ services:
       - -f
       - http://127.0.0.1:3000/admin
       timeout: 10s
-    image: nitropage/nitropage:sqlite
+    image: nitropage/nitropage:0.70.3-sqlite
     networks:
       appnet:
         aliases:

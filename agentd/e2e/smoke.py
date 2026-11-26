@@ -2,7 +2,7 @@ import json, os, sys, time, urllib.request
 import websocket  # pip install websocket-client
 # Smoke check of cloudos-agentd on a live workspace: create a terminal, attach over WebSocket, run a command, detach
 # and attach again (the output tail must survive — the process is not tied to the client), resize, kill. Run:
-# AGENTD=http://10.77.7.146:7200 AGENTD_TOKEN=… python3 smoke.py
+# AGENTD=http://10.77.1.10:7200 AGENTD_TOKEN=… python3 smoke.py
 BASE = os.environ.get("AGENTD", "http://127.0.0.1:7200"); TOKEN = os.environ.get("AGENTD_TOKEN", ""); res = []
 def ok(n, c, note=""): res.append(bool(c)); print(("PASS  " if c else "FAIL  ") + n, note)
 def api(path, method="GET", body=None):

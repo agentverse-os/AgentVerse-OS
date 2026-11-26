@@ -11,10 +11,10 @@ endpoint:
 env:
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/slink/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/slink/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/slink/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/slink/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/slink/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/slink/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/slink/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/slink/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,12 +44,10 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This update applies storage settings immediately without requiring a container restart and improves validation for custom S3 endpoints such as Backblaze B2.
+    This update fixes a security issue where image URLs could return non-media responses that a CDN or shared cache might store and serve.
 
-    It also rejects invalid image list ordering requests instead of surfacing errors and updates core runtime dependencies.
-
-    Full release notes can be found at https://github.com/andrii-kryvoviaz/slink/releases/tag/v1.13.1
+    Full release notes can be found at https://github.com/andrii-kryvoviaz/slink/releases/tag/v1.14.6
   source: https://github.com/andrii-kryvoviaz/slink
-  version: 1.13.1
+  version: 1.14.6
   website: https://docs.slinkapp.io/
 website: https://docs.slinkapp.io/

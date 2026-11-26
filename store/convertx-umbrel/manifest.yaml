@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/convertx/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/convertx/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/convertx/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/convertx/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/convertx/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/convertx/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,17 +42,18 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This release adds PDF to DOCX conversion support and includes an important security fix.
+    This update adds DjVu conversion support and improves audio conversion reliability.
 
     Key highlights include:
-      - Added PDF to DOCX conversions using LibreOffice
-      - Fixed a path traversal vulnerability in the conversion API
-      - Fixed 3D model conversions where the output format does not match the filename extension
-      - Added support for configuring the server port with an environment variable
+      - Added support for converting DjVu files
+      - Improved the login failure page
+      - Fixed audio conversions with embedded cover art and preserved cover art when converting to M4B
+      - Fixed long automatic file-deletion intervals
+      - Improved database shutdown handling
 
 
-    Full release notes can be found at https://github.com/C4illin/ConvertX/releases/tag/v0.18.0
+    Full release notes can be found at https://github.com/C4illin/ConvertX/releases/tag/v0.20.0
   source: https://github.com/C4illin/ConvertX
-  version: 0.18.0
+  version: 0.20.0
   website: https://github.com/C4illin/ConvertX
 website: https://github.com/C4illin/ConvertX

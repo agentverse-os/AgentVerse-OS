@@ -66,7 +66,7 @@ services:
       POSTGRES_DB: plausible-db
       POSTGRES_PASSWORD: ${PLAUSIBLE_DB_PASSWORD}
       POSTGRES_USER: tipi
-    image: clickhouse/clickhouse-server:26.7.5.10-alpine
+    image: clickhouse/clickhouse-server:26.10.4.207-alpine
     networks:
       appnet:
         aliases:

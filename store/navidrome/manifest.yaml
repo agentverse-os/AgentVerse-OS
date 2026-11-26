@@ -40,6 +40,6 @@ upstream:
   - media
   - music
   source: https://github.com/navidrome/navidrome/
-  tipi_version: 48
-  version: 0.63.2
+  tipi_version: 53
+  version: 0.64.2
 website: https://github.com/navidrome/navidrome/

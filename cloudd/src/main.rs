@@ -15,6 +15,7 @@ mod feeds;
 mod files;
 mod gate;
 mod gateauth;
+mod hosts;
 mod importer;
 mod incus;
 mod komodo;
@@ -22,6 +23,8 @@ mod limits;
 mod llm;
 mod model;
 mod monitor;
+mod perimeter;
+mod pressure;
 mod appdata;
 mod backup;
 mod budgets;
@@ -80,6 +83,11 @@ enum Cmd {
     /// Apply every project.yaml and the edge
     /// configuration
     Reconcile,
+    /// Recreate an edge container made before ADR-010 so that it reaches the core through unix sockets (about ten
+    /// seconds without HTTPS)
+    EdgeMigrate,
+    /// Put the perimeter rules of the host firewall in place now (the core also does it every minute)
+    Firewall,
     /// Event feed
     Events,
     /// Store catalog: import from upstream
@@ -275,6 +283,15 @@ async fn main() -> Result<()> {
             println!("reconcile выполнен");
             Ok(())
         }
+        Cmd::EdgeMigrate => {
+            println!("{}", svc.edge_migrate().await?);
+            Ok(())
+        }
+        Cmd::Firewall => {
+            let changed = svc.ensure_firewall().await?;
+            println!("{}", if changed.is_empty() { "правила на месте".to_string() } else { changed.join("\n") });
+            Ok(())
+        }
         Cmd::Store { .. } => unreachable!(),
         Cmd::Events => {
             for e in svc.store.recent_events(50)?.into_iter().rev() {
@@ -288,12 +305,15 @@ async fn main() -> Result<()> {
 async fn serve(svc: Service, reconcile: bool) -> Result<()> {
     svc.start_monitor();
     svc.start_edge_watch();
+    svc.start_gate_watch();
+    svc.start_pressure_watch();
     svc.start_backup_scheduler();
     svc.start_update_checker();
     svc.start_agents_poller();
-    tokio::spawn(async {
-        if let Err(e) = agents_svc::ensure_installed().await { tracing::warn!("сервис «Агенты» (cloudos-agents): {e:#}"); }
-    });
+    svc.start_hosts_prober();
+    svc.start_perimeter_watch();
+    // the first look at the edge container: installs the "Agents" unit for it and says whether the docker bridge is needed
+    { let s = svc.clone(); tokio::spawn(async move { s.perimeter_sync().await; }); }
     if reconcile {
         let s = svc.clone();
         tokio::spawn(async move {
@@ -313,16 +333,73 @@ async fn serve(svc: Service, reconcile: bool) -> Result<()> {
             }
         };
         tracing::info!("cloudd слушает http://{addr}");
-        let app = app.clone();
+        // the routes for the services of this host go only where nothing but this host can come from
+        let local = listener.local_addr().map(|a| a.ip().is_loopback()).unwrap_or(false);
+        let app = if local { app.clone().merge(api::internal_router(svc.clone())) } else { app.clone() };
         handles.push(tokio::spawn(async move { axum::serve(listener, app).await }));
     }
     if handles.is_empty() {
         anyhow::bail!("ни один адрес из CLOUDD_LISTEN не удалось занять");
     }
+    // the edge comes through a unix socket in the directory shared with its container (ADR-010): nothing in the docker
+    // networks can reach the core this way
+    match bind_unix(&svc.cfg.cloudd_sock()) {
+        Ok(listener) => {
+            tracing::info!("cloudd слушает сокет {}", svc.cfg.cloudd_sock().display());
+            let app = app.clone();
+            handles.push(tokio::spawn(async move { axum::serve(listener, app).await }));
+        }
+        Err(e) => tracing::warn!("не слушаю сокет {}: {e:#}", svc.cfg.cloudd_sock().display()),
+    }
+    // …and the docker bridge only while an edge container without that directory is running
+    if !svc.cfg.listen.contains(&svc.cfg.edge_bridge_listen) {
+        tokio::spawn(bridge_listener(svc.perimeter.bridge.subscribe(), svc.cfg.edge_bridge_listen.clone(), app.clone()));
+    }
     for h in handles {
         h.await??;
     }
     Ok(())
+}
+
+/// A unix listener at `path`. The directory is only ever created, never removed or recreated: the edge container holds a
+/// bind mount of it, and a recreated directory would leave the container with the old empty one. The socket file of the
+/// previous process is replaced.
+fn bind_unix(path: &std::path::Path) -> Result<tokio::net::UnixListener> {
+    use std::os::unix::fs::PermissionsExt;
+    if let Some(dir) = path.parent() { std::fs::create_dir_all(dir)?; }
+    let _ = std::fs::remove_file(path);
+    let listener = tokio::net::UnixListener::bind(path)?;
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o660))?;
+    Ok(listener)
+}
+
+/// The core's listener on the docker bridge for an edge container created before ADR-010: bound while `want` says so,
+/// closed when the container is replaced by one with the socket directory.
+async fn bridge_listener(mut want: tokio::sync::watch::Receiver<bool>, addr: String, app: axum::Router) {
+    let mut stop: Option<tokio::sync::oneshot::Sender<()>> = None;
+    loop {
+        let on = *want.borrow_and_update();
+        if on && stop.is_none() {
+            match tokio::net::TcpListener::bind(&addr).await {
+                Ok(listener) => {
+                    tracing::warn!("cloudd слушает мост Docker http://{addr}: контейнер edge создан без каталога сокетов");
+                    let (tx, rx) = tokio::sync::oneshot::channel::<()>();
+                    let app = app.clone();
+                    tokio::spawn(async move { let _ = axum::serve(listener, app).with_graceful_shutdown(async { let _ = rx.await; }).await; });
+                    stop = Some(tx);
+                }
+                Err(e) => tracing::warn!("не слушаю мост Docker {addr}: {e}"),
+            }
+        } else if !on {
+            if let Some(tx) = stop.take() { let _ = tx.send(()); tracing::info!("cloudd больше не слушает мост Docker {addr}"); }
+        }
+        // a failed bind (the bridge is not up yet) is retried
+        let retry = on && stop.is_none();
+        tokio::select! {
+            r = want.changed() => { if r.is_err() { break } }
+            _ = tokio::time::sleep(std::time::Duration::from_secs(15)), if retry => {}
+        }
+    }
 }
 
 fn table(header: Vec<&str>) -> Table {

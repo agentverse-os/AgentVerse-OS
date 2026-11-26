@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/FreshRSS/FreshRSS
-  tipi_version: 27
-  version: 1.29.1
+  tipi_version: 35
+  version: 1.30.4
 website: https://github.com/FreshRSS/FreshRSS

@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   server:
-    image: esphome/esphome:2026.8.2@sha256:85abea33854be56d9594eaddaa40988b9cda9560221823a740393c5ed5de82b8
+    image: esphome/esphome:2026.11.0@sha256:35a22f23ba41e58ed1fa63627317d86f4eaba585e526e44f1118ab082cc96041
     network_mode: host
     restart: on-failure
     volumes:

@@ -8,7 +8,8 @@ description: A beautiful, local-first dashboard for Home Assistant
 endpoint:
   port: 3123
   service: server
-env: {}
+env:
+  GATEWAY_IP: ''
 gallery:
 - https://getumbrel.github.io/umbrel-apps-gallery/glasshome/1.webp
 - https://getumbrel.github.io/umbrel-apps-gallery/glasshome/2.webp
@@ -42,10 +43,12 @@ upstream:
   categories:
   - automation
   release_notes: |-
-    This update adds a new Media section in Settings for reviewing storage use, uploading pictures, browsing recent and library items, and deleting unused pictures. It also rejects very large background photos before they can slow down or take the dashboard offline.
+    Wall displays and phones paired with Quick-Connect need to sign in again after this update. Their sign-in is now kept out of reach of widgets.
 
-    Full release notes can be found at https://glasshome.app/docs/dash/changelog/#120---2026-08-27.
+    This update fixes dashboards showing a black screen on older built-in browsers, including the Shelly Wall Display. It also fixes accidental selections when opening menus with Reduce motion enabled, and adds smoother highlights in menus and pickers.
+
+    Full release notes can be found at https://github.com/glasshome/homeassistant-addon/blob/main/glasshome/CHANGELOG.md#145.
   source: https://github.com/glasshome/homeassistant-addon
-  version: 1.2.0
+  version: 1.4.5
   website: https://glasshome.app
 website: https://glasshome.app

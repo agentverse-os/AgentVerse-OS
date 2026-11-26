@@ -12,11 +12,11 @@ env:
   APP_PASSWORD:
     generate: password
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/picsur/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/picsur/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/picsur/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/picsur/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/picsur/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/picsur/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/picsur/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/picsur/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/picsur/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/picsur/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,8 +45,8 @@ upstream:
   author: CaramelFur
   categories:
   - files
-  release_notes: null
+  release_notes: This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
   source: https://github.com/CaramelFur/Picsur
-  version: 0.5.6
+  version: 0.5.6-patch.1
   website: https://picsur.org/upload
 website: https://picsur.org/upload

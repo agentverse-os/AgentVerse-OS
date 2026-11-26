@@ -29,7 +29,7 @@ services:
       PS_DATABASE_URI: postgres://wger:wger@db:5432/wger
       PS_STORAGE_PG_URI: postgres://powersync_storage:${APP_SEED}@db:5432/wger
       SECRET_KEY: ${APP_SEED}
-    image: wger/server:2.6@sha256:997ead43aabdcd67d054f933e07d2b23875f01bf43271a267cb7796925ca27c4
+    image: wger/server:2.7@sha256:eb6e30666ae3058f3094b6030ab661fa3062c9e2ab33c72b554031acf37a3104
     networks:
       appnet:
         aliases:
@@ -53,7 +53,7 @@ services:
       start_period: 30s
       test: celery -A wger inspect ping
       timeout: 5s
-    image: wger/server:2.6@sha256:997ead43aabdcd67d054f933e07d2b23875f01bf43271a267cb7796925ca27c4
+    image: wger/server:2.7@sha256:eb6e30666ae3058f3094b6030ab661fa3062c9e2ab33c72b554031acf37a3104
     networks:
       appnet:
         aliases:
@@ -114,7 +114,7 @@ services:
       - --spider
       - http://127.0.0.1:80/
       timeout: 5s
-    image: nginx:alpine3.22@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14
+    image: nginx:1.30.7-alpine@sha256:bef154735288bc38d99fac41ae63730684bcc661503673a04a0f9bc526ba8598
     networks:
       appnet:
         aliases:
@@ -160,7 +160,7 @@ services:
       PS_DATABASE_URI: postgres://wger:wger@db:5432/wger
       PS_STORAGE_PG_URI: postgres://powersync_storage:${APP_SEED}@db:5432/wger
       SECRET_KEY: ${APP_SEED}
-    image: wger/server:2.6@sha256:997ead43aabdcd67d054f933e07d2b23875f01bf43271a267cb7796925ca27c4
+    image: wger/server:2.7@sha256:eb6e30666ae3058f3094b6030ab661fa3062c9e2ab33c72b554031acf37a3104
     networks:
       appnet:
         aliases:
@@ -176,7 +176,7 @@ services:
       powersync_setup:
         condition: service_completed_successfully
     environment:
-      CSRF_TRUSTED_ORIGINS: http://${DEVICE_DOMAIN_NAME}:${APP_WGER_PORT},http://${DEVICE_HOSTNAME}:${APP_WGER_PORT},${APP_WGER_LOCAL_URLS}
+      CSRF_TRUSTED_ORIGINS: http://${DEVICE_DOMAIN_NAME}:${APP_WGER_PORT},https://${DEVICE_DOMAIN_NAME}:${APP_WGER_PORT},http://${DEVICE_HOSTNAME}:${APP_WGER_PORT},https://${DEVICE_HOSTNAME}:${APP_WGER_PORT},${APP_WGER_LOCAL_URLS}
       MEDIA_URL: http://${DEVICE_DOMAIN_NAME}:${APP_WGER_PORT}/media/
       POWERSYNC_URL_PATH: ps
       PS_DATABASE_URI: postgres://wger:wger@db:5432/wger
@@ -187,9 +187,16 @@ services:
       interval: 10s
       retries: 5
       start_period: 300s
-      test: wget --no-verbose --tries=1 --spider http://localhost:8000
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=1
+      - -O
+      - /dev/null
+      - http://localhost:8000/api/v2/version/
       timeout: 5s
-    image: wger/server:2.6@sha256:997ead43aabdcd67d054f933e07d2b23875f01bf43271a267cb7796925ca27c4
+    image: wger/server:2.7@sha256:eb6e30666ae3058f3094b6030ab661fa3062c9e2ab33c72b554031acf37a3104
     networks:
       appnet:
         aliases:

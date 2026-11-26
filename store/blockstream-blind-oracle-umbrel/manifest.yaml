@@ -16,9 +16,9 @@ env:
   APP_TAILSCALE_URL: ''
   TOR_DATA_DIR: ''
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/blockstream-blind-oracle/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/blockstream-blind-oracle/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/blockstream-blind-oracle/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/blockstream-blind-oracle/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/blockstream-blind-oracle/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/blockstream-blind-oracle/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

@@ -10,11 +10,11 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/domain-locker/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,14 +45,14 @@ upstream:
   - networking
   release_notes: |-
     This release improves the self-hosted edition, including:
-      - Improved domain lookups
-      - Included domain names in webhook notification messages
-      - Added support for loading Docker secrets from environment variables
-      - Fixed internal loopback URL handling and other self-hosted bugs
+      - Added support for NTFY, Discord webhook, and Apprise notifications
+      - Improved domain lookup reliability, registrar normalization, and WHOIS handling
+      - Added configurable WHOIS request concurrency and delays
+      - Fixed webhook notification content and several self-hosted UI issues
 
 
-    Full release notes can be found at https://github.com/Lissy93/domain-locker/releases/tag/v0.2.0
+    Full release notes can be found at https://github.com/Lissy93/domain-locker/releases/tag/v0.3.0
   source: https://github.com/Lissy93/domain-locker
-  version: 0.2.0
+  version: 0.3.0
   website: https://domain-locker.com/
 website: https://domain-locker.com/

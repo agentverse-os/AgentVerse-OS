@@ -11,9 +11,9 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/transmission/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/transmission/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/transmission/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/transmission/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/transmission/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/transmission/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,14 +45,16 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    This bugfix release includes important security and stability fixes:
-      - Fixed a CORS issue that could leak the anti-CSRF nonce when remote access is enabled
-      - Fixed a peer-code use-after-free bug
-      - Fixed build and test issues
+    This release improves download reliability and fixes several bugs:
+      - Fixed handling of torrents with zero-byte files that could lose downloaded progress
+      - Fixed downloads from webseeds sometimes failing to finish
+      - Fixed per-torrent speed-limit overrides for downloads and uploads
+      - Fixed torrent names sometimes appearing as "Unknown" in the web interface
+      - Hardened torrent-add requests and fixed a rare shutdown hang
 
 
-    Full release notes are available at https://github.com/transmission/transmission/releases/tag/4.1.3
+    Full release notes are available at https://github.com/transmission/transmission/releases/tag/4.1.4
   source: https://github.com/transmission/transmission
-  version: 4.1.3
+  version: 4.1.4
   website: https://transmissionbt.com/
 website: https://transmissionbt.com/

@@ -54,7 +54,7 @@ upstream:
   author: kolaente
   categories:
   - utilities
-  source: https://kolaente.dev/vikunja
-  tipi_version: 31
-  version: 2.5.0
-website: https://kolaente.dev/vikunja
+  source: https://github.com/go-vikunja/vikunja
+  tipi_version: 39
+  version: 2.8.0
+website: https://github.com/go-vikunja/vikunja

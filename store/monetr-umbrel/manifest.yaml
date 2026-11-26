@@ -10,10 +10,10 @@ endpoint:
   service: monetr
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/monetr/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/monetr/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/monetr/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/monetr/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/monetr/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/monetr/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/monetr/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/monetr/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,14 +43,15 @@ upstream:
   categories:
   - finance
   release_notes: |-
-    This release fixes duplicate automatic transactions and improves the spending update flow by moving spending changes to the newer PATCH endpoint.
+    This release fixes budgeting calculations and improves reliability:
+      - Fixes an issue that could skip some funding contributions.
+      - Prevents already-deleted transactions from being deleted again.
+      - Improves number formatting and precision in the interface.
+      - Limits upload filenames to a supported length.
 
-    It also includes API, UI, and container dependency updates.
 
-    If you are updating from a version before 1.15.0, Monetr now includes built-in proof-of-work spam protection for authentication endpoints and configuration for blocking registrations from specific email domains. Proof of work remains disabled by default for self-hosted installs; only enable it if Monetr is served over HTTPS.
-
-    Full release notes can be found at https://github.com/monetr/monetr/releases/tag/v1.15.3
+    Full release notes can be found at https://github.com/monetr/monetr/releases/tag/v1.22.2
   source: https://github.com/monetr/monetr
-  version: 1.15.3
+  version: 1.22.2
   website: https://monetr.app/
 website: https://monetr.app/

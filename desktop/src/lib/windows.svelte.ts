@@ -1,11 +1,18 @@
 // Desktop window manager (3.12): everything is a window. System apps (Projects, Store, System, Settings, the app card) render
 // as Svelte components, external apps and VS Code Web — as iframes. Its own WM on CSS transform. The canonical state is the
 // window list and the layout per device class; stored in the core (kv) and in localStorage.
+//
+// Geometry: a window keeps its floating rectangle (x, y, w, h) as the user left it. What is drawn is `rect(w)`: the floating
+// rectangle clamped into the current work area, a snap zone (half, third, two thirds) or the whole work area when maximized.
+// So a layout saved on a wide monitor stays reachable on a laptop without being rewritten, and snapped windows follow the
+// viewport like tiles.
 import { api } from './api';
 import { t } from './i18n.svelte';
 
 export type WinKind = 'iframe' | 'component';
 export type SysApp = 'projects' | 'store' | 'system' | 'settings' | 'appdetail' | 'project' | 'files' | 'appready' | 'vault' | 'reader' | 'setup' | 'updates' | 'agents';
+/** Snap zones: halves, and on wide screens thirds and two thirds. */
+export type SnapZone = 'left' | 'right' | 'l3' | 'c3' | 'r3' | 'l23' | 'r23';
 export interface Win {
   id: string;
   kind: WinKind;
@@ -20,11 +27,33 @@ export interface Win {
   z: number;
   minimized: boolean;
   maximized: boolean;
+  snap?: SnapZone | null;
 }
 export type DeviceClass = 'phone' | 'tablet' | 'desktop';
-export function deviceClass(): DeviceClass { const w = innerWidth; return w < 700 ? 'phone' : w < 1100 ? 'tablet' : 'desktop'; }
+/** phone — the mobile shell (one app full screen): narrow screens, low landscape screens (a phone on its side) and touch
+ *  screens up to a small tablet (an unfolded foldable, a tablet in portrait); tablet and desktop — windows. */
+export function deviceClass(): DeviceClass {
+  const w = innerWidth, h = innerHeight;
+  const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+  if (w < 700 || (h < 520 && w < 1000) || (coarse && w < 900)) return 'phone';
+  return w < 1100 ? 'tablet' : 'desktop';
+}
 
+/** Height of the attached taskbar; kept for the code that only needs a number. The real strip is shellBottom(). */
 export const TASKBAR_H = 48;
+/** The strip the shell keeps at the bottom of the screen — mirrors --shell-b in app.css: the dock of the umbrel look, the
+ *  floating shelf of the glass surface, the attached taskbar otherwise. */
+export function shellBottom(): number {
+  const d = typeof document !== 'undefined' ? document.documentElement.dataset : ({} as DOMStringMap);
+  return d.look === 'umbrel' ? 96 : d.surface === 'glass' ? 70 : 48;
+}
+/** Gap between snapped windows and the screen edges: floating looks keep air, the attached taskbar tiles edge to edge. */
+function tileGap(): number {
+  const d = typeof document !== 'undefined' ? document.documentElement.dataset : ({} as DOMStringMap);
+  return d.look === 'umbrel' ? 12 : d.surface === 'glass' ? 8 : 0;
+}
+export interface Rect { x: number; y: number; w: number; h: number }
+const MIN_W = 340, MIN_H = 220;
 const KEY = () => `cloudos.windows.${deviceClass()}`;
 let zTop = 10;
 
@@ -57,14 +86,30 @@ class WindowManager {
   wins = $state<Win[]>([]);
   active = $state<string | null>(null);
   startOpen = $state(false);
+  /** Viewport size as state: rect() and the snap zones depend on it. */
+  vw = $state(typeof innerWidth === 'number' ? innerWidth : 1280);
+  vh = $state(typeof innerHeight === 'number' ? innerHeight : 800);
+  /** Bumped when the look or the surface changes (the bottom strip has another height). */
+  shellRev = $state(0);
+  /** The window that is moving to a new place by itself (maximize, restore, snap): its frame is animated for a moment. */
+  settling = $state<string | null>(null);
+  private settleTimer: ReturnType<typeof setTimeout> | undefined;
   private timer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
     try { const s = JSON.parse(localStorage.getItem(KEY()) ?? '[]') as Win[]; this.wins = migrate(s.filter(w => w.kind)); zTop = Math.max(10, ...this.wins.map(w => w.z)); } catch {}
+    // the top window of the saved session is the active one again; the phone starts from the home screen as before
+    const restoreActive = () => { if (deviceClass() !== 'phone') this.active = this.topVisible()?.id ?? null; };
+    restoreActive();
     api.desktopSettings().then(s => {
       const remote = (s?.session?.[deviceClass()] as Win[] | undefined)?.filter(w => w.kind);
-      if (remote && !this.wins.length) { this.wins = migrate(remote); zTop = Math.max(10, ...remote.map(w => w.z)); }
+      if (remote && !this.wins.length) { this.wins = migrate(remote); zTop = Math.max(10, ...remote.map(w => w.z)); restoreActive(); }
     }).catch(() => {});
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', () => { this.vw = innerWidth; this.vh = innerHeight; });
+      // the look and the surface are attributes of <html> (theme.ts → apply)
+      new MutationObserver(() => { this.shellRev++; }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-look', 'data-surface'] });
+    }
   }
 
   private persist() {
@@ -76,11 +121,46 @@ class WindowManager {
     }, 800);
   }
 
+  /** The area windows live in: the viewport without the bottom strip of the shell. */
+  workArea(): Rect { void this.shellRev; return { x: 0, y: 0, w: this.vw, h: Math.max(200, this.vh - shellBottom()) }; }
+  /** Wide enough for thirds: 21:9 and wider, or simply a lot of pixels. */
+  get wide() { return this.vw >= 2200 || (this.vw >= 1700 && this.vw / this.vh >= 2.1); }
+  /** Snap zones on offer for this screen, in the order of the layout picker. */
+  get zones(): SnapZone[] { return this.wide ? ['left', 'right', 'l3', 'c3', 'r3', 'l23', 'r23'] : ['left', 'right']; }
+  zoneRect(zone: SnapZone): Rect {
+    const a = this.workArea(), g = tileGap();
+    const span = (from: number, to: number): Rect => {
+      const x0 = a.x + a.w * from, x1 = a.x + a.w * to;
+      return { x: Math.round(x0 + (from === 0 ? g : g / 2)), y: a.y + g, w: Math.round(x1 - x0 - (from === 0 ? g : g / 2) - (to === 1 ? g : g / 2)), h: a.h - g * 2 };
+    };
+    switch (zone) {
+      case 'left': return span(0, 1 / 2); case 'right': return span(1 / 2, 1);
+      case 'l3': return span(0, 1 / 3); case 'c3': return span(1 / 3, 2 / 3); case 'r3': return span(2 / 3, 1);
+      case 'l23': return span(0, 2 / 3); case 'r23': return span(1 / 3, 1);
+    }
+  }
+  /** The rectangle a window is drawn in (not for the phone — there a window is laid out by CSS). A maximized window takes the
+   *  whole work area; in the umbrel look it floats with margins. */
+  rect(w: Win): Rect {
+    const a = this.workArea();
+    if (w.maximized) { const m = typeof document !== 'undefined' && document.documentElement.dataset.look === 'umbrel' ? 12 : 0; return { x: a.x + m, y: a.y + m, w: a.w - m * 2, h: a.h - m }; }
+    if (w.snap) return this.zoneRect(w.snap);
+    const W = Math.min(w.w, Math.max(MIN_W, a.w - 16)), H = Math.min(w.h, Math.max(MIN_H, a.h - 16));
+    return { x: Math.round(Math.max(-W + 120, Math.min(w.x, a.w - 120))), y: Math.round(Math.max(0, Math.min(w.y, a.h - 44))), w: W, h: H };
+  }
+  /** Write the drawn rectangle into the window before a move or a resize, so the gesture starts from what is on screen. */
+  adopt(id: string) { const w = this.wins.find(w => w.id === id); if (w && !w.maximized && !w.snap) Object.assign(w, this.rect(w)); }
+
   private place(w: number, h: number) {
     const phone = deviceClass() === 'phone';
-    const n = this.wins.length;
-    const W = Math.min(w, innerWidth - 40), H = Math.min(h, innerHeight - TASKBAR_H - 40);
-    return { x: phone ? 0 : Math.max(20, Math.min(innerWidth - W - 20, 60 + (n % 6) * 32)), y: phone ? 0 : Math.max(20, Math.min(innerHeight - TASKBAR_H - H - 10, 40 + (n % 6) * 28)), w: phone ? innerWidth : W, h: phone ? innerHeight - TASKBAR_H : H, maximized: phone };
+    if (phone) return { x: 0, y: 0, w: innerWidth, h: innerHeight - TASKBAR_H, maximized: false };
+    const a = this.workArea(), m = 16;
+    const W = Math.min(w, a.w - m * 2), H = Math.min(h, a.h - m * 2);
+    // a cascade around the centre: a new window lands in the middle of the screen, the next ones step aside
+    const n = this.wins.filter(x => !x.minimized).length, step = [0, 1, 2, -1, -2, 3][n % 6] * 28;
+    const x = Math.max(m, Math.min(a.w - W - m, Math.round((a.w - W) / 2 + step)));
+    const y = Math.max(m, Math.min(a.h - H - m, Math.round((a.h - H) / 2 + step * 0.75)));
+    return { x, y, w: W, h: H, maximized: false };
   }
 
   /** An external app or VS Code Web — an iframe. */
@@ -106,9 +186,25 @@ class WindowManager {
   focus(id: string) { const w = this.wins.find(w => w.id === id); if (w) { w.z = ++zTop; w.minimized = false; this.active = id; } }
   minimize(id: string) { const w = this.wins.find(w => w.id === id); if (w) { w.minimized = true; if (this.active === id) this.active = this.topVisible()?.id ?? null; this.persist(); } }
   toggle(id: string) { const w = this.wins.find(w => w.id === id); if (!w) return; if (w.minimized || this.active !== id) this.focus(id); else this.minimize(id); this.persist(); }
-  toggleMax(id: string) { const w = this.wins.find(w => w.id === id); if (w) { w.maximized = !w.maximized; this.focus(id); this.persist(); } }
-  move(id: string, dx: number, dy: number) { const w = this.wins.find(w => w.id === id); if (w && !w.maximized) { w.x = Math.max(-w.w + 80, Math.min(innerWidth - 80, w.x + dx)); w.y = Math.max(0, Math.min(innerHeight - TASKBAR_H - 40, w.y + dy)); } }
-  resize(id: string, dw: number, dh: number) { const w = this.wins.find(w => w.id === id); if (w && !w.maximized) { w.w = Math.max(360, w.w + dw); w.h = Math.max(240, w.h + dh); } }
+  private settle(id: string) { this.settling = id; clearTimeout(this.settleTimer); this.settleTimer = setTimeout(() => { this.settling = null; }, 260); }
+  toggleMax(id: string) { const w = this.wins.find(w => w.id === id); if (w) { this.settle(id); if (w.snap) { w.snap = null; w.maximized = true; } else w.maximized = !w.maximized; this.focus(id); this.persist(); } }
+  /** Snap into a zone; null returns the window to its floating rectangle. */
+  snap(id: string, zone: SnapZone | null) { const w = this.wins.find(w => w.id === id); if (w) { this.settle(id); w.snap = zone; w.maximized = false; this.focus(id); this.persist(); } }
+  move(id: string, dx: number, dy: number) {
+    const w = this.wins.find(w => w.id === id);
+    if (w && !w.maximized && !w.snap) { const a = this.workArea(); w.x = Math.max(-w.w + 120, Math.min(a.w - 120, w.x + dx)); w.y = Math.max(0, Math.min(a.h - 44, w.y + dy)); }
+  }
+  resize(id: string, dw: number, dh: number) { this.resizeDir(id, 'se', dw, dh); }
+  /** Resize by an edge or a corner: dir is a combination of n, s, e, w. The opposite edge stays in place. */
+  resizeDir(id: string, dir: string, dx: number, dy: number) {
+    const w = this.wins.find(w => w.id === id);
+    if (!w || w.maximized || w.snap) return;
+    const minW = Math.min(MIN_W, this.vw - 16), minH = MIN_H;
+    if (dir.includes('e')) w.w = Math.max(minW, w.w + dx);
+    if (dir.includes('s')) w.h = Math.max(minH, w.h + dy);
+    if (dir.includes('w')) { const nw = Math.max(minW, w.w - dx); w.x += w.w - nw; w.w = nw; }
+    if (dir.includes('n')) { const nh = Math.max(minH, w.h - dy), ny = w.y + (w.h - nh); if (ny >= 0) { w.y = ny; w.h = nh; } }
+  }
   cycle() { const vis = this.wins.filter(w => !w.minimized).sort((a, b) => a.z - b.z); if (vis.length) this.focus(vis[0].id); }
   topVisible() { return this.wins.filter(w => !w.minimized).sort((a, b) => b.z - a.z)[0]; }
   save() { this.persist(); }

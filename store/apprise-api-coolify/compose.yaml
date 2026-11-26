@@ -17,7 +17,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:8000/
       timeout: 20s
-    image: linuxserver/apprise-api:latest
+    image: linuxserver/apprise-api:2.1.0
     networks:
       appnet:
         aliases:

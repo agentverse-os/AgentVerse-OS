@@ -13,7 +13,7 @@ services:
             - gpu
             count: all
             driver: nvidia
-    image: ollama/ollama:0.32.15
+    image: ollama/ollama:0.40.16
     networks:
       appnet:
         aliases:

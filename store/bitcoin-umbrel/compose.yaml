@@ -29,7 +29,7 @@ services:
       ZMQ_RAWBLOCK_PORT: ${APP_BITCOIN_ZMQ_RAWBLOCK_PORT}
       ZMQ_RAWTX_PORT: ${APP_BITCOIN_ZMQ_RAWTX_PORT}
       ZMQ_SEQUENCE_PORT: ${APP_BITCOIN_ZMQ_SEQUENCE_PORT}
-    image: ghcr.io/getumbrel/umbrel-bitcoin:v1.4.0@sha256:13a24256cdd7b1cead36c2e4dcedc699b31fc235a0e4179c8c4527f0c361e6bf
+    image: ghcr.io/getumbrel/umbrel-bitcoin:v1.5.0@sha256:2bf5f6c1612abcbd050bef98f839ee3489f589bb46fbb50fd5f0340d9cc1bd3c
     networks:
       appnet:
         aliases:

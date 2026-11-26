@@ -17,7 +17,7 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     networks:
       appnet:
         aliases:
@@ -58,10 +58,10 @@ services:
       interval: 2s
       retries: 15
       test:
-      - CMD-SHELL
-      - wget -qO- http://127.0.0.1:3000/
+      - CMD
+      - /app/healthcheck
       timeout: 10s
-    image: ghcr.io/muety/wakapi:latest
+    image: ghcr.io/muety/wakapi:2.18.2
     networks:
       appnet:
         aliases:

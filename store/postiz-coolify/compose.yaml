@@ -16,7 +16,7 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB:-postiz-db}
       timeout: 20s
-    image: postgres:14.5
+    image: postgres:17-alpine
     networks:
       appnet:
         aliases:
@@ -30,6 +30,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      temporal:
+        condition: service_healthy
     environment:
     - SERVICE_URL_POSTIZ_5000=${SERVICE_URL_POSTIZ_5000}
     - MAIN_URL=${SERVICE_URL_POSTIZ}
@@ -39,6 +41,7 @@ services:
     - DATABASE_URL=postgresql://postgres:${SERVICE_PASSWORD_POSTGRESQL}@postgres:5432/${POSTGRESQL_DATABASE:-postiz-db}
     - REDIS_URL=redis://default:${SERVICE_PASSWORD_REDIS}@redis:6379
     - BACKEND_INTERNAL_URL=http://localhost:3000
+    - TEMPORAL_ADDRESS=temporal:7233
     - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
     - CLOUDFLARE_ACCESS_KEY=${CLOUDFLARE_ACCESS_KEY}
     - CLOUDFLARE_SECRET_ACCESS_KEY=${CLOUDFLARE_SECRET_ACCESS_KEY}
@@ -101,9 +104,9 @@ services:
       retries: 10
       test:
       - CMD-SHELL
-      - wget -qO- http://127.0.0.1:5000/
+      - node -e "fetch('http://127.0.0.1:5000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"
       timeout: 20s
-    image: ghcr.io/gitroomhq/postiz-app:v2.10.1
+    image: ghcr.io/gitroomhq/postiz-app:v2.26.0
     networks:
       appnet:
         aliases:
@@ -134,6 +137,66 @@ services:
     restart: unless-stopped
     volumes:
     - postiz_redis_data:/data
+  temporal:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      temporal-elasticsearch:
+        condition: service_healthy
+    environment:
+    - DB=postgres12
+    - DB_PORT=5432
+    - POSTGRES_USER=postgres
+    - POSTGRES_PWD=${SERVICE_PASSWORD_POSTGRESQL}
+    - POSTGRES_SEEDS=postgres
+    - ENABLE_ES=true
+    - ES_SEEDS=temporal-elasticsearch
+    - ES_VERSION=v7
+    - TEMPORAL_NAMESPACE=default
+    healthcheck:
+      interval: 10s
+      retries: 10
+      start_period: 30s
+      test:
+      - CMD
+      - temporal
+      - operator
+      - cluster
+      - health
+      - --address
+      - temporal:7233
+      timeout: 5s
+    image: temporalio/auto-setup:1.28.1
+    networks:
+      appnet:
+        aliases:
+        - postiz-coolify_temporal_1
+    restart: unless-stopped
+  temporal-elasticsearch:
+    environment:
+    - cluster.routing.allocation.disk.threshold_enabled=true
+    - cluster.routing.allocation.disk.watermark.low=512mb
+    - cluster.routing.allocation.disk.watermark.high=256mb
+    - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+    - discovery.type=single-node
+    - ES_JAVA_OPTS=-Xms256m -Xmx256m
+    - xpack.security.enabled=false
+    healthcheck:
+      interval: 10s
+      retries: 10
+      start_period: 60s
+      test:
+      - CMD-SHELL
+      - curl -fsS 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s' || exit 1
+      timeout: 10s
+    image: elasticsearch:7.17.27
+    networks:
+      appnet:
+        aliases:
+        - postiz-coolify_temporal-elasticsearch_1
+    restart: unless-stopped
+    volumes:
+    - temporal_elasticsearch_data:/usr/share/elasticsearch/data
 volumes:
   postiz_config:
     driver: local
@@ -157,5 +220,11 @@ volumes:
     driver: local
     driver_opts:
       device: ${APP_DATA_DIR}/postiz_uploads
+      o: bind
+      type: none
+  temporal_elasticsearch_data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/temporal_elasticsearch_data
       o: bind
       type: none

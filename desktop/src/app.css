@@ -1,157 +1,235 @@
-/* Appearance tokens. The dark theme is the default; light — data-theme=light. Accent/scale/font/background come from theme.ts. */
+/* Desktop design system (docs/desktop-themes.md). Everything visual is a token on :root; theme.ts switches the data-*
+   attributes (theme, surface, look, contrast, density, radius, motion, icons) and sets --accent / --scale / --font / wallpaper.
+   Components draw themselves from the tokens, so a theme is a block of tokens here, not overrides of component classes. */
+
+/* ---------- fonts: self-hosted, no requests to third parties (Inter and Space Grotesk, SIL OFL 1.1) ---------- */
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/fonts/inter-cyrillic-ext.woff2") format("woff2"); unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/fonts/inter-cyrillic.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/fonts/inter-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/fonts/inter-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Space Grotesk"; font-style: normal; font-weight: 300 700; font-display: swap; src: url("/fonts/space-grotesk-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Space Grotesk"; font-style: normal; font-weight: 300 700; font-display: swap; src: url("/fonts/space-grotesk-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ---------- tokens: dark is the default ---------- */
 :root {
+  /* set by theme.ts */
   --accent: #5BBFCB; --on-accent: #0b1416; --accent-rgb: 91 191 203;
   --scale: 1; --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --wallpaper: #121416; --wallpaper-blur: 0px; --wallpaper-top: none;
-  --sp: 1; --r: 10px; --r-sm: 8px; --dur: .15s;
-  --bg: #121416; --panel: #171c1f; --panel-2: #1d2327; --ink: #F2F4F4; --muted: #9AA3A8; --line: #2A3438;
-  --ok: #6fcf97; --warn: #f2c94c; --bad: #eb5757;
-  --shadow: 0 8px 30px rgb(0 0 0 / .35);
-  --glass: rgb(23 28 31 / .92);
+
+  /* neutrals carry a few percent of the accent hue, so every theme has its own temperature */
+  --tint: var(--accent);
+  --bg: color-mix(in oklab, #0b0d11 94%, var(--tint));
+  --panel: color-mix(in oklab, #14171c 94%, var(--tint));
+  --panel-2: color-mix(in oklab, #1c2027 94%, var(--tint));
+  --panel-3: color-mix(in oklab, #272c35 93%, var(--tint));
+  --ink: #f1f3f6; --muted: #9aa3b0;
+  --line: color-mix(in oklab, #2b313b 92%, var(--tint)); --line-2: color-mix(in oklab, #3c4450 92%, var(--tint));
+  --ok: #62d394; --warn: #f0c350; --bad: #f1635f;
+
+  /* derived */
+  --accent-soft: color-mix(in oklab, var(--accent) 18%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 55%, transparent);
+  --accent-ink: color-mix(in oklab, var(--accent) 72%, var(--ink));
+  --fill: color-mix(in oklab, var(--ink) 7%, transparent);
+  --fill-2: color-mix(in oklab, var(--ink) 12%, transparent);
+  --scrim: rgb(0 0 0 / .5);
+
+  /* geometry, rhythm, motion */
+  --sp: 1; --r-xs: 6px; --r-sm: 8px; --r: 12px; --r-lg: 14px;
+  --dur: .16s; --ease: cubic-bezier(.2, .8, .2, 1);
+  --icon: 48px;
+
+  /* elevation */
+  --shadow-1: 0 1px 2px rgb(0 0 0 / .28), 0 2px 10px rgb(0 0 0 / .16);
+  --shadow-2: 0 10px 32px rgb(0 0 0 / .38), 0 1px 3px rgb(0 0 0 / .3);
+  --shadow-3: 0 24px 70px rgb(0 0 0 / .5), 0 3px 10px rgb(0 0 0 / .32);
+  --shadow: var(--shadow-2);
+
+  /* materials: flat panels by default — background, backdrop filter, edge */
+  --glass: var(--panel); --glass-blur: none;
+  --card: color-mix(in oklab, var(--ink) 4.5%, transparent); --card-line: var(--line);
+  --win-bg: var(--panel); --win-blur: none; --win-line: var(--line-2); --win-shadow: var(--shadow-3); --win-r: var(--r-lg);
+  --bar-bg: color-mix(in oklab, var(--ink) 4%, transparent);
+  --sticky-bg: var(--panel); --sticky-blur: none;   /* a toolbar that sticks to the top of a scrolling window */
+  --pop-bg: var(--panel-2); --pop-blur: none; --pop-shadow: var(--shadow-2); --pop-r: var(--r);
+  --widget-bg: var(--panel); --widget-blur: none; --widget-r: var(--r-lg);
+  --shelf-bg: var(--panel); --shelf-blur: none; --shelf-line: var(--line); --shelf-shadow: none; --shelf-r: 0px;
+  /* the shell reserves this strip at the bottom: the taskbar (attached or floating) or the dock (windows.svelte.ts: shellBottom) */
+  --tb-h: 48px; --tb-gap: 0px; --shell-b: calc(var(--tb-h) + var(--tb-gap) * 2); --shelf-max: 100vw;
+  /* phone shell geometry (MobileShell, Windows): a status bar on top, a navigation bar at the bottom */
+  --m-status: 44px; --m-nav-b: 58px; --m-nav-r: 0px;
   color-scheme: dark;
 }
+/* a phone on its side: the height is precious — no status bar, the navigation is a rail on the right */
+@media (orientation: landscape) and (max-height: 520px) { :root { --m-status: 0px; --m-nav-b: 0px; --m-nav-r: 60px; } }
 :root[data-theme="light"] {
-  --bg: #f4f6f7; --panel: #ffffff; --panel-2: #f1f3f5; --ink: #14181b; --muted: #5b6770; --line: #d7dde2;
-  --ok: #1f9d55; --warn: #b7791f; --bad: #c53030;
-  --shadow: 0 8px 30px rgb(20 30 40 / .12);
-  --glass: rgb(255 255 255 / .9);
+  --bg: color-mix(in oklab, #f3f5f8 95%, var(--tint));
+  --panel: color-mix(in oklab, #ffffff 97%, var(--tint));
+  --panel-2: color-mix(in oklab, #f1f3f6 95%, var(--tint));
+  --panel-3: color-mix(in oklab, #e5e9ee 94%, var(--tint));
+  --ink: #12161b; --muted: #5a6572;
+  --line: color-mix(in oklab, #d8dde4 94%, var(--tint)); --line-2: color-mix(in oklab, #c2c9d2 94%, var(--tint));
+  --ok: #1f9d55; --warn: #a86a10; --bad: #c8322f;
+  --accent-ink: color-mix(in oklab, var(--accent) 80%, #000);
+  --scrim: rgb(20 28 40 / .28);
+  --shadow-1: 0 1px 2px rgb(20 30 45 / .08), 0 2px 10px rgb(20 30 45 / .06);
+  --shadow-2: 0 10px 32px rgb(20 30 45 / .14), 0 1px 3px rgb(20 30 45 / .1);
+  --shadow-3: 0 24px 70px rgb(20 30 45 / .2), 0 3px 10px rgb(20 30 45 / .12);
   color-scheme: light;
 }
-:root[data-contrast="high"] { --muted: color-mix(in srgb, var(--ink) 80%, var(--muted)); --line: color-mix(in srgb, var(--ink) 45%, var(--line)); }
-:root[data-theme="light"][data-contrast="high"] { --ink: #000; }
-:root[data-density="compact"] { --sp: .75; }
-:root[data-density="comfortable"] { --sp: 1.3; }
-:root[data-radius="sharp"] { --r: 2px; --r-sm: 2px; }
-:root[data-radius="round"] { --r: 18px; --r-sm: 12px; }
-:root[data-motion="reduce"] { --dur: 0s; }
-:root[data-glass="off"] { --glass: var(--panel); }
-:root[data-icons="small"] { --icon: 32px; } :root[data-icons="medium"] { --icon: 44px; } :root[data-icons="large"] { --icon: 60px; }
 
-/* Surfaces. glass — glass: strong blur with saturation, a light edge on top (a highlight), translucent panels */
-:root[data-surface="glass"] { --glass: rgb(20 24 34 / .58); --line: rgb(255 255 255 / .14); --shadow: 0 16px 48px rgb(0 0 0 / .45), inset 0 1px 0 rgb(255 255 255 / .16); }
-:root[data-surface="glass"][data-theme="light"] { --glass: rgb(255 255 255 / .55); --panel-2: rgb(255 255 255 / .45); --line: rgb(255 255 255 / .75); --shadow: 0 16px 48px rgb(20 30 40 / .16), inset 0 1px 0 rgb(255 255 255 / .9); }
-:root[data-surface="glass"][data-glass="off"] { --glass: var(--panel); }
-:root[data-surface="glass"] .card, :root[data-surface="glass"] .win, :root[data-surface="glass"] .widget, :root[data-surface="glass"] .taskbar, :root[data-surface="glass"] .menu, :root[data-surface="glass"] .ctx, :root[data-surface="glass"] .dd-list {
-  backdrop-filter: blur(28px) saturate(1.7); -webkit-backdrop-filter: blur(28px) saturate(1.7);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / .07), rgb(255 255 255 / 0) 42%);
-  box-shadow: var(--shadow);
+/* ---------- modifiers ---------- */
+:root[data-density="compact"] { --sp: .78; }
+:root[data-density="comfortable"] { --sp: 1.25; }
+:root[data-radius="sharp"] { --r-xs: 1px; --r-sm: 2px; --r: 2px; --r-lg: 3px; }
+:root[data-radius="round"] { --r-xs: 8px; --r-sm: 12px; --r: 18px; --r-lg: 22px; }
+:root[data-motion="reduce"] { --dur: 0s; }
+@media (prefers-reduced-motion: reduce) { :root { --dur: 0s; } }   /* the system setting counts too */
+:root[data-icons="small"] { --icon: 38px; } :root[data-icons="medium"] { --icon: 48px; } :root[data-icons="large"] { --icon: 62px; }
+
+/* ---------- surface: glass — translucent materials over the wallpaper, a floating shelf ---------- */
+:root[data-surface="glass"] {
+  --glass: color-mix(in oklab, var(--panel) 66%, transparent); --glass-blur: blur(26px) saturate(1.6);
+  --win-bg: color-mix(in oklab, var(--panel) 84%, transparent); --win-blur: blur(40px) saturate(1.5);
+  --win-line: color-mix(in oklab, var(--ink) 14%, transparent);
+  --sticky-bg: color-mix(in oklab, var(--panel) 74%, transparent); --sticky-blur: blur(18px) saturate(1.4);
+  --pop-bg: color-mix(in oklab, var(--panel-2) 80%, transparent); --pop-blur: blur(30px) saturate(1.6);
+  --widget-bg: color-mix(in oklab, var(--panel) 58%, transparent); --widget-blur: blur(24px) saturate(1.6);
+  --shelf-bg: color-mix(in oklab, var(--panel) 62%, transparent); --shelf-blur: blur(28px) saturate(1.7);
+  --shelf-line: color-mix(in oklab, var(--ink) 13%, transparent); --shelf-shadow: var(--shadow-2), inset 0 1px 0 rgb(255 255 255 / .09); --shelf-r: calc(var(--r-lg) + 4px);
+  --line: color-mix(in oklab, var(--ink) 11%, transparent); --line-2: color-mix(in oklab, var(--ink) 18%, transparent);
+  --tb-h: 54px; --tb-gap: 8px; --shelf-max: 1480px;
 }
-:root[data-surface="glass"][data-theme="light"] .card, :root[data-surface="glass"][data-theme="light"] .win, :root[data-surface="glass"][data-theme="light"] .widget, :root[data-surface="glass"][data-theme="light"] .taskbar, :root[data-surface="glass"][data-theme="light"] .menu { background-image: linear-gradient(180deg, rgb(255 255 255 / .55), rgb(255 255 255 / .1) 50%); }
-:root[data-surface="glass"] .win .bar { background: rgb(255 255 255 / .05); border-bottom-color: var(--line); }
-:root[data-surface="glass"][data-theme="light"] .win .bar { background: rgb(255 255 255 / .35); }
-:root[data-surface="glass"] .taskbar { border-top-color: var(--line); }
-/* no backdrop-filter (old browsers, disabled in settings) — the glass is almost opaque, otherwise text over the wallpaper is unreadable */
+:root[data-surface="glass"][data-theme="light"] {
+  --glass: color-mix(in oklab, var(--panel) 70%, transparent); --win-bg: color-mix(in oklab, var(--panel) 86%, transparent);
+  --pop-bg: color-mix(in oklab, var(--panel) 84%, transparent); --widget-bg: color-mix(in oklab, var(--panel) 62%, transparent);
+  --shelf-bg: color-mix(in oklab, var(--panel) 64%, transparent); --shelf-shadow: var(--shadow-2), inset 0 1px 0 rgb(255 255 255 / .7);
+  --line: color-mix(in oklab, var(--ink) 12%, transparent); --line-2: color-mix(in oklab, var(--ink) 20%, transparent);
+  --win-line: color-mix(in oklab, var(--ink) 16%, transparent); --shelf-line: color-mix(in oklab, var(--ink) 12%, transparent);
+}
+/* "translucent panels" switched off, the system "reduce transparency" setting, or no backdrop-filter: the materials turn opaque */
+:root[data-surface="glass"][data-glass="off"] { --glass: var(--panel); --glass-blur: none; --win-bg: var(--panel); --win-blur: none; --sticky-bg: var(--panel); --sticky-blur: none; --pop-bg: var(--panel-2); --pop-blur: none; --widget-bg: var(--panel); --widget-blur: none; --shelf-bg: var(--panel); --shelf-blur: none; }
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-surface="glass"] { --glass: var(--panel); --glass-blur: none; --win-bg: var(--panel); --win-blur: none; --sticky-bg: var(--panel); --sticky-blur: none; --pop-bg: var(--panel-2); --pop-blur: none; --widget-bg: var(--panel); --widget-blur: none; --shelf-bg: var(--panel); --shelf-blur: none; }
+}
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root[data-surface="glass"] { --glass: rgb(20 24 34 / .94); }
-  :root[data-surface="glass"][data-theme="light"] { --glass: rgb(255 255 255 / .94); --panel-2: rgb(255 255 255 / .9); }
+  :root[data-surface="glass"] { --glass: color-mix(in oklab, var(--panel) 95%, transparent); --win-bg: var(--panel); --pop-bg: var(--panel-2); --widget-bg: color-mix(in oklab, var(--panel) 94%, transparent); --shelf-bg: color-mix(in oklab, var(--panel) 95%, transparent); }
 }
-/* the system "reduce transparency" setting (macOS, iOS, Windows) — the panels are opaque, as with transparency off */
-@media (prefers-reduced-transparency: reduce) { :root, :root[data-surface="glass"] { --glass: var(--panel); } }
-/* oled — pure black, the panels almost black, no transparency */
-:root[data-surface="oled"] { --bg: #000; --panel: #0a0a0d; --panel-2: #131317; --line: #24242b; --glass: rgb(10 10 13 / .97); --shadow: 0 8px 30px rgb(0 0 0 / .7); }
-/* high contrast: no shadows or translucency, a visible focus */
-:root[data-contrast="high"] { --shadow: none; --glass: var(--panel); }
-:root[data-contrast="high"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- surface: oled — pure black, hairlines instead of shadows ---------- */
+:root[data-surface="oled"] {
+  --tint: #000; --bg: #000; --panel: #07080a; --panel-2: #101216; --panel-3: #1a1d23; --line: #1f232a; --line-2: #2d323b;
+  --shadow-1: none; --shadow-2: 0 0 0 1px #262b33; --shadow-3: 0 0 0 1px #2d323b, 0 20px 60px rgb(0 0 0 / .8);
+  --card: #0d0f13;
+}
+
+/* ---------- high contrast: no tint, no translucency, strong lines, a visible focus ---------- */
+:root[data-contrast="high"] {
+  --tint: #000; --bg: #000; --panel: #000; --panel-2: #0c0c0c; --panel-3: #1c1c1c; --ink: #fff; --muted: #d6d6d6; --line: #8c8c8c; --line-2: #fff;
+  --shadow-1: none; --shadow-2: none; --shadow-3: none; --card: transparent; --card-line: var(--line);
+  --glass: var(--panel); --glass-blur: none; --win-bg: var(--panel); --win-blur: none; --pop-bg: var(--panel); --pop-blur: none; --widget-bg: var(--panel); --widget-blur: none; --shelf-bg: var(--panel); --shelf-blur: none;
+  --win-line: #fff; --shelf-line: #fff; --bar-bg: #1c1c1c; --sticky-bg: var(--panel); --sticky-blur: none;
+}
+:root[data-contrast="high"][data-theme="light"] { --tint: #fff; --bg: #fff; --panel: #fff; --panel-2: #f2f2f2; --panel-3: #e2e2e2; --ink: #000; --muted: #262626; --line: #5e5e5e; --line-2: #000; --win-line: #000; --shelf-line: #000; --bar-bg: #e8e8e8; }
+:root[data-contrast="high"] :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 :root[data-contrast="high"] .badge, :root[data-contrast="high"] .muted { color: var(--ink); }
 
-/* The umbrel look (the "Umbrel" theme, like umbrelOS 2): a dark material over a landscape — black tinting 0.4, 20 px blur, a white
-   0.1 edge, a 0.2 highlight on top, a 14/34 shadow; radii 16 (elements) / 20 (cards, menus) / 24 (windows); buttons and fields are pills.
-   Tokens and shared elements are here; the dock, the app grid, windows and the screensaver draw themselves by data-look in their own components. */
+/* ---------- look: umbrel — a dark material over a landscape (umbrelOS 2): black tinting, a white hairline, a highlight on top;
+   the dock, the app grid, the "sheet" windows and the screensaver draw themselves by data-look in their components ---------- */
 :root[data-look="umbrel"] {
-  --bg: #000; --panel: rgb(0 0 0 / .55); --panel-2: rgb(255 255 255 / .08); --ink: rgb(255 255 255 / .92); --muted: rgb(255 255 255 / .5); --line: rgb(255 255 255 / .1);
-  --glass: rgb(0 0 0 / .42); --shadow: 0 14px 34px rgb(0 0 0 / .5), inset 0 1px 0 rgb(255 255 255 / .2), inset 0 .5px 0 rgb(255 255 255 / .1);
-  --r: 20px; --r-sm: 14px; --dur: .2s; --ok: #51CB41; --warn: #F5A623; --bad: #F45A5A;
+  --tint: #000; --bg: #000; --panel: #0f0f12; --panel-2: rgb(255 255 255 / .08); --panel-3: rgb(255 255 255 / .14);
+  --ink: rgb(255 255 255 / .92); --muted: rgb(255 255 255 / .52); --line: rgb(255 255 255 / .1); --line-2: rgb(255 255 255 / .2);
+  --ok: #51CB41; --warn: #F5A623; --bad: #F45A5A;
+  --fill: rgb(255 255 255 / .07); --fill-2: rgb(255 255 255 / .13);
+  --r-xs: 10px; --r-sm: 14px; --r: 20px; --r-lg: 24px; --dur: .2s;
+  --edge: inset 0 1px 0 rgb(255 255 255 / .2), inset 0 .5px 0 rgb(255 255 255 / .1);
+  --shadow-1: 0 4px 14px rgb(0 0 0 / .3); --shadow-2: 0 14px 34px rgb(0 0 0 / .5), var(--edge); --shadow-3: 0 10px 64px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .25), inset 0 .5px 0 rgb(255 255 255 / .12);
+  --glass: rgb(0 0 0 / .42); --glass-blur: blur(20px) saturate(1.2) brightness(.85);
+  --card: rgb(255 255 255 / .06); --card-line: rgb(255 255 255 / .1);
+  --win-bg: rgb(8 8 10 / .78); --win-blur: blur(40px) saturate(1.5) brightness(.7); --win-line: rgb(255 255 255 / .1); --win-r: 24px;
+  --bar-bg: transparent; --sticky-bg: rgb(14 14 16 / .66); --sticky-blur: blur(18px) saturate(1.3);
+  --pop-bg: rgb(12 12 14 / .72); --pop-blur: blur(30px) saturate(1.3) brightness(.8); --pop-r: 20px;
+  --widget-bg: rgb(0 0 0 / .42); --widget-blur: blur(20px) saturate(1.2) brightness(.85); --widget-r: 20px;
+  --shell-b: 96px;
   letter-spacing: -.01em; color-scheme: dark;
 }
-:root[data-look="umbrel"] body { -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
-:root[data-look="umbrel"] * { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / .25) transparent; }
-:root[data-look="umbrel"] .card, :root[data-look="umbrel"] .win, :root[data-look="umbrel"] .widget, :root[data-look="umbrel"] .menu, :root[data-look="umbrel"] .ctx,
-:root[data-look="umbrel"] .dd-list, :root[data-look="umbrel"] .picker, :root[data-look="umbrel"] .keypop, :root[data-look="umbrel"] .toast {
-  background: var(--glass); background-image: none; background-clip: padding-box; border: .5px solid rgb(255 255 255 / .1);
-  backdrop-filter: blur(20px) saturate(1.2) brightness(.85); -webkit-backdrop-filter: blur(20px) saturate(1.2) brightness(.85); box-shadow: var(--shadow);
+:root[data-look="umbrel"][data-glass="off"] { --glass: rgb(20 20 24 / .96); --glass-blur: none; --win-bg: rgb(16 16 20 / .98); --win-blur: none; --pop-bg: rgb(22 22 26 / .98); --pop-blur: none; --widget-bg: rgb(20 20 24 / .96); --widget-blur: none; }
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-look="umbrel"] { --glass: rgb(20 20 24 / .96); --glass-blur: none; --win-bg: rgb(16 16 20 / .98); --win-blur: none; --pop-bg: rgb(22 22 26 / .98); --pop-blur: none; --widget-bg: rgb(20 20 24 / .96); --widget-blur: none; }
 }
-:root[data-look="umbrel"] .card { border-radius: 20px; }
-:root[data-look="umbrel"] .menu, :root[data-look="umbrel"] .ctx, :root[data-look="umbrel"] .dd-list { border-radius: 20px; padding: 6px; }
-:root[data-look="umbrel"] .ctx button, :root[data-look="umbrel"] .dd-list li, :root[data-look="umbrel"] .menu .item { border-radius: 16px; }
-:root[data-look="umbrel"] .toast { border-left-width: .5px; border-radius: 18px; --shadow: 0 6px 16px rgb(0 0 0 / .3), inset 0 1px 0 rgb(255 255 255 / .2); backdrop-filter: blur(10px) saturate(1.2) brightness(.95); -webkit-backdrop-filter: blur(10px) saturate(1.2) brightness(.95); }
-/* windows are umbrelOS "sheets": stronger tinting and blur, rounding 24, no title bar; a maximized window floats with margins */
-:root[data-look="umbrel"] .win { --glass: rgb(0 0 0 / .7); border-radius: 24px; border-color: rgb(255 255 255 / .08); backdrop-filter: blur(40px) saturate(1.5) brightness(.7); -webkit-backdrop-filter: blur(40px) saturate(1.5) brightness(.7); box-shadow: 0 10px 64px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .25), inset 0 .5px 0 rgb(255 255 255 / .12); }
-:root[data-look="umbrel"] .win.active { border-color: rgb(255 255 255 / .14); }
-:root[data-look="umbrel"] .win.max { inset: 14px 14px 96px 14px; border-radius: 24px; }
-:root[data-look="umbrel"] .win.mobile { inset: var(--status) 0 var(--tb) 0; border-radius: 0; }
-:root[data-look="umbrel"] .win .bar { background: transparent; border-bottom: 0; padding: 10px 14px 4px; }
-:root[data-look="umbrel"] .win .bar .title { font-size: 1.05rem; font-weight: 700; letter-spacing: -.02em; }
-:root[data-look="umbrel"] .win .bar img { border-radius: 6px; }
-:root[data-look="umbrel"] .bar .ctl { gap: 6px; }
-:root[data-look="umbrel"] .bar .ctl button, :root[data-look="umbrel"] .bar .ctl a.ext { width: 26px; height: 26px; background: rgb(255 255 255 / .1); border: .5px solid rgb(255 255 255 / .12); color: rgb(255 255 255 / .85); box-shadow: inset 0 .5px 0 rgb(255 255 255 / .2); }
-:root[data-look="umbrel"] .bar .ctl .tl svg { opacity: 1; width: 11px; height: 11px; }
-:root[data-look="umbrel"] .bar .ctl button:hover, :root[data-look="umbrel"] .bar .ctl a.ext:hover { background: rgb(255 255 255 / .18); filter: none; border-color: rgb(255 255 255 / .2); }
-:root[data-look="umbrel"] .bar .ctl .close:hover { background: #E22C2C; color: #fff; }
-:root[data-look="umbrel"] .win:not(.active) .bar .ctl .tl, :root[data-look="umbrel"] .win:not(.active) .bar .ctl .key:not(.on), :root[data-look="umbrel"] .win:not(.active) .bar .ctl a.ext { background: rgb(255 255 255 / .06); color: rgb(255 255 255 / .5); }
-:root[data-look="umbrel"] .win .body { padding: calc(10px * var(--sp)) calc(18px * var(--sp)) calc(18px * var(--sp)); }
-:root[data-look="umbrel"] .win .grip { background: linear-gradient(135deg, transparent 50%, rgb(255 255 255 / .18) 50%); border-bottom-right-radius: 24px; }
-/* buttons and fields are pills with a highlight on top; the primary one — in the wallpaper color with white text */
-/* pills — only regular buttons, and without size changes (the padding stays base, otherwise small chips inflate and shift). */
-   Кнопки-поверхности сохраняют свои стили: прозрачный оверлей карточки Store (.hit), карточки тем и фонов, плитки, пункты меню,
-   иконки, кнопки окна, остров, образцы цвета и плитки внутри виджетов и Файлов (.gauge, .clock, .title, .a, .c, .name, .w, .pick,
-   .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link). */
-:root[data-look="umbrel"] button:not(.hit, .thm-card, .bg, .pitem, .icon, .item, .tile, .rc-open, .search, .empty, .start, .tl, .key, .close, .min, .max, .ib, .swatch, .mback, .gauge, .clock, .title, .a, .c, .name, .w, .pick, .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link) { border-radius: 999px; background: rgb(255 255 255 / .1); border: .5px solid rgb(255 255 255 / .2); box-shadow: inset 0 .5px 0 rgb(255 255 255 / .1); font-weight: 500; }
-:root[data-look="umbrel"] button:not(.hit, .thm-card, .bg, .pitem, .icon, .item, .tile, .rc-open, .search, .empty, .start, .tl, .key, .close, .min, .max, .ib, .swatch, .mback, .gauge, .clock, .title, .a, .c, .name, .w, .pick, .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link):hover { background: rgb(255 255 255 / .15); border-color: rgb(255 255 255 / .25); }
-/* tiles inside widgets are "recesses" in the glass, like the umbrelOS glass-cell */
+/* buttons and fields are pills. Surface buttons — tiles, cards, menu items, icons, window and shell controls — keep their own shape:
+   they are listed in :not(); a new surface button class goes into this list too. */
+:root[data-look="umbrel"] button:not(.hit, .thm-card, .bg, .pitem, .icon, .item, .tile, .rc-open, .search, .empty, .start, .tl, .key, .close, .min, .max, .ib, .swatch, .mback, .gauge, .clock, .title, .a, .c, .name, .w, .pick, .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link, .nb, .wx, .snap, .plain) {
+  border-radius: 999px; background: rgb(255 255 255 / .1); border: .5px solid rgb(255 255 255 / .2); box-shadow: inset 0 .5px 0 rgb(255 255 255 / .1); font-weight: 500;
+}
+:root[data-look="umbrel"] button:not(.hit, .thm-card, .bg, .pitem, .icon, .item, .tile, .rc-open, .search, .empty, .start, .tl, .key, .close, .min, .max, .ib, .swatch, .mback, .gauge, .clock, .title, .a, .c, .name, .w, .pick, .sroot, .sitem, .topen, .tmenu, .rowmenu, .shot, .open, .link, .nb, .wx, .snap, .plain):hover { background: rgb(255 255 255 / .16); border-color: rgb(255 255 255 / .26); }
+:root[data-look="umbrel"] button.primary { background: var(--accent); border-color: transparent; color: #fff; box-shadow: inset 0 .5px 0 rgb(255 255 255 / .3); }
+:root[data-look="umbrel"] button.primary:hover { background: var(--accent); filter: brightness(1.1); }
+:root[data-look="umbrel"] button.danger { background: rgb(226 44 44 / .14); border-color: rgb(226 44 44 / .4); color: #F45A5A; }
+:root[data-look="umbrel"] input, :root[data-look="umbrel"] select, :root[data-look="umbrel"] .dd-btn { border-radius: 999px; background: rgb(255 255 255 / .05); border: .5px solid rgb(255 255 255 / .12); padding-inline: calc(14px * var(--sp)); }
+:root[data-look="umbrel"] input:hover, :root[data-look="umbrel"] .dd-btn:hover { background: rgb(255 255 255 / .08); }
+:root[data-look="umbrel"] input[type=checkbox], :root[data-look="umbrel"] input[type=radio], :root[data-look="umbrel"] input[type=range] { border-radius: 4px; padding: 0; background: transparent; border: 0; }
+:root[data-look="umbrel"] textarea { border-radius: 16px; background: rgb(255 255 255 / .05); border: .5px solid rgb(255 255 255 / .12); }
 :root[data-look="umbrel"] .gauge, :root[data-look="umbrel"] .c { border-radius: 14px; background: rgb(255 255 255 / .06); border: 0; box-shadow: inset 0 2px 3px -1px rgb(0 0 0 / .22), inset 0 -1px 0 rgb(255 255 255 / .09); }
 :root[data-look="umbrel"] .thm-card, :root[data-look="umbrel"] .bg, :root[data-look="umbrel"] .pitem { border-radius: 16px; background: rgb(255 255 255 / .06); border: .5px solid rgb(255 255 255 / .1); }
 :root[data-look="umbrel"] .thm-card:hover, :root[data-look="umbrel"] .bg:hover, :root[data-look="umbrel"] .pitem:hover { background: rgb(255 255 255 / .1); }
 :root[data-look="umbrel"] .thm-card.active, :root[data-look="umbrel"] .bg.active { border-color: rgb(255 255 255 / .6); box-shadow: 0 0 0 1px rgb(255 255 255 / .6) inset; }
-:root[data-look="umbrel"] button.primary { background: var(--accent); border-color: transparent; color: #fff; box-shadow: inset 0 .5px 0 rgb(255 255 255 / .3); }
-:root[data-look="umbrel"] button.primary:hover { filter: brightness(1.1); }
-:root[data-look="umbrel"] button.danger { background: rgb(226 44 44 / .14); border-color: rgb(226 44 44 / .4); color: #F45A5A; }
-:root[data-look="umbrel"] input, :root[data-look="umbrel"] select, :root[data-look="umbrel"] .dd-btn { border-radius: 999px; background: rgb(255 255 255 / .04); border: .5px solid rgb(255 255 255 / .1); padding-left: calc(14px * var(--sp)); padding-right: calc(14px * var(--sp)); }
-:root[data-look="umbrel"] input:hover, :root[data-look="umbrel"] .dd-btn:hover { background: rgb(255 255 255 / .06); }
-:root[data-look="umbrel"] input[type=checkbox], :root[data-look="umbrel"] input[type=radio], :root[data-look="umbrel"] input[type=range] { border-radius: 4px; padding: 0; background: transparent; border: 0; }
-:root[data-look="umbrel"] textarea { border-radius: 16px; background: rgb(255 255 255 / .04); border: .5px solid rgb(255 255 255 / .1); }
-:root[data-look="umbrel"] .badge { background: rgb(255 255 255 / .08); border-color: rgb(255 255 255 / .06); }
-:root[data-look="umbrel"] code, :root[data-look="umbrel"] pre, :root[data-look="umbrel"] .skeleton { background: rgb(255 255 255 / .06); }
-:root[data-look="umbrel"] :focus-visible { outline: 2px solid rgb(255 255 255 / .25); outline-offset: 0; }
-/* shell: widgets and notifications above the dock, the start menu centered */
-:root[data-look="umbrel"] .wlayer { inset: 0 0 100px 0; }
-:root[data-look="umbrel"] .toasts { bottom: 100px; }
-:root[data-look="umbrel"] .certwarn { bottom: 104px; }
-:root[data-look="umbrel"] .menu { bottom: 98px !important; left: 50%; transform: translateX(-50%); }
-:root[data-look="umbrel"] .widget { border-radius: 20px; }
-:root[data-look="umbrel"] .whead { color: rgb(255 255 255 / .55); }
-@media (prefers-reduced-transparency: reduce) { :root[data-look="umbrel"] { --glass: rgb(20 20 24 / .96); } :root[data-look="umbrel"] .win { --glass: rgb(16 16 20 / .98); } }
+:root[data-look="umbrel"] :focus-visible { outline: 2px solid rgb(255 255 255 / .4); outline-offset: 1px; }
 
-* { box-sizing: border-box; }
-html { font-size: calc(15px * var(--scale)); }
-body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font: 1rem/1.5 var(--font); position: relative; }
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+* { scrollbar-width: thin; scrollbar-color: color-mix(in oklab, var(--ink) 24%, transparent) transparent; }
+html { font-size: calc(15px * var(--scale)); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { margin: 0; min-height: 100vh; min-height: 100dvh; background: var(--bg); color: var(--ink); font: 1rem/1.5 var(--font); position: relative; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
 body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper); filter: blur(var(--wallpaper-blur)); transform: scale(1.02); }
-/* the top wallpaper layer (the Monolith mark) — without blur, so the slider blurs only the space */
-body::after { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper-top); pointer-events: none; filter: blur(calc(var(--wallpaper-blur) * 0.2)); transform: scale(1.01); }  /* the mark is softened by a fifth of the space blur: at 13 px — about 2.5 px */
-a { color: var(--accent); }
-button { font: inherit; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(12px * var(--sp)); cursor: pointer; transition: border-color var(--dur), background var(--dur), transform var(--dur); }
-button:hover { border-color: var(--accent); }
+/* the top wallpaper layer (the Monolith mark) is softened by a fifth of the space blur, so the slider blurs the space and the mark stays readable */
+body::after { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper-top); pointer-events: none; filter: blur(calc(var(--wallpaper-blur) * 0.2)); transform: scale(1.01); }
+::selection { background: color-mix(in oklab, var(--accent) 42%, transparent); }
+a { color: var(--accent-ink); text-underline-offset: .15em; }
+h1, h2, h3 { text-wrap: balance; letter-spacing: -.012em; }
+h1 { font-size: 1.25rem; margin: 0; } h2 { font-size: 1.08rem; margin: 0 0 8px; } h3 { font-size: 1rem; margin: 0; }
+p, li { text-wrap: pretty; }
+img, svg { max-width: 100%; }
+
+button { font: inherit; font-weight: 500; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(13px * var(--sp)); cursor: pointer; touch-action: manipulation;
+  transition: border-color var(--dur), background var(--dur), color var(--dur), transform var(--dur), box-shadow var(--dur), filter var(--dur); }
+button:hover { background: var(--panel-3); border-color: var(--line-2); }
 button:active { transform: translateY(1px); }
-button.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
-button.danger { border-color: var(--bad); color: var(--bad); }
-button:disabled { opacity: .5; cursor: progress; }
-input, select, textarea { font: inherit; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(10px * var(--sp)); }
-input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-input[type=range] { padding: 0; accent-color: var(--accent); }
-input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
-.card { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: var(--r); padding: calc(14px * var(--sp)) calc(16px * var(--sp)); box-shadow: var(--shadow); }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: calc(12px * var(--sp)); }
+button.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; font-weight: 600; }
+button.primary:hover { background: var(--accent); filter: brightness(1.08); }
+button.danger { color: var(--bad); border-color: color-mix(in oklab, var(--bad) 55%, transparent); background: color-mix(in oklab, var(--bad) 9%, transparent); }
+button.danger:hover { background: color-mix(in oklab, var(--bad) 17%, transparent); border-color: var(--bad); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+input, select, textarea { font: inherit; color: var(--ink); background: color-mix(in oklab, var(--ink) 5%, transparent); border: 1px solid var(--line); border-radius: var(--r-sm); padding: calc(6px * var(--sp)) calc(10px * var(--sp)); min-width: 0; transition: border-color var(--dur), box-shadow var(--dur), background var(--dur); }
+input::placeholder, textarea::placeholder { color: color-mix(in oklab, var(--muted) 82%, transparent); }
+input:hover, select:hover, textarea:hover { border-color: var(--line-2); }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 0; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent-line); outline-offset: 2px; }
+input[type=range] { padding: 0; accent-color: var(--accent); background: transparent; border: 0; }
+input[type=checkbox], input[type=radio] { accent-color: var(--accent); padding: 0; width: 1.05em; height: 1.05em; }
+select option { background: var(--panel); color: var(--ink); }
+
+/* theme switch: a short cross-fade of the whole screen (View Transitions), clicks pass through while it runs */
+::view-transition { pointer-events: none; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
+
+/* ---------- primitives ---------- */
+.card { background: var(--card); border: 1px solid var(--card-line); border-radius: var(--r); padding: calc(14px * var(--sp)) calc(16px * var(--sp)); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: calc(12px * var(--sp)); }
 .row { display: flex; gap: calc(8px * var(--sp)); align-items: center; flex-wrap: wrap; }
 .muted { color: var(--muted); font-size: .87rem; }
-.badge { display: inline-flex; align-items: center; align-self: center; line-height: 1.5; font-size: .8rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
-.badge.ok { border-color: var(--ok); color: var(--ok); }
-.badge.warn { border-color: var(--warn); color: var(--warn); }
-.badge.bad { border-color: var(--bad); color: var(--bad); }
-code { font-family: ui-monospace, Menlo, monospace; font-size: .87rem; color: var(--ink); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
-pre { background: var(--panel-2); padding: 10px; border-radius: var(--r-sm); overflow: auto; font-size: .8rem; max-height: 40vh; }
-h1 { font-size: 1.2rem; margin: 0; } h2 { font-size: 1.07rem; margin: 0 0 8px; } h3 { font-size: 1rem; margin: 0; }
+.badge { display: inline-flex; align-items: center; align-self: center; line-height: 1.5; font-size: .78rem; font-weight: 500; padding: 1px 8px; border-radius: 999px; border: 1px solid color-mix(in oklab, currentColor 32%, transparent); background: color-mix(in oklab, currentColor 9%, transparent); color: var(--muted); white-space: nowrap; }
+.badge.ok { color: var(--ok); } .badge.warn { color: var(--warn); } .badge.bad { color: var(--bad); }
+code { font-family: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace; font-size: .86rem; color: var(--ink); background: var(--fill); padding: 1px 5px; border-radius: 5px; overflow-wrap: anywhere; }
+pre { background: var(--fill); padding: 10px 12px; border-radius: var(--r-sm); overflow: auto; font-size: .8rem; max-height: 40vh; }
+/* a wide table scrolls sideways inside its wrapper instead of widening the window content */
+.tscroll { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; }
 details > summary { cursor: pointer; }
+hr { border: 0; border-top: 1px solid var(--line); }
 
-/* indicators of long operations (install, removal, links) */
+/* ---------- long operations (install, removal, links) ---------- */
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .progress { position: absolute; left: 0; right: 0; top: 0; height: 3px; overflow: hidden; border-radius: var(--r) var(--r) 0 0; background: color-mix(in srgb, var(--accent) 20%, transparent); }
@@ -160,6 +238,7 @@ details > summary { cursor: pointer; }
 .badge.st::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; margin-right: 5px; flex: none; }
 .badge.st.pulse::before { animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .25; } }
-.skeleton { position: relative; overflow: hidden; background: var(--panel-2); border-radius: var(--r-sm); color: transparent; }
-.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .08), transparent); animation: shimmer 1.2s infinite; }
+.skeleton { position: relative; overflow: hidden; background: var(--fill); border-radius: var(--r-sm); color: transparent; }
+.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ink) 9%, transparent), transparent); animation: shimmer 1.2s infinite; }
 @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .spin, .progress::after, .skeleton::after, .badge.st.pulse::before { animation-duration: 3s; } }

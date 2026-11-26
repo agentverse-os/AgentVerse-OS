@@ -13,9 +13,9 @@ env:
     generate: password
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/samba/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/samba/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/samba/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/samba/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/samba/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/samba/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

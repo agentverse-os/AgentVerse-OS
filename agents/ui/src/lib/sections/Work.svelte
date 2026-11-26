@@ -4,6 +4,7 @@
   import { ui, data, actions, key, same, titleOf, agentOf, dotOf, statusText, shortModel, money, ago, phone, modeLabel, live, stopLabel, activity, TREE_LIMIT, accountMenu, ENGINES, engineIcon, type Ref } from '../state.svelte';
   import { dnd } from '../dnd.svelte';
   import { menu } from '../menu.svelte';
+  import { notify } from '../notify.svelte';
   import { t, tn } from '../i18n';
   import Mark from '../Mark.svelte';
   import Icon from '../Icon.svelte';
@@ -16,6 +17,7 @@
   import { agents, download, downloadUrl, fileName, type SessionInfo, type PtyInfo, type SearchResult, type SearchHit } from '../api';
   import { toast } from '../toast.svelte';
   import { tick } from 'svelte';
+  import { memTip } from '../memory';
   let { onpalette }: { onpalette: () => void } = $props();
   const q = $derived(ui.q.trim().toLowerCase());
   // message search (slice 34, §4.6): from three characters, 400 ms after the last one — the service's /search (agentd of all running workspaces +
@@ -86,6 +88,8 @@
         { avatar: 'shell', label: t('menu.shell'), on: () => actions.createPty(project, 'shell') },
         ...engines.filter(e => e.installed).map(e => ({ avatar: e.icon, label: tuiLabel(e), on: () => actions.createPty(project, e.id) })),
         ...(data.project(project)?.apps.some(a => a.slug === 'code-server') ? [{ sep: true }, { icon: 'ext', label: t('menu.ide'), on: () => actions.ide(project) }] : []),
+        // notification channels of the whole workspace (§9.12.2) — offered once there is a channel to bind
+        ...(notify.channels.length ? [{ sep: true }, { icon: 'bell', label: t('ntf.menuWorkspace'), checked: notify.bindings.some(b => b.scope === 'workspace' && b.project === project), on: () => notify.open({ scope: 'workspace', project, title: project }) }] : []),
       ];
     };
     menu.show(el, build());
@@ -94,7 +98,8 @@
     // …"
     const key = (list?: { id: string; installed: boolean; version?: string | null }[]) => JSON.stringify((list ?? []).map(e => [e.id, e.installed, e.version ?? '']));
     const before = key(data.engines[project]);
-    void data.loadEngines(project, true).then(() => { if (menu.open && menu.anchor === el && key(data.engines[project]) !== before) menu.show(el, build()); });
+    // something is not installed → ask agentd to detect anew (its cache is 5 min; a manual install on a server leaves no stamp)
+    void data.loadEngines(project, true, (data.engines[project] ?? []).some(e => !e.installed)).then(() => { if (menu.open && menu.anchor === el && key(data.engines[project]) !== before) menu.show(el, build()); });
   }
   function headerMenu(el: HTMLElement) {
     const run = data.running; if (!run.length) return;
@@ -105,6 +110,7 @@
     menu.show(el, [
       { icon: 'max', label: t('sess.menu.expand'), on: () => ui.expand(r) },
       ...(r.kind === 'session' ? [{ icon: 'edit', label: t('sess.menu.rename'), on: () => actions.rename(r) }] : []),
+      ...(r.kind === 'session' ? [{ icon: 'bell', label: t('ntf.menuSession'), checked: notify.forSession(r.project, r.id).length > 0, on: () => notify.open({ scope: 'session', project: r.project, session: r.id, title: titleOf(r) }) }] : []),
       { icon: 'globe', label: t('browser.menuPreview'), checked: !!data.browserOf(r.project).preview, on: () => actions.togglePreview(r.project) },
       { icon: 'monitor', label: t('abrowser.menu'), checked: !!data.browserOf(r.project).agent, on: () => actions.toggleAgentBrowser(r.project) },
       ...(r.kind === 'session' && dead ? [{ icon: 'play', label: t('sess.menu.resume'), on: () => actions.resume(r) }] : []),
@@ -153,14 +159,16 @@
       {@const rows = items(p)}
       {@const alive = p.sessions.filter(live).length + p.ptys.filter(x => x.alive && !x.session).length}
       {@const wait = p.sessions.some(s => s.status === 'waiting')}
-      <div class="ws" class:closed={ui.closed[p.name]} class:stopped={p.status !== 'running'}>
+      <div class="ws" class:closed={ui.closed[p.name]} class:stopped={p.status !== 'running'} class:host={p.kind === 'host'} data-kind={p.kind ?? 'workspace'}>
         <div class="wrow" role="button" tabindex="0" aria-label={p.name} aria-expanded={!ui.closed[p.name]} onclick={() => (ui.closed[p.name] = !ui.closed[p.name])} onkeydown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); ui.closed[p.name] = !ui.closed[p.name]; } }}>
-          <Icon name="chevD" size="s" /><span class="wname" title={p.description ?? ''}>{p.name}</span>
+          <Icon name="chevD" size="s" />{#if p.kind === 'host'}<span class="hostglyph" title={t('panel.hostHint', { addr: p.addr ?? '' })}><Icon name="server" size="s" /></span>{/if}<span class="wname" title={p.kind === 'host' ? `${t('panel.host')} · ${p.addr ?? ''}${p.description ? ' · ' + p.description : ''}` : (p.description ?? '')}>{p.name}</span>
           {#if wait}<span class="dot waiting"></span>{/if}
+          {#if p.memory && p.memory.state !== 'ok'}<span class="badge memtag {p.memory.state}" data-mem={p.memory.state} title={memTip(p.memory)}>{p.memory.state === 'stalled' ? t('mem.stalled') : t('mem.tight')}</span>{/if}
           {#if p.status === 'running'}
             {#if !p.reachable}<span class="badge warn" title={t('agents.noAgentd')}>agentd</span>{:else}<span class="count">{alive}</span>{/if}
             <span class="muted xs num">{money(p.cost_today)}</span>
             <button class="icon xs ghost" aria-label={`${t('panel.new')} · ${p.name}`} aria-haspopup="menu" data-tip={t('panel.new')} disabled={!p.reachable} onclick={(e) => { e.stopPropagation(); newMenu(e.currentTarget as HTMLElement, p.name); }}><Icon name="plus" size="s" /></button>
+          {:else if p.kind === 'host'}<span class="muted xs" title={p.addr ?? ''}>{p.host_status === 'disabled' ? t('hosts.stDisabled') : p.status === 'pending' ? t('panel.hostPending') : t('panel.hostOffline')}</span>
           {:else}<span class="muted xs">{p.status}</span>{/if}
         </div>
         {#if !ui.closed[p.name]}
@@ -179,7 +187,7 @@
   </div>
   <div class="p-foot">
     {#if data.ws}<div class="row"><span>{t('panel.today')}</span><span class="sp"></span><b class="num" style="color: var(--fg-1)">{money(data.ws.today.cost_usd)}</b><span>· {tn('agents.turns', data.ws.today.turns)}</span></div>{/if}
-    <div class="row"><span class="dot {data.health?.cloudd ? 'ok' : 'failed'}"></span><span>{t('panel.core')} {data.health?.cloudd ? 'ok' : t('api.offline')} · agentd {data.running.filter(p => p.reachable).length}/{data.running.length}{#if data.hubLive} · <span class="hub-live" title={t('hub.liveHint')}>{t('hub.live')}</span>{/if}</span></div>
+    <div class="row"><span class="dot {data.health?.cloudd ? 'ok' : 'failed'}"></span><span>{t('panel.core')} {data.health?.cloudd ? 'ok' : t('api.offline')} · agentd {data.running.filter(p => p.reachable).length}/{data.running.length}{#if data.hubLive}{' '}· <span class="hub-live" title={t('hub.liveHint')}>{t('hub.live')}</span>{/if}</span></div>
   </div>
 </aside>
 
@@ -227,16 +235,17 @@
       </div>
     {:else if ui.sel && cur}
       {@const s = cur as SessionInfo}
+      {@const told = ui.sel.kind === 'session' ? notify.forSession(ui.sel.project, ui.sel.id).map(b => notify.words(b)).join('; ') : ''}
       <div class="thread">
         <div class="t-head">
           <span class="av {agentOf(ui.sel)} lg"><Icon name={agentOf(ui.sel) === 'shell' ? 'terminal' : agentOf(ui.sel)} /></span>
-          <div class="thread-heading"><h2 class="ell" title={titleOf(ui.sel)}>{#if ui.sel.kind === 'session'}<Mark id={ui.sel.id} /> {/if}{titleOf(ui.sel)}</h2><div class="muted sm ell thread-summary" title={`${ui.sel.project} · ${ui.sel.kind === 'session' ? statusText(s) : t('menu.shell')}`}>{ui.sel.project}<span class="thread-detail"> · {cur.cwd}</span> · {ui.sel.kind === 'session' ? statusText(s) : t('menu.shell')}{#if cur.created_at}<span class="thread-detail"> · {t('thread.created')} {ago(cur.created_at)}</span>{/if}</div></div>
+          <div class="thread-heading"><h2 class="ell" title={titleOf(ui.sel)}>{#if ui.sel.kind === 'session'}<Mark id={ui.sel.id} /> {/if}{titleOf(ui.sel)}</h2><div class="muted sm ell thread-summary" title={`${ui.sel.project} · ${ui.sel.kind === 'session' ? statusText(s) : t('menu.shell')}`}>{ui.sel.project}<span class="thread-detail"> · {cur.cwd}</span> · {ui.sel.kind === 'session' ? statusText(s) : t('menu.shell')}{#if cur.created_at}<span class="thread-detail"> · {t('thread.created')} {ago(cur.created_at)}</span>{/if}{#if told}<span class="thread-detail thread-notify" title={t('ntf.chip', { list: told })}> · 🔔 {told}</span>{/if}</div></div>
           <span class="sp"></span>
           {#if ui.sel.kind === 'session'}<div class="meta">{#if s.model}<span class="chip mono"><Icon name="cpu" size="s" /> {s.model}</span>{/if}<span class="chip"><Icon name="shield" size="s" /> {modeLabel(s.permission_mode || (s.agent === 'codex' ? 'on-request' : 'default'))}</span><span class="chip num">{money(s.usage?.cost_usd)}</span></div>{/if}
           {#if data.project(ui.sel.project)?.apps.some(a => a.slug === 'code-server')}<button class="sm hide-m" onclick={() => actions.ide(ui.sel!.project)}>code-server <Icon name="ext" size="s" /></button>{/if}
           {#if ui.sel.kind === 'session' && !live(cur)}<button class="sm primary thread-action" onclick={() => actions.resume(ui.sel!)}>{t('thread.resume')}</button>{/if}
           <button class="sm thread-action {live(cur) ? 'danger' : 'ghost'}" onclick={() => actions.stopOrRemove(ui.sel!)}>{stopLabel(cur)}</button>
-          <button class="icon sm ghost thread-menu" title={t('sec.more')} aria-label={t('sec.more')} aria-haspopup="menu" onclick={(e) => { e.stopPropagation(); sessionMenu(e.currentTarget as HTMLElement, ui.sel!); }}><Icon name="more" /></button>
+          <button class="icon sm ghost thread-menu" class:ntf-on={!!told} title={told ? `${t('sec.more')} · ${t('ntf.chip', { list: told })}` : t('sec.more')} aria-label={t('sec.more')} aria-haspopup="menu" onclick={(e) => { e.stopPropagation(); sessionMenu(e.currentTarget as HTMLElement, ui.sel!); }}><Icon name="more" /></button>
         </div>
         <div class="t-body">{#key key(ui.sel)}<SessionPane project={ui.sel.project} id={ui.sel.id} kind={ui.sel.kind} cwd={cur.cwd} onchange={() => { if (!data.hubLive) data.loadWs(); }} />{/key}</div>
       </div>
@@ -264,6 +273,9 @@
   .load-warning :global(.i) { flex-shrink: 0; }
   .retry { flex-shrink: 0; }
   .thread-heading { min-width: 0; }
+  /* the conversation reports to a notification channel (§9.12.2): in words where there is room, as a dot on "⋯" where there is none */
+  .thread-menu { position: relative; }
+  .thread-menu.ntf-on::after { content: ""; position: absolute; top: 3px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
   @media (max-width: 599px), (pointer: coarse) and (max-height: 500px) and (max-width: 1099px) {
     .work-top { gap: 4px; }
     .work-top > .seg { min-width: 0; }

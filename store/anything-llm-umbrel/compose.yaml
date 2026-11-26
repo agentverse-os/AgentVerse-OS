@@ -18,7 +18,7 @@ services:
       UID: 1000
     extra_hosts:
     - host.docker.internal:host-gateway
-    image: mintplexlabs/anythingllm:1.16.1@sha256:05617e7bece7fd6eddc4f5b4176cd87fff74d7da88d988a6109b95481cce122c
+    image: mintplexlabs/anythingllm:1.20.0@sha256:3e2b7bc8eb0f73a130fc575f1372bd4e7189e399a63c037497fc183c141fc0ae
     networks:
       appnet:
         aliases:

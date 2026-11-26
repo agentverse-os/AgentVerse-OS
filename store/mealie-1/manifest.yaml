@@ -45,6 +45,6 @@ upstream:
   author: hay-kot
   categories: []
   source: https://github.com/hay-kot/mealie
-  tipi_version: 73
-  version: v3.24.0
+  tipi_version: 87
+  version: v3.31.0
 website: https://github.com/hay-kot/mealie

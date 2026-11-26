@@ -46,10 +46,11 @@ services:
       REDIS_HOST: ghostfolio_redis_1
       REDIS_PASSWORD: ${APP_GHOSTFOLIO_REDIS_PASSWORD}
       REDIS_PORT: 6379
-    image: ghostfolio/ghostfolio:3.65.0@sha256:5762d47097bb30f6e8c51a1a0ebd9a39798631b512d8a78223bcfe68202e5286
+    image: ghostfolio/ghostfolio:3.100.0@sha256:1bc2ff4740410dd2c3bdde95738268f4c619cf4eeec491e3967bec18c95130b1
     init: true
     networks:
       appnet:
         aliases:
         - ghostfolio_server_1
     restart: on-failure
+    stop_grace_period: 1m

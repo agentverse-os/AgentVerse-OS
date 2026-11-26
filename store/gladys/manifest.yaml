@@ -41,6 +41,6 @@ upstream:
   categories:
   - automation
   source: https://github.com/gladysassistant/gladys
-  tipi_version: 110
-  version: v4.86.1
+  tipi_version: 128
+  version: v5.3.3
 website: https://github.com/gladysassistant/gladys

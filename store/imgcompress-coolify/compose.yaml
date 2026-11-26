@@ -12,13 +12,13 @@ services:
     healthcheck:
       interval: 30s
       retries: 3
+      start_period: 10s
       test:
       - CMD
-      - curl
-      - -f
-      - http://127.0.0.1:5000
+      - python
+      - /container/healthcheck.py
       timeout: 10s
-    image: karimz1/imgcompress:0.6.0
+    image: karimz1/imgcompress:1.0.0
     networks:
       appnet:
         aliases:

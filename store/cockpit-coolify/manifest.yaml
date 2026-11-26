@@ -8,7 +8,8 @@ description: Cockpit is a headless content platform that is lightweight, fast an
 endpoint:
   port: 80
   service: cockpit
-env: {}
+env:
+  SERVICE_URL_COCKPIT_80: https://${APP_DOMAIN}
 gallery: []
 health: null
 hooks: {}

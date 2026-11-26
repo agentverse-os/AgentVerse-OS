@@ -12,11 +12,11 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/readur/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/readur/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/readur/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/readur/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/readur/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/readur/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/readur/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/readur/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/readur/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/readur/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,15 +46,10 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This release improves Readur's S3-backed document handling:
-      - Added optional S3 storage backend support, including endpoint and path-style controls
-      - Improved OCR and thumbnail generation for documents stored in S3
-      - Added automatic S3 addressing-style detection and related configuration/logging fixes
-      - Includes dependency updates for better stability
+    This maintenance release updates the underlying OCR and document-processing components.
 
-
-    Full release notes can be found at https://github.com/readur/readur/releases/tag/v2.9.2
+    Full release notes can be found at https://github.com/readur/readur/releases/tag/v3.1.3
   source: https://github.com/readur/readur
-  version: 2.9.2
+  version: 3.1.3
   website: https://github.com/readur/readur
 website: https://github.com/readur/readur

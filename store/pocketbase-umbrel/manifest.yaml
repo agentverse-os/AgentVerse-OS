@@ -10,10 +10,10 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pocketbase/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,12 +43,12 @@ upstream:
   categories:
   - developer
   release_notes: |-
-    PocketBase 0.40.1 is a follow-up to the recent 0.40.0 update. If you're updating from a pre-0.40 version and run custom PocketBase applications or chained commands, test them before relying on this update in production.
+    This update improves file storage safety and limits the source image size used for thumbnail generation to reduce excessive memory usage. It also includes security-related dependency updates and small dashboard fixes.
 
-    This release fixes regressions from the new JSON runtime, including invalid UTF-8 serialization handling and OAuth2 provider configuration merging.
+    If you're updating from a pre-0.40 version and run custom PocketBase applications or chained commands, test them before relying on this update in production.
 
-    Full release notes can be found at https://github.com/pocketbase/pocketbase/releases/tag/v0.40.1
+    Full release notes can be found at https://github.com/pocketbase/pocketbase/releases/tag/v0.40.6
   source: https://github.com/pocketbase/pocketbase
-  version: 0.40.1
+  version: 0.40.6
   website: https://pocketbase.io/
 website: https://pocketbase.io/

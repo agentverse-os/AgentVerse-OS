@@ -21,7 +21,7 @@ services:
     entrypoint: /bin/sh
     environment:
       ROCKET_PORT: 8089
-    image: vaultwarden/server:1.37.2@sha256:094b5689ed81549bd293418395c7cf495ae9d960fc2d4928cef2083ef913d912
+    image: vaultwarden/server:1.37.5@sha256:4fe17f415f90087377d37c755e0ea3cf189dcc6794e49cdd2a9adbb4937d9e1f
     networks:
       appnet:
         aliases:

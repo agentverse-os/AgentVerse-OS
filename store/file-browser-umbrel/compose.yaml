@@ -6,6 +6,7 @@ networks:
 services:
   server:
     environment:
+    - GODEBUG=multipathtcp=0
     - FB_PORT=80
     - FB_DATABASE=/database/filebrowser.db
     - FB_ROOT=/data

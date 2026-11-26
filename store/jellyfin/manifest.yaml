@@ -39,6 +39,6 @@ upstream:
   categories:
   - media
   source: https://github.com/jellyfin/jellyfin
-  tipi_version: 47
-  version: 10.11.11
+  tipi_version: 48
+  version: version-12.2ubu2604
 website: https://github.com/jellyfin/jellyfin

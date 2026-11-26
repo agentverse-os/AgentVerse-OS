@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   budibase:
-    image: budibase/budibase:v3.43.0
+    image: budibase/budibase:v3.51.0
     networks:
       appnet:
         aliases:

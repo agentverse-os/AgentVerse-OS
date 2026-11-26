@@ -10,7 +10,7 @@ services:
     - PUID=
     - PGID=
     - MULTITHREADING=
-    - MAX_PLAYERS=
+    - PLAYERS=
     - SERVER_NAME=
     - SERVER_DESCRIPTION=
     - SERVER_PASSWORD=
@@ -124,7 +124,7 @@ services:
     - BOX64_DYNAREC_FASTROUND=${BOX64_DYNAREC_FASTROUND:-}
     - BOX64_DYNAREC_FASTNAN=${BOX64_DYNAREC_FASTNAN:-}
     - BOX64_DYNAREC_X87DOUBLE=${BOX64_DYNAREC_X87DOUBLE:-}
-    image: thijsvanloef/palworld-server-docker:v1.4.6
+    image: thijsvanloef/palworld-server-docker:v2.8.1
     networks:
       appnet:
         aliases:

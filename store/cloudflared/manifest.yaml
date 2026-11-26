@@ -55,6 +55,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/WisdomSky/Cloudflared-web
-  tipi_version: 62
-  version: 2026.8.2
+  tipi_version: 83
+  version: 2026.11.0
 website: https://github.com/WisdomSky/Cloudflared-web

@@ -19,7 +19,8 @@ services:
         PUBLIC_LOGIN_PAGE_MESSAGE: ''
         REDIS_HOSTNAME: immich_redis_1
         REVERSE_GEOCODING_PRECISION: '3'
-    image: ghcr.io/immich-app/immich-machine-learning:v3.1.0@sha256:5a0839dc5303cd7215bcd2180a26aed3af41675aefb3e75e5157e9f10ad16e6e
+      MACHINE_LEARNING_MODEL_REVISION: v2
+    image: ghcr.io/immich-app/immich-machine-learning:v3.4.2@sha256:739405742a79bd7447227c553bb62ed5491aa36acf00bc667af7f9c93b6fae91
     networks:
       appnet:
         aliases:
@@ -82,7 +83,7 @@ services:
         PUBLIC_LOGIN_PAGE_MESSAGE: ''
         REDIS_HOSTNAME: immich_redis_1
         REVERSE_GEOCODING_PRECISION: '3'
-    image: ghcr.io/immich-app/immich-server:v3.1.0@sha256:b434cb9287eea1471c9974845914d4dd328c9c2d652e446ed4930f99944f0ceb
+    image: ghcr.io/immich-app/immich-server:v3.4.2@sha256:fc880c1bf665b4aab1e74c15e56ab871225989cd546536e6b77e771869af06bd
     networks:
       appnet:
         aliases:

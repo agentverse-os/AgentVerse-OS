@@ -43,8 +43,8 @@ upstream:
   author: Diamond Digital Development
   categories:
   - files
-  release_notes: null
+  release_notes: This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
   source: https://github.com/diamonddigitaldev/Dropgate
-  version: 3.0.13
+  version: 3.0.13-patch.1
   website: https://diamonddigital.dev/projects/dropgate
 website: https://diamonddigital.dev/projects/dropgate

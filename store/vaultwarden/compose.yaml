@@ -8,7 +8,7 @@ services:
     environment:
       ADMIN_TOKEN: ${VAULTWARDEN_ADMIN_PASSWORD}
       WEBSOCKET_ENABLED: 'true'
-    image: vaultwarden/server:1.37.2
+    image: vaultwarden/server:1.37.5
     networks:
       appnet:
         aliases:

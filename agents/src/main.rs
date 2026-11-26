@@ -5,11 +5,14 @@
 //! models) and keeps its own data (prices, defaults, limits) in its own SQLite.
 mod api;
 mod assist;
+mod chanfmt;
+mod channels;
 mod chat;
 mod hub;
 mod prices;
 mod push;
 mod proxy;
+mod reports;
 mod routines;
 mod scheduled;
 mod search;
@@ -19,6 +22,7 @@ mod skills;
 mod store;
 mod voice;
 mod voice_stream;
+mod watch;
 
 use anyhow::{Context, Result};
 use axum::extract::{Path, State};
@@ -36,10 +40,14 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Parser)]
 #[command(name = "cloudos-agents", version, about = "AgentVerse OS: сервис «Агенты» — бэкенд и веб-приложение поверх cloudd")]
 struct Args {
-    /// Comma-separated addresses: loopback and the docker gateway (the
-    /// edge comes from there)
-    #[arg(long, env = "AGENTS_LISTEN", default_value = "127.0.0.1:7300,172.17.0.1:7300")]
+    /// Comma-separated TCP addresses. Loopback only by default: the edge comes through the unix socket (ADR-010); the
+    /// core adds the docker bridge address here for an edge container created without the socket directory
+    #[arg(long, env = "AGENTS_LISTEN", default_value = "127.0.0.1:7300")]
     listen: String,
+    /// Unix socket for the edge, in the directory shared with its container. Nothing in the docker networks can reach the
+    /// service this way
+    #[arg(long, env = "AGENTS_SOCKET")]
+    socket: Option<PathBuf>,
     /// Core address
     #[arg(long, env = "CLOUDD_URL", default_value = "http://127.0.0.1:7100")]
     cloudd: String,
@@ -58,6 +66,9 @@ pub struct App {
     /// Simple chat: incognito in memory, answers in progress, the route model cache
     /// (simplechat.rs)
     pub chat: simplechat::ChatState,
+    /// Runs of routines: launches in flight, the webhook rate, attempted retries, the handled schedule minute
+    /// (routines.rs)
+    pub runs: routines::RunState,
     /// scratch is created/started in the background
     /// (chat.rs)
     pub scratch_busy: std::sync::atomic::AtomicBool,
@@ -74,6 +85,8 @@ pub struct App {
     /// share_target (share.rs): what was shared from the phone, until the app
     /// picks it up
     pub share: share::ShareState,
+    /// Notification channels (channels.rs): the queue's rate, Telegram handshakes and buttons, the report boxes
+    pub channels: channels::State,
 }
 
 #[derive(RustEmbed)]
@@ -82,12 +95,15 @@ struct Ui;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt().with_env_filter(tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "agents=info,tower_http=warn".into())).init();
+    // The log target of this binary is its crate name, `cloudos_agents` (the package is `agents`, the binary —
+    // `cloudos-agents`). With the filter spelled `agents=info` nothing of the service's own reached the journal, warnings
+    // included: only the HTTP layer's errors were there.
+    tracing_subscriber::fmt().with_env_filter(tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "cloudos_agents=info,tower_http=warn".into())).init();
     let args = Args::parse();
     let store = store::Store::open(&args.data).with_context(|| format!("хранилище в {}", args.data.display()))?;
     let http = reqwest::Client::builder().timeout(std::time::Duration::from_secs(120)).build()?;
-    let app = Arc::new(App { http, cloudd: args.cloudd.trim_end_matches('/').to_string(), store, data: args.data.clone(), chat: Default::default(), scratch_busy: Default::default(), scratch_error: Default::default(), hub: Default::default(), voice_streams: Arc::new(tokio::sync::Semaphore::new(voice_stream::MAX_STREAMS)), push: Default::default(), share: Default::default() });
-    routines::start(app.clone()); hub::start(app.clone());
+    let app = Arc::new(App { http, cloudd: args.cloudd.trim_end_matches('/').to_string(), store, data: args.data.clone(), chat: Default::default(), runs: Default::default(), scratch_busy: Default::default(), scratch_error: Default::default(), hub: Default::default(), voice_streams: Arc::new(tokio::sync::Semaphore::new(voice_stream::MAX_STREAMS)), push: Default::default(), share: Default::default(), channels: Default::default() });
+    routines::start(app.clone()); hub::start(app.clone()); channels::start(app.clone());
     // spending limits (§8.3): mirror settings.limits into the core at start (the core may come up later than the
     // service — retries)
     { let app2 = app.clone(); tokio::spawn(async move { for i in 0..10u64 { match api::mirror_budgets(&app2).await { Ok(()) => break, Err(e) => { tracing::warn!("лимиты расходов: зеркало в ядро не удалось ({e:#}), повтор через {} с", 10 * (i + 1)); tokio::time::sleep(std::time::Duration::from_secs(10 * (i + 1))).await; } } } }); }
@@ -96,6 +112,7 @@ async fn main() -> Result<()> {
         .route("/agents/api/workspaces", get(api::workspaces))
         .route("/agents/api/hub", get(hub::ws))
         .route("/agents/api/inbox", get(api::inbox))
+        .route("/agents/api/inbox/dismiss", axum::routing::post(watch::dismiss))
         .route("/agents/api/models", get(api::models))
         .route("/agents/api/settings", get(api::settings_get).put(api::settings_put))
         .route("/agents/api/prices/sync", axum::routing::post(prices::sync))
@@ -106,10 +123,12 @@ async fn main() -> Result<()> {
         .route("/agents/api/agents/draft", axum::routing::post(assist::draft))
         .route("/agents/api/skills", get(skills::list).post(skills::create))
         .route("/agents/api/skills/materialize", axum::routing::post(skills::materialize_api))
+        .route("/agents/api/skills/{name}/accept", axum::routing::post(skills::accept))
         .route("/agents/api/skills/{name}", axum::routing::put(skills::update).delete(skills::delete))
         .route("/agents/api/routines", get(routines::routines_list).post(routines::routines_create))
         .route("/agents/api/routines/{id}", axum::routing::put(routines::routines_update).delete(routines::routines_delete))
         .route("/agents/api/routines/{id}/run", axum::routing::post(routines::routine_run))
+        .route("/agents/api/routines/{id}/token", axum::routing::post(routines::routine_token))
         .route("/agents/api/scheduled", get(scheduled::list).post(scheduled::create))
         .route("/agents/api/scheduled/{id}", axum::routing::delete(scheduled::delete))
         .route("/agents/api/runs", get(routines::runs_list))
@@ -124,7 +143,7 @@ async fn main() -> Result<()> {
         .route("/agents/api/chat/presets", get(simplechat::presets_get).put(simplechat::presets_put))
         .route("/agents/api/chats", get(simplechat::list).post(simplechat::create))
         .route("/agents/api/chats/{id}", get(simplechat::get).put(simplechat::update).delete(simplechat::delete))
-        .route("/agents/api/chats/{id}/messages", axum::routing::post(simplechat::send))
+        .route("/agents/api/chats/{id}/messages", axum::routing::post(simplechat::send).layer(axum::extract::DefaultBodyLimit::max(simplechat::SEND_BODY_MAX)))
         .route("/agents/api/chats/{id}/stop", axum::routing::post(simplechat::stop))
         .route("/agents/api/chats/{id}/keep", axum::routing::post(simplechat::keep))
         .route("/agents/api/chats/{id}/handoff", axum::routing::post(simplechat::handoff))
@@ -142,6 +161,17 @@ async fn main() -> Result<()> {
         .route("/agents/api/push/subscribe", axum::routing::post(push::subscribe).delete(push::unsubscribe))
         .route("/agents/api/push/prefs", axum::routing::put(push::put_prefs))
         .route("/agents/api/push/test", axum::routing::post(push::test))
+        // notification channels (channels.rs): channels with their secrets write-only, the Telegram handshake, bindings,
+        // "send this message to a channel"
+        .route("/agents/api/notify/channels", get(channels::list).post(channels::create))
+        .route("/agents/api/notify/channels/{id}", axum::routing::put(channels::update).delete(channels::remove))
+        .route("/agents/api/notify/channels/{id}/test", axum::routing::post(channels::test))
+        .route("/agents/api/notify/channels/{id}/log", get(channels::log))
+        .route("/agents/api/notify/telegram/begin", axum::routing::post(channels::tg_begin))
+        .route("/agents/api/notify/telegram/find", axum::routing::post(channels::tg_find))
+        .route("/agents/api/notify/bindings", get(channels::bindings_list).post(channels::bind))
+        .route("/agents/api/notify/bindings/{id}", axum::routing::delete(channels::unbind))
+        .route("/agents/api/notify/share", axum::routing::post(channels::share))
         .route("/agents/share", axum::routing::post(share::receive).layer(axum::extract::DefaultBodyLimit::max(share::MAX_SHARE + 65536)))
         .route("/agents/api/share/{id}", get(share::take))
         .route("/agents/api/core/{*path}", any(proxy::core))
@@ -162,8 +192,30 @@ async fn main() -> Result<()> {
         handles.push(tokio::spawn(async move { axum::serve(listener, r).await }));
     }
     if handles.is_empty() { anyhow::bail!("ни один адрес из {} не удалось занять", args.listen); }
+    if let Some(path) = &args.socket {
+        match bind_unix(path) {
+            Ok(listener) => {
+                tracing::info!("cloudos-agents {VERSION}: сокет {}", path.display());
+                let r = router.clone();
+                handles.push(tokio::spawn(async move { axum::serve(listener, r).await }));
+            }
+            Err(e) => tracing::warn!("не слушаю сокет {}: {e:#}", path.display()),
+        }
+    }
     for h in handles { h.await??; }
     Ok(())
+}
+
+/// A unix listener at `path`. The directory is only ever created, never removed or recreated: the edge container holds a
+/// bind mount of it, and a recreated directory would leave the container with the old empty one. The socket file of the
+/// previous process is replaced.
+fn bind_unix(path: &std::path::Path) -> anyhow::Result<tokio::net::UnixListener> {
+    use std::os::unix::fs::PermissionsExt;
+    if let Some(dir) = path.parent() { std::fs::create_dir_all(dir)?; }
+    let _ = std::fs::remove_file(path);
+    let listener = tokio::net::UnixListener::bind(path)?;
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o660))?;
+    Ok(listener)
 }
 
 async fn ui_index() -> Response { serve_ui("index.html") }

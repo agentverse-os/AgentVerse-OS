@@ -30,7 +30,7 @@ services:
       - localhost
       - '5212'
       timeout: 10s
-    image: cloudreve/cloudreve:4.10.1
+    image: cloudreve/cloudreve:4.19.1
     networks:
       appnet:
         aliases:

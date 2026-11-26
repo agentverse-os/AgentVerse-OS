@@ -3,7 +3,7 @@ Empowering insights. Preserving privacy.
 Umami makes it easy to collect, analyze, and understand your web data — while maintaining visitor privacy and data ownership.
 
 ⚠️ Note
-Change the default password by clicking on the avatar in the top right corner and then 'profile'.
+Change your password under Settings → Security. Umami requires changing the default administrator password before continuing.
 You may need to expose Umami to the web in order to use the app in its intended way with websites.
 The easiest way to do this is to use the 'Cloudflare Tunnel' app from the umbrel app store, and expose the Umami app using your own domain.
 

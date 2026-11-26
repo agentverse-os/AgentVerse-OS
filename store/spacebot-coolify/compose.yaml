@@ -25,7 +25,7 @@ services:
       - -sf
       - http://localhost:19898/api/health
       timeout: 5s
-    image: ghcr.io/spacedriveapp/spacebot:full
+    image: ghcr.io/spacedriveapp/spacebot:v0.5.0
     networks:
       appnet:
         aliases:

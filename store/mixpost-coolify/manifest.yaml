@@ -12,6 +12,8 @@ env:
   MYSQL_DATABASE: mixpost_db
   SERVICE_BASE64_MIXPOST:
     generate: hex64
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
   SERVICE_PASSWORD_MYSQL:
     generate: password
   SERVICE_PASSWORD_MYSQLROOT:
@@ -26,9 +28,9 @@ hooks: {}
 host_docker_socket: false
 icon: ./logo.svg
 login:
-  mode: app
+  mode: generated
   note: null
-  password: null
+  password: SERVICE_PASSWORD_ADMIN
   path: null
   user: null
 name: mixpost-coolify

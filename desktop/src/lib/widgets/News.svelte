@@ -84,7 +84,7 @@
   </div>
 {:else}
   <div class="head row">
-    <span class="muted small">{presetLabel} · {count}{#if updated} · {updated === t('time.now') ? t('widgets.news.updatedNow') : t('widgets.news.updatedAgo', { ago: updated })}{/if}</span>
+    <span class="muted small">{presetLabel} · {count}{#if updated}{' '}· {updated === t('time.now') ? t('widgets.news.updatedNow') : t('widgets.news.updatedAgo', { ago: updated })}{/if}</span>
     <span style="flex:1"></span>
     <button class="mini" title={t('widgets.news.refresh')} onclick={() => load(true)} disabled={loading}>{#if loading}<span class="spin"></span>{:else}↻{/if}</button>
     <button class="mini" title={t('widgets.news.feedSettings')} onclick={() => settings = true}>⚙</button>
@@ -102,7 +102,7 @@
         <div class="txt">
           <button class="title" onclick={() => openItem(i)}>{decode(i.title)}</button>
           {#if !compact && cleanSummary(i.summary)}<div class="muted sum">{cleanSummary(i.summary)}</div>{/if}
-          <div class="meta muted small"><span class="dot" style="background:{sourceColor(shortSource(i.source))}"></span>{shortSource(i.source)} · {ago(i.published)}{#if i.author && !compact} · {i.author}{/if}<a class="ext" href={i.link} target="_blank" rel="noopener" title={t('widgets.news.openOriginal')}>↗</a></div>
+          <div class="meta muted small"><span class="dot" style="background:{sourceColor(shortSource(i.source))}"></span>{shortSource(i.source)} · {ago(i.published)}{#if i.author && !compact}{' '}· {i.author}{/if}<a class="ext" href={i.link} target="_blank" rel="noopener" title={t('widgets.news.openOriginal')}>↗</a></div>
         </div>
       </article>
     {/each}
@@ -124,7 +124,8 @@
   .meta { display: flex; align-items: center; gap: 5px; }
   .meta .ext { margin-left: auto; color: var(--muted); text-decoration: none; padding: 0 4px; } .meta .ext:hover { color: var(--accent); }
   .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex: none; }
-  .chips { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 4px; scrollbar-width: none; }
+  /* the source chips scroll sideways; the right edge fades out to show there is more */
+  .chips { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 4px; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 22px), transparent); }
   .chip { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; font-size: .75rem; border-radius: 999px; white-space: nowrap; background: transparent; }
   .chip.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
   .small { font-size: .75rem; }

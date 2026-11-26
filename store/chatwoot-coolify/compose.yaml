@@ -48,7 +48,7 @@ services:
       - -q
       - http://127.0.0.1:3000
       timeout: 20s
-    image: chatwoot/chatwoot:latest
+    image: chatwoot/chatwoot:v4.19.1
     networks:
       appnet:
         aliases:
@@ -68,7 +68,7 @@ services:
       - CMD-SHELL
       - pg_isready -U $SERVICE_USER_POSTGRES -d chatwoot -h 127.0.0.1
       timeout: 10s
-    image: pgvector/pgvector:pg12
+    image: pgvector/pgvector:0.8.7-pg16
     networks:
       appnet:
         aliases:
@@ -91,7 +91,7 @@ services:
       - $SERVICE_PASSWORD_REDIS
       - PING
       timeout: 10s
-    image: redis:alpine
+    image: redis:8.10.3-alpine
     networks:
       appnet:
         aliases:
@@ -107,8 +107,8 @@ services:
     - -C
     - config/sidekiq.yml
     depends_on:
-    - postgres
-    - redis
+      chatwoot:
+        condition: service_healthy
     environment:
     - SECRET_KEY_BASE=$SERVICE_PASSWORD_CHATWOOT
     - FRONTEND_URL=${SERVICE_URL_CHATWOOT}
@@ -140,9 +140,9 @@ services:
       retries: 3
       test:
       - CMD-SHELL
-      - bundle exec rails runner 'puts Sidekiq.redis(&:info)' > /dev/null 2>&1
+      - REDIS_URL=redis://default:$${REDIS_PASSWORD}@redis:6379 bundle exec sidekiqmon processes | grep -q 'sidekiq'
       timeout: 10s
-    image: chatwoot/chatwoot:latest
+    image: chatwoot/chatwoot:v4.19.1
     networks:
       appnet:
         aliases:

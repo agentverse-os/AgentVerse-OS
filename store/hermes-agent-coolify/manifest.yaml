@@ -1,0 +1,122 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/hermes-agent-coolify
+description: Hermes Agent - autonomous AI agent with persistent memory, scheduling, and built-in web dashboard.
+endpoint:
+  port: 9119
+  service: hermes-agent
+env:
+  ANTHROPIC_API_KEY: ''
+  FIRECRAWL_API_KEY: ''
+  FIRECRAWL_API_URL: https://api.firecrawl.dev
+  GOOGLE_API_KEY: ''
+  HERMES_ALLOW_PRIVATE_URLS: 'false'
+  HERMES_ENABLE_PROJECT_PLUGINS: 'true'
+  OPENAI_API_KEY: ''
+  OPENROUTER_API_KEY: ''
+  SERVICE_BASE64_64_HERMESAGENT:
+    generate: hex64
+  SERVICE_PASSWORD_HERMESAGENT:
+    generate: password
+  SERVICE_URL_HERMESAGENT_9119: https://${APP_DOMAIN}
+  SERVICE_USER_HERMESAGENT:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_HERMESAGENT
+  path: null
+  user: SERVICE_USER_HERMESAGENT
+name: hermes-agent-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: HERMES_ENABLE_PROJECT_PLUGINS
+  hint: 'по умолчанию: true'
+  label: hermes enable project plugins
+  options: null
+  required: false
+  type: text
+- env: HERMES_ALLOW_PRIVATE_URLS
+  hint: 'по умолчанию: false'
+  label: hermes allow private urls
+  options: null
+  required: false
+  type: text
+- env: FIRECRAWL_API_KEY
+  hint: null
+  label: firecrawl api key
+  options: null
+  required: false
+  type: password
+- env: FIRECRAWL_API_URL
+  hint: 'по умолчанию: https://api.firecrawl.dev'
+  label: firecrawl api url
+  options: null
+  required: false
+  type: text
+- env: OPENROUTER_API_KEY
+  hint: null
+  label: openrouter api key
+  options: null
+  required: false
+  type: password
+- env: ANTHROPIC_API_KEY
+  hint: null
+  label: anthropic api key
+  options: null
+  required: false
+  type: password
+- env: OPENAI_API_KEY
+  hint: null
+  label: openai api key
+  options: null
+  required: false
+  type: password
+- env: GOOGLE_API_KEY
+  hint: null
+  label: google api key
+  options: null
+  required: false
+  type: password
+tags:
+- ai
+- agent
+- llm
+- chatbot
+- hermes
+- openrouter
+- anthropic
+- openai
+title: Hermes Agent
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://github.com/NousResearch/hermes-agent
+  tags:
+  - ai
+  - agent
+  - llm
+  - chatbot
+  - hermes
+  - openrouter
+  - anthropic
+  - openai
+  template: hermes-agent.yaml
+website: https://github.com/NousResearch/hermes-agent

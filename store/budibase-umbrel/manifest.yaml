@@ -12,9 +12,9 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/budibase/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/budibase/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/budibase/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/budibase/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/budibase/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/budibase/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,6 +44,10 @@ upstream:
   categories:
   - developer
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Budibase 3.41.3 release notes:
+
     Key improvements in this release include:
       - Fixes relationship primary displays in static formulas
       - Fixes agent tool API rename handling
@@ -54,6 +58,6 @@ upstream:
 
     Full release notes can be found at https://github.com/Budibase/budibase/releases/tag/3.41.3
   source: https://github.com/Budibase/budibase
-  version: 3.41.3
+  version: 3.41.3-patch.1
   website: https://budibase.com
 website: https://budibase.com

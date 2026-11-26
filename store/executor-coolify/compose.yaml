@@ -25,7 +25,7 @@ services:
       - -e
       - fetch(`http://127.0.0.1:${process.env.PORT||4788}/api/health`).then(r=>process.exit(r.ok?0:1),()=>process.exit(1))
       timeout: 5s
-    image: ghcr.io/rhyssullivan/executor-selfhost:${EXECUTOR_VERSION:-latest}
+    image: ghcr.io/rhyssullivan/executor-selfhost:${EXECUTOR_VERSION:-1.6.10}
     networks:
       appnet:
         aliases:

@@ -7,7 +7,7 @@ services:
   trilium:
     environment:
       TRILIUM_DATA_DIR: /home/node/trilium-data
-    image: ghcr.io/triliumnext/trilium:v0.105.0
+    image: ghcr.io/triliumnext/trilium:v0.107.0
     networks:
       appnet:
         aliases:

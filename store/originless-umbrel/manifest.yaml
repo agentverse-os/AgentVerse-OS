@@ -10,9 +10,9 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/originless/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/originless/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/originless/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/originless/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/originless/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/originless/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,8 +43,8 @@ upstream:
   author: besoeasy
   categories:
   - files
-  release_notes: null
+  release_notes: This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
   source: https://github.com/besoeasy/Originless
-  version: 0.1.0
+  version: 0.1.0-patch.1
   website: https://github.com/besoeasy/Originless
 website: https://github.com/besoeasy/Originless

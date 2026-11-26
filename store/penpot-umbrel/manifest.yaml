@@ -14,9 +14,9 @@ env:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/penpot/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/penpot/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/penpot/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/penpot/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/penpot/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/penpot/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,10 +46,12 @@ upstream:
   categories:
   - developer
   release_notes: |-
-    This update fixes a security issue in Penpot's SVG exporter and resolves SVG text export rendering problems.
-    It also fixes typography tokens becoming detached when editing text content.
-    Full release notes can be found at https://github.com/penpot/penpot/releases/tag/2.17.2
+    ⚠️ Back up your designs before updating. File and version-history storage is migrated automatically on startup. Very large installations with millions of snapshots or hundreds of GB of database storage must complete the upstream migration procedure before updating: https://github.com/penpot/penpot/blob/2.19.0/operations/2.19.0-migrate-legacy-file-data.md
+
+    This update fixes crashes when duplicating designs with deleted components and prevents a browser plugin initialization failure from leaving the entire app blank. It also improves frontend memory usage when container CPU limits are configured.
+
+    Full release notes can be found at https://github.com/penpot/penpot/releases/tag/2.19.3
   source: https://github.com/penpot/penpot
-  version: 2.17.2
+  version: 2.19.3
   website: https://penpot.app/
 website: https://penpot.app/

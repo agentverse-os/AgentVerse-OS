@@ -7,7 +7,7 @@ services:
   silverbullet:
     environment:
       SB_USER: ${SB_USER}:${SB_PASSWORD}
-    image: zefhemel/silverbullet:2.10.0
+    image: zefhemel/silverbullet:2.12.1
     networks:
       appnet:
         aliases:

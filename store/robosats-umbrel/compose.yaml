@@ -5,10 +5,16 @@ networks:
     name: ${APP_NET}
 services:
   web:
+    command:
+    - sh
+    - -ec
+    - |
+      sed -i 's/listen 12596 ssl;/listen 12596;/' /etc/nginx/nginx.conf
+      exec sh robosats-client.sh
     environment:
       TOR_PROXY_IP: ${TOR_PROXY_IP}
       TOR_PROXY_PORT: ${TOR_PROXY_PORT}
-    image: recksato/robosats-client:v0.8.6-alpha@sha256:071634c1a73aa5eecdb4e7f84419319888fa10d238ae3ad2433a984301727fbe
+    image: recksato/robosats-client:v0.8.8-alpha@sha256:22efbf7d7e88b83878d9f57f7335d81c24e657b4add183af812db462ec012f15
     init: true
     networks:
       appnet:

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Glyph from './Glyph.svelte';
   import { api, type ProjectView, type AppView, type Runtime } from './api';
   import { wm } from './windows.svelte';
   import ProjectCard from './ProjectCard.svelte';
@@ -62,7 +63,7 @@
 <div class="grid">
   {#each projects as p (p.name)}
     <div class="stack">
-      <button class="open" title={t('project.openWindow')} onclick={() => wm.openSys('project', { name: p.name }, p.name)}><span class="lbl">🧩 {p.name} ↗</span></button>
+      <button class="open" title={t('project.openWindow')} onclick={() => wm.openSys('project', { name: p.name }, p.name)}><Glyph name="external" size={15} /><span class="lbl">{p.name}</span></button>
       <ProjectCard {p} {showIps} {capabilitiesAvailable} onchange={load} />
     </div>
   {/each}
@@ -71,12 +72,10 @@
 <style>
   .desc { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; resize: vertical; }
   .stack { position: relative; }
-  .stack .open { position: absolute; right: 10px; top: -12px; z-index: 1; font-size: .78rem; padding: 2px 8px; background: var(--panel-2); }
-  /* the umbrel look: a label on the edge of a translucent card reads as a fallen-out button — a round "↗" button inside the card
-     instead (the project name is in the heading anyway), the card header makes room for it on the right */
-  :global(:root[data-look="umbrel"]) .stack .open { top: 10px; right: 10px; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgb(255 255 255 / .1); border: .5px solid rgb(255 255 255 / .16); box-shadow: inset 0 .5px 0 rgb(255 255 255 / .2); color: rgb(255 255 255 / .85); }
-  :global(:root[data-look="umbrel"]) .stack .open .lbl { display: none; }  /* the label text is hidden entirely, otherwise it takes space next to the arrow */
-  :global(:root[data-look="umbrel"]) .stack .open::after { content: '↗'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; line-height: 1; }
-  :global(:root[data-look="umbrel"]) .stack .open:hover { background: rgb(255 255 255 / .18); }
-  :global(:root[data-look="umbrel"]) .stack :global(.card > .row:has(> h3)) { padding-right: 36px; }
+  /* "open the project window" — a round button in the corner of the card (the project name is in the heading anyway); the card
+     header makes room for it on the right */
+  .stack .open { position: absolute; right: 12px; top: 12px; z-index: 1; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: var(--fill); border-color: var(--line); color: var(--muted); }
+  .stack .open:hover { background: var(--fill-2); color: var(--ink); border-color: var(--line-2); }
+  .stack .open .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }  /* the text stays for screen readers */
+  .stack :global(.card > .row:has(> h3)) { padding-right: 40px; }
 </style>

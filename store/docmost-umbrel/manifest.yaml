@@ -13,12 +13,12 @@ env:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/docmost/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/docmost/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/docmost/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/docmost/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/docmost/5.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/docmost/6.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/5.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/docmost/6.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -48,12 +48,16 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This release adds a workspace-level default edit preference, a /time editor slash command, translation-aware slash command search, and fixes for templates, PDF table headers, and draw.io copied blocks.
+    This update lets you connect an SMTP email provider in Docmost's app settings on umbrelOS 2.0, for workspace invitations and password resets.
 
-    This release includes security fixes. Upgrade is recommended.
+    Previous Docmost 0.97.0 release notes:
 
-    Full release notes can be found at https://github.com/docmost/docmost/releases/tag/v0.95.0
+    This release adds page presentation mode, tabs blocks, comment deep links, improved subpage sorting, and a template option for empty pages.
+
+    It also improves search performance, page duplication, Markdown and document exports, and includes security fixes.
+
+    Full release notes can be found at https://github.com/docmost/docmost/releases/tag/v0.97.0
   source: https://github.com/docmost/docmost
-  version: 0.95.0
+  version: 0.97.0-patch.1
   website: https://docmost.com/
 website: https://docmost.com/

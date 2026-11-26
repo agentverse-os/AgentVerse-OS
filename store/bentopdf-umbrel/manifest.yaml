@@ -10,10 +10,10 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bentopdf/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,12 +43,14 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This update adds PDF text editing with live reflow, font/styling controls, find and replace, image/object editing, and accessibility helpers.
+    This update adds PDF measurement tools, favorite tools, and a redesigned PDF Multi Tool for working with large documents.
 
-    It also adds a new duplex sort tool, improves PDF editor support for Korean, CJK, Indic, and other non-Latin text, removes analytics from the self-hosted tools, and fixes service worker precaching, PDF rendering, PDF-to-TIFF memory, URL redirection, commenting cursor, and WASM initialization issues.
+    You can now measure distances, perimeters, and areas in the PDF Editor, pin frequently used tools to the homepage, and compress PDFs with the new Hyper Compress engine.
 
-    Full release notes can be found at https://github.com/alam00000/bentopdf/releases/tag/v2.8.8
+    It also adds drag-and-drop ordering for multi-file conversions, Catalan and Persian translations, and fixes for signatures, placed text, and cropping.
+
+    Full release notes can be found at https://github.com/alam00000/bentopdf/releases/tag/v2.8.11
   source: https://github.com/alam00000/bentopdf
-  version: 2.8.8
+  version: 2.8.11
   website: https://bentopdf.com/
 website: https://bentopdf.com/

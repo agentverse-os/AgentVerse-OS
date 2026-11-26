@@ -7,7 +7,7 @@ configs:
         admin:
           email: test@email.com
           name: Admin
-          # A sha-256 hash of the password you want to use. Can be computed with "echo -n password | shasum -a 256". Default password is "Test".
+          # A bcrypt hash of the password you want to use. Can be computed with "python3 -c 'import bcrypt;print(bcrypt.hashpw(b"your-password",bcrypt.gensalt(11)).decode())' ". Default password is "test".
           password: $2a$11$viucCvFLlHWvBNOOI6uypuVU.D09UWb.zswRxEg0MkDPi1q/bKbdG
 networks:
   appnet:
@@ -20,7 +20,7 @@ services:
   dozzle:
     configs:
     - source: dozzle-inline-1
-      target: /data/users.yml:ro
+      target: /data/users.yml
     environment:
     - SERVICE_URL_DOZZLE_8080=${SERVICE_URL_DOZZLE_8080}
     - DOZZLE_AUTH_PROVIDER=simple
@@ -33,7 +33,7 @@ services:
       - /dozzle
       - healthcheck
       timeout: 30s
-    image: amir20/dozzle:latest
+    image: amir20/dozzle:v11.4.3
     networks:
       appnet:
         aliases:

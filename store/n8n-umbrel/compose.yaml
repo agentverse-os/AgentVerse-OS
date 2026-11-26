@@ -13,7 +13,7 @@ services:
     - N8N_DIAGNOSTICS_ENABLED=false
     - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
     - N8N_PROXY_HOPS=1
-    image: n8nio/n8n:2.37.7@sha256:4fed2bb0f79c98a6c677b106cf91923c8b5898f0ce81d56061159f31db5b6da8
+    image: n8nio/n8n:2.48.5@sha256:c0ea1246a81a34ce8e2b3cfb1f718b97de64b0a1b3747ad24d6d431826bb71ad
     networks:
       appnet:
         aliases:

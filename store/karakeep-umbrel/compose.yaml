@@ -11,7 +11,7 @@ services:
     - --hide-scrollbars
     - --disable-blink-features=AutomationControlled
     - --window-size=1440,900
-    image: ghcr.io/karakeep-app/karakeep-chrome:151.0.7922.47-r1@sha256:5b19bbb160e9ff60681a3abd97e1c4ec9f64212301410de658c3900ab7ef31e7
+    image: ghcr.io/karakeep-app/karakeep-chrome:154.0.8037.57-r1@sha256:c51a8c8e6c3c1040a50fa0ecfd0b2fc298401b4229262636552458151f6f18fa
     init: true
     networks:
       appnet:
@@ -43,7 +43,7 @@ services:
       MEILI_MASTER_KEY: ${APP_SEED}
       NEXTAUTH_SECRET: ${APP_SEED}
       NEXTAUTH_URL: http://${DEVICE_DOMAIN_NAME}:8620
-    image: ghcr.io/karakeep-app/karakeep:0.33.2@sha256:b069e4307dec06ea06d16989c6861c30a1ff208568be44ed5fb5d422cd3e950c
+    image: ghcr.io/karakeep-app/karakeep:0.35.0@sha256:6f7d32ef296ddf1fc7c67ff56b8a201b7006a6a47b92b202afee1338841b353d
     networks:
       appnet:
         aliases:

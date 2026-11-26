@@ -64,6 +64,6 @@ upstream:
   - data
   - photography
   source: https://github.com/immich-app/immich
-  tipi_version: 218
-  version: v3.1.0
+  tipi_version: 250
+  version: v3.4.1
 website: https://github.com/immich-app/immich

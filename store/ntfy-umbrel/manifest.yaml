@@ -14,9 +14,9 @@ env:
   APP_PROXY_PORT: ''
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/ntfy/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/ntfy/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/ntfy/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ntfy/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ntfy/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ntfy/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -52,12 +52,18 @@ upstream:
   categories:
   - automation
   release_notes: |-
-    This hardening release limits message title and tag sizes and caps cache replay responses so polling busy topics cannot use excessive server memory.
+    This security update protects message templates against additional denial-of-service attacks that could crash the server or exhaust its resources. It also prevents slow web push endpoints from tying up connections and improves template error messages.
 
-    It also fixes message ordering when polling multiple topics at once and applies attachment daily bandwidth limits to cached-message replay requests.
+    Custom message templates using html, js, urlquery, or advanced printf formatting must be adjusted to use supported functions and plain formatting directives.
 
-    Full release notes can be found at https://github.com/binwiederhier/ntfy/releases/tag/v2.28.0
+    Daily usage counts reset once when upgrading from before v2.36.0. Custom server configurations are checked more strictly at startup.
+
+    The message cache is upgraded automatically. Downgrading to v2.31.0 or earlier requires a manual database schema adjustment; see the upstream upgrade notes before rolling back.
+
+    Custom scripts upgrading from before v2.31.0 and reconnecting with a message ID may receive duplicate messages from the same second. The ntfy mobile and web apps automatically remove these duplicates.
+
+    Full release notes can be found at https://github.com/binwiederhier/ntfy/releases/tag/v2.38.1
   source: https://github.com/binwiederhier/ntfy
-  version: 2.28.0
+  version: 2.38.1
   website: https://ntfy.sh/
 website: https://ntfy.sh/

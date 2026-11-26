@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/usememos/memos
-  tipi_version: 61
-  version: 0.30.0
+  tipi_version: 69
+  version: 26.11.1
 website: https://github.com/usememos/memos

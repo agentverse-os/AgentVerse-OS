@@ -70,6 +70,6 @@ upstream:
   categories:
   - finance
   source: https://github.com/invoiceninja/invoiceninja
-  tipi_version: 118
+  tipi_version: 119
   version: '5.13'
 website: https://github.com/invoiceninja/invoiceninja

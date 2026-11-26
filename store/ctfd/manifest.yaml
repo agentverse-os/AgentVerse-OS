@@ -63,6 +63,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/CTFd/CTFd
-  tipi_version: 25
-  version: 3.8.7
+  tipi_version: 29
+  version: 3.8.9
 website: https://github.com/CTFd/CTFd

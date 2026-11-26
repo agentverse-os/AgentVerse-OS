@@ -54,7 +54,7 @@ services:
       - -f
       - http://127.0.0.1:80
       timeout: 20s
-    image: passbolt/passbolt:latest-ce
+    image: passbolt/passbolt:5.18.0-1-ce
     networks:
       appnet:
         aliases:

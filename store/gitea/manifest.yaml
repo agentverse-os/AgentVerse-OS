@@ -40,6 +40,6 @@ upstream:
   categories:
   - development
   source: https://github.com/go-gitea/gitea
-  tipi_version: 73
-  version: 1.27.2
+  tipi_version: 85
+  version: 28.4.0
 website: https://github.com/go-gitea/gitea

@@ -17,10 +17,10 @@ env:
     generate: hex64
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/albyhub/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -50,16 +50,18 @@ upstream:
   categories:
   - bitcoin
   release_notes: |-
+    This patch includes bug fixes and security updates.
+
     Key changes in this release:
-      - Refreshed payment QR codes and payment status screens
-      - Added transaction filtering
-      - Added invoice receiving for connected apps
-      - Improved wallet migrations, including PostgreSQL to SQLite
-      - Improved card naming and fixed security, reliability, and usability issues
+      - Prevent crashes from malformed Nostr Wallet Connect requests and authorization headers
+      - Improve error handling for invalid requests, unknown invoices, and unknown swaps
+      - Improve swap validation and claim retries
+      - Prevent settling canceled self-paid hold invoices
+      - Add OpenReceive to the app store
 
 
-    Full release notes are found at https://github.com/getAlby/hub/releases
+    Full release notes are found at https://github.com/getAlby/hub/releases/tag/v1.24.7
   source: https://github.com/getAlby/hub
-  version: 1.24.0
+  version: 1.24.7
   website: https://albyhub.com
 website: https://albyhub.com

@@ -9,7 +9,7 @@ services:
       PGID: 1000
       PUID: 1000
       TZ: Etc/UTC
-    image: bellamy/wallos:5.5.0@sha256:82a74706a343ee0713eb1c5b1d7814f656ed5a35de36c73f0cb42276d8f9d95e
+    image: bellamy/wallos:5.11.2@sha256:de82c41215a761d33a38a3672526b3ce47d0fe7acb84f5c2a4cb2342c710cf4c
     networks:
       appnet:
         aliases:

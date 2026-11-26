@@ -43,7 +43,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:3000/
       timeout: 5s
-    image: redmine:6-alpine
+    image: redmine:7-alpine
     networks:
       appnet:
         aliases:

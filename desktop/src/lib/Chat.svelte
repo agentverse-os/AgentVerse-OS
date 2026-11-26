@@ -173,7 +173,7 @@
       {:else if e.kind === 'permission_result'}
         <div class="m sys muted">{e.behavior === 'allow' ? '✅' : '⛔'} {e.tool_name} · {e.behavior === 'allow' ? t('agents.allowed') : t('agents.denied')}{e.remember ? ' · ' + t('agents.remembered') : ''}</div>
       {:else if e.kind === 'result'}
-        <div class="m sys muted">{e.is_error ? '⚠️ ' + (e.subtype ?? 'error') : '✓'} · {((e.duration_ms ?? 0) / 1000).toFixed(1)} s · {tn('agents.turns', e.num_turns ?? 1)} · {fmtTokens(e.usage?.input_tokens)}↑ {fmtTokens(e.usage?.output_tokens)}↓{#if e.usage?.cache_read_input_tokens} · cache {fmtTokens(e.usage.cache_read_input_tokens)}{/if} · ${(e.total_cost_usd ?? 0).toFixed(4)}</div>
+        <div class="m sys muted">{e.is_error ? '⚠️ ' + (e.subtype ?? 'error') : '✓'} · {((e.duration_ms ?? 0) / 1000).toFixed(1)} s · {tn('agents.turns', e.num_turns ?? 1)} · {fmtTokens(e.usage?.input_tokens)}↑ {fmtTokens(e.usage?.output_tokens)}↓{#if e.usage?.cache_read_input_tokens}{' '}· cache {fmtTokens(e.usage.cache_read_input_tokens)}{/if}{#if typeof e.cost_usd === 'number' && e.cost_usd > 0}{' '}· ${e.cost_usd.toFixed(e.cost_usd < 1 ? 3 : 2)}{/if}</div>
       {:else if e.kind === 'exit'}
         <div class="m sys muted">⏹ {t('agents.sessionExited')}</div>
       {:else if e.kind === 'interrupt'}

@@ -47,6 +47,6 @@ upstream:
   categories:
   - social
   source: https://github.com/simplex-chat/simplexmq
-  tipi_version: 44
-  version: v6.5.2
+  tipi_version: 48
+  version: v7.1.0
 website: https://github.com/simplex-chat/simplexmq

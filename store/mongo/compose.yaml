@@ -8,7 +8,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-    image: mongo:7.0.40
+    image: mongo:7.0.48
     networks:
       appnet:
         aliases:

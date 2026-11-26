@@ -10,9 +10,9 @@ endpoint:
   service: main
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/memos/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/memos/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/memos/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/memos/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/memos/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/memos/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,14 +42,26 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This release adds Memos Web Clipper, a rebuilt Markdown editor, richer memo detail views, flexible multi-column feeds, improved filters, and refreshed settings.
-    It also includes self-hosting and API changes:
-      - Instances without MEMOS_INSTANCE_URL now run in private mode and send anonymous visitors to sign in
-      - Shared-memo API routes, saved time filters, and MCP clients changed; update shortcuts or integrations if you use them
+    Older installations are automatically upgraded through the required Memos 0.31.0 database checkpoint. A copy of the original database is retained before migration. Back up your data before upgrading.
+
+    This update adds drawings and image annotations, searchable emoji reactions, and a refreshed interface.
+      - Browse and reorder attachments more easily
+      - Enjoy more reliable editing, faster attachment searches, and improved sign-in forms
+      - Includes security fixes for link previews
 
 
-    Full release notes are available at https://github.com/usememos/memos/releases/tag/v0.30.0
+    The database upgrades automatically on startup. Large attachment libraries may take longer to open; leave the app running until the update completes. Custom CSS may need updating for the new styles. Integrations using the removed MEMO_RELATED setting must stop using it; existing reactions are preserved.
+
+    Important notes for users upgrading from versions before 26.10.0:
+      - Sign in again after updating; API clients must refresh access tokens or sign in again. Personal access tokens are unaffected
+      - API routes move from /api/v1/ to /api/; third-party integrations need updating
+      - Custom memo-length and upload-size limits are not carried over. Configure Settings → Usage limits again if needed; defaults are 8 KiB per memo and 32 MiB per file
+      - Memo export is now an administrator action
+      - Instance administrators can read and manage private and Space-only memos; users skipping 0.31.0 should also note that Shortcuts became Views and RSS support was removed
+
+
+    Full release notes are available at https://github.com/usememos/memos/releases/tag/26.11.1
   source: https://github.com/usememos/memos
-  version: 0.30.0
+  version: 26.11.1
   website: https://www.usememos.com/
 website: https://www.usememos.com/

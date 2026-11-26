@@ -9,13 +9,16 @@ class Voice {
   loading = $state(false);
   error = $state('');
   private loaded = false;
+  private failedAt = 0;
   /** There is a key for the chosen provider — the microphone button records, otherwise it
    *  leads to the settings */
   get ready() { return !!this.settings?.ready; }
+  /** After a failure the next automatic attempt waits five seconds: every microphone button on the screen asks for the
+   *  settings when it appears, and a service that is restarting must not be met by a stream of requests. */
   async load(force = false) {
-    if (this.loading || (this.loaded && !force)) return;
+    if (this.loading || (this.loaded && !force) || (!force && Date.now() - this.failedAt < 5000)) return;
     this.loading = true;
-    try { this.settings = await agents.voice(); this.error = ''; this.loaded = true; } catch (e) { this.error = msg(e); } finally { this.loading = false; }
+    try { this.settings = await agents.voice(); this.error = ''; this.loaded = true; this.failedAt = 0; } catch (e) { this.error = msg(e); this.failedAt = Date.now(); } finally { this.loading = false; }
   }
   async save(patch: VoicePatch) { this.settings = await agents.voicePut(patch); this.loaded = true; return this.settings; }
   /** Read-aloud (slice 64): which text is playing now (message key) and whether loading is in progress; one player

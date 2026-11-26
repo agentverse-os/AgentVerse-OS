@@ -9,7 +9,7 @@ services:
     - wavelog-db
     environment:
       CI_ENV: docker
-    image: ghcr.io/wavelog/wavelog:3.2.0@sha256:13bb80398fd7afc418014aeb19b6973aac64f4fb6c89f4a4387ea03734fac8eb
+    image: ghcr.io/wavelog/wavelog:3.2.5@sha256:e371b599572bbd50b019acf8bf54009df7042bbd8f238d905a540d6e956b2c25
     networks:
       appnet:
         aliases:

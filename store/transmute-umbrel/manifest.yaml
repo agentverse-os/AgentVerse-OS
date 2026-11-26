@@ -43,8 +43,13 @@ upstream:
   author: Transmute
   categories:
   - files
-  release_notes: null
+  release_notes: |-
+    This maintenance update disables telemetry from the onnxruntime dependency used by document conversions.
+
+    It also cleans up failed, completed, and cancelled jobs through the cleanup TTL and Clear Conversions/Compressions settings, adds Korean translations, and updates conversion dependencies including Pandoc and Draw.io.
+
+    No configuration changes are required. After upgrading, the first cleanup run may remove old finished jobs according to your configured TTL.
   source: https://github.com/transmute-app/transmute
-  version: 2.0.0
+  version: 2.1.1
   website: https://transmute.sh/
 website: https://transmute.sh/

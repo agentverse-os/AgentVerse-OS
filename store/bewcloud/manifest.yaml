@@ -85,6 +85,6 @@ upstream:
   categories:
   - data
   source: https://github.com/bewcloud/bewcloud
-  tipi_version: 14
+  tipi_version: 15
   version: v1.9.2
 website: https://github.com/bewcloud/bewcloud

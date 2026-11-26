@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/PrivateBin/PrivateBin
-  tipi_version: 27
-  version: 2.0.6
+  tipi_version: 31
+  version: 2.1.1
 website: https://github.com/PrivateBin/PrivateBin

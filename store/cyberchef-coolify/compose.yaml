@@ -6,7 +6,7 @@ networks:
 services:
   cyberchef:
     environment:
-    - SERVICE_URL_CYBERCHEF_80=${SERVICE_URL_CYBERCHEF_80}
+    - SERVICE_URL_CYBERCHEF_8080=${SERVICE_URL_CYBERCHEF_8080}
     healthcheck:
       interval: 30s
       retries: 3
@@ -14,9 +14,9 @@ services:
       - CMD
       - curl
       - -f
-      - http://127.0.0.1:80
+      - http://127.0.0.1:8080
       timeout: 10s
-    image: ghcr.io/gchq/cyberchef:latest
+    image: ghcr.io/gchq/cyberchef:11.5.0
     networks:
       appnet:
         aliases:

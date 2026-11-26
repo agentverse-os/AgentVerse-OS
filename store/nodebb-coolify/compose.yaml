@@ -29,7 +29,7 @@ services:
       - CMD-SHELL
       - bash -c ':> /dev/tcp/127.0.0.1/4567' || exit 1
       timeout: 20s
-    image: ghcr.io/nodebb/nodebb:latest
+    image: ghcr.io/nodebb/nodebb:4.16.8
     networks:
       appnet:
         aliases:
@@ -51,14 +51,14 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:17.2-alpine
+    image: postgres:18.7-alpine
     networks:
       appnet:
         aliases:
         - nodebb-coolify_postgres_1
     restart: unless-stopped
     volumes:
-    - nodebb_postgres_data:/var/lib/postgresql/data
+    - nodebb_postgres_data:/var/lib/postgresql
 volumes:
   nodebb_build:
     driver: local

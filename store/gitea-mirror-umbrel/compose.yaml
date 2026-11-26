@@ -28,7 +28,7 @@ services:
       - --spider
       - http://localhost:4321/api/health
       timeout: 10s
-    image: ghcr.io/raylabshq/gitea-mirror:v3.30.0@sha256:4bb9a0bad51eed3d91f650b39acf6123300cb935e32542cc94342b28ada4aa03
+    image: ghcr.io/raylabshq/gitea-mirror:v3.54.0@sha256:be5600216ff8a152ea7ddd9152c68cc94b56886e85bf44fe67853ee1bcac2ada
     networks:
       appnet:
         aliases:

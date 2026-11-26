@@ -20,7 +20,7 @@ services:
       - --connect
       - --innodb_initialized
       timeout: 5s
-    image: mariadb:lts
+    image: mariadb:12.3.3
     networks:
       appnet:
         aliases:
@@ -50,7 +50,7 @@ services:
       - -f
       - http://localhost/
       timeout: 10s
-    image: mbixtech/observium:latest
+    image: mbixtech/observium:24.12.13800
     networks:
       appnet:
         aliases:

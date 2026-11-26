@@ -42,8 +42,8 @@ upstream:
   author: Stash
   categories:
   - ai
-  release_notes: null
+  release_notes: This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
   source: https://github.com/savewithstash/stash
-  version: 1.0.1
+  version: 1.0.1-patch.1
   website: https://github.com/savewithstash/stash
 website: https://github.com/savewithstash/stash

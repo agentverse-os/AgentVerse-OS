@@ -7,7 +7,7 @@ services:
   stirling-pdf:
     environment:
       DOCKER_ENABLE_SECURITY: ${STIRLING_PDF_DOCKER_ENABLE_SECURITY-false}
-    image: stirlingtools/stirling-pdf:2.14.3
+    image: stirlingtools/stirling-pdf:3.3.0
     networks:
       appnet:
         aliases:

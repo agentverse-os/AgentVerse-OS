@@ -22,7 +22,7 @@ services:
     volumes:
     - ${APP_DATA_DIR}/data:/app/data/state/
   filestash-onlyoffice:
-    image: onlyoffice/documentserver:9.4.0.1
+    image: onlyoffice/documentserver:10.0.0.1
     networks:
       appnet:
         aliases:

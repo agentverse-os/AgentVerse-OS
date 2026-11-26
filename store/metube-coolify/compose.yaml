@@ -18,7 +18,7 @@ services:
       - -f
       - http://127.0.0.1:8081
       timeout: 10s
-    image: ghcr.io/alexta69/metube:latest
+    image: ghcr.io/alexta69/metube:2026.11.14
     networks:
       appnet:
         aliases:

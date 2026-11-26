@@ -7,7 +7,7 @@ services:
   maintainerr:
     environment:
       TZ: ${TZ}
-    image: ghcr.io/maintainerr/maintainerr:3.25.0
+    image: ghcr.io/maintainerr/maintainerr:3.32.0
     networks:
       appnet:
         aliases:

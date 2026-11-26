@@ -10,7 +10,6 @@ User Features:
  - Subscriptions independent from Google
  - Notifications for all subscribed channels
  - Audio-only mode (with background play on mobile)
- - Support for Reddit comments
  - Available in many languages, thanks to our translators
 
 Data Import/Export:

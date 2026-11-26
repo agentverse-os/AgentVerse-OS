@@ -14,7 +14,7 @@ env:
   EXECUTOR_HOST: 0.0.0.0
   EXECUTOR_ORG_NAME: Default
   EXECUTOR_ORG_SLUG: default
-  EXECUTOR_VERSION: latest
+  EXECUTOR_VERSION: 1.6.10
   PORT: '4788'
   SERVICE_URL_EXECUTOR_4788: https://${APP_DOMAIN}
 gallery: []
@@ -40,7 +40,7 @@ route:
 schema: 1
 settings:
 - env: EXECUTOR_VERSION
-  hint: 'по умолчанию: latest'
+  hint: 'по умолчанию: 1.6.10'
   label: executor version
   options: null
   required: false

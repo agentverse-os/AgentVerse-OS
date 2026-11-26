@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/nginx-proxy-manager/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/nginx-proxy-manager/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/nginx-proxy-manager/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nginx-proxy-manager/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/nginx-proxy-manager/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/nginx-proxy-manager/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,10 +44,14 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    This release reverts the base image to Lua 5.1.5 and fixes an issue that could occur when internal Nginx configuration files are mounted.
+    This update moves Nginx Proxy Manager 2.17.0 to upstream's rebuilt image with Node.js 26.13.1, which includes the November 2026 Node.js security fixes. There are no changes to Nginx Proxy Manager itself.
 
-    Full release notes can be found at https://github.com/NginxProxyManager/nginx-proxy-manager/releases/tag/v2.15.1
+    ⚠️ Certbot has been updated. Check your DNS plugin configuration after upgrading. EdgeDNS, Beget, and Infomaniak have breaking changes; you may need to create new DNS SSL certificates and remove the old ones.
+
+    This release improves proxy-host permissions and authentication security, fixes access lists and SSL settings when host configurations are regenerated, and fixes reloads after certificate renewal. It also protects unsaved form changes, shows clearer certificate errors and details, and adds more DNS provider support.
+
+    Full release notes can be found at https://github.com/NginxProxyManager/nginx-proxy-manager/releases/tag/v2.17.0
   source: https://github.com/NginxProxyManager/nginx-proxy-manager
-  version: 2.15.1
+  version: 2.17.0-patch.1
   website: https://nginxproxymanager.com/
 website: https://nginxproxymanager.com/

@@ -194,7 +194,7 @@ services:
       start_period: 40s
       test: timeout 10s bash -c ':> /dev/tcp/127.0.0.1/8000' || exit 1
       timeout: 10s
-    image: ghcr.io/getzep/zep:latest
+    image: ghcr.io/getzep/zep:0.27.2
     networks:
       appnet:
         aliases:

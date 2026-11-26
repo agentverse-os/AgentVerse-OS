@@ -40,6 +40,6 @@ upstream:
   - media
   - utilities
   source: https://github.com/Radarr/Radarr
-  tipi_version: 45
-  version: 6.3.0
+  tipi_version: 47
+  version: 6.4.4
 website: https://github.com/Radarr/Radarr

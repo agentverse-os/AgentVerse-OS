@@ -1,0 +1,116 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/openwa-with-postgresql-and-redis-coolify
+description: Production OpenWA with PostgreSQL, Redis, and bundled dashboard.
+endpoint:
+  port: 2785
+  service: openwa
+env:
+  AUTO_START_SESSIONS: 'false'
+  ENGINE_TYPE: whatsapp-web.js
+  LOG_LEVEL: info
+  OPENWA_MEM_LIMIT: 2g
+  OPENWA_PIDS_LIMIT: '2048'
+  POSTGRES_DB: openwa
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_OPENWA:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_OPENWA: https://${APP_DOMAIN}
+  SERVICE_URL_OPENWA_2785: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: openwa-with-postgresql-and-redis-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: OPENWA_PIDS_LIMIT
+  hint: 'по умолчанию: 2048'
+  label: openwa pids limit
+  options: null
+  required: false
+  type: text
+- env: OPENWA_MEM_LIMIT
+  hint: 'по умолчанию: 2g'
+  label: openwa mem limit
+  options: null
+  required: false
+  type: text
+- env: LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: 'по умолчанию: openwa'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: ENGINE_TYPE
+  hint: 'по умолчанию: whatsapp-web.js'
+  label: engine type
+  options: null
+  required: false
+  type: text
+- env: AUTO_START_SESSIONS
+  hint: 'по умолчанию: false'
+  label: auto start sessions
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- whatsapp
+- api
+- gateway
+- messaging
+- automation
+- webhooks
+- postgresql
+- redis
+title: Openwa With Postgresql And Redis
+type: app
+upstream:
+  categories:
+  - messaging
+  source: https://github.com/rmyndharis/OpenWA
+  tags:
+  - whatsapp
+  - api
+  - gateway
+  - messaging
+  - automation
+  - webhooks
+  - postgresql
+  - redis
+  template: openwa-with-postgresql-and-redis.yaml
+website: https://github.com/rmyndharis/OpenWA

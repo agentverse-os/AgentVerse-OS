@@ -46,7 +46,7 @@ services:
       - -f
       - http://127.0.0.1
       timeout: 10s
-    image: orangehrm/orangehrm:latest
+    image: orangehrm/orangehrm:5.9
     networks:
       appnet:
         aliases:

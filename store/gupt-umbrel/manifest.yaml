@@ -4,7 +4,7 @@ auth: own
 compose: ./compose.yaml
 data:
 - tank/apps/gupt-umbrel
-description: Encrypted chat, passwords, notes, bookmarks, and ephemeral sharing
+description: Encrypted chat, passwords, notes, bookmarks, and file sharing
 endpoint:
   port: 8000
   service: web
@@ -43,18 +43,29 @@ upstream:
   categories:
   - social
   release_notes: |-
-    Gupt 4.1.13 adds optional Bitcoin addresses to public bot profiles, adds group read receipts and improved message visibility tracking, and refines the Cache Analytics view.
+    ⚠️ If you're upgrading from Gupt 5 or earlier, your existing Gupt data will not carry over to this update. Gupt 6 moves from Nostr to a new protocol called Rabta, and everyone starts with a new identity. Your current chats, contacts, groups, notes, passwords, bookmarks, and attachments won't appear in Gupt 6.
 
-    If you're updating from a pre-v2 version, your Gupt identity will remain, but conversations, Vault entries, and groups created in Gupt v1 will not be available in Gupt v2 or later. Gupt v2+ also cannot communicate with Gupt v1 clients, so your contacts will need to update as well.
+    Before updating, open Gupt and copy anything you want to keep, such as notes, passwords, and bookmarks, somewhere safe. After updating, you'll need to share your new profile with your contacts again.
 
-    Before updating from a pre-v2 version, open Gupt v1 and copy anything you need from your chats, Vault, and groups, and back up your private key.
+    Signing in has also changed. Memory anchors are gone, and you now sign in with a secret or a secret file plus a PIN of at least 6 characters. Keep your secret and PIN safe, because you'll need them every time you open Gupt in a new tab.
 
-    Gupt 3 and 4 replace the old Vault with separate encrypted Bookmarks, Passwords, and Notes sections. Legacy Vault entries are no longer supported, so before updating, open Vault and back up any important entries, especially entries that may not have synced to relays.
+    Gupt moved off Nostr to make syncing and file storage more reliable, and older data can't be brought across to the new protocol.
 
-    Encrypted chats, groups, Bookmarks, Passwords, Notes, and Share work on current Umbrel LAN URLs. Voice and video calls, screen sharing, and offline notifications require HTTPS and will become available once built-in HTTPS support lands.
+    ⚠️ Back up important notes, passwords, bookmarks, and other local data before updating. Gupt uses a browser-local cache. Signing in again clears local caches and relies on Rabta relays to restore your data. Keep your secret or secret file and PIN safe.
 
-    Full release notes can be found at https://github.com/besoeasy/gupt/releases/tag/4.1.13
+    New in this update:
+      - The bot directory shows bots that announced in the last hour and lists each bot once by its public key
+      - The directory loads additional pages of bot announcements and refreshes automatically while open
+
+
+    If you used custom relays, replace them with Rabta node addresses (starting with http:// or https://) in Settings → Relays. Nostr relay addresses (wss://) no longer work.
+
+    If Gupt still shows the old sign-in screen right after updating, reload the page once.
+
+    Voice and video calls, screen sharing, offline notifications, and signing in with a secret file require HTTPS. Over plain http, sign in by pasting your secret instead.
+
+    Full release notes can be found at https://github.com/besoeasy/gupt/releases/tag/6.1.32
   source: https://github.com/besoeasy/gupt
-  version: 4.1.13
+  version: 6.1.32
   website: https://github.com/besoeasy/gupt
 website: https://github.com/besoeasy/gupt

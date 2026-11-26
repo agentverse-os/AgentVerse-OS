@@ -39,6 +39,6 @@ upstream:
   categories:
   - media
   source: https://github.com/remvze/moodist
-  tipi_version: 16
-  version: v2.6.1
+  tipi_version: 20
+  version: v3.1.1
 website: https://github.com/remvze/moodist

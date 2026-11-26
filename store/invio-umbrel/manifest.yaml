@@ -13,11 +13,10 @@ env:
     generate: password
   APP_SEED:
     generate: hex64
-  DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/invio/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/invio/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/invio/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/invio/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/invio/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/invio/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,8 +45,11 @@ upstream:
   author: kittendevv
   categories:
   - finance
-  release_notes: This update adds Spanish (Colombia) and Turkish translations, and improves invoice numbering with new per-customer sequence and customer-number tokens.
+  release_notes: |-
+    This update fixes per-line taxes not being saved correctly in the invoice editor and restores saved tax rates when editing an invoice.
+
+    Full release notes can be found at https://github.com/kittendevv/Invio/releases/tag/v2.4.1
   source: https://github.com/kittendevv/invio
-  version: 2.2.0
+  version: 2.4.1
   website: https://github.com/kittendevv/invio
 website: https://github.com/kittendevv/invio

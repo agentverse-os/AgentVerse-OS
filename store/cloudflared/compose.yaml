@@ -6,9 +6,9 @@ networks:
 services:
   cloudflared:
     environment:
-      BASIC_AUTH_PASS: ${BASIC_AUTH_PASS}
+      BASIC_AUTH_PASS: ${BASIC_AUTH_PASSWORD}
       BASIC_AUTH_USER: ${BASIC_AUTH_USER}
-    image: wisdomsky/cloudflared-web:2026.8.2
+    image: wisdomsky/cloudflared-web:2026.11.0
     network_mode: host
     restart: unless-stopped
     volumes:

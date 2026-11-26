@@ -4,23 +4,12 @@ networks:
     external: true
     name: ${APP_NET}
 services:
-  guacd:
-    image: guacamole/guacd:1.6.0
-    networks:
-      appnet:
-        aliases:
-        - termix-coolify_guacd_1
-    restart: unless-stopped
   termix:
-    depends_on:
-    - guacd
     environment:
     - SERVICE_URL_TERMIX_8080=${SERVICE_URL_TERMIX_8080}
     - PORT=8080
     - LOG_LEVEL=${LOG_LEVEL:-info}
-    - GUACD_HOST=guacd
-    - GUACD_RECORDING_PATH=/termix-data/session_recordings/guacamole
-    image: ghcr.io/lukegus/termix:2.6.1
+    image: ghcr.io/termix-ssh/termix:26.11.1
     networks:
       appnet:
         aliases:

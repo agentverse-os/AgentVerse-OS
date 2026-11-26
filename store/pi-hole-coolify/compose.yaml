@@ -13,7 +13,7 @@ services:
     - TZ=${TZ:-Europe/London}
     - FTLCONF_webserver_api_password=${SERVICE_PASSWORD_PIHOLE}
     - FTLCONF_dns_listeningMode=${FTLCONF_dns_listeningMode:-all}
-    image: pihole/pihole:latest
+    image: pihole/pihole:2026.11.0
     networks:
       appnet:
         aliases:

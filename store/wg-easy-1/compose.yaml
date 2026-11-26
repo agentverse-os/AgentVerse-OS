@@ -11,7 +11,7 @@ services:
     environment:
       DISABLE_IPV6: ${WIREGUARD_DISABLE_IPV6}
       INSECURE: ${WIREGUARD_INSECURE}
-    image: ghcr.io/wg-easy/wg-easy:15.4.0
+    image: ghcr.io/wg-easy/wg-easy:15.5.0
     networks:
       appnet:
         aliases:

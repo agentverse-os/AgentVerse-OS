@@ -6,3 +6,10 @@ services:
   core:
     ports: !override
       - "127.0.0.1:9120:9120"
+  # Periphery reads the host /proc for its process stats. Under the docker-default AppArmor profile every read of a process
+  # confined by another profile (the Incus workspaces) is denied and audited: hundreds of events per second, 880 million
+  # in 40 days on the stand, a 3.3 GB host journal. Periphery already holds docker.sock (root-equivalent), so running it
+  # unconfined adds no privilege.
+  periphery:
+    security_opt:
+      - apparmor:unconfined

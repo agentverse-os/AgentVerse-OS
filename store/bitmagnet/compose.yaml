@@ -17,11 +17,11 @@ services:
       bitmagnet-redis:
         condition: service_started
     environment:
-      POSTGRES_HOST: bitmagnet-db
-      POSTGRES_NAME: bitmagnet
-      POSTGRES_PASSWORD: ${BITMAGNENT_DB_PASSWORD}
-      POSTGRES_USER: tipi
-      REDIS_ADDR: bitmagnet-redis:6379
+    - POSTGRES_HOST=bitmagnet-db
+    - POSTGRES_NAME=bitmagnet
+    - POSTGRES_USER=tipi
+    - POSTGRES_PASSWORD=${BITMAGNENT_DB_PASSWORD}
+    - REDIS_ADDR=bitmagnet-redis:6379
     image: ghcr.io/bitmagnet-io/bitmagnet:v0.10.1
     networks:
       appnet:
@@ -30,9 +30,9 @@ services:
     restart: unless-stopped
   bitmagnet-db:
     environment:
-      POSTGRES_DB: bitmagnet
-      POSTGRES_PASSWORD: ${BITMAGNENT_DB_PASSWORD}
-      POSTGRES_USER: tipi
+    - POSTGRES_PASSWORD=${BITMAGNENT_DB_PASSWORD}
+    - POSTGRES_USER=tipi
+    - POSTGRES_DB=bitmagnet
     healthcheck:
       interval: 30s
       retries: 5

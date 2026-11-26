@@ -12,9 +12,9 @@ env:
   APP_FORGEJO_SSH_PORT: '2223'
   APP_FORGEJO_TOR_HS_EXTRA_PORTS: 22:forgejo_server_1:${APP_FORGEJO_SSH_PORT}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/forgejo/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/forgejo/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/forgejo/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/forgejo/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/forgejo/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/forgejo/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,14 +45,21 @@ upstream:
   categories:
   - developer
   release_notes: |-
-    Forgejo 16.0.3 is a security and bug-fix release. If you're updating from a pre-16.0 version, existing repositories remain compatible, and admins can optionally follow Forgejo's upgrade guide to clean up old per-repository hook/example files after making a backup.
+    ⚠️ If you're updating from a pre-17 version, back up your instance first. Absolute links in repository documents now resolve relative to the repository root; use ./ for links relative to the document's directory. Custom duration settings must include valid units, such as 30s or 5m.
+
+    This security update includes:
+    - Stronger SSH key matching, email verification, repository file access checks, and scoped-token protections for activity feeds
+    - More accurate commit parsing and diffs for renamed or copied files
+    - Fixes for pull request workflows accessing secrets and concurrent container image uploads
+
+    For users updating from pre-17, action run webhook events are deprecated. Review your receivers before manually switching existing webhooks to workflow run events.
+
+    If you're updating from a pre-16.0 version, existing repositories remain compatible, and admins can optionally follow Forgejo's upgrade guide to clean up old per-repository hook/example files after making a backup.
 
     If you manually enabled Forgejo reverse proxy authentication on your Umbrel, review Forgejo's trusted-proxy configuration guidance before upgrading.
 
-    This point release fixes pull-request update endpoint access checks, reusable workflow handling, invalid owner collaboration access, repository adoption from user settings, Matrix webhook delivery, Actions triggers, package and wiki API edge cases, hook-script quoting, search result formatting, task-log cleanup, and review-comment errors.
-
-    Full release notes are available at https://codeberg.org/forgejo/forgejo/releases/tag/v16.0.3
+    Full release notes are available at https://codeberg.org/forgejo/forgejo/releases/tag/v17.0.2
   source: https://codeberg.org/forgejo/forgejo
-  version: 16.0.3
+  version: 17.0.2
   website: https://forgejo.org/
 website: https://forgejo.org/

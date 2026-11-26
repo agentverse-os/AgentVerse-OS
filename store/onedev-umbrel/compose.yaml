@@ -52,7 +52,7 @@ services:
       hibernate_connection_url: jdbc:postgresql://onedev_postgres_1:5432/onedev
       hibernate_connection_username: postgres
       hibernate_dialect: io.onedev.server.persistence.PostgreSQLDialect
-    image: 1dev/server:16.5.10@sha256:f860a14912d7279609b5fdeeceba5006b24a5ebc21d652ba2ecfcc7bafc1a437
+    image: 1dev/server:17.2.1@sha256:8cfbcad305aaee59cb8a4da3ed5ccb4369919b6720ad281c657c7d69cef02317
     networks:
       appnet:
         aliases:

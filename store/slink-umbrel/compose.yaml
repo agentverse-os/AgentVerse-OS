@@ -10,13 +10,14 @@ services:
       IMAGE_MAX_SIZE: 15M
       IMAGE_STRIP_EXIF_METADATA: 'true'
       ORIGIN: http://${DEVICE_DOMAIN_NAME}:8811
+      PROTOCOL_HEADER: x-forwarded-proto
       REQUIRE_SSL: 'false'
       STORAGE_PROVIDER: local
       TZ: UTC
       USER_APPROVAL_REQUIRED: 'false'
       USER_PASSWORD_MIN_LENGTH: 8
       USER_PASSWORD_REQUIREMENTS: 15
-    image: anirdev/slink:v1.13.1@sha256:5b6c29592f63edccbef613fbbd3b106f322bf21290d0bb6451d105ca14802b90
+    image: anirdev/slink:v1.14.6@sha256:7f7cab180971caeb83ce8818a676be04a7923dff6bf6e201ae0a9ce4f64be593
     networks:
       appnet:
         aliases:
@@ -24,5 +25,6 @@ services:
     restart: on-failure
     user: 1000:1000
     volumes:
+    - ${APP_DATA_DIR}/server.js:/services/client/svelte-kit/server.js:ro
     - ${APP_DATA_DIR}/data/var:/app/var/data
     - ${APP_DATA_DIR}/data/images:/app/slink/images

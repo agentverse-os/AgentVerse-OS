@@ -55,6 +55,6 @@ upstream:
   - utilities
   - development
   source: https://github.com/atuinsh/atuin
-  tipi_version: 38
-  version: 18.20.1
+  tipi_version: 47
+  version: 18.24.8
 website: https://github.com/atuinsh/atuin

@@ -23,7 +23,7 @@ services:
       start_period: 15s
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:4242/health || exit 1
       timeout: 1m
-    image: unleashorg/unleash-server:latest
+    image: unleashorg/unleash-server:8.3.1
     networks:
       appnet:
         aliases:

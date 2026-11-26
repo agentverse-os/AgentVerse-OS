@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   downtify:
-    image: ghcr.io/henriquesebastiao/downtify:2.10.1@sha256:81ed28f332c97ca7492cdbc2e5b4c744b76401ebb54de194cf67e9e9582815d5
+    image: ghcr.io/henriquesebastiao/downtify:3.11.0@sha256:65db7768cbf8e67c2f73429420e799771dfdb60469be332f19440a7427e77933
     networks:
       appnet:
         aliases:

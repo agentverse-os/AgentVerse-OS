@@ -2,7 +2,7 @@
 # CLI in the container.
 services:
   ntfy:
-    image: binwiederhier/ntfy:v2.15.0
+    image: binwiederhier/ntfy:v2.38.1
     restart: unless-stopped
     command: ["serve"]
     environment:

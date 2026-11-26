@@ -36,7 +36,7 @@ services:
       - CMD-SHELL
       - python -c "import requests as r;r.get(\"http://localhost:6900/api/_status\").raise_for_status()"
       timeout: 10s
-    image: argilla/argilla-server:v2.2.0
+    image: argilla/argilla-server:v2.8.0
     networks:
       appnet:
         aliases:
@@ -140,7 +140,7 @@ services:
       - CMD-SHELL
       - pwd
       timeout: 10s
-    image: argilla/argilla-server:v2.2.0
+    image: argilla/argilla-server:v2.8.0
     networks:
       appnet:
         aliases:

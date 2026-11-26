@@ -7,10 +7,8 @@ data:
 description: GlitchTip is a error tracking system.
 endpoint:
   port: 8000
-  service: migrate
+  service: postgres
 env:
-  CELERY_WORKER_AUTOSCALE: 1,3
-  CELERY_WORKER_MAX_TASKS_PER_CHILD: '10000'
   DEFAULT_FROM_EMAIL: test@example.com
   EMAIL_URL: consolemail://
   POSTGRESQL_DATABASE: glitchtip
@@ -30,11 +28,11 @@ hooks: {}
 host_docker_socket: false
 icon: ./logo.png
 login:
-  mode: app
+  mode: generated
   note: null
-  password: null
+  password: SERVICE_PASSWORD_POSTGRESQL
   path: null
-  user: null
+  user: SERVICE_USER_POSTGRESQL
 name: glitchtip-coolify
 notes: []
 origin: coolify
@@ -73,18 +71,6 @@ settings:
 - env: DEFAULT_FROM_EMAIL
   hint: 'по умолчанию: test@example.com'
   label: default from email
-  options: null
-  required: false
-  type: text
-- env: CELERY_WORKER_AUTOSCALE
-  hint: 'по умолчанию: 1,3'
-  label: celery worker autoscale
-  options: null
-  required: false
-  type: text
-- env: CELERY_WORKER_MAX_TASKS_PER_CHILD
-  hint: 'по умолчанию: 10000'
-  label: celery worker max tasks per child
   options: null
   required: false
   type: text

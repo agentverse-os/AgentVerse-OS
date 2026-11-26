@@ -12,7 +12,7 @@ services:
     - ALLOW_UNAUTHENTICATED=${ALLOW_UNAUTHENTICATED:-false}
     - AUTO_DELETE_EVERY_N_HOURS=${AUTO_DELETE_EVERY_N_HOURS:-24}
     - JWT_SECRET=${SERVICE_PASSWORD_CONVERTXJWTSECRET}
-    image: ghcr.io/c4illin/convertx:latest
+    image: ghcr.io/c4illin/convertx:v0.20.0
     networks:
       appnet:
         aliases:

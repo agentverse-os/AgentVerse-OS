@@ -12,9 +12,9 @@ env:
   TOR_PROXY_IP: ''
   TOR_PROXY_PORT: '9050'
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/krystal-bull/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/krystal-bull/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/krystal-bull/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/krystal-bull/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/krystal-bull/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/krystal-bull/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,9 +44,13 @@ upstream:
   categories:
   - bitcoin
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Krystal Bull 1.9.7 release notes:
+
     Update to the 1.9.7 release of bitcoin-s
     This release provides a well defined ordering for nonces in announcements.
   source: https://github.com/bitcoin-s/krystal-bull
-  version: 1.9.7
+  version: 1.9.7-patch.1
   website: https://suredbits.com/
 website: https://suredbits.com/

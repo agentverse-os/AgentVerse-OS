@@ -47,6 +47,6 @@ upstream:
   categories:
   - data
   source: https://github.com/linuxserver/docker-duplicati
-  tipi_version: 12
-  version: 2.3.0
+  tipi_version: 16
+  version: 2.4.1
 website: https://github.com/linuxserver/docker-duplicati

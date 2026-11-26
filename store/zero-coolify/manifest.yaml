@@ -1,0 +1,130 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/zero-coolify
+description: Query-driven sync engine for TypeScript apps backed by Postgres.
+endpoint:
+  port: 4848
+  service: zero
+env:
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_64_ADMIN:
+    generate: hex64
+  SERVICE_PASSWORD_64_POSTGRES:
+    generate: hex64
+  SERVICE_URL_ZERO_4848: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  ZERO_APP_ID: zero
+  ZERO_ENABLE_CRUD_MUTATIONS: 'false'
+  ZERO_ENABLE_TELEMETRY: 'true'
+  ZERO_LAZY_STARTUP: 'false'
+  ZERO_LOG_LEVEL: info
+  ZERO_MUTATE_API_KEY: ''
+  ZERO_NUM_SYNC_WORKERS: '1'
+  ZERO_QUERY_API_KEY: ''
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_64_ADMIN
+  path: null
+  user: null
+name: zero-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: ZERO_ENABLE_CRUD_MUTATIONS
+  hint: 'по умолчанию: false'
+  label: zero enable crud mutations
+  options: null
+  required: false
+  type: text
+- env: ZERO_NUM_SYNC_WORKERS
+  hint: 'по умолчанию: 1'
+  label: zero num sync workers
+  options: null
+  required: false
+  type: text
+- env: ZERO_APP_ID
+  hint: 'по умолчанию: zero'
+  label: zero app id
+  options: null
+  required: false
+  type: text
+- env: ZERO_LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: zero log level
+  options: null
+  required: false
+  type: text
+- env: ZERO_ENABLE_TELEMETRY
+  hint: 'по умолчанию: true'
+  label: zero enable telemetry
+  options: null
+  required: false
+  type: text
+- env: ZERO_LAZY_STARTUP
+  hint: 'по умолчанию: false'
+  label: zero lazy startup
+  options: null
+  required: false
+  type: text
+- env: ZERO_QUERY_API_KEY
+  hint: null
+  label: zero query api key
+  options: null
+  required: false
+  type: password
+- env: ZERO_MUTATE_API_KEY
+  hint: null
+  label: zero mutate api key
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- sync
+- realtime
+- postgres
+- typescript
+- local-first
+title: Zero
+type: app
+upstream:
+  categories:
+  - backend
+  source: https://zero.rocicorp.dev/docs/deployment
+  tags:
+  - sync
+  - realtime
+  - postgres
+  - typescript
+  - local-first
+  template: zero.yaml
+website: https://zero.rocicorp.dev/docs/deployment

@@ -14,6 +14,8 @@
   import Palette from './lib/ui/Palette.svelte';
   import Sheet from './lib/ui/Sheet.svelte';
   import Rename from './lib/ui/Rename.svelte';
+  import NotifyBind from './lib/ui/NotifyBind.svelte';
+  import { notify } from './lib/notify.svelte';
   import Work from './lib/sections/Work.svelte';
   import Inbox from './lib/sections/Inbox.svelte';
   import Models from './lib/sections/Models.svelte';
@@ -21,6 +23,8 @@
   import Routines from './lib/sections/Routines.svelte';
   import ChatSection from './lib/sections/ChatSection.svelte';
   let palette = $state(false);
+  // notification channels (§9.12): the conversation header shows where it reports to — read once, then the hub says when to re-read
+  onMount(() => { void notify.load(); });
   // Phone: the on-screen keyboard does not shrink 100dvh (iOS) but covers the bottom — the app height follows
   // visualViewport, with the keyboard open the bottom section bar is hidden and the page is held at zero (iOS scrolls it
   // to the focus).
@@ -138,3 +142,4 @@
 {#if palette}<Palette onclose={() => (palette = false)} />{/if}
 {#if sheet}<Sheet onclose={() => (sheet = false)} onpalette={() => (palette = true)} />{/if}
 {#if ui.rename}<Rename r={ui.rename} onclose={() => (ui.rename = null)} />{/if}
+{#if notify.target}<NotifyBind target={notify.target} onclose={() => notify.close()} />{/if}

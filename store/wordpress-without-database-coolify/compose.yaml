@@ -16,7 +16,7 @@ services:
       - -f
       - http://127.0.0.1
       timeout: 10s
-    image: wordpress:latest
+    image: wordpress:7.1.4
     networks:
       appnet:
         aliases:

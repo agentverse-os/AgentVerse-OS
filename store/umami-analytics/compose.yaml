@@ -12,7 +12,7 @@ services:
       APP_SECRET: ${UMAMI_ANALYTICS_APP_SECRET}
       DATABASE_TYPE: postgresql
       DATABASE_URL: postgresql://umami:${UMAMI_ANALYTICS_DB_PASSWORD}@umami-analytics-db:5432/umami-analytics-db
-    image: ghcr.io/umami-software/umami:3.3.1
+    image: ghcr.io/umami-software/umami:3.5.0
     networks:
       appnet:
         aliases:

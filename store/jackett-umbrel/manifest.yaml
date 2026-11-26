@@ -11,9 +11,9 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/jackett/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/jackett/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/jackett/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jackett/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/jackett/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/jackett/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,10 +43,10 @@ upstream:
   categories:
   - media
   release_notes: |-
-    This release includes tracker/indexer updates and maintenance fixes.
+    This update refreshes tracker domains and categories, updates indexer configuration, and fixes download links for DonTorrent.
 
-    Full release notes can be found at https://github.com/Jackett/Jackett/releases/tag/v0.24.2520
+    Full release notes can be found at https://github.com/Jackett/Jackett/releases/tag/v0.24.3081
   source: https://github.com/Jackett/Jackett/
-  version: 0.24.2520
+  version: 0.24.3081
   website: https://github.com/Jackett/Jackett/
 website: https://github.com/Jackett/Jackett/

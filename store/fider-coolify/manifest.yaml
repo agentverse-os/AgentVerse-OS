@@ -19,6 +19,7 @@ env:
     generate: hex64
   SERVICE_PASSWORD_POSTGRES:
     generate: password
+  SERVICE_URL_FIDER: https://${APP_DOMAIN}
   SERVICE_URL_FIDER_3000: https://${APP_DOMAIN}
   SERVICE_USER_POSTGRES:
     generate: password

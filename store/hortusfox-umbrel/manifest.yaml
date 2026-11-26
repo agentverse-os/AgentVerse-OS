@@ -12,11 +12,11 @@ env:
   APP_PASSWORD:
     generate: password
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/hortusfox/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/hortusfox/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/hortusfox/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/hortusfox/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/hortusfox/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/hortusfox/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/hortusfox/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/hortusfox/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/hortusfox/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/hortusfox/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,10 +46,14 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This release adds plant attachments, remembers plant-list sort order, improves image previews, fixes admin table alignment, calendar and API response bugs, and improves text rendering sanitization.
+    This release includes important security fixes:
 
-    Full release notes can be found at https://github.com/danielbrendel/hortusfox-web/releases/tag/v5.9
+    - Updates PHP to address the critical PHP2Shell vulnerability.
+    - Fixes cross-site scripting vulnerabilities, including in task plant references, attachment labels, and inventory views.
+    - Improves error handling when checking for updates.
+
+    Full release notes can be found at https://github.com/danielbrendel/hortusfox-web/releases/tag/v6.4
   source: https://github.com/danielbrendel/hortusfox-web
-  version: '5.9'
+  version: '6.4'
   website: https://www.hortusfox.com/
 website: https://www.hortusfox.com/

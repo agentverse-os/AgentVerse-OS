@@ -14,9 +14,9 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/flatnotes/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/flatnotes/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/flatnotes/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/flatnotes/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/flatnotes/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/flatnotes/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,8 +45,13 @@ upstream:
   author: Adam Dullage
   categories:
   - files
-  release_notes: This update refreshes Flatnotes' Python, JavaScript, and Docker base dependencies.
+  release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous flatnotes 5.5.5 release notes:
+
+    This update refreshes Flatnotes' Python, JavaScript, and Docker base dependencies.
   source: https://github.com/dullage/flatnotes
-  version: 5.5.5
+  version: 5.5.5-patch.1
   website: https://github.com/dullage/flatnotes
 website: https://github.com/dullage/flatnotes

@@ -7,7 +7,7 @@ services:
   kanboard:
     environment:
       PLUGIN_INSTALLER: ${PLUGIN_INSTALLER}
-    image: kanboard/kanboard:v1.2.53
+    image: kanboard/kanboard:v1.2.57
     networks:
       appnet:
         aliases:

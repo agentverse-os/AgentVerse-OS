@@ -9,8 +9,8 @@ networks:
 services:
   beszel-agent:
     environment:
-    - LISTEN=/beszel_socket/beszel.sock
-    - HUB_URL=$SERVICE_URL_BESZEL
+    - LISTEN=${LISTEN:-/beszel_socket/beszel.sock}
+    - HUB_URL=${HUB_URL:-$SERVICE_URL_BESZEL}
     - TOKEN=${TOKEN}
     - KEY=${KEY}
     - DISABLE_SSH=${DISABLE_SSH:-false}
@@ -27,7 +27,7 @@ services:
       - /agent
       - health
       timeout: 20s
-    image: henrygd/beszel-agent:0.18.7
+    image: henrygd/beszel-agent:0.21.2
     network_mode: host
     restart: unless-stopped
     volumes:

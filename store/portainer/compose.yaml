@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   portainer:
-    image: portainer/portainer-ce:2.44.0
+    image: portainer/portainer-ce:2.45.3
     labels:
       traefik.http.services.{{RUNTIPI_APP_ID}}.loadbalancer.server.scheme: https
       traefik.http.services.{{RUNTIPI_APP_ID}}.loadbalancer.serverstransport: insecuretransport@file

@@ -12,11 +12,11 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/homehub/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homehub/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homehub/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homehub/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homehub/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homehub/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homehub/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homehub/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homehub/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homehub/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,13 +46,15 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This update adds a new calendar module with enhanced reminders:
-      - Added a dedicated calendar page for viewing and managing reminders
-      - Improved reminder organization and calendar UX
+    Back up your data before updating. HomeHub automatically upgrades its database on first start.
 
+    - Added a Trash page to restore deleted household items for up to seven days. Existing calendar trash moves there automatically.
+    - Added weather information, expanded delete permissions, and full per-token activity history to the optional API and MCP integration. Existing tokens keep their previous permissions; restart your MCP client to discover the new tools.
+    - Fixed chores disappearing when recurring schedules are disabled and improved calendar loading and dark-mode readability.
+    - Prevented requests without a selected user from modifying items without a creator.
 
-    Full release notes can be found at https://github.com/surajverma/homehub/releases/tag/v0.2.4
+    Full release notes can be found at https://github.com/surajverma/homehub/releases/tag/v0.7.0
   source: https://github.com/surajverma/homehub
-  version: 0.2.4
+  version: 0.7.0
   website: https://github.com/surajverma/homehub
 website: https://github.com/surajverma/homehub

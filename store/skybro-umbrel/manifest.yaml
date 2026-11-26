@@ -41,8 +41,20 @@ upstream:
   author: xDeeKay
   categories:
   - networking
-  release_notes: null
+  release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous SkyBro 1.6.2 release notes:
+
+    - Notifications rebuilt on Apprise, supporting Pushover, Discord, Telegram, email, and 130+ other services, with reusable message templates and per-target filters
+    - Added a Daily Digest notification: a scheduled one-line summary of yesterday's aircraft, today's satellite passes, and tonight's astronomy highlights, with a short and a detailed template to choose from
+    - Added independent quiet hours for aircraft and satellite alerts
+    - Settings page redesigned with a tabbed layout, in-app help for filter syntax and template placeholders, and a live rule tester
+    - Switched the map to vector tiles for sharper rendering, with an optional CARTO API key to remove basemap watermarks, and an automatic fallback to the classic tile-based basemap on browsers/devices that can't use hardware-accelerated 3D graphics
+    - Fixed a pinch-to-zoom freeze on iOS
+    - Numerous mobile layout fixes across the dashboard and settings pages
+    - Added a Diagnostics panel and tracker log viewer for troubleshooting
   source: https://github.com/xDeeKay/SkyBro
-  version: 1.5.7
+  version: 1.6.2-patch.1
   website: https://github.com/xDeeKay/SkyBro
 website: https://github.com/xDeeKay/SkyBro

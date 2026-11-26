@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/sure/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/sure/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/sure/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/sure/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/sure/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/sure/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,12 +42,14 @@ upstream:
   categories:
   - finance
   release_notes: |-
-    Sure v0.7.4 adds a new Plan area behind Preview Features that brings budgets and goals together, including envelope-style goals, rollover budgets, and personal budgets.
+    ⚠️ Older installations with multiple families may need a super admin to manage instance-wide provider, AI, and sync settings. If those settings become unavailable, follow the administrator promotion instructions at https://github.com/we-promise/sure/blob/v0.7.6/docs/hosting/docker.md#upgrade-note-instance-wide-settings-need-a-super-admin.
 
-    This update also adds passkey sign-in, expands external AI/MCP tooling for wealth-tax analysis, improves transaction/account/provider flows, and includes a Rails Active Storage security update.
+    This update adds a preview spending comparison, richer loan repayment details, ordered categorization rules, and improved Bills and credit-card views. It also adds account activity filters, calculator expressions in amount fields, and fixes for investment tracking, bank connections, account sharing, and session security.
 
-    Full release notes can be found at https://github.com/we-promise/sure/releases/tag/v0.7.4
+    New anonymous product-improvement monitoring is disabled in this Umbrel package.
+
+    Full release notes can be found at https://github.com/we-promise/sure/releases/tag/v0.7.6
   source: https://github.com/we-promise/sure
-  version: 0.7.4
+  version: 0.7.6
   website: https://sure.am
 website: https://sure.am

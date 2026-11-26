@@ -97,7 +97,7 @@ services:
       - CMD-SHELL
       - curl -sf http://localhost:80 || exit 1
       timeout: 1s
-    image: ghcr.io/pterodactyl/panel:v1.12.0
+    image: ghcr.io/pterodactyl/panel:v1.15.2
     networks:
       appnet:
         aliases:
@@ -115,7 +115,7 @@ services:
       - CMD-SHELL
       - redis-cli ping || exit 1
       timeout: 1s
-    image: redis:alpine
+    image: redis:8.10.3-alpine
     networks:
       appnet:
         aliases:

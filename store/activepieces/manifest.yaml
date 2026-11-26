@@ -71,6 +71,6 @@ upstream:
   categories:
   - automation
   source: https://github.com/activepieces/activepieces
-  tipi_version: 172
-  version: 0.88.4
+  tipi_version: 179
+  version: 0.93.0
 website: https://github.com/activepieces/activepieces

@@ -396,6 +396,13 @@ impl Service {
     /// proxy's OpenAI-compatible models, and the owner who signed in to ChatGPT expects the Codex chat to go through the
     /// subscription (Claude through the gate is left alone: Fable is there).
     pub async fn resolve_session_account(&self, project: &str, body: &mut Value) -> Result<()> {
+        // an owner's server (ADR-008 §6): accounts are not placed there in v0 — the session runs with the server's env.sh
+        // (the gate addresses); sign in on the server itself in a terminal if a subscription is wanted
+        if self.store.get_host(project)?.is_some() {
+            if body.get("account").and_then(|v| v.as_str()).map(|a| !a.is_empty()).unwrap_or(false) { bail!("на сервере {project} аккаунты не раскладываются: войдите в терминале на самом сервере"); }
+            body["account"] = json!("");
+            return Ok(());
+        }
         let explicit = body.get("account").and_then(|v| v.as_str()).map(str::to_string);
         let explicit_given = explicit.clone().filter(|s| !s.is_empty());
         let mut chosen = match explicit { Some(s) if s.is_empty() => None, Some(s) => Some(s), None => self.project_account(project)? };

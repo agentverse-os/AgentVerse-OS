@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/jgraph/drawio
-  tipi_version: 145
-  version: 31.3.2
+  tipi_version: 169
+  version: 32.6.10
 website: https://github.com/jgraph/drawio

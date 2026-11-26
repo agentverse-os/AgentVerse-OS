@@ -16,7 +16,7 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     logging:
       driver: none
     networks:
@@ -25,21 +25,29 @@ services:
         - wikijs-coolify_postgres_1
     restart: unless-stopped
     volumes:
-    - wikijs-postgresql-data:/var/lib/postgresql/data
+    - wikijs-postgresql-data:/var/lib/postgresql
   wikijs:
     depends_on:
-    - postgres
+      postgres:
+        condition: service_healthy
     environment:
     - SERVICE_URL_WIKIJS_3000=${SERVICE_URL_WIKIJS_3000}
-    - DB_TYPE=postgres
+    - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
+    - ADMIN_PASS=${SERVICE_PASSWORD_ADMIN}
     - DB_HOST=postgres
     - DB_PORT=5432
     - DB_USER=${SERVICE_USER_POSTGRES}
     - DB_PASS=${SERVICE_PASSWORD_POSTGRES}
     - DB_NAME=${POSTGRESQL_DATABASE:-wiki-db}
     healthcheck:
-      test: curl --fail http://localhost:3000 || exit 1
-    image: ghcr.io/requarks/wiki:2
+      interval: 10s
+      retries: 10
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - curl --fail http://localhost:3000 || exit 1
+      timeout: 10s
+    image: ghcr.io/requarks/wiki:3
     networks:
       appnet:
         aliases:

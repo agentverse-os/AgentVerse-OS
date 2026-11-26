@@ -55,6 +55,6 @@ upstream:
   - development
   - data
   source: https://github.com/mongodb/mongo
-  tipi_version: 27
-  version: 7.0.40
+  tipi_version: 35
+  version: 7.0.48
 website: https://github.com/mongodb/mongo

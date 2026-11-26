@@ -12,7 +12,7 @@ services:
       MAIL_URL: smtp://${MAIL_ADDRESS}:${MAIL_PASSWORD}@smtp.gmail.com:587
       MONGO_URL: mongodb://wekan-db:27017/wekan
       ROOT_URL: https://${APP_DOMAIN}
-    image: ghcr.io/wekan/wekan:v11.16
+    image: ghcr.io/wekan/wekan:v13.13
     networks:
       appnet:
         aliases:

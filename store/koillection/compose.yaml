@@ -24,7 +24,7 @@ services:
       PHP_MEMORY_LIMIT: 512M
       PHP_TZ: ${TZ}
       UPLOAD_MAX_FILESIZE: 20M
-    image: koillection/koillection:1.8.4
+    image: koillection/koillection:1.8.6
     networks:
       appnet:
         aliases:

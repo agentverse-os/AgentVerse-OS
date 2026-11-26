@@ -17,7 +17,7 @@ services:
       - --spider
       - http://127.0.0.1:5231
       timeout: 10s
-    image: yourselfhosted/slash
+    image: yourselfhosted/slash:0.5.3
     networks:
       appnet:
         aliases:

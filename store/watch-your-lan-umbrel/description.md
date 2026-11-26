@@ -1,1 +1,3 @@
 WatchYourLAN is a lightweight network IP scanner. It allows you to keep track of all devices that are connected to your local network.
+
+If your devices don't appear, open Config → Scan settings and enter your network interface name in Interfaces, then click Save. You can find interface names by running `ip link show` in your Umbrel's terminal. To scan multiple networks, enter their interface names separated by spaces.

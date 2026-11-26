@@ -40,6 +40,6 @@ upstream:
   - media
   - utilities
   source: https://github.com/cross-seed/cross-seed
-  tipi_version: 56
-  version: 6.13.7
+  tipi_version: 58
+  version: 6.13.9
 website: https://github.com/cross-seed/cross-seed

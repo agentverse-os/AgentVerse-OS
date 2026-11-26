@@ -11,9 +11,9 @@ endpoint:
 env:
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/vert/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/vert/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/vert/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/vert/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/vert/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/vert/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,8 +42,13 @@ upstream:
   author: VERT
   categories:
   - files
-  release_notes: This update refreshes VERT's sponsor and donation link handling in the web UI.
+  release_notes: |-
+    This update adds controls to stop queued conversions and clear completed or failed files. You can also download completed files even when other files have not converted successfully.
+
+    It also fixes translations reverting to English on page reloads, improves Turkish translations, and fixes MIDI converter initialization.
+
+    Full changes: https://github.com/VERT-sh/VERT/compare/257bcb3...35ebeb1
   source: https://github.com/VERT-sh/VERT
-  version: e1c83ba
+  version: 35ebeb1
   website: https://vert.sh/
 website: https://vert.sh/

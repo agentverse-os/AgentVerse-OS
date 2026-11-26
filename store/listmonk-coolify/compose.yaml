@@ -27,7 +27,7 @@ services:
       - --spider
       - http://127.0.0.1:9000
       timeout: 20s
-    image: listmonk/listmonk:v6.0.0
+    image: listmonk/listmonk:v6.2.0
     networks:
       appnet:
         aliases:
@@ -46,7 +46,7 @@ services:
     - LISTMONK_db__user=$SERVICE_USER_POSTGRES
     - LISTMONK_db__password=$SERVICE_PASSWORD_POSTGRES
     - LISTMONK_db__port=5432
-    image: listmonk/listmonk:v6.0.0
+    image: listmonk/listmonk:v6.2.0
     networks:
       appnet:
         aliases:

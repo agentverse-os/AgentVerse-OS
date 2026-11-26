@@ -1,0 +1,49 @@
+# Imported from the umbrel catalog by `cloudd store import umbrel`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/komga-umbrel
+description: Self-hosted media server for comics, manga, and ebooks
+endpoint:
+  port: 25600
+  service: komga
+env:
+  UMBREL_ROOT: ${APP_DATA_DIR}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/komga/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/komga/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/komga/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/komga/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: komga-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Komga
+type: app
+upstream:
+  author: gotson
+  categories:
+  - media
+  release_notes: null
+  source: https://github.com/gotson/komga
+  version: 1.30.1
+  website: https://komga.org
+website: https://komga.org

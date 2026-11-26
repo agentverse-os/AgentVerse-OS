@@ -1,0 +1,113 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/snipe-it-coolify
+description: Snipe-IT is an open-source asset management platform built for IT departments.
+endpoint:
+  port: 80
+  service: app
+env:
+  MAIL_FROM_ADDR: you@example.com
+  MAIL_FROM_NAME: Snipe-IT
+  MAIL_HOST: 'null'
+  MAIL_MAILER: smtp
+  MAIL_PASSWORD: 'null'
+  MAIL_PORT: '1025'
+  MAIL_USERNAME: 'null'
+  MYSQL_DATABASE: snipeit
+  SERVICE_PASSWORD_MARIADB:
+    generate: password
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_REALBASE64_32:
+    generate: hex64
+  SERVICE_URL_SNIPEIT: https://${APP_DOMAIN}
+  SERVICE_URL_SNIPEIT_80: https://${APP_DOMAIN}
+  SERVICE_USER_MARIADB:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: snipe-it-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: MYSQL_DATABASE
+  hint: 'по умолчанию: snipeit'
+  label: mysql database
+  options: null
+  required: false
+  type: text
+- env: MAIL_MAILER
+  hint: 'по умолчанию: smtp'
+  label: mail mailer
+  options: null
+  required: false
+  type: text
+- env: MAIL_HOST
+  hint: 'по умолчанию: null'
+  label: mail host
+  options: null
+  required: false
+  type: text
+- env: MAIL_PORT
+  hint: 'по умолчанию: 1025'
+  label: mail port
+  options: null
+  required: false
+  type: text
+- env: MAIL_USERNAME
+  hint: 'по умолчанию: null'
+  label: mail username
+  options: null
+  required: false
+  type: text
+- env: MAIL_PASSWORD
+  hint: 'по умолчанию: null'
+  label: mail password
+  options: null
+  required: false
+  type: password
+- env: MAIL_FROM_ADDR
+  hint: 'по умолчанию: you@example.com'
+  label: mail from addr
+  options: null
+  required: false
+  type: text
+- env: MAIL_FROM_NAME
+  hint: 'по умолчанию: Snipe-IT'
+  label: mail from name
+  options: null
+  required: false
+  type: text
+tags:
+- inventory
+- open-source
+title: Snipe It
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://snipe-it.readme.io/docs/introduction
+  tags:
+  - inventory
+  - open-source
+  template: snipe-it.yaml
+website: https://snipe-it.readme.io/docs/introduction

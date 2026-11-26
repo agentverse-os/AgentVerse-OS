@@ -6,10 +6,10 @@ networks:
 services:
   booksonic:
     environment:
-      CONTEXT_PATH: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
-      PGID: '1000'
-      PUID: '1000'
-      TZ: ${TZ}
+    - PUID=1000
+    - PGID=1000
+    - TZ=${TZ}
+    - CONTEXT_PATH=${APP_PROTOCOL:-http}://${APP_DOMAIN}
     image: lscr.io/linuxserver/booksonic-air:2201.1.0
     networks:
       appnet:

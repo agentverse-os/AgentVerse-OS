@@ -1,3 +1,5 @@
+⚠️ Removal Notice: FossFLOW has been removed from the Umbrel App Store because its upstream repository is no longer available and the app no longer receives updates or security fixes. Existing installs will continue to work, but we recommend exporting your diagrams and uninstalling the app.
+
 FossFLOW is a feature-rich, open-source Progressive Web App (PWA) designed for creating elegant and professional **isometric diagrams**. It's lightweight, fast, and privacy-friendly everything runs locally in your browser.
 
 ✨ Key Features

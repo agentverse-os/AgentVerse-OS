@@ -10,7 +10,7 @@ services:
       DUPLICATI__WEBSERVICE_INTERFACE: any
       DUPLICATI__WEBSERVICE_PASSWORD: ${APP_PASSWORD}
       DUPLICATI__WEBSERVICE_PORT: '8200'
-    image: duplicati/duplicati:2.3.0.4@sha256:01f8cb81ad7d548b7ceec61d696bb5d27d8057fee0ddee37c2b8a0ff1f1729f7
+    image: duplicati/duplicati:2.4.1.0@sha256:5df64d95abd79ddaa41897a6c234c956d6de03df767a1b8eb8c5baecf3162bbf
     networks:
       appnet:
         aliases:

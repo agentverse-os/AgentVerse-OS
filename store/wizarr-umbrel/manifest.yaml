@@ -10,10 +10,10 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wizarr/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,10 +43,10 @@ upstream:
   categories:
   - media
   release_notes: |-
-    This update adds an activity tracking toggle and makes invitation deletion safer with confirmation. It also fixes media-server invitation edge cases, including library scans and Plex/Overseerr/Jellyseerr connection handling.
+    This update fixes a migration issue that could delete media server data when hiding users from the login screen.
 
-    Full release notes can be found at https://github.com/wizarrrr/wizarr/releases/tag/v2026.9.0
+    Full release notes can be found at https://github.com/wizarrrr/wizarr/releases/tag/v2026.10.1
   source: https://github.com/wizarrrr/wizarr
-  version: 2026.9.0
+  version: 2026.10.1
   website: https://github.com/wizarrrr/wizarr
 website: https://github.com/wizarrrr/wizarr

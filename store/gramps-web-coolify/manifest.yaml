@@ -11,6 +11,7 @@ endpoint:
 env:
   GRAMPSWEB_TREE: Gramps Web
   GUNICORN_NUM_WORKERS: '2'
+  SERVICE_URL_GRAMPSWEB: https://${APP_DOMAIN}
   SERVICE_URL_GRAMPSWEB_5000: https://${APP_DOMAIN}
 gallery: []
 health: null

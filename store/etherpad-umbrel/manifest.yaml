@@ -12,9 +12,9 @@ env:
   APP_PASSWORD:
     generate: password
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/etherpad/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/etherpad/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/etherpad/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/etherpad/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/etherpad/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/etherpad/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,12 +44,15 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This security release fixes a critical unauthenticated arbitrary-file-read vulnerability in Etherpad's `/static/*` handler, plus additional privately reported issues around OpenID Connect cookies/CORS, session fixation, cross-pad writes, and pad ID validation.
+    This update improves collaborative editing reliability and fixes plugin icons.
 
-    It also migrates the server build to TypeScript 7, fixes PageDown/PageUp navigation across consecutive long wrapped lines, and makes the Docker `plugin_packages` volume mountpoint writable.
+    - Prevents unnecessary disconnections and dropped chat messages when multiple tabs or users share an IP address.
+    - Fixes scrambled text in watching browsers when edits come from clients that send multi-line changes.
+    - Fixes overlapping pad joins and restores plugin icon fonts in production mode.
+    - Makes the Colibris home page follow your dark-mode preference.
 
-    Full release notes can be found at https://github.com/ether/etherpad/releases/tag/v3.3.3
+    Full release notes can be found at https://github.com/ether/etherpad/releases/tag/v3.3.19
   source: https://github.com/ether/etherpad
-  version: 3.3.3
+  version: 3.3.19
   website: https://etherpad.org/
 website: https://etherpad.org/

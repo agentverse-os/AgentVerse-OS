@@ -85,12 +85,12 @@
         <span class="muted small">{t('updates.pkgNameHint', { arch: v.system.arch })}</span>
       </div>
       {#if v.system.packages.length}
-        <table class="tbl" style="margin-top: 8px;">
+        <div class="tscroll"><table class="tbl" style="margin-top: 8px;">
           <thead><tr><th>{t('updates.thPackage')}</th><th>{t('updates.thVersion')}</th><th>{t('updates.thSize')}</th><th>{t('updates.thStoreManifests')}</th><th></th></tr></thead>
           <tbody>
             {#each v.system.packages as p (p.file)}
               <tr>
-                <td><code>{p.file}</code><div class="small muted">{t('updates.addedAt', { date: when(p.added_at) })}{#if p.notes} · {p.notes}{/if}</div></td>
+                <td><code>{p.file}</code><div class="small muted">{t('updates.addedAt', { date: when(p.added_at) })}{#if p.notes}{' '}· {p.notes}{/if}</div></td>
                 <td>{p.version}{#if p.build} <span class="muted small">{p.build}</span>{/if}<div><span class="badge {p.relation === 'newer' ? 'ok' : p.relation === 'older' ? 'warn' : ''}">{rel(p.relation)}</span>{#if !p.arch_ok}<span class="badge bad">{t('updates.wrongArch', { arch: p.arch ?? '' })}</span>{/if}</div></td>
                 <td>{fmt.bytes(p.size)}</td>
                 <td>{p.store_apps.length ? p.store_apps.join(', ') : '—'}</td>
@@ -98,7 +98,7 @@
               </tr>
             {/each}
           </tbody>
-        </table>
+        </table></div>
       {/if}
       <div class="row" style="margin-top: 8px;">
         {#if v.system.can_rollback}<button onclick={rollback} disabled={!!busy}>{t('updates.rollback')}{v.system.prev_version ? ` (${v.system.prev_version})` : ''}</button>{/if}
@@ -115,9 +115,9 @@
           <button class="primary" onclick={updateAll} disabled={!!busy || !toUpdate}>{t('updates.updateAll', { n: toUpdate })}</button>
         </div>
       </div>
-      <div class="muted">{tn('updates.catalogCount', v.catalog.manifests)}{#if lastImport} · {t('updates.lastImport', { date: when(lastImport.at) })} {lastImport.ok ? t('updates.imported', { n: lastImport.imported ?? 0 }) : t('updates.error', { msg: lastImport.error ?? '' })}{/if}. {t('updates.appsHint')}</div>
+      <div class="muted">{tn('updates.catalogCount', v.catalog.manifests)}{#if lastImport}{' '}· {t('updates.lastImport', { date: when(lastImport.at) })} {lastImport.ok ? t('updates.imported', { n: lastImport.imported ?? 0 }) : t('updates.error', { msg: lastImport.error ?? '' })}{/if}. {t('updates.appsHint')}</div>
       {#if v.apps.length}
-        <table class="tbl" style="margin-top: 8px;">
+        <div class="tscroll"><table class="tbl" style="margin-top: 8px;">
           <thead><tr><th>{t('updates.thApp')}</th><th>{t('updates.thInstalled')}</th><th>{t('updates.thInCatalog')}</th><th>{t('updates.thChanged')}</th><th></th></tr></thead>
           <tbody>
             {#each v.apps as a (a.name)}
@@ -138,7 +138,7 @@
               </tr>
             {/each}
           </tbody>
-        </table>
+        </table></div>
       {:else}<div class="muted" style="margin-top: 8px;">{t('updates.noApps')}</div>{/if}
     </section>
 
@@ -146,18 +146,18 @@
     <section class="card">
       <h3>{t('updates.components')}</h3>
       <div class="muted">{t('updates.componentsHint1')} <code>docker compose pull && up -d</code> {t('updates.componentsHint2')}</div>
-      <table class="tbl" style="margin-top: 8px;">
+      <div class="tscroll"><table class="tbl" style="margin-top: 8px;">
         <thead><tr><th>{t('updates.thComponent')}</th><th>{t('updates.thContainers')}</th><th></th></tr></thead>
         <tbody>
           {#each v.components as c (c.project)}
             <tr>
-              <td><b>{c.title}</b><div class="small muted">{c.project}{#if c.note} · {c.note}{/if}</div></td>
+              <td><b>{c.title}</b><div class="small muted">{c.project}{#if c.note}{' '}· {c.note}{/if}</div></td>
               <td class="small">{#each c.containers as k}<div><code>{k.name}</code> {k.image} <span class="muted">{k.state}</span></div>{/each}</td>
               <td class="acts"><button disabled={!!busy || !c.updatable} onclick={() => updateComponent(c.project, c.title)}>{busy === `comp:${c.project}` ? t('updates.updating') : t('updates.pullImages')}</button></td>
             </tr>
           {/each}
         </tbody>
-      </table>
+      </table></div>
       {#if log}<pre class="log">{log}</pre>{/if}
     </section>
   {:else if !error}
@@ -168,7 +168,7 @@
 <style>
   .upd { display: flex; flex-direction: column; gap: 10px; }
   .chan { flex: 1; min-width: 260px; }
-  .tbl { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  .tbl { width: 100%; min-width: 480px; border-collapse: collapse; font-size: .9rem; }
   .tbl th { text-align: left; font-weight: 600; color: var(--muted); font-size: .8rem; padding: 4px 8px; border-bottom: 1px solid var(--line); }
   .tbl td { padding: 6px 8px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); vertical-align: top; }
   .tbl tr.hl td { background: color-mix(in srgb, var(--ok) 8%, transparent); }

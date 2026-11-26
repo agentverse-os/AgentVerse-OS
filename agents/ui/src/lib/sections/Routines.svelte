@@ -15,6 +15,7 @@
   import { ui, data, money, ago, when, runIcon, runClass, msg, MODELS_FOR, ENGINES } from '../state.svelte';
   import { agents, type AgentDef, type Routine, type Run, type Skill } from '../api';
   import { toast } from '../toast.svelte';
+  import { notify } from '../notify.svelte';
   import { t, tn } from '../i18n';
   import Icon from '../Icon.svelte';
   const TABS = $derived<['agents' | 'routines' | 'runs' | 'skills', string][]>([['agents', t('rt.tabAgents')], ['routines', t('rt.tabRoutines')], ['skills', t('rt.tabSkills')], ['runs', t('rt.tabRuns')]]);
@@ -25,8 +26,15 @@
   const EFFORTS: Record<string, string[]> = { claude: ['', 'low', 'medium', 'high', 'xhigh', 'max', 'ultracode'], codex: ['', 'low', 'medium', 'high', 'xhigh', 'max', 'ultra'], gemini: [''], pi: [''] };
   const blankAgent = (): Partial<AgentDef> => ({ name: '', brief: '', provider: 'claude', model: '', account: '', workspace: data.running[0]?.name ?? '', mode: 'ask', effort: '', rules: { allow: [], deny: [] }, memory: '', remember: true, place: '', can_mail: false, can_routine: true, memory_budget: 6000, reflect: false, skills: [] });
   const lines = (s: string) => s.split('\n').map(x => x.trim()).filter(Boolean);
-  const blankRoutine = (): Partial<Routine> => ({ name: '', agent: data.agentsList[0]?.id ?? '', prompt: '', trigger: { kind: 'schedule', cron: '0 9 * * 1-5', event: '', contains: '' }, budget: { run_usd: 1, day_usd: 5 }, notify: 'ask_error', enabled: true, mode: '' });
+  const blankRoutine = (): Partial<Routine> => ({ name: '', agent: data.agentsList[0]?.id ?? '', prompt: '', trigger: { kind: 'schedule', cron: '0 9 * * 1-5', event: '', contains: '' }, budget: { run_usd: 1, day_usd: 5 }, notify: 'ask_error', enabled: true, mode: '', retries: true, overlap: 'skip', on_question: 'wait' });
   const blankSkill = (): Partial<Skill> => ({ name: '', description: '', body: '' });
+  // The overlap rule a routine starts with follows its trigger (§7.2): a schedule asks for the same work again, so the next
+  // turn is skipped while the previous one is going; a webhook or an event brings its own data, and skipping would lose it.
+  // Changing the trigger moves the rule along while it is still the default of the trigger and the owner has not picked
+  // it by hand in this card.
+  const defOverlap = (kind?: string) => (kind === 'schedule' ? 'skip' : 'parallel');
+  let overlapPickedIn = '';
+  function pickTrigger(kind: string) { const trig = rForm.trigger!; if (overlapPickedIn !== activeKey && rForm.overlap === defOverlap(trig.kind)) rForm.overlap = defOverlap(kind); trig.kind = kind as typeof trig.kind; }
   let aForm = $state<Partial<AgentDef>>(blankAgent());
   let rForm = $state<Partial<Routine>>(blankRoutine());
   let sForm = $state<Partial<Skill>>(blankSkill());
@@ -51,7 +59,8 @@
   $effect(() => {
     const id = ui.routinesSel; const tb = ui.routinesTab;
     const found = tb === 'agents' ? data.agentsList.find(a => a.id === id) : tb === 'routines' ? data.routines.find(r => r.id === id) : tb === 'skills' ? data.skills.find(k => k.name === id) : null;
-    const server = found ? clone(found) as unknown as Record<string, unknown> : null;
+    // a routine saved before the run policies appeared (slice 96) opens with their defaults, not with empty choices
+    const server = found ? { ...(tb === 'routines' ? { retries: true, overlap: defOverlap((found as Routine).trigger?.kind), on_question: 'wait' } : {}), ...(clone(found) as unknown as Record<string, unknown>) } : null;
     untrack(() => {
       if (tb === 'runs') return;
       const key = `${tb}:${id ?? 'new'}`; const cached = editorDrafts.get(key);
@@ -90,7 +99,11 @@
     if (busy || drafting || !aForm.name?.trim()) return null; busy = true; const snapshot = clone(aForm); const key = activeKey; const sent = signature(snapshot);
     try {
       const body = clean(snapshot) as Partial<AgentDef>;
-      const saved = snapshot.id ? await agents.agentUpdate(snapshot.id, body) : await agents.agentCreate(body);
+      // Only what the owner changed goes to the server. The card used to send every field, and the memory lines and skills
+      // that runs had added while it was open with edits were written over by the stale copy (docs/agents-ux.md §7.2).
+      const base = snapshot.id ? JSON.parse(baseline || '{}') as Record<string, unknown> : null;
+      const changed = base ? Object.fromEntries(Object.entries(body).filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(base[k]))) as Partial<AgentDef> : body;
+      const saved = snapshot.id ? await agents.agentUpdate(snapshot.id, changed) : await agents.agentCreate(body);
       committed('agents', saved, key, sent); data.agentsList = [...data.agentsList.filter(a => a.id !== saved.id), saved];
       await data.loadRoutines(); toast(t('rt.saved')); return saved;
     } catch (e) { toast(msg(e), 'bad'); return null; } finally { busy = false; }
@@ -138,6 +151,21 @@
   async function runNow() { if (busy || running || !rForm.id || !rForm.name?.trim() || !rForm.agent || !rForm.prompt?.trim()) return; const id = rForm.id; const needsSave = dirty; running = true; try { const saved = needsSave ? await saveRoutine() : null; if (needsSave && !saved) return; const r = await agents.routineRun(saved?.id ?? id); toast(t('rt.started', { st: stLabel(r.run.status) + (r.run.reason ? ' — ' + r.run.reason : '') }), r.run.status === 'running' ? 'ok' : 'bad'); await data.loadRoutines(); } catch (e) { toast(msg(e), 'bad'); } finally { running = false; } }
   const hookUrl = (token?: string) => (token ? `${location.origin}/agents/api/hooks/${token}` : '');
   async function copyHook() { try { await navigator.clipboard.writeText(hookUrl(rForm.token)); toast(t('rt.copied'), 'info'); } catch {} }
+  // the schedules run on the owner's clock (settings.timezone); a browser in another zone can take it over
+  const browserZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const offsetText = (min: number) => { const a = Math.abs(min); return `${min < 0 ? '−' : '+'}${Math.floor(a / 60)}${a % 60 ? ':' + String(a % 60).padStart(2, '0') : ''}`; };
+  const zoneLine = $derived(data.routinesZone.name ? t('rr.zone', { zone: data.routinesZone.name, offset: offsetText(data.routinesZone.offset) }) : t('rr.zoneServer', { offset: offsetText(data.routinesZone.offset) }));
+  async function setZone() { try { await agents.saveSettings({ timezone: browserZone }); await data.loadRoutines(); toast(t('rr.zoneSet', { zone: browserZone })); } catch (e) { toast(msg(e), 'bad'); } }
+  async function rotateHook() {
+    if (busy || running || !rForm.id || !window.confirm(t('rr.rotateConfirm'))) return;
+    try { const r = await agents.routineToken(rForm.id); rForm.token = r.token; await data.loadRoutines(); toast(t('rr.rotated'), 'info'); } catch (e) { toast(msg(e), 'bad'); }
+  }
+  // who proposed the open skill (source `agent:<id>`); an agent that was deleted since leaves it with no user at all
+  const proposer = $derived(data.agentsList.find(x => `agent:${x.id}` === sForm.source)?.name ?? '');
+  async function acceptSkill() {
+    if (busy || running || !sForm.name) return; busy = true;
+    try { const saved = await agents.skillAccept(sForm.name); sForm.source = saved.source; data.skills = [...data.skills.filter(k => k.name !== saved.name), saved]; await data.loadRoutines(); toast(t('rr.accepted')); } catch (e) { toast(msg(e), 'bad'); } finally { busy = false; }
+  }
   const stLabel = (st: string) => t(`rt.st.${st}`);
   const trLabel = (r: Partial<Routine>) => r.trigger?.kind === 'schedule' ? cronText(r.trigger.cron) : t(`rt.tr.${r.trigger?.kind ?? 'manual'}`) + (r.trigger?.kind === 'event' && r.trigger.event ? ` ${r.trigger.event}` : '');
   /** Schedule label — the same forms as in the service (routines.rs describe). */
@@ -165,7 +193,7 @@
   <div class="tr" data-run={r.id}>
     <span class="ic {runClass(r.status)}" title={stLabel(r.status)}><Icon name={runIcon(r.status)} size="s" /></span>
     <span class="when muted sm num">{when(r.started_at)}</span>
-    <span class="who">{#if withWho}<b>{r.routine_name ?? r.agent_name}</b> · {r.agent_name} · {r.project} ·{' '}{/if}{stLabel(r.status)}{#if r.status !== 'skipped'}{' '}· {dur(r)} · {money(r.cost_usd)}{/if}{' '}· <span class="muted">{t(`rt.tr.${r.trigger}`)}{#if r.trigger === 'mail'}{' '}{r.from_agent ? t('rt.fromAgent', { name: agentName(r.from_agent) }) : t('rt.fromOwner')}{/if}</span></span>
+    <span class="who">{#if withWho}<b>{r.routine_name ?? r.agent_name}</b> · {r.agent_name} · {r.project} ·{' '}{/if}{stLabel(r.status)}{#if r.attempt}{' '}· {t('rr.attempt', { n: r.attempt })}{/if}{#if r.retry_at}{' '}· <span class="retry-at">{t('rr.retryAt', { t: when(r.retry_at) })}</span>{/if}{#if r.status !== 'skipped'}{' '}· {dur(r)} · {money(r.cost_usd)}{/if}{' '}· <span class="muted">{t(`rt.tr.${r.trigger}`)}{#if r.trigger === 'mail'}{' '}{r.from_agent ? t('rt.fromAgent', { name: agentName(r.from_agent) }) : t('rt.fromOwner')}{/if}</span></span>
     <span>{#if r.session}<button class="xs ghost" onclick={() => ui.goto({ project: r.project, kind: 'session', id: r.session! })}>{t('rt.openSession')} <Icon name="arrowUR" size="s" /></button>{/if}</span>
     {#if r.summary || r.reason}<span class="sum" title={r.summary ?? r.reason ?? ''}>{r.summary || r.reason}</span>{/if}
   </div>
@@ -241,7 +269,7 @@
               <span class="dot {r.enabled ? (r.last?.status === 'running' ? 'working' : 'ok') : ''}"></span>
               <span class="nm">{r.name}</span>
               <span class="st">{#if r.last}<span class="dot {runClass(r.last.status)}"></span> {ago(r.last.started_at)} · {money(r.last.cost_usd)}{:else}{t('rt.never')}{/if}</span>
-              <span class="sub">{r.agent_name} · {r.workspace} · {trLabel(r)}{#if r.next_at} · {t('rt.next')} {when(r.next_at)}{/if}{#if !r.enabled} · {t('rt.disabled')}{/if}</span>
+              <span class="sub">{r.agent_name} · {r.workspace} · {trLabel(r)}{#if r.next_at}{' '}· {t('rt.next')} {when(r.next_at)}{/if}{#if !r.enabled}{' '}· {t('rt.disabled')}{/if}</span>
             </button>
           {/each}
           {#if !data.routines.length}<div class="empty card-s"><span class="ic"><Icon name="repeat" size="l" /></span><b>{t('rt.noRoutines')}</b><span>{t('rt.noRoutinesHint')}</span></div>{/if}
@@ -257,12 +285,12 @@
               <span>{t('rt.prompt')}<div class="hint">{t('rt.promptHint')}</div></span><textarea aria-label={t('rt.prompt')} bind:value={rForm.prompt} placeholder={t('rt.phPrompt')}></textarea>
               <span>{t('rt.trigger')}</span>
               <span class="stack" style="gap: 8px">
-                <span class="radios">{#each [['schedule', t('rt.trSchedule')], ['webhook', t('rt.trWebhook')], ['event', t('rt.trEvent')], ['manual', t('rt.trManual')]] as [k, l] (k)}<label><input type="radio" name="trig" value={k} bind:group={rForm.trigger!.kind} /> {l}</label>{/each}</span>
+                <span class="radios">{#each [['schedule', t('rt.trSchedule')], ['webhook', t('rt.trWebhook')], ['event', t('rt.trEvent')], ['manual', t('rt.trManual')]] as [k, l] (k)}<label><input type="radio" name="trig" value={k} checked={rForm.trigger?.kind === k} onchange={() => pickTrigger(k)} /> {l}</label>{/each}</span>
                 {#if rForm.trigger?.kind === 'schedule'}
-                  <span class="inl"><input class="sm mono" style="width: 150px" aria-label={t('rt.trigger')} bind:value={rForm.trigger!.cron} placeholder="0 3 * * *" /><select class="sm" aria-label={t('rt.presets')} value="" onchange={(e) => { const v = (e.target as HTMLSelectElement).value; if (v) rForm.trigger!.cron = v; (e.target as HTMLSelectElement).value = ''; }}><option value="">{t('rt.presets')}</option>{#each PRESETS as [c, l] (c)}<option value={c}>{l}</option>{/each}</select><span class="hint">{cronText(rForm.trigger?.cron)}{#if selRoutine?.next_at && selRoutine.trigger.cron === rForm.trigger?.cron} · {t('rt.next')} {when(selRoutine.next_at)}{/if}</span></span>
-                  <span class="hint">{t('rt.cronHint')}</span><span class="hint">{t('sx.scheduleZone', { zone: Intl.DateTimeFormat().resolvedOptions().timeZone })}</span>
+                  <span class="inl"><input class="sm mono" style="width: 150px" aria-label={t('rt.trigger')} bind:value={rForm.trigger!.cron} placeholder="0 3 * * *" /><select class="sm" aria-label={t('rt.presets')} value="" onchange={(e) => { const v = (e.target as HTMLSelectElement).value; if (v) rForm.trigger!.cron = v; (e.target as HTMLSelectElement).value = ''; }}><option value="">{t('rt.presets')}</option>{#each PRESETS as [c, l] (c)}<option value={c}>{l}</option>{/each}</select><span class="hint">{cronText(rForm.trigger?.cron)}{#if selRoutine?.next_at && selRoutine.trigger.cron === rForm.trigger?.cron}{' '}· {t('rt.next')} {when(selRoutine.next_at)}{/if}</span></span>
+                  <span class="hint">{t('rt.cronHint')}</span><span class="hint zone">{zoneLine}{#if browserZone && data.routinesZone.name !== browserZone}{' '}<button class="xs ghost zone-switch" onclick={setZone}>{t('rr.zoneSwitch', { zone: browserZone })}</button>{/if}</span>
                 {:else if rForm.trigger?.kind === 'webhook'}
-                  {#if rForm.token}<span class="inl"><span class="hook" title={hookUrl(rForm.token)}>{hookUrl(rForm.token)}</span><button class="xs" onclick={copyHook}><Icon name="copy" size="s" /> {t('rt.copy')}</button></span>{:else}<span class="hint">{t('rt.hookAfterSave')}</span>{/if}
+                  {#if rForm.token}<span class="inl"><span class="hook" title={hookUrl(rForm.token)}>{hookUrl(rForm.token)}</span><button class="xs" onclick={copyHook}><Icon name="copy" size="s" /> {t('rt.copy')}</button><button class="xs ghost rotate" onclick={rotateHook}>{t('rr.rotate')}</button></span>{:else}<span class="hint">{t('rt.hookAfterSave')}</span>{/if}
                   <span class="hint">{t('rt.hookHint')}</span>
                 {:else if rForm.trigger?.kind === 'event'}
                   <span class="inl"><select class="sm" aria-label={t('rt.trEvent')} bind:value={rForm.trigger!.event}>{#each EVENTS as k (k)}<option value={k}>{k || t('rt.eventAny')}</option>{/each}</select><span class="hint">{t('rt.contains')}</span><input class="sm" style="width: 180px" aria-label={t('rt.contains')} bind:value={rForm.trigger!.contains} placeholder={t('rt.phContains')} /></span>
@@ -270,7 +298,12 @@
               </span>
               <span>{t('rt.budget')}<div class="hint">{t('rt.noLimit')}</div></span><span class="inl"><input class="sm num" type="number" min="0" step="0.5" aria-label={t('rt.perRun')} bind:value={rForm.budget!.run_usd} /> $ {t('rt.perRun')}<input class="sm num" type="number" min="0" step="1" aria-label={t('rt.perDay')} bind:value={rForm.budget!.day_usd} /> $ {t('rt.perDay')}</span>
               <span>{t('rt.notify')}</span><span class="radios">{#each [['ask_error', t('rt.nAskError')], ['always', t('rt.nAlways')], ['never', t('rt.nNever')]] as [k, l] (k)}<label><input type="radio" name="ntf" value={k} bind:group={rForm.notify} /> {l}</label>{/each}</span>
+              <!-- where a routine tells: the device as before, and the notification channels bound to it (§9.12.2) -->
+              <span>{t('ntf.where')}</span><span class="inl rt-where">{#if rForm.id}{@const where = notify.of({ scope: 'routine', project: '', routine: rForm.id, title: '' })}<span class="hint">{t('ntf.device')}{#each where as b (b.id)}{' '}· {notify.words(b)}{/each}</span><button type="button" class="xs rt-channels" onclick={() => notify.open({ scope: 'routine', project: '', routine: rForm.id!, title: rForm.name ?? '' })}><Icon name="bell" size="s" /> {t('ntf.channelsBtn')}</button>{:else}<span class="hint">{t('ntf.device')} · {t('ntf.afterSave')}</span>{/if}</span>
               <span>{t('rt.routineMode')}</span><select class="sm rmode" aria-label={t('rt.routineMode')} bind:value={rForm.mode}><option value="">{t('rt.modeAsAgent')}</option><option value="ask">{t('rt.modeAsk')}</option><option value="auto">{t('rt.modeAuto')}</option><option value="bypass">{t('rt.modeBypass')}</option></select>
+              <span>{t('rr.retries')}</span><span class="inl"><button class="switch retries" class:on={rForm.retries !== false} aria-pressed={rForm.retries !== false} aria-label={t('rr.retries')} onclick={() => (rForm.retries = rForm.retries === false)}></button><span class="hint">{t('rr.retriesOn')}</span></span>
+              <span>{t('rr.overlap')}</span><span class="radios">{#each [['skip', t('rr.overlapSkip')], ['parallel', t('rr.overlapParallel')]] as [k, l] (k)}<label><input type="radio" name="ovl" value={k} bind:group={rForm.overlap} onchange={() => (overlapPickedIn = activeKey)} /> {l}</label>{/each}</span>
+              <span>{t('rr.question')}</span><span class="radios">{#each [['wait', t('rr.questionWait')], ['deny', t('rr.questionDeny')]] as [k, l] (k)}<label><input type="radio" name="qst" value={k} bind:group={rForm.on_question} /> {l}</label>{/each}</span>
               <span>{t('rt.enabled')}</span><span><button class="switch" class:on={rForm.enabled} aria-pressed={!!rForm.enabled} aria-label={t('rt.enabled')} onclick={() => (rForm.enabled = !rForm.enabled)}></button></span>
             </fieldset>
             <div class="acts"><button class="sm primary" disabled={busy || running || !rForm.name?.trim() || !rForm.agent || !rForm.prompt?.trim()} onclick={saveRoutine}>{rForm.id ? t('common.save') : t('rt.create')}</button>{#if rForm.id}<button class="sm" disabled={busy || running || !rForm.name?.trim() || !rForm.agent || !rForm.prompt?.trim()} onclick={runNow}><Icon name="play" size="s" /> {running ? t('sx.running') : dirty ? t('sx.saveRun') : t('rt.runNow')}</button>{/if}<span class="sp"></span>{#if rForm.id}<button class="sm ghost danger" disabled={busy || running} onclick={deleteRoutine}>{t('rt.deleteRoutine')}</button>{:else}<button class="sm ghost" disabled={busy || running} onclick={discard}>{t('rt.cancel')}</button>{/if}</div>
@@ -289,7 +322,7 @@
               <span class="av"><Icon name="book" size="s" /></span>
               <span class="nm mono">{k.name}</span>
               <span class="st">{k.source === 'user' ? t('rt.skillOwner') : t('rt.skillFromAgent')}</span>
-              <span class="sub">{k.description}{#if k.agents?.length} · {t('rt.skillUsedBy')}: {k.agents.join(', ')}{/if}</span>
+              <span class="sub">{k.description}{#if k.agents?.length}{' '}· {t('rt.skillUsedBy')}: {k.agents.join(', ')}{/if}</span>
             </button>
           {/each}
           {#if !data.skills.length}<div class="empty card-s"><span class="ic"><Icon name="book" size="l" /></span><b>{t('rt.noSkills')}</b><span>{t('rt.noSkillsHint')}</span></div>{/if}
@@ -303,6 +336,7 @@
               <span>{t('rt.skillDesc')}</span><input class="sm" aria-label={t('rt.skillDesc')} bind:value={sForm.description} />
               <span>{t('rt.skillBody')}<div class="hint">{t('rt.noSkillsHint')}</div></span><textarea class="mem memory" aria-label={t('rt.skillBody')} bind:value={sForm.body}></textarea>
             </fieldset>
+            {#if !fresh && sForm.source && sForm.source !== 'user'}<div class="draft-notice proposal" role="note"><span><b>{t('rt.skillFromAgent')}</b><span class="hint">{proposer ? t('rr.acceptHint', { name: proposer }) : t('rr.acceptHintGone')}</span></span><button class="sm accept" disabled={busy || running} onclick={acceptSkill}>{t('rr.accept')}</button></div>{/if}
             <div class="acts"><button class="sm primary" disabled={busy || running || !sForm.name?.trim() || !sForm.body?.trim()} onclick={saveSkill}>{!fresh ? t('common.save') : t('rt.create')}</button><span class="sp"></span>{#if !fresh}<button class="sm ghost danger" disabled={busy || running} onclick={deleteSkill}>{t('rt.deleteSkill')}</button>{:else}<button class="sm ghost" disabled={busy || running} onclick={discard}>{t('rt.cancel')}</button>{/if}</div>
           </div>
         {/if}
@@ -323,6 +357,10 @@
   .draft-notice b { color: var(--warn); }
   .editor-error { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-bottom: 14px; color: var(--bad); font-size: 13px; }
   .editor-error > span { flex: 1 1 240px; overflow-wrap: anywhere; }
+  .draft-notice.proposal b { color: var(--accent); }
+  .retry-at { color: var(--warn); }
+  /* names of channels are the owner's own words of any length */
+  .rt-where .hint { overflow-wrap: anywhere; min-width: 0; }
   .rt-top .seg { min-width: 0; overflow-x: auto; }
   .rt-top .seg button { flex: 0 0 auto; white-space: nowrap; }
   @media (pointer: coarse) { .routines-main button:not(.switch), .routines-main input:not([type="radio"]):not([type="checkbox"]), .routines-main select { min-height: 44px; } .routines-main .radios label, .routines-main label.row { min-height: 44px; } }

@@ -44,7 +44,7 @@ services:
       - --spider
       - http://127.0.0.1:3000/auth/login
       timeout: 20s
-    image: ghcr.io/diced/zipline:latest
+    image: ghcr.io/diced/zipline:4.8.3
     networks:
       appnet:
         aliases:

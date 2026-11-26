@@ -12,9 +12,9 @@ env:
   APP_GITEA_SSH_PORT: '2222'
   APP_GITEA_TOR_HS_EXTRA_PORTS: 22:gitea_server_1:${APP_GITEA_SSH_PORT}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/gitea/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/gitea/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/gitea/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/gitea/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/gitea/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/gitea/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,12 +45,12 @@ upstream:
   categories:
   - developer
   release_notes: |-
-    Gitea 1.27.3 is a follow-up to the recent Gitea 1.27 major update. If you're updating from a pre-1.27 version, note that Gitea 1.27 includes breaking changes for reusable workflows and adds Content-Security-Policy script nonces, which may affect custom integrations that rely on old workflow behavior or inline scripts.
+    This update includes security improvements to access checks, organization and issue visibility, repository mirror credentials, and two-factor authentication. We recommend updating as soon as possible.
 
-    If you're already on Gitea 1.27, this update fixes security issues around package access, repository attachments, markup access checks, Actions artifact signatures, API permissions, hidden repositories, Git hooks, and issue search. It also includes fixes for Actions workflow rendering and validation, repository migrations, pull request merge state, Swift package versioning, dashboard feeds, and user/API handling.
+    Git pushes and issue notifications are more reliable. This release also improves Actions workflows and live synchronization, fixes wiki previews and pasted code formatting, and adds support for OCI 1.1 container image names.
 
-    Full release notes: https://github.com/go-gitea/gitea/releases/tag/v1.27.3
+    Full release notes: https://github.com/go-gitea/gitea/releases/tag/v28.4.0
   source: https://github.com/go-gitea/gitea
-  version: 1.27.3
+  version: 28.4.0
   website: https://gitea.io/en-us/
 website: https://gitea.io/en-us/

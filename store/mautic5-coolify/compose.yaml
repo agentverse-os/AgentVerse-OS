@@ -24,7 +24,7 @@ services:
       - CMD-SHELL
       - exit 0
       timeout: 10s
-    image: mautic/mautic:latest
+    image: mautic/mautic:7.2.2-apache
     networks:
       appnet:
         aliases:
@@ -60,7 +60,7 @@ services:
       - -f
       - http://localhost
       timeout: 10s
-    image: mautic/mautic:latest
+    image: mautic/mautic:7.2.2-apache
     networks:
       appnet:
         aliases:
@@ -95,7 +95,7 @@ services:
       - CMD-SHELL
       - exit 0
       timeout: 10s
-    image: mautic/mautic:latest
+    image: mautic/mautic:7.2.2-apache
     networks:
       appnet:
         aliases:
@@ -122,7 +122,7 @@ services:
       start_period: 30s
       test: mysqladmin ping --silent --user=$$SERVICE_USER_MYSQL --password=$$SERVICE_PASSWORD_64_MYSQL
       timeout: 5s
-    image: mysql:8.0
+    image: mysql:8.4
     networks:
       appnet:
         aliases:
@@ -135,8 +135,9 @@ services:
     - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST:-mautic}
     healthcheck:
       interval: 5s
-      retries: 10
-      test: rabbitmq-diagnostics -q ping
+      retries: 20
+      start_period: 60s
+      test: rabbitmq-diagnostics -q check_port_connectivity
       timeout: 30s
     image: rabbitmq:3
     networks:

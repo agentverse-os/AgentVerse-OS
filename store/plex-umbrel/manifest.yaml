@@ -12,9 +12,9 @@ env:
   DEVICE_HOSTNAME: ${EDGE_HOST}
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/plex/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/plex/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/plex/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plex/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/plex/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/plex/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,14 +44,16 @@ upstream:
   categories:
   - media
   release_notes: |-
-    This update includes several improvements and bug fixes:
-      - Improved MP4/MOV atom validation and library filter validation.
-      - Fixed security issues in CompanionProxy and protected transcoder H.264 preference overrides from remote changes.
-      - Includes the recent Plex Web 4.160.0 update, IPv6-only network support, DVB Teletext subtitle support, and the renamed HEVC/AV1 encoding option.
-      - Improves downloads, HDR/Dolby Vision/Atmos filters, NFO metadata parsing, local metadata handling, PlexMatch handling, and DASH manifest content types.
+    This update includes improvements and security fixes:
+      - Adds support for artist and album metadata from NFO files in music libraries.
+      - Improves IPv6 connections and local network detection.
+      - Fixes remote access status getting stuck after remote access is disabled.
+      - Fixes library scoping in search results and strengthens request and proxy security.
+      - Fixes music metadata, unwanted loudness analysis, and a crash when streaming media without a video track.
+
 
     Full release notes are available at https://www.videohelp.com/software/Plex
   source: null
-  version: 1.43.3.10896
+  version: 1.43.5.11029
   website: https://www.plex.tv/
 website: https://www.plex.tv/

@@ -19,7 +19,7 @@ services:
       - -f
       - http://127.0.0.1:80
       timeout: 10s
-    image: lscr.io/linuxserver/heimdall:latest
+    image: lscr.io/linuxserver/heimdall:2.8.4
     networks:
       appnet:
         aliases:

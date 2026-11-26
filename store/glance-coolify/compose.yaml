@@ -91,7 +91,7 @@ services:
       - echo
       - '[+] Should be working fine.'
       timeout: 20s
-    image: glanceapp/glance:latest
+    image: glanceapp/glance:v0.8.8
     networks:
       appnet:
         aliases:

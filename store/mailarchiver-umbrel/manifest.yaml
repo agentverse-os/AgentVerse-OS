@@ -10,9 +10,9 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/mailarchiver/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/mailarchiver/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/mailarchiver/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mailarchiver/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/mailarchiver/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/mailarchiver/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,27 +42,17 @@ upstream:
   categories:
   - files
   release_notes: |-
-    ⚠️ Important: If you're updating from a pre-2606.1 version, create a backup before upgrading; the recent attachment deduplication migration may temporarily increase storage usage.
-
-    New features:
-      - Added date-windowed account offload into another mailbox with duplicate
-        detection, dry-run reporting, and resumable locking.
-      - Added a read-only stats API endpoint for aggregate archive statistics with
-        account-scoped results for restricted API keys.
-
+    If you still use the configured initial admin password, you will now be required to change it when signing in, including on existing installations.
 
     Improvements and fixes:
-      - Improved nested archive folder rendering, IMAP folder discovery, and
-        clickable Archive rows.
-      - Reduced offload memory usage and tightened ownership/scoping for job
-        cancellation, stats, and self-manager access.
-      - Fixed import, export, restore, retention, Message-ID, M365/Graph, and
-        Outlook folder-discovery edge cases, including better handling of
-        malformed or headerless messages.
+      - EML exports now return the original message unchanged when original-message storage is enabled and an original is available.
+      - Fixed a sign-in bypass that allowed local password logins when OAuth-only mode was configured.
+      - Added a configurable OIDC response mode for compatibility with providers such as Synology SSO Server.
+      - Improved OIDC login error messages and display-name handling.
 
 
-    Full release notes can be found at https://github.com/s1t5/mail-archiver/releases/tag/2608.1
+    Full release notes can be found at https://github.com/s1t5/mail-archiver/releases/tag/2611.2
   source: https://github.com/s1t5/mail-archiver
-  version: '2608.1'
+  version: '2611.2'
   website: https://mail-archiver.org
 website: https://mail-archiver.org

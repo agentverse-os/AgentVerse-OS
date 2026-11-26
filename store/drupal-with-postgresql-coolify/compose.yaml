@@ -20,7 +20,7 @@ services:
       - CMD-SHELL
       - curl -f http://localhost:80 || exit 1
       timeout: 10s
-    image: drupal:10-apache
+    image: drupal:11-apache
     networks:
       appnet:
         aliases:

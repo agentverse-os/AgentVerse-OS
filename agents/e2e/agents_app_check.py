@@ -1,5 +1,16 @@
-import os, re, time, json, ssl, urllib.request, random, string, uuid, base64, struct, zlib, threading, http.server
-from playwright.sync_api import sync_playwright
+import os, re, time, json, ssl, socket, urllib.request, random, string, uuid, base64, struct, zlib, threading, http.server
+from playwright.sync_api import sync_playwright, Page
+# A wait that gives up after 5 s or more leaves a SLOW line in the log (the summary of run_parallel.sh counts them): a check
+# that swallows the timeout (`try: … except: pass`) and goes on can otherwise burn minutes per run unnoticed — an element
+# hidden by design never becomes "visible"; such waits want `state="attached"`.
+_wait_for_selector = Page.wait_for_selector
+def _reported_wait(self, selector, **kw):
+    t0 = time.time()
+    try: return _wait_for_selector(self, selector, **kw)
+    except Exception:
+        if time.time() - t0 >= 5: print(f"SLOW  a wait for {selector!r} gave up after {time.time() - t0:.0f} s", flush=True)
+        raise
+Page.wait_for_selector = _reported_wait
 # The "Agents" app as a separate service (cloudos-agents on :7300, the /agents/ route on the edge): the service API (health,
 # workplaces, inbox, models, settings, the proxy to the core), then in the browser — the frame, the workspace tree, creating a
 # Claude session from the "+" menu, Thread with a chat and a model answer, inbox, models, settings, the light theme. One model
@@ -147,7 +158,10 @@ with sync_playwright() as p:
     composer_modes(pg); pg.wait_for_selector(".thread .chat .modes .seg", timeout=5000); pg.locator(".thread .chat .modes .seg button:has-text('auto')").click(); time.sleep(1); pg.keyboard.press("Escape")
     ok("cmp: no dollar spend in the composer (header has it)", tools.locator(".chip:has-text('$')").count() == 0 and pg.locator(".thread .t-head .chip:has-text('$')").count() == 1)
     tools.locator(".ctl.model").click(); pg.wait_for_selector(".menu", timeout=5000); mitems = [x.strip() for x in pg.locator(".menu .mi").all_inner_texts()]
-    ok("cmp: model menu lists CLI models with context windows; native-1M families (Fable) are one entry with a 1M window, no «Fable · 200k» / «(1M context)» pair", any("Fable" in x and "1M" in x for x in mitems) and not any("Fable (1M context)" in x for x in mitems) and sum(1 for x in mitems if x.startswith("Fable")) == 1 and any("Sonnet" in x for x in mitems) and len(mitems) >= 6, str(mitems)[:200]); pg.keyboard.press("Escape")
+    # the CLI lists the session's pinned model next to the family alias when they differ (Claude Code 2.1.327: «Fable» is 5.2,
+    # the workspace pins 5.1) — two Fable entries are fine as long as each is a 1M entry and none repeats
+    fable = [x.split("\n")[0] for x in mitems if x.startswith("Fable")]
+    ok("cmp: model menu lists CLI models with context windows; native-1M families (Fable) are 1M entries, each once, no «Fable · 200k» / «(1M context)» pair", bool(fable) and all("1M" in x for x in fable) and len(set(fable)) == len(fable) and not any("(1M context)" in x for x in mitems) and any("Sonnet" in x for x in mitems) and len(mitems) >= 6, str([x.split("\n")[0] for x in mitems])[:300]); pg.keyboard.press("Escape")
     # "Mode and effort" as in Claude Code: modes with descriptions (Manual · Edit automatically · Plan · Auto · Bypass · Don't ask) and the effort
     # slider
     composer_modes(pg); pg.wait_for_selector(".thread .chat .modes", timeout=5000); modes = [x.split("\n")[0].strip() for x in pg.locator(".thread .chat .modes .mode").all_inner_texts()]
@@ -431,6 +445,17 @@ with sync_playwright() as p:
         mine = next((c for c in lay if c.get("id") == sid), None)
         ok("resize: the size survives a reload and the shared layout in the core stores rows, not the old 1|2 flags", rz.count() == 1 and span()[1] == "span 7" and mine is not None and mine.get("h") == 7, f"{span()} core={mine}")
         g = rz.first.locator(".grip"); g.focus(); [pg.keyboard.press("ArrowUp") for _ in range(3)]; time.sleep(1.2)
+        # the layout is shared between devices: a card widened to two columns must not open an implicit 2 px column on a canvas
+        # where one column fits (1200 px wide: the canvas is under 854 px) — every card keeps the full column width
+        wb = rz.first.locator(".c-head .acts button[aria-label='Ширина']")
+        if wb.count():
+            wb.click(force=True); time.sleep(0.5); wide = span()[0]
+            pg.set_viewport_size({"width": 1200, "height": 900}); time.sleep(1.2)
+            cw = pg.locator(".canvas").evaluate("e => e.clientWidth")
+            ws = pg.locator(".canvas .card:not(.collapsed)").evaluate_all("els => els.map(e => Math.round(e.getBoundingClientRect().width))")
+            pg.set_viewport_size({"width": 1500, "height": 900}); time.sleep(1.0)
+            rz.first.locator(".c-head .acts button[aria-label='Ширина']").click(force=True); time.sleep(0.8)
+            ok("resize: a card wider than the canvas has columns does not squeeze the others into a sliver — the span is clamped to the columns that fit", wide == "span 2" and cw < 854 and len(ws) >= 1 and min(ws) > 300 and span()[0] == "span 1", f"{wide} canvas={cw}px widths={sorted(set(ws))[:4]} back={span()[0]}")
         card = pg.locator(".canvas .card").filter(has_text=KNOWN_SESSION)
     # session mark and own name (docs/agents-ux.md §4.8)
     if card.count() and sid:
@@ -476,8 +501,8 @@ with sync_playwright() as p:
     def sessions(): return get(f"/agents/api/core/projects/{P}/sessions")[1] or []
     DISK = str(uuid.uuid4()); before_ids = {x["id"] for x in sessions()}
     pty = json.loads(raw(f"/agents/api/core/projects/{P}/ptys", "POST", json.dumps({"cmd": ["bash", "-lic", f"claude -p 'Reply with exactly this and nothing else: disk-{MARK}' --session-id {DISK}; exit"], "cwd": "/home/coder", "title": "e2e claude -p"}).encode())[1])
-    for _ in range(90):
-        time.sleep(2); pi = get(f"/agents/api/core/projects/{P}/ptys/{pty['id']}")[1]
+    for _ in range(180):
+        time.sleep(1); pi = get(f"/agents/api/core/projects/{P}/ptys/{pty['id']}")[1]
         if pi and not pi["alive"]: break
     ok("disk: claude -p ran in a workspace terminal outside agentd", bool(pi) and not pi["alive"], json.dumps(pi)[:120] if pi else "no pty")
     raw(f"/agents/api/core/projects/{P}/ptys/{pty['id']}", "DELETE")
@@ -491,8 +516,8 @@ with sync_playwright() as p:
     st_w, _ = raw(f"/agents/api/core/projects/{P}/fs/mkdir", "POST", json.dumps({"path": "/home/coder/.codex/sessions/2026/09/28"}).encode())
     st_w, body_w = raw(f"/agents/api/core/projects/{P}/fs/file?path={ROLL}", "PUT", rollout.encode(), "application/octet-stream"); ok("disk: codex rollout written into the workspace", st_w == 200, f"{st_w} {body_w[:100]}")
     disk = codex = None
-    for _ in range(30):
-        time.sleep(2); cur = [x for x in sessions() if x["id"] not in before_ids]
+    for _ in range(60):
+        time.sleep(1); cur = [x for x in sessions() if x["id"] not in before_ids]
         disk = next((x for x in cur if x.get("provider_session_id") == DISK), None); codex = next((x for x in cur if x.get("provider_session_id") == CODEX), None)
         if disk and codex: break
     ok("disk: claude transcript adopted as a session with the prompt as title", bool(disk) and disk["imported"] and disk["agent"] == "claude" and disk["title"].startswith("Reply with exactly") and not disk["alive"], json.dumps(disk, ensure_ascii=False)[:200] if disk else "not found")
@@ -516,11 +541,41 @@ with sync_playwright() as p:
     t_open = time.time() - t_open; time.sleep(1)
     ok("scroll: long conversation is fully rendered and at the end within seconds, not tens", t_open < 6, f"{t_open:.1f} s")
     at_end = pg.locator(".thread .chat .log").evaluate("l => l.scrollHeight - l.scrollTop - l.clientHeight < 60"); has_more = pg.locator(".thread .chat .log .earlier").count() == 1
-    pg.locator(".thread .chat .log").evaluate("l => { l.scrollTop = 0; }"); time.sleep(1.2); stays_top = pg.locator(".thread .chat .log").evaluate("l => l.scrollTop < 40")
-    ok("scroll: long conversation opens at the end, older events behind 'show more', reading up is not yanked down", at_end and has_more and stays_top, f"end {at_end} more {has_more} top {stays_top}")
+    # at the top edge the next chunk of history comes by itself (slice 98) and the reader is kept at the message he was on: the
+    # position moves by the height of what was put above — what must not happen is a jump back down to the end
+    rows_before = pg.locator(".thread .chat .log .m").count()
+    pg.locator(".thread .chat .log").evaluate("l => { l.scrollTop = 0; }"); time.sleep(1.5)
+    stays_up = pg.locator(".thread .chat .log").evaluate("l => l.scrollHeight - l.scrollTop - l.clientHeight > 300"); rows_after = pg.locator(".thread .chat .log .m").count()
+    ok("scroll: long conversation opens at the end, older events behind 'show more', reading up loads more and is not yanked down to the end", at_end and has_more and stays_up and rows_after >= rows_before, f"end {at_end} more {has_more} up {stays_up} rows {rows_before}→{rows_after}")
     # "N earlier" — a page of 300 events (§4.3.16): after the click there are more messages; the button stays while the journal has older pages
     n_before = pg.locator(".thread .chat .log .m").count(); pg.locator(".thread .chat .log .earlier").click(); time.sleep(2); n_after = pg.locator(".thread .chat .log .m").count()
     ok("scroll: 'show more' reveals earlier history", n_after > n_before, f"{n_before} → {n_after}, more={pg.locator('.thread .chat .log .earlier').count()}")
+    # a journal that ends with hundreds of events that draw no row of their own (tool results: a long turn, or results picked up
+    # from the provider journal after an agentd restart). The window used to be counted in events — such a tail filled it and the
+    # conversation opened empty, with only the "show earlier" button; it is counted in rows now, and older pages are pulled
+    TAIL = str(uuid.uuid4())
+    tail_lines = [
+        {"type": "user", "message": {"role": "user", "content": f"Хвост из результатов {MARK}"}, "uuid": f"tu-{MARK}", "timestamp": "2026-09-28T01:00:00.000Z", "cwd": "/home/coder", "sessionId": TAIL},
+        {"type": "assistant", "message": {"role": "assistant", "model": "claude-fable-5-1", "content": [{"type": "text", "text": f"tail-answer-{MARK}"}]}, "uuid": f"ta-{MARK}", "timestamp": "2026-09-28T01:00:01.000Z"},
+    ] + [{"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": f"tt{i}-{MARK}", "content": f"r{i}"}]}, "uuid": f"tr{i}-{MARK}", "timestamp": f"2026-09-28T01:{1 + i // 60:02d}:{i % 60:02d}.000Z"} for i in range(700)]
+    raw(f"/agents/api/core/projects/{P}/fs/file?path=/home/coder/.claude/projects/-home-coder/{TAIL}.jsonl", "PUT", ("\n".join(json.dumps(x, ensure_ascii=False) for x in tail_lines) + "\n").encode(), "application/octet-stream")
+    tail_s = None
+    for _ in range(60):
+        time.sleep(1); tail_s = next((x for x in sessions() if x.get("provider_session_id") == TAIL), None)
+        if tail_s: break
+    if tail_s:
+        tree_expand(pg, P)
+        try: pg.wait_for_selector(f".panel .sess[data-id='{tail_s['id']}']", timeout=20000); pg.locator(f".panel .sess[data-id='{tail_s['id']}']").click()
+        except Exception: pass
+        shown = False
+        for _ in range(40):
+            if pg.locator(".thread .chat .log .m.user").count() >= 1 and f"tail-answer-{MARK}" in " ".join(pg.locator(".thread .chat .log .m.agent").all_inner_texts()): shown = True; break
+            time.sleep(0.5)
+        ok("scroll: a conversation whose journal ends with hundreds of tool results opens with its messages, not empty", shown and tail_s.get("last_seq", 0) >= 700, f"last_seq={tail_s.get('last_seq')} users={pg.locator('.thread .chat .log .m.user').count()} agents={pg.locator('.thread .chat .log .m.agent').count()} earlier={pg.locator('.thread .chat .log .earlier').count()}")
+        for _ in range(3):
+            if raw(f"/agents/api/core/projects/{P}/sessions/{tail_s['id']}", "DELETE")[0] in (204, 404): break
+            time.sleep(2)
+    else: ok("scroll: a conversation whose journal ends with hundreds of tool results opens with its messages, not empty", False, "the transcript was not adopted")
     pg.locator(f".panel .sess[data-id='{disk['id']}']").click(); pg.wait_for_selector(".thread .chat", timeout=20000); time.sleep(2)
     ok("disk: chat shows the imported conversation", pg.locator(f".thread .chat .m.agent:has-text('disk-{MARK}')").count() >= 1 and pg.locator(".thread .chat .m.user").count() >= 1)
     ok("disk: inspector marks the source", pg.locator(".inspector:has-text('беседа из workspace')").count() == 1)
@@ -593,6 +648,17 @@ with sync_playwright() as p:
     pr = ps.get("prices", {}); sync = ps.get("prices_sync") or {}
     ok("prices: sync pulls current prices — Opus 5.5 $4/$20, Sonnet 5.5 and Haiku 5.5 present, Fable 5.1 cache read $0.25, GPT-6 Astra $10/$50", pr.get("claude-opus-5-5", {}).get("input") == 4.0 and pr.get("claude-opus-5-5", {}).get("output") == 20.0 and "claude-sonnet-5-5" in pr and "claude-haiku-5-5" in pr and pr.get("claude-fable-5-1", {}).get("cache_read") == 0.25 and pr.get("gpt-6-astra", {}).get("input") == 10.0 and pr.get("gpt-6-astra", {}).get("source") == "openrouter", f"opus={pr.get('claude-opus-5-5')} sync={ {k: v for k, v in sync.items() if k != 'missing'} }")
     ok("prices: the table shows the synced rows and the source line with the sync time", pg.locator(".tbl.prices tbody tr").count() >= max(before_rows, 10) and "синхронизировано" in pg.locator(".prices-synced").inner_text() and "openrouter" in pg.locator(".prices-synced").inner_text(), pg.locator(".prices-synced").inner_text()[:120])
+    # the gate catalog in the table (2026-10-26): chat models of every channel get a row (priced when the source knows them, otherwise
+    # "no price"), speech/image models stay out; rows are grouped by family with folding headers
+    gcat = [m for tg in (get("/agents/api/core/gate/models")[1] or {}).get("targets", []) for m in tg.get("models", [])]
+    gchat = [m["id"] for m in gcat if (m.get("kind") or "chat") == "chat"]; gnon = [m["id"] for m in gcat if (m.get("kind") or "chat") != "chat"]
+    heads = [x.strip() for x in pg.locator(".tbl.prices tbody tr.pg-head .pg-toggle b").all_inner_texts()]
+    gem_in = [i for i in gchat if i.startswith("gemini-")]
+    ok("prices: the catalog's chat models are in the table (Gemini family rows present, speech/image models absent) and the table is grouped by family with folding headers", (not gem_in or all(i in pr for i in gem_in[:5])) and all(i not in pr for i in gnon) and len(heads) >= 3 and any(h.startswith("Gemini ") for h in heads) and any(h.startswith("Claude ") for h in heads), f"gemini_in={len([i for i in gem_in if i in pr])}/{len(gem_in)} non_chat_in={[i for i in gnon if i in pr][:3]} heads={heads[:8]}")
+    if heads:
+        big = pg.locator(".tbl.prices tbody tr.pg-head").first; was = big.locator(".pg-toggle").get_attribute("aria-expanded"); big.locator(".pg-toggle").click(); time.sleep(0.3)
+        ok("prices: a family header folds and unfolds its rows", big.locator(".pg-toggle").get_attribute("aria-expanded") != was, f"{was} → {big.locator('.pg-toggle').get_attribute('aria-expanded')}")
+        big.locator(".pg-toggle").click(); time.sleep(0.2)
     ok("prices: the toast reports what changed", pg.locator(".toasts .toast").filter(has_text="Цены синхронизированы").count() >= 1, pg.locator(".toasts .toast").all_inner_texts()[:2].__str__()[:160])
     pg.screenshot(path="shots/ap16-prices.png")
     # dev server preview (docs/agents-ux.md §4.9 step 1 and §4.10 sidebar): off by default; enabling in Settings → Browser gives a tab in the sidebar on desktop; the port is published through
@@ -742,43 +808,92 @@ with sync_playwright() as p:
 
     # ---- agents, routines, runs (routines.rs, the "Agents" section)
     # ----
+    def limited(now=None, _state=[False]):
+        """Whether the provider is out of its limit (said once two runs in a row were cut by it): the waits for model answers are cut short."""
+        if now is not None: _state[0] = now
+        return _state[0]
     def wait_run(rid, secs=150):
         r = None
-        for _ in range(secs // 3):
-            time.sleep(3); st_r, rr = get(f"/agents/api/runs?limit=50"); r = next((x for x in (rr or {}).get("runs", []) if x["id"] == rid), None)
+        for _ in range(min(secs, 25) if limited() else secs):
+            time.sleep(1); st_r, rr = get(f"/agents/api/runs?limit=50"); r = next((x for x in (rr or {}).get("runs", []) if x["id"] == rid), None)
             if r and r["status"] != "running": break
         return r
-    st_a, ag = raw("/agents/api/agents", "POST", json.dumps({"name": f"e2e agent {MARK}", "brief": "Ты тестовый агент e2e. Отвечай коротко, инструменты не используй, если не просят.", "provider": "claude", "workspace": P, "mode": "auto", "remember": True}).encode()); ag = json.loads(ag or b"{}")
+    def settle(run, restart, secs=150):
+        """The run to its end. A run the provider cut by its limit is started once more after the limit's pause: the block
+        checks the routines, not the provider's quota (2026-11-23: the twelfth turn in three minutes got «429 … reset after 1m4s»)."""
+        cut = lambda f: f.get("status") == "failed" and f.get("kind") in ("limit", "provider")
+        fin = wait_run(run.get("id"), secs) or {}
+        if cut(fin) and not limited():
+            print(f"NOTE  agents: the provider cut a run ({str(fin.get('reason'))[:90]}) — started once more after a pause", flush=True)
+            raw(f"/agents/api/runs/{fin['id']}", "DELETE"); time.sleep(75)
+            run = restart(); fin = wait_run(run.get("id"), secs) or {}
+            if cut(fin):
+                # twice in a row: the limit will not pass within the block (2026-11-23: a subscription cooling down for an hour made it
+                # run 35 minutes). The checks that need a model answer fail from here on — for the provider's reason, and fast.
+                limited(True)
+                print("SKIP  agents: the provider is out of its limit — every check below that needs a model answer fails for that reason; run the block again later", flush=True)
+        return run, fin
+    # The block's agents work on a cheap model of their own: on the workspace's default one they shared the owner's quota,
+    # and a long conversation of the owner's left the block with «429 … rate limit» on every run (2026-11-23).
+    AGENT_MODEL = os.environ.get("AGENT_MODEL", "claude-haiku-5-5")
+    st_a, ag = raw("/agents/api/agents", "POST", json.dumps({"name": f"e2e agent {MARK}", "brief": "Ты тестовый агент e2e. Отвечай коротко, инструменты не используй, если не просят.", "provider": "claude", "model": AGENT_MODEL, "workspace": P, "mode": "auto", "remember": True}).encode()); ag = json.loads(ag or b"{}")
     ok("agents: agent created via the service", st_a == 200 and ag.get("id", "").startswith("ag_") and ag["mode"] == "auto", f"{st_a} {str(ag)[:100]}")
     st_r, rt = raw("/agents/api/routines", "POST", json.dumps({"name": f"e2e routine {MARK}", "agent": ag.get("id"), "prompt": f"Reply with exactly: routine-{MARK}. Then add a separate last line: ПАМЯТЬ: e2e memory {MARK}. Today is {{date}}. Do not run tools.", "trigger": {"kind": "schedule", "cron": "0 3 * * *"}, "budget": {"run_usd": 1, "day_usd": 5}, "notify": "never"}).encode()); rt = json.loads(rt or b"{}")
     st_l, rl = get("/agents/api/routines"); mine = next((x for x in (rl or {}).get("routines", []) if x["id"] == rt.get("id")), {})
     ok("agents: routine with webhook token, schedule text and next run", st_r == 200 and rt.get("token", "").startswith("rt_") and mine.get("schedule_text") == "каждый день в 03:00" and (mine.get("next_at") or 0) > time.time() and (rl or {}).get("scheduler") is True, f"{st_r} {str(mine)[:160]}")
+    # honest runs (slice 96, docs/agents-ux.md §7.2): the run policies, the zone the schedules are read in
+    OFF = (rl or {}).get("utc_offset_min"); zone0 = (get("/agents/api/settings")[1] or {}).get("timezone")
+    ok("runs: a new routine retries provider failures, skips an overlapping run and waits for answers; the list names the schedule zone", rt.get("retries") is True and rt.get("overlap") == "skip" and rt.get("on_question") == "wait" and isinstance(OFF, int) and "timezone" in (rl or {}), f"{rt.get('retries')} {rt.get('overlap')} {rt.get('on_question')} offset={OFF} zone={(rl or {}).get('timezone')}")
+    st_ov = raw(f"/agents/api/routines/{rt.get('id')}", "PUT", json.dumps({"overlap": "twice"}).encode())[0]; st_tz = raw("/agents/api/settings", "PUT", json.dumps({"timezone": "Mars/Olympus"}).encode())[0]
+    ok("runs: an unknown overlap policy and an unknown time zone are refused, the saved zone stays", st_ov >= 400 and st_tz == 400 and (get("/agents/api/settings")[1] or {}).get("timezone") == zone0, f"{st_ov} {st_tz}")
     st_bad, bad = raw("/agents/api/routines", "POST", json.dumps({"name": "bad", "agent": ag.get("id"), "prompt": "x", "trigger": {"kind": "schedule", "cron": "0 25 * * *"}}).encode())
     ok("agents: invalid cron is rejected with a clear message", st_bad >= 400 and "расписание" in (bad or b"").decode("utf-8", "ignore"), f"{st_bad} {(bad or b'')[:100]}")
     st_run, rr = raw(f"/agents/api/routines/{rt.get('id')}/run", "POST", b"{}"); rr = json.loads(rr or b"{}").get("run", {})
     ok("agents: run now starts a session in the agent's workspace", st_run == 200 and rr.get("status") == "running" and bool(rr.get("session")) and rr.get("project") == P and rr.get("trigger") == "manual", f"{st_run} {str(rr)[:160]}")
-    r1 = wait_run(rr.get("id")) or {}
-    s_run = get(f"/agents/api/core/projects/{P}/sessions/{rr.get('session')}")[1] or {}
+    rr, r1 = settle(rr, lambda: json.loads(raw(f"/agents/api/routines/{rt.get('id')}/run", "POST", b"{}")[1] or b"{}").get("run", {}))
+    # the run is written down as done right after its session is told to stop; the process may need a moment to exit
+    s_run = {}
+    for _ in range(10):
+        s_run = get(f"/agents/api/core/projects/{P}/sessions/{rr.get('session')}")[1] or {}
+        if s_run.get("info", {}).get("alive") is False: break
+        time.sleep(1)
     ok("agents: run finishes when the turn ends — status done, cost, the reply as summary, session stopped but kept, titled after the routine", r1.get("status") == "done" and f"routine-{MARK}" in (r1.get("summary") or "") and (r1.get("cost_usd") or 0) > 0 and s_run.get("info", {}).get("title", "").startswith(f"e2e routine {MARK}") and s_run["info"]["permission_mode"] == "auto" and s_run["info"]["alive"] is False, f"{str(r1)[:200]}")
     # first events: status/spawn/queued/init/unqueued — the routine message leaves the queue after init (the resume+prompt race is closed by
     # the queue)
     ev1 = get(f"/agents/api/core/projects/{P}/sessions/{rr.get('session')}/events?since=0&limit=40")[1] or []
     first_user = next((e for e in ev1 if e["kind"] == "user"), {}); utext = " ".join(b.get("text", "") for b in (first_user.get("content") or []))
-    ok("agents: the task carries the brief, memory section and today's date", "# Агент «e2e agent" in utext and "# Память" in utext and time.strftime("%Y-%m-%d") in utext and "ПАМЯТЬ:" in utext, utext[:160])
+    ok("agents: the task carries the brief, memory section and today's date", "# Агент «e2e agent" in utext and "# Память" in utext and time.strftime("%Y-%m-%d", time.gmtime(time.time() + (OFF or 0) * 60)) in utext and "ПАМЯТЬ:" in utext, utext[:160])
     ag2 = next((x for x in (get("/agents/api/agents")[1] or {}).get("agents", []) if x["id"] == ag.get("id")), {})
     ok("agents: memory picked up the ПАМЯТЬ line and the run summary", f"e2e memory {MARK}" in ag2.get("memory", "") and "итог" in ag2.get("memory", "") and (ag2.get("last_run") or {}).get("status") == "done", ag2.get("memory", "")[:160])
+    # a turn the provider refused: the model does not exist, the gate answers 400 at once. The run is failed with the
+    # provider's words as the reason — not "done" with them as the summary and in the memory; a mistake of the request
+    # (kind `error`) is not retried, the provider's own trouble (`provider`, `limit`) is
+    agX = json.loads(raw("/agents/api/agents", "POST", json.dumps({"name": f"e2e broken {MARK}", "brief": "Ты тестовый агент e2e. Отвечай коротко.", "provider": "claude", "model": "e2e-no-such-model", "workspace": P, "mode": "auto", "remember": True}).encode())[1] or b"{}")
+    rtX = json.loads(raw("/agents/api/routines", "POST", json.dumps({"name": f"e2e broken {MARK}", "agent": agX.get("id"), "prompt": "Reply with exactly: ok. Do not run tools.", "trigger": {"kind": "manual"}, "notify": "never"}).encode())[1] or b"{}")
+    ok("runs: a routine that is not on a schedule starts its runs side by side by default (a webhook or an event brings its own data)", rtX.get("overlap") == "parallel", str(rtX.get("overlap")))
+    rx = json.loads(raw(f"/agents/api/routines/{rtX.get('id')}/run", "POST", b"{}")[1] or b"{}").get("run", {}); rxf = wait_run(rx.get("id"), 120) or {}
+    agXf = next((x for x in (get("/agents/api/agents")[1] or {}).get("agents", []) if x["id"] == agX.get("id")), {})
+    ok("runs: a turn the provider refused is a failed run with the reason — no summary, nothing in the memory; a retry is set only for the provider's own trouble", rxf.get("status") == "failed" and rxf.get("kind") in ("error", "provider", "limit") and bool(rxf.get("reason")) and not rxf.get("summary") and bool(rxf.get("retry_at")) == (rxf.get("kind") != "error") and agXf.get("memory", "x") == "" and (agXf.get("last_run") or {}).get("status") == "failed", f"{rxf.get('status')} kind={rxf.get('kind')} retry={rxf.get('retry_at')} reason={str(rxf.get('reason'))[:110]} memory={agXf.get('memory', '')[:60]!r}")
+    if rx.get("id"): raw(f"/agents/api/runs/{rx['id']}", "DELETE")
+    if rx.get("session"): raw(f"/agents/api/core/projects/{P}/sessions/{rx['session']}", "DELETE")
+    raw(f"/agents/api/routines/{rtX.get('id')}", "DELETE"); raw(f"/agents/api/agents/{agX.get('id')}", "DELETE")
     st_u, _ = raw(f"/agents/api/routines/{rt.get('id')}", "PUT", json.dumps({"trigger": {"kind": "webhook", "cron": "", "event": "", "contains": ""}, "prompt": f"Reply with exactly: hook-{MARK} and the value of field x from this payload: {{payload}}. Do not run tools."}).encode())
     st_h, hk = raw(f"/agents/api/hooks/{rt.get('token')}", "POST", json.dumps({"x": f"payload-{MARK}"}).encode()); hk = json.loads(hk or b"{}")
     ok("agents: webhook with the routine token starts a run", st_u == 200 and st_h == 202 and hk.get("status") == "running", f"{st_u} {st_h} {str(hk)[:100]}")
+    st_h2 = raw(f"/agents/api/hooks/{rt.get('token')}", "POST", b"{}")[0]
+    ok("runs: a second webhook call within five seconds is told to slow down and starts nothing", st_h2 == 429 and len([x for x in (get(f"/agents/api/runs?routine={rt.get('id')}&limit=20")[1] or {}).get("runs", []) if x["trigger"] == "webhook"]) == 1, str(st_h2))
     ok("agents: unknown webhook token is 404", raw("/agents/api/hooks/rt_nope", "POST", b"{}")[0] == 404)
-    r2 = wait_run(hk.get("run")) or {}
+    hkr, r2 = settle({"id": hk.get("run")}, lambda: {"id": json.loads(raw(f"/agents/api/hooks/{rt.get('token')}", "POST", json.dumps({"x": f"payload-{MARK}"}).encode())[1] or b"{}").get("run")}); hk["run"] = hkr.get("id")
     ok("agents: webhook run finished and the payload reached the task", r2.get("status") == "done" and f"payload-{MARK}" in (r2.get("summary") or "") and r2.get("trigger") == "webhook", str(r2)[:200])
+    old_token = rt.get("token"); st_tk, tk = raw(f"/agents/api/routines/{rt.get('id')}/token", "POST", b"{}"); tk = json.loads(tk or b"{}")
+    ok("runs: a new webhook address replaces the old one at once", st_tk == 200 and tk.get("token", "").startswith("rt_") and tk.get("token") != old_token and raw(f"/agents/api/hooks/{old_token}", "POST", b"{}")[0] == 404, f"{st_tk}")
+    rt["token"] = tk.get("token") or old_token
     # scheduler: the "every minute" cron must fire at the nearest minute (15 s tick); the run is disabled and stopped right away
     st_c, _ = raw(f"/agents/api/routines/{rt.get('id')}", "PUT", json.dumps({"trigger": {"kind": "schedule", "cron": "* * * * *", "event": "", "contains": ""}}).encode())
     r3 = None
-    for _ in range(32):
-        time.sleep(3); rr3 = get(f"/agents/api/runs?routine={rt.get('id')}&limit=10")[1] or {}; r3 = next((x for x in rr3.get("runs", []) if x["trigger"] == "schedule"), None)
-        if r3: break
+    for _ in range(96):
+        time.sleep(1); rr3 = get(f"/agents/api/runs?routine={rt.get('id')}&limit=10")[1] or {}; r3 = next((x for x in rr3.get("runs", []) if x["trigger"] == "schedule"), None)
+        if r3 and r3.get("session"): break   # the run is written down before its session exists (slice 96): wait for the session
     raw(f"/agents/api/routines/{rt.get('id')}", "PUT", json.dumps({"enabled": False}).encode())
     ok("agents: the scheduler fires a cron routine on the next minute", st_c == 200 and bool(r3) and r3.get("status") in ("running", "done") and bool(r3.get("session")), str(r3)[:160] if r3 else "no scheduled run in 96 s")
     if r3 and r3.get("session"):
@@ -792,7 +907,9 @@ with sync_playwright() as p:
     ok("agents: section lists the agent and opens its card with brief and memory", pg.locator(f".rt-item[data-agent='{ag.get('id')}']").count() == 1 and pg.locator(".rt-form input").first.input_value() == f"e2e agent {MARK}" and f"e2e memory {MARK}" in pg.locator(".rt-form textarea.memory").input_value(), pg.locator(".rt-form input").first.input_value()); pg.screenshot(path="shots/ap9-agents.png")
     pg.locator(".top .seg button:has-text('Рутины')").click(); time.sleep(0.6); pg.locator(f".rt-item[data-routine='{rt.get('id')}']").click(); time.sleep(0.6)
     cron_shown = pg.locator(".rt-form input.mono").input_value() if pg.locator(".rt-form input.mono").count() else ""
-    ok("agents: routine card shows the schedule (after the cron check) and the run history", cron_shown == "* * * * *" and pg.locator(".rt-form .runs .tr").count() >= 3 and pg.locator(".rt-form .switch").count() == 1 and not pg.locator(".rt-form .switch").evaluate("e => e.classList.contains('on')"), f"cron={cron_shown} rows={pg.locator('.rt-form .runs .tr').count()}"); pg.screenshot(path="shots/ap9b-routine.png")
+    ok("agents: routine card shows the schedule (after the cron check) and the run history", cron_shown == "* * * * *" and pg.locator(".rt-form .runs .tr").count() >= 3 and pg.locator(".rt-form .switch:not(.retries)").count() == 1 and not pg.locator(".rt-form .switch:not(.retries)").evaluate("e => e.classList.contains('on')"), f"cron={cron_shown} rows={pg.locator('.rt-form .runs .tr').count()}"); pg.screenshot(path="shots/ap9b-routine.png")
+    zone_line = pg.locator(".rt-form .hint.zone").inner_text() if pg.locator(".rt-form .hint.zone").count() else ""
+    ok("runs: the routine card names the zone of the schedule and shows the three run policies", "UTC" in zone_line and pg.locator(".rt-form .switch.retries.on").count() == 1 and pg.locator(".rt-form input[name='ovl'][value='skip']").is_checked() and pg.locator(".rt-form input[name='qst'][value='wait']").is_checked(), zone_line)
     pg.locator(".rt-form input[name='trig'][value='webhook']").check(); time.sleep(0.4)
     hook_shown = pg.locator(".rt-form .hook").inner_text() if pg.locator(".rt-form .hook").count() else ""
     ok("agents: switching the trigger to webhook shows the address with the routine token", rt.get("token", "") in hook_shown, hook_shown[-40:])
@@ -818,7 +935,7 @@ with sync_playwright() as p:
     st_r4, r4 = raw(f"/agents/api/routines/{rt.get('id')}/run", "POST", b"{}"); r4 = json.loads(r4 or b"{}").get("run", {})
     s4 = (get(f"/agents/api/core/projects/{P}/sessions/{r4.get('session')}")[1] or {}).get("info", {})
     ok("agents: routine mode overrides the agent's (auto over ask); the run starts in the place", st_m == 200 and st_r4 == 200 and s4.get("permission_mode") == "auto" and s4.get("cwd") == "/home/coder/e2e-place", f"{s4.get('permission_mode')} {s4.get('cwd')}")
-    r4f = wait_run(r4.get("id")) or {}
+    r4, r4f = settle(r4, lambda: json.loads(raw(f"/agents/api/routines/{rt.get('id')}/run", "POST", b"{}")[1] or b"{}").get("run", {}))
     ev4 = get(f"/agents/api/core/projects/{P}/sessions/{r4.get('session')}/events?since=0&limit=40")[1] or []
     u4 = " ".join(b.get("text", "") for e in ev4 if e["kind"] == "user" for b in (e.get("content") or []))
     ok("agents: the task carries the skill text, the place rule and the ПОЧТА rule", "# Навыки" in u4 and f"## {SK}" in u4 and "`e2e-place`" in u4 and "ПОЧТА:" in u4, u4[:120])
@@ -827,26 +944,28 @@ with sync_playwright() as p:
     ok("agents: the run answered from the place with the skill marker", r4f.get("status") == "done" and f"skill-{MARK}" in (r4f.get("summary") or "") and "e2e-place" in (r4f.get("summary") or ""), str(r4f.get("summary"))[:160])
     # mail: pause → 409; the owner's letter to a recipient; a "ПОЧТА:" chain from agent to agent and the answer into
     # the sender's memory
-    st_b, agB = raw("/agents/api/agents", "POST", json.dumps({"name": f"e2e pen {MARK}", "brief": "Ты тестовый агент-адресат e2e. Отвечай одной строкой, инструменты не используй.", "provider": "claude", "workspace": P, "mode": "auto", "can_mail": True, "remember": False, "can_routine": False}).encode()); agB = json.loads(agB or b"{}")
+    st_b, agB = raw("/agents/api/agents", "POST", json.dumps({"name": f"e2e pen {MARK}", "brief": "Ты тестовый агент-адресат e2e. Отвечай одной строкой, инструменты не используй.", "provider": "claude", "model": AGENT_MODEL, "workspace": P, "mode": "auto", "can_mail": True, "remember": False, "can_routine": False}).encode()); agB = json.loads(agB or b"{}")
     raw("/agents/api/settings", "PUT", json.dumps({"mail_paused": True}).encode()); st_pz, _ = raw(f"/agents/api/agents/{agB.get('id')}/mail", "POST", json.dumps({"text": "x"}).encode()); raw("/agents/api/settings", "PUT", json.dumps({"mail_paused": False}).encode())
     ok("mail: paused mail is refused with 409", st_b == 200 and agB.get("can_mail") is True and st_pz == 409, f"{st_b} {st_pz}")
     st_nr, nr = raw("/agents/api/routines", "POST", json.dumps({"name": "no", "agent": agB.get("id"), "prompt": "x", "trigger": {"kind": "manual"}}).encode())
     ok("agents: an agent without the routine power cannot be put on a routine", st_nr >= 400 and "запрещены рутины" in (nr or b"").decode("utf-8", "ignore"), f"{st_nr} {(nr or b'')[:100]}")
     st_ml, ml = raw(f"/agents/api/agents/{agB.get('id')}/mail", "POST", json.dumps({"text": f"Reply with exactly: mail-{MARK}"}).encode()); ml = json.loads(ml or b"{}").get("run", {})
     ok("mail: a message from the owner starts a mail run for the addressee", st_ml == 200 and ml.get("trigger") == "mail" and ml.get("status") == "running" and ml.get("from_agent") is None and ml.get("hops") == 0, f"{st_ml} {str(ml)[:140]}")
-    mlf = wait_run(ml.get("id")) or {}
+    ml, mlf = settle(ml, lambda: json.loads(raw(f"/agents/api/agents/{agB.get('id')}/mail", "POST", json.dumps({"text": f"Reply with exactly: mail-{MARK}"}).encode())[1] or b"{}").get("run", {}))
     ok("mail: the owner's mail run finished with the reply", mlf.get("status") == "done" and f"mail-{MARK}" in (mlf.get("summary") or ""), str(mlf.get("summary"))[:120])
     raw(f"/agents/api/routines/{rt.get('id')}", "PUT", json.dumps({"prompt": f"Reply with exactly: chain-{MARK}. Then add a separate last line exactly like this: ПОЧТА: e2e pen {MARK}: Reply with exactly: pong-{MARK}", "mode": "auto"}).encode())
-    st_r5, r5 = raw(f"/agents/api/routines/{rt.get('id')}/run", "POST", b"{}"); r5 = json.loads(r5 or b"{}").get("run", {}); r5f = wait_run(r5.get("id")) or {}
+    st_r5, r5 = raw(f"/agents/api/routines/{rt.get('id')}/run", "POST", b"{}"); r5 = json.loads(r5 or b"{}").get("run", {}); r5, r5f = settle(r5, lambda: json.loads(raw(f"/agents/api/routines/{rt.get('id')}/run", "POST", b"{}")[1] or b"{}").get("run", {}))
     rB = None
-    for _ in range(20):
-        time.sleep(3); rB = next((x for x in (get("/agents/api/runs?limit=50")[1] or {}).get("runs", []) if x.get("agent") == agB.get("id") and x.get("reply_to") == r5.get("id")), None)
-        if rB: break
+    for _ in range(60):
+        time.sleep(1); rB = next((x for x in (get("/agents/api/runs?limit=50")[1] or {}).get("runs", []) if x.get("agent") == agB.get("id") and x.get("reply_to") == r5.get("id")), None)
+        if rB and rB.get("session"): break
     ok("mail: a «ПОЧТА:» line in the run result starts a mail run for the other agent (hop 1, reply_to the source run)", st_r5 == 200 and r5f.get("status") == "done" and bool(rB) and rB.get("trigger") == "mail" and rB.get("from_agent") == ag.get("id") and rB.get("hops") == 1, str(rB)[:160] if rB else str(r5f)[:160])
+    sB = (get(f"/agents/api/core/projects/{P}/sessions/{(rB or {}).get('session')}")[1] or {}).get("info", {}); sM = (get(f"/agents/api/core/projects/{P}/sessions/{ml.get('session')}")[1] or {}).get("info", {})
+    ok("mail: a request from another agent is carried out in «ask», the owner's letter — in the addressee's own mode", sB.get("permission_mode") == "default" and sM.get("permission_mode") == "auto", f"from agent: {sB.get('permission_mode')}, from owner: {sM.get('permission_mode')}")
     rBf = wait_run((rB or {}).get("id", "none")) or {}
     agA = {}
-    for _ in range(10):
-        time.sleep(2); agA = next((x for x in (get("/agents/api/agents")[1] or {}).get("agents", []) if x["id"] == ag.get("id")), {})
+    for _ in range(20):
+        time.sleep(1); agA = next((x for x in (get("/agents/api/agents")[1] or {}).get("agents", []) if x["id"] == ag.get("id")), {})
         if f"pong-{MARK}" in agA.get("memory", ""): break
     ok("mail: the addressee's reply lands in the sender's memory", rBf.get("status") == "done" and f"pong-{MARK}" in (rBf.get("summary") or "") and f"pong-{MARK}" in agA.get("memory", "") and "на почту" in agA.get("memory", ""), agA.get("memory", "")[-160:])
     raw(f"/agents/api/agents/{agB.get('id')}", "PUT", json.dumps({"can_mail": False}).encode())
@@ -854,10 +973,10 @@ with sync_playwright() as p:
     # reflection: after "Assign" the memory is rewritten by a cheap model (reflected_at), stays within the budget and
     # dated
     raw(f"/agents/api/agents/{ag.get('id')}", "PUT", json.dumps({"reflect": True, "memory_budget": 1500, "memory": "2026-01-01: проект использует npm test\n2026-01-02: проект использует npm test\n2026-01-03: проект использует npm test"}).encode())
-    t_refl = time.time(); st_r6, r6 = raw(f"/agents/api/agents/{ag.get('id')}/run", "POST", json.dumps({"prompt": f"Reply with exactly: reflect-{MARK}. Also state that the project's tests are green today. Do not run tools."}).encode()); r6 = json.loads(r6 or b"{}").get("run", {}); r6f = wait_run(r6.get("id")) or {}
+    t_refl = time.time(); st_r6, r6 = raw(f"/agents/api/agents/{ag.get('id')}/run", "POST", json.dumps({"prompt": f"Reply with exactly: reflect-{MARK}. Also state that the project's tests are green today. Do not run tools."}).encode()); r6 = json.loads(r6 or b"{}").get("run", {}); r6, r6f = settle(r6, lambda: json.loads(raw(f"/agents/api/agents/{ag.get('id')}/run", "POST", json.dumps({"prompt": f"Reply with exactly: reflect-{MARK}. Also state that the project's tests are green today. Do not run tools."}).encode())[1] or b"{}").get("run", {}))
     agR = {}
-    for _ in range(30):
-        time.sleep(3); agR = next((x for x in (get("/agents/api/agents")[1] or {}).get("agents", []) if x["id"] == ag.get("id")), {})
+    for _ in range(90):
+        time.sleep(1); agR = next((x for x in (get("/agents/api/agents")[1] or {}).get("agents", []) if x["id"] == ag.get("id")), {})
         if (agR.get("reflected_at") or 0) >= int(t_refl): break
     mlines = [l for l in agR.get("memory", "").splitlines() if l.strip()]
     ok("agents: reflection rewrote the memory after the run — dated lines within the budget", r6f.get("status") == "done" and (agR.get("reflected_at") or 0) >= int(t_refl) and 0 < len(mlines) and all(re.match(r"^\d{4}-\d{2}-\d{2}:", l) for l in mlines) and len(agR.get("memory", "")) <= 1500, f"reflected_at={agR.get('reflected_at')} lines={len(mlines)} {agR.get('memory', '')[:120]}")
@@ -890,6 +1009,21 @@ with sync_playwright() as p:
             for _ in range(3):
                 if raw(f"/agents/api/core/projects/{P}/sessions/{sid_r}", "DELETE")[0] in (204, 404): break
                 time.sleep(3)
+    # what the service started by itself for these agents — retries of runs the provider cut, mail runs — and the skills they
+    # proposed: nothing of the block stays in the owner's lists. A run cut by a limit closes about 100 s after its turn.
+    mine = {ag.get("id"), agB.get("id")} - {None}
+    for _ in range(14):
+        left = [x for x in (get("/agents/api/runs?limit=200")[1] or {}).get("runs", []) if x.get("agent") in mine]
+        if not left: break
+        for x in left:
+            if x.get("status") == "running":
+                if x.get("session"): raw(f"/agents/api/core/projects/{P}/sessions/{x['session']}", "DELETE")
+            else:
+                raw(f"/agents/api/runs/{x['id']}", "DELETE")
+                if x.get("session"): raw(f"/agents/api/core/projects/{P}/sessions/{x['session']}", "DELETE")
+        time.sleep(10)
+    for x in (get("/agents/api/skills")[1] or {}).get("skills", []):
+        if x.get("source", "").removeprefix("agent:") in mine: raw(f"/agents/api/skills/{x['name']}", "DELETE")
     # ---- permissions by rules: workspace settings via agentd perms.rs, CLI rule suggestions, "remember" with a scope ----
     PQ = f"/agents/api/core/projects/{P}/permissions?scope=project&cwd=/home/coder"
     st_pg, pg0 = raw(PQ); pg0 = json.loads(pg0 or b"{}")
@@ -897,14 +1031,14 @@ with sync_playwright() as p:
     ok("perm: project rules written to .claude/settings.local.json and read back", st_pg == 200 and st_pp == 200 and pp.get("allow") == ["Bash(mkdir:*)"] and pp.get("path", "").endswith("/home/coder/.claude/settings.local.json") and (get(PQ)[1] or {}).get("allow") == ["Bash(mkdir:*)"], f"{st_pg} {st_pp} {str(pp)[:120]}")
     ps = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "claude", "title": f"perm probe {MARK}", "permission_mode": "default"}).encode())[1] or b"{}")
     time.sleep(4); raw(f"/agents/api/core/projects/{P}/sessions/{ps['id']}/prompt", "POST", json.dumps({"content": f"Run this exact shell command with the Bash tool: mkdir -p perm-allow-{MARK}   (relative path, nothing else). Then reply with exactly: perm-allow-{MARK}"}).encode())
-    for _ in range(40):
-        time.sleep(3); pinfo = get(f"/agents/api/core/projects/{P}/sessions/{ps['id']}")[1] or {}
+    for _ in range(120):
+        time.sleep(1); pinfo = get(f"/agents/api/core/projects/{P}/sessions/{ps['id']}")[1] or {}
         if pinfo.get("info", {}).get("status") in ("idle", "waiting", "error"): break
     pev = get(f"/agents/api/core/projects/{P}/sessions/{ps['id']}/events?since=0&limit=200")[1] or []
     ok("perm: a command matching an allow rule runs without a permission request", pinfo.get("info", {}).get("status") == "idle" and not any(e["kind"] == "permission_request" for e in pev) and f"perm-allow-{MARK}" in (pinfo.get("info", {}).get("last_text") or "") and get(f"/agents/api/core/projects/{P}/fs?path=/home/coder/perm-allow-{MARK}")[0] == 200, f"status={pinfo.get('info', {}).get('status')} last={(pinfo.get('info', {}).get('last_text') or '')[:60]} dir={get(f'/agents/api/core/projects/{P}/fs?path=/home/coder/perm-allow-{MARK}')[0]}")
     raw(f"/agents/api/core/projects/{P}/sessions/{ps['id']}/prompt", "POST", json.dumps({"content": f"Run this exact shell command with the Bash tool: touch perm-ask-{MARK}.txt   (relative path, nothing else). Then reply with exactly: perm-ask-{MARK}"}).encode())
-    for _ in range(30):
-        time.sleep(3); pinfo = get(f"/agents/api/core/projects/{P}/sessions/{ps['id']}")[1] or {}
+    for _ in range(90):
+        time.sleep(1); pinfo = get(f"/agents/api/core/projects/{P}/sessions/{ps['id']}")[1] or {}
         if pinfo.get("info", {}).get("status") in ("waiting", "idle", "error"): break
     pend = (pinfo.get("pending") or [{}])[0] if pinfo.get("pending") else {}
     ok("perm: a command outside the rules asks, and the request carries the CLI's rule suggestions", pinfo.get("info", {}).get("status") == "waiting" and pend.get("tool_name") == "Bash" and bool(pend.get("suggestions")), f"status={pinfo.get('info', {}).get('status')} sugg={str(pend.get('suggestions'))[:100]}")
@@ -940,12 +1074,12 @@ with sync_playwright() as p:
     # Agent card ----
     bs = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "claude", "title": f"bg probe {MARK}", "permission_mode": "auto"}).encode())[1] or b"{}")
     time.sleep(4); pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(0.8); pg.locator(f".panel .sess[data-id='{bs['id']}']").click(); pg.wait_for_selector(".thread .pane .tabs", timeout=20000); pg.locator(".thread .pane .tabs .tab").first.click(); pg.wait_for_selector(".thread .chat textarea", timeout=20000)
-    pg.locator(".thread .chat textarea").fill(f"Use the Bash tool with run_in_background set to true to start this command: sleep 45; echo bg-{MARK}-done. Do not wait for it. Reply immediately with exactly: started"); pg.locator(".thread .chat button.send").click()
+    pg.locator(".thread .chat textarea").fill(f"Use the Bash tool with run_in_background set to true to start this command: sleep 25; echo bg-{MARK}-done. Do not wait for it. Reply immediately with exactly: started"); pg.locator(".thread .chat button.send").click()
     try: pg.wait_for_selector(".thread .chat .tasks .chip.task", timeout=90000)
     except Exception: pass
     binfo = {}
-    for _ in range(12):
-        time.sleep(2); binfo = get(f"/agents/api/core/projects/{P}/sessions/{bs['id']}")[1] or {}
+    for _ in range(24):
+        time.sleep(1); binfo = get(f"/agents/api/core/projects/{P}/sessions/{bs['id']}")[1] or {}
         if binfo.get("info", {}).get("background") == 1 and pg.locator(f".panel .sess[data-id='{bs['id']}'] .dot.background").count() == 1: break
     ok("bg: a backgrounded Bash shows up in the task strip, the session reports background work and the tree dot turns purple", pg.locator(".thread .chat .tasks .chip.task").count() == 1 and binfo.get("info", {}).get("background") == 1 and pg.locator(f".panel .sess[data-id='{bs['id']}'] .dot.background").count() == 1, f"chips={pg.locator('.thread .chat .tasks .chip.task').count()} background={binfo.get('info', {}).get('background')}"); pg.screenshot(path="shots/ap13-bg.png")
     try: pg.wait_for_selector(".thread .chat .m.task:has-text('завершена')", timeout=120000)
@@ -971,7 +1105,7 @@ with sync_playwright() as p:
         if (get(f"/agents/api/core/projects/{P}/sessions/{bs['id']}")[1] or {}).get("info", {}).get("status") == "idle": break
         time.sleep(3)
     pg.locator(".thread .chat textarea").fill("Use the Agent tool with subagent_type Explore to count how many files in the current directory end with .md (non-recursive is fine). Then reply with exactly: md=<number>"); pg.locator(".thread .chat button.send").click()
-    try: pg.wait_for_selector(".thread .chat .m.tool .sub", timeout=180000)
+    try: pg.wait_for_selector(".thread .chat .m.tool .sub", state="attached", timeout=180000)
     except Exception: pass
     # the Agent card is collapsed, the nested <details> is invisible — read text_content, then expand for the
     # screenshot
@@ -1033,7 +1167,15 @@ with sync_playwright() as p:
     pg.screenshot(path="shots/ap16-edit.png")
     # queue: messages during a turn go to the agentd queue, × removes, after the turn the first one goes
     # by itself
-    pg.locator(".thread .chat textarea").fill(f"Use the Bash tool to run: sleep 30; echo q-{MARK}. Then reply with exactly: slept"); pg.locator(".thread .chat button.send").click(); time.sleep(5)
+    # a busy turn: Claude Code 2.1.3xx blocks a foreground shell `sleep N` ("Blocked: sleep 30 followed by…") and the model moves it to the
+    # background, so the turn ends at once — a Python script stays in the foreground. The script waits for a file instead of a
+    # fixed time: the turn lasts exactly until the queue checks below are done. A fixed `sleep 30` was a race — under load the
+    # steps took longer than the sleep (2026-11-20: 35 s), the turn ended early and the queue was sent before the «×» click.
+    # The cap is below the Bash tool's own two-minute limit; the script removes its files itself.
+    WAITPY = f"/home/coder/wait-{MARK}.py"; GO = f"/home/coder/.go-{MARK}"
+    raw(f"/agents/api/core/projects/{P}/fs/file?path={WAITPY}", "PUT", (f"import os, time\nt = time.time()\nwhile not os.path.exists({GO!r}) and time.time() - t < 100: time.sleep(0.5)\n"
+        f"for p in ({GO!r}, __file__):\n    try: os.remove(p)\n    except OSError: pass\n").encode(), "text/plain")
+    pg.locator(".thread .chat textarea").fill(f"Use the Bash tool to run: python3 {WAITPY}; echo q-{MARK}. Then reply with exactly: slept"); pg.locator(".thread .chat button.send").click(); time.sleep(5)
     pg.locator(".thread .chat textarea").fill(f"Reply with exactly: queued-one-{MARK}"); pg.locator(".thread .chat button.send").click(); time.sleep(1.5)
     pg.locator(".thread .chat textarea").fill(f"Reply with exactly: queued-two-{MARK}"); pg.locator(".thread .chat button.send").click(); time.sleep(1.5)
     qi = sinfo(es["id"])
@@ -1044,6 +1186,7 @@ with sync_playwright() as p:
         time.sleep(1)
         if pg.locator(".thread .chat .qcard:not(.sched)").count() == 1 and len(sinfo(es["id"]).get("queued") or []) == 1: break
     ok("queue: × removes a queued message", pg.locator(".thread .chat .qcard:not(.sched)").count() == 1 and len(sinfo(es["id"]).get("queued") or []) == 1, f"cards={pg.locator('.thread .chat .qcard:not(.sched)').count()} queued={len(sinfo(es['id']).get('queued') or [])}")
+    raw(f"/agents/api/core/projects/{P}/fs/file?path={GO}", "PUT", b"go\n", "text/plain")   # the busy turn may end now
     for _ in range(90):
         qi2 = sinfo(es["id"])
         if not (qi2.get("queued") or []) and qi2.get("status") == "idle" and any(f"queued-one-{MARK}" in x for x in utexts(sevents(es["id"]))): break
@@ -1051,7 +1194,7 @@ with sync_playwright() as p:
     time.sleep(3); u2t = utexts(sevents(es["id"]))
     ok("queue: after the turn the first queued message goes out by itself, the removed one never does", any(f"queued-one-{MARK}" in x for x in u2t) and not any("queued-two" in x for x in u2t) and pg.locator(".thread .chat .qcard:not(.sched)").count() == 0 and f"queued-one-{MARK}" in " ".join(pg.locator(".thread .chat .m.agent").all_inner_texts()), f"users={len(u2t)} status={sinfo(es['id']).get('status')}")
     # Esc interrupts the turn
-    pg.locator(".thread .chat textarea").fill(f"Use the Bash tool to run: sleep 90; echo esc-{MARK}. Then reply with exactly: slept2"); pg.locator(".thread .chat button.send").click(); time.sleep(6)
+    pg.locator(".thread .chat textarea").fill(f"Use the Bash tool to run: python3 -c 'import time; time.sleep(90)'; echo esc-{MARK}. Then reply with exactly: slept2"); pg.locator(".thread .chat button.send").click(); time.sleep(6)
     pg.locator(".thread .chat textarea").press("Escape"); est = ""
     for _ in range(15):
         est = sinfo(es["id"]).get("status"); 
@@ -1065,31 +1208,34 @@ with sync_playwright() as p:
     ok("keys: Tab moves focus without changing the permission mode", m1 == m0 and ta_e.evaluate("e => document.activeElement !== e"), f"{m0} → {m1}")
     ta_e.fill(f"draft-{MARK}"); time.sleep(0.6); pg.reload(wait_until="load"); pg.wait_for_selector(".app .rail", timeout=30000); time.sleep(2); open_sess(es["id"])
     ok("keys: an unsent draft survives a reload (localStorage per session)", pg.locator(".thread .chat textarea").input_value() == f"draft-{MARK}", pg.locator(".thread .chat textarea").input_value()[:40])
-    # scheduled sending: via the API at +1 h (card + cancel), via the 🕒 menu "custom time…" at the nearest minute — goes by itself through the
-    # service scheduler
+    # scheduled sending: via the API at +1 h (card + cancel), via the 🕒 menu "custom time…" for tomorrow, and the delivery itself
+    # through a message the API schedules a few seconds ahead — it goes out by itself through the service scheduler. The dialog
+    # has minute precision: delivering the message typed there meant waiting for the nearest minute, 30–90 s of every run.
     st_s, sm1 = raw("/agents/api/scheduled", "POST", json.dumps({"project": P, "session": es["id"], "content": f"Reply with exactly: never-sched-{MARK}", "at": int(time.time()) + 3600}).encode()); sm1 = json.loads(sm1 or b"{}")
     ok("sched: POST /agents/api/scheduled stores a pending message", st_s == 200 and sm1.get("status") == "pending" and str(sm1.get("id", "")).startswith("sm_"), f"{st_s} {json.dumps(sm1)[:100]}")
-    # the nearest minute boundary not earlier than 60 s away (minute precision of the field: +61 s near the end of a minute gave "in 1 s", and the scheduler beat the
-    # cancel check)
-    when_s = time.strftime("%Y-%m-%d %H:%M", time.localtime((int(time.time() + 60) // 60 + 1) * 60)); pg.once("dialog", lambda d: d.accept(when_s))
-    pg.locator(".thread .chat textarea").fill(f"Reply with exactly: sched-{MARK}"); composer_option(pg, "Отправить позже"); pg.wait_for_selector(".menu .mi:has-text('через 15 мин')", timeout=5000)
+    when_s = time.strftime("%Y-%m-%d %H:%M", time.localtime(time.time() + 86400)); pg.once("dialog", lambda d: d.accept(when_s))
+    pg.locator(".thread .chat textarea").fill(f"Reply with exactly: later-sched-{MARK}"); composer_option(pg, "Отправить позже"); pg.wait_for_selector(".menu .mi:has-text('через 15 мин')", timeout=5000)
     ok("sched: the 🕒 menu offers presets and a custom time", pg.locator(".menu .mi:has-text('через 15 мин')").count() == 1 and pg.locator(".menu .mi:has-text('завтра в 09:00')").count() == 1 and pg.locator(".menu .mi:has-text('своё время')").count() == 1)
     pg.locator(".menu .mi:has-text('своё время')").click(); time.sleep(2.5)
     ok("sched: a custom time schedules the message; both pending ones show as cards and the field clears", pg.locator(".thread .chat .qcard.sched").count() == 2 and pg.locator(".thread .chat textarea").input_value() == "", f"cards={pg.locator('.thread .chat .qcard.sched').count()} when={when_s}")
     pg.screenshot(path="shots/ap18-sched.png")
     pg.locator(".thread .chat .qcard.sched:has-text('never-sched')").locator(".x").click(); time.sleep(1.5)
     lst = (get(f"/agents/api/scheduled?project={P}&session={es['id']}")[1] or {}).get("scheduled", [])
-    ok("sched: × cancels a scheduled message", pg.locator(".thread .chat .qcard.sched").count() == 1 and len(lst) == 1 and f"sched-{MARK}" in lst[0].get("content", ""), f"pending={len(lst)}")
+    ok("sched: × cancels a scheduled message", pg.locator(".thread .chat .qcard.sched").count() == 1 and len(lst) == 1 and f"later-sched-{MARK}" in lst[0].get("content", ""), f"pending={len(lst)}")
+    # the delivery: scheduled after the cancel check, so that the scheduler cannot get ahead of it
+    raw("/agents/api/scheduled", "POST", json.dumps({"project": P, "session": es["id"], "content": f"Reply with exactly: sched-{MARK}", "at": int(time.time()) + 5}).encode())
     try: pg.wait_for_selector(f".thread .chat .m.user:has-text('sched-{MARK}')", timeout=150000)
     except Exception: pass
     try: pg.wait_for_function("m => [...document.querySelectorAll('.thread .chat .m.agent')].some(x => x.textContent.includes(m))", arg=f"sched-{MARK}", timeout=90000)
     except Exception: pass
-    for _ in range(20):
-        if pg.locator(".thread .chat .qcard.sched").count() == 0: break
-        time.sleep(2)
+    for _ in range(40):   # the delivered card goes, the one for tomorrow stays
+        if pg.locator(".thread .chat .qcard.sched").count() == 1 and pg.locator(f".thread .chat .qcard.sched:has-text('later-sched')").count() == 1: break
+        time.sleep(1)
     time.sleep(1); lst2 = (get(f"/agents/api/scheduled?project={P}&session={es['id']}&all=true")[1] or {}).get("scheduled", [])
     s_user = pg.locator(f".thread .chat .m.user:has-text('sched-{MARK}')").count(); s_agent = f"sched-{MARK}" in " ".join(pg.locator(".thread .chat .m.agent").all_inner_texts()); s_cards = pg.locator(".thread .chat .qcard.sched").count()
-    ok("sched: the due message is sent by the service into the live session and the card disappears", s_user == 1 and any(x.get("status") == "sent" and f"sched-{MARK}" in x.get("content", "") for x in lst2) and s_cards == 0 and s_agent, f"statuses={[x.get('status') for x in lst2]} notes={[x.get('note') for x in lst2]} user_rows={s_user} agent_has={s_agent} cards={s_cards}")
+    ok("sched: the due message is sent by the service into the live session and its card disappears, the one for tomorrow stays", s_user == 1 and any(x.get("status") == "sent" and f"sched-{MARK}" in x.get("content", "") for x in lst2) and s_cards == 1 and s_agent, f"statuses={[x.get('status') for x in lst2]} notes={[x.get('note') for x in lst2]} user_rows={s_user} agent_has={s_agent} cards={s_cards}")
+    for x in lst2:   # tomorrow's message must not outlive the run
+        if x.get("status") == "pending": raw(f"/agents/api/scheduled/{x['id']}", "DELETE")
     for sid_x in (es.get("id"), fid):
         if not sid_x: continue
         for _ in range(3):
@@ -1281,8 +1427,8 @@ with sync_playwright() as p:
         cs2 = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "codex", "title": f"codex sub probe {MARK}"}).encode())[1] or b"{}")
         time.sleep(2); raw(f"/agents/api/core/projects/{P}/sessions/{cs2['id']}/account", "POST", json.dumps({"account": cacc[0]["id"]}).encode()); time.sleep(6)
         raw(f"/agents/api/core/projects/{P}/sessions/{cs2['id']}/prompt", "POST", json.dumps({"content": f"Reply with exactly: sub-{MARK}"}).encode())
-        for _ in range(40):
-            time.sleep(3); cst = (get(f"/agents/api/core/projects/{P}/sessions/{cs2['id']}")[1] or {}).get("info", {}).get("status")
+        for _ in range(120):
+            time.sleep(1); cst = (get(f"/agents/api/core/projects/{P}/sessions/{cs2['id']}")[1] or {}).get("info", {}).get("status")
             if cst in ("idle", "exited", "error"): break
         cev = get(f"/agents/api/core/projects/{P}/sessions/{cs2['id']}/events?since=0&limit=300")[1] or []
         croute = next((e.get("route") for e in reversed(cev) if e.get("kind") == "init"), None); ctext = " ".join(str(b.get("text", "")) for e in cev if e.get("kind") == "assistant" for b in (e.get("content") or []) if isinstance(b, dict))
@@ -1313,6 +1459,34 @@ with sync_playwright() as p:
     ok("gate: /gate/models lists the proxy models of the project's llm provider (or all targets)", st_gm == 200 and isinstance(gmod, dict) and "targets" in gmod, json.dumps(gmod)[:120] if gmod else str(st_gm))
     st_ga, gall = get("/agents/api/core/gate/models")
     gms = [m for tg in (gall or {}).get("targets", []) for m in tg.get("models", [])]
+    # families and kinds (2026-10-26): every model carries a family ("Gemini 3.8"); speech/transcription/robotics entries of the
+    # Google channel are not "chat" and never become the Gemini default; the composer groups a big channel by family and folds the
+    # special models behind one item
+    gem = [m for m in gms if m.get("provider") == "gemini"]
+    fam_ok = gms and all(m.get("family") for m in gms) and any(m.get("family") == "Gemini 3.8" for m in gms)
+    kinds = {m["id"]: m.get("kind") for m in gem}
+    # the provider's list of chat models changes from week to week (gemini-3.8-flash was dropped on 2026-11-15): any plain flash line will do
+    chat_flash = [k for k, v in kinds.items() if v == "chat" and k.startswith("gemini-") and k.endswith("-flash")]
+    ok("gate: every catalog model carries a family and the Google channel's speech, transcription and robotics entries are typed as non-chat", fam_ok and (not gem or (kinds.get("gemini-3.8-flash-tts") == "tts" and kinds.get("gemini-3.5-transcribe") == "audio" and kinds.get("gemini-robotics-er-2-preview") == "special" and chat_flash)), f"fam={fam_ok} gem={len(gem)} chat_flash={chat_flash[:3]} kinds={ {k: v for k, v in kinds.items() if v != 'chat'} }"[:300])
+    if gem:
+        pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(0.8); pg.locator(f".panel .sess[data-id='{sid}']").click(); pg.wait_for_selector(".thread .pane .tabs", timeout=20000); pg.locator(".thread .pane .tabs .tab:has-text('Чат')").click(); pg.wait_for_selector(".thread .chat textarea", timeout=20000)
+        # the gate catalog arrives asynchronously after the session info: re-open the menu until the "via gate" header is in it
+        for _ in range(8):
+            pg.locator(".thread .chat .composer .ctl.model").click(); pg.wait_for_selector(".menu", timeout=5000); time.sleep(0.5)
+            if pg.locator(".menu .mh:has-text('через gate')").count(): break
+            pg.keyboard.press("Escape"); time.sleep(1.5)
+        subs = [x.strip() for x in pg.locator(".menu .mh.sub").all_inner_texts()]; mis = [x.split("\n")[0].strip() for x in pg.locator(".menu .mi").all_inner_texts()]
+        has_special = any(x.startswith("Служебные модели") for x in mis); fam_subs = [x for x in subs if x.startswith("Gemini ")]
+        tts_visible = any("tts" in x for x in mis)
+        if has_special:
+            pg.locator(".menu .mi").filter(has_text="Служебные модели").first.click(); pg.wait_for_selector(".menu", timeout=5000); time.sleep(0.5)
+            mis2 = [x.split("\n")[0].strip() for x in pg.locator(".menu .mi").all_inner_texts()]
+            tts_after = any("tts" in x for x in mis2); hide_item = any(x.startswith("Скрыть служебные") for x in mis2)
+        else: tts_after = False; hide_item = False
+        pg.keyboard.press("Escape"); time.sleep(0.3)
+        ok("composer: the gate submenu groups the Google channel by family (Gemini 3.8, 3.5, …) and folds speech/image models behind «Служебные модели»; the toggle unfolds them", len(fam_subs) >= 3 and has_special and not tts_visible and tts_after and hide_item, f"families={fam_subs[:6]} special={has_special} tts_before={tts_visible} tts_after={tts_after} hide={hide_item}")
+        # back to where the block was: Settings → Accounts (the checks below continue there)
+        pg.locator(".rail .nav[data-tip='Настройки']").click(); pg.wait_for_selector(".settings .subnav button", timeout=20000); pg.locator(".settings .subnav button:has-text('Аккаунты')").click(); time.sleep(0.8)
     provs = {m.get("provider") for m in gms}
     ok("gate: model ids are real (no claude-fable-5-dd- cloaking) and every model carries its channel; Claude Code and Codex channels are present", st_ga == 200 and gms and not any(m["id"].startswith("claude-fable-5-dd-") for m in gms) and all(m.get("provider") and m.get("provider_title") for m in gms) and {"claude", "codex"} <= provs and any(m["id"] == "gpt-6-astra" and m["provider"] == "codex" for m in gms), str(sorted(p for p in provs if p))[:160])
     ext = next((tg["models"] for tg in (gall or {}).get("targets", []) if any(m.get("provider") == "claude" for m in tg.get("models", [])) and any(m.get("provider") == "antigravity" for m in tg.get("models", []))), [])
@@ -1333,7 +1507,7 @@ with sync_playwright() as p:
     ok("login: cancel closes the login terminal", pg.locator(".settings .login-term").count() == 0)
     pg.locator(".rail .nav[data-tip='Входящие']").click(); pg.wait_for_selector(".inbox", timeout=20000); ok("ui: inbox renders", pg.locator(".inbox .h-sec").count() == 2); pg.screenshot(path="shots/ap3-inbox.png")
     pg.locator(".rail .nav[data-tip='Модели']").click(); pg.wait_for_selector(".kpis", timeout=20000); time.sleep(1); ok("ui: models with KPIs, routes and table", pg.locator(".kpi").count() == 4 and pg.locator(".routes .route").count() >= 1 and pg.locator(".tbl.models tbody tr").count() >= 1); pg.screenshot(path="shots/ap4-models.png")
-    pg.locator(".rail .nav[data-tip='Настройки']").click(); pg.wait_for_selector(".settings", timeout=20000); ok("ui: settings with ten tabs (accounts … MCP … browser … about)", pg.locator(".settings .subnav button").count() == 10, str(pg.locator(".settings .subnav button").count()))
+    pg.locator(".rail .nav[data-tip='Настройки']").click(); pg.wait_for_selector(".settings", timeout=20000); ok("ui: settings with eleven tabs (accounts … MCP … browser … servers … about)", pg.locator(".settings .subnav button").count() == 11, str(pg.locator(".settings .subnav button").count()))
     pg.locator(".settings .subnav button:has-text('Внешний вид')").click(); pg.locator("input[name='appearance-mode'][value='light']").check(force=True); time.sleep(0.5)
     ok("ui: light theme applied", pg.evaluate("document.documentElement.dataset.theme") == "light"); pg.screenshot(path="shots/ap5-settings-light.png")
     # multilingual UI (i18n.ts + i18n/messages/app.ts): switching in "Appearance" is reactive, without a reload; radio order: auto, en, ru, uk, es
@@ -1451,7 +1625,7 @@ with sync_playwright() as p:
     if pp.locator(".burger").count(): pp.locator(".burger").first.click(); time.sleep(0.8)
     pp.locator(f".panel .sess[data-id='{sid}']").click(force=True); pp.wait_for_selector(".thread .pane .tabs", timeout=20000); pp.locator(".thread .pane .tabs .tab").first.click(); pp.wait_for_selector(".thread .chat .tools", timeout=20000); time.sleep(2.5)
     pcomposer = pp.locator(".thread .chat .composer"); ptools = pcomposer.locator(".composer-controls")
-    try: pp.wait_for_selector(".thread .chat .composer-context", timeout=20000)
+    try: pp.wait_for_selector(".thread .chat .composer-context", state="attached", timeout=20000)
     except Exception: pass
     # On the phone the model and "Options" stay in the bottom strip (the row is compacted to 32 px, targets ≥ 44 px wide —
     # slice 45); status, mode and context are text above the field, their clickable duplicates are hidden, details in the
@@ -1489,10 +1663,11 @@ with sync_playwright() as p:
     def lim_ok(l):
         if l.get("error"): return False
         ws = l.get("windows") or []
+        if l.get("provider") == "antigravity": return not ws   # Antigravity reports no usage windows: its plan line is the number of models
         return bool(ws) and all(0 <= float(w.get("used_pct", -1)) <= 100 and (not w.get("resets_at") or w["resets_at"] > time.strftime("%Y-%m-%dT%H:%M", time.gmtime())) for w in ws)
     good = [l for l in lims if not l.get("error")]; bad = [l for l in lims if l.get("error")]
     by_prov = {l["provider"]: l for l in good}
-    ok("limits: the core returns an entry for every subscription account — provider-shaped windows (Claude: five_hour/seven_day, ChatGPT: primary/secondary) in 0–100 with a future reset and a plan; a revoked login gets an honest «sign in again» error instead",
+    ok("limits: the core returns an entry for every subscription account — provider-shaped windows (Claude: five_hour/seven_day, ChatGPT: primary/secondary) in 0–100 with a future reset and a plan, Antigravity — the number of models without windows; a revoked login gets an honest «sign in again» error instead",
        st_l == 200 and len(lims) == len(subs) and len(good) >= 1 and all(lim_ok(l) and l.get("plan") for l in good) and all("войдите" in l["error"] for l in bad)
        and (not by_prov.get("claude") or {w["id"] for w in by_prov["claude"]["windows"]} >= {"five_hour", "seven_day"}) and (not by_prov.get("codex") or {w["id"] for w in by_prov["codex"]["windows"]} >= {"primary", "secondary"})
        and not any(w["id"].startswith("extra") for l in good for w in l["windows"]),
@@ -1564,6 +1739,18 @@ with sync_playwright() as p:
                 if "haiku" in m["id"]: return r["id"], m["id"]
         return (routes[0]["id"], routes[0]["models"][0]["id"]) if routes else ("", "")
     RT, MD = pick_model()
+    # The model must answer now. A subscription behind the gate may be out of its limit ("all credentials … are cooling down"):
+    # then the block runs on the next cheap model that answers — it checks the chat, not the provider's quota (2026-11-22: ten
+    # checks failed at once while the Claude subscription was cooling down).
+    def answers(rt, md):
+        c = json.loads(raw("/agents/api/chats", "POST", json.dumps({"route": rt, "model": md, "tools": {"search": False, "fetch": False}, "incognito": True}).encode())[1] or b"{}")
+        if not c.get("id"): return False
+        st, b = raw(f"/agents/api/chats/{c['id']}/messages", "POST", json.dumps({"text": "Reply with the single word: ok"}).encode()); raw(f"/agents/api/chats/{c['id']}", "DELETE")
+        return st == 200 and b'"kind":"done"' in (b or b"")
+    if RT and not answers(RT, MD):
+        for cand in ("gpt-6-astra", "gpt-6.2-astra", "gemini-3.8-flash-high", "gemini-3-flash"):
+            alt = next(((r["id"], cand) for r in routes if any(m["id"] == cand for m in r["models"])), None)
+            if alt and answers(*alt): print(f"NOTE  schat: {MD} does not answer now (provider limit) — the block runs on {alt[1]}", flush=True); RT, MD = alt; break
     st_c, sc = raw("/agents/api/chats", "POST", json.dumps({"route": RT, "model": MD, "tools": {"search": False, "fetch": True}}).encode()); sc = json.loads(sc or b"{}")
     ok("schat: chat created on the chosen route and model", st_c == 200 and sc.get("id", "").startswith("ch_") and sc.get("model") == MD and sc.get("kind") == "simple" and sc.get("incognito") is False, f"{st_c} {RT} {MD} {str(sc)[:100]}")
     def sse(chat_id, body):
@@ -1586,7 +1773,7 @@ with sync_playwright() as p:
     st_i, evi = sse(sc["id"], {"text": "What is the dominant color of this image? Answer with exactly one English word in lowercase.", "attachments": [{"name": "red.png", "mime": "image/png", "data": base64.b64encode(png_red()).decode()}]})
     di = next((e for e in evi if e["kind"] == "done"), None); ui_ev = next((e for e in evi if e["kind"] == "user"), {}); afile = ((ui_ev.get("message") or {}).get("attachments") or [{}])[0].get("file", "")
     st_f, fbody = raw(f"/agents/api/chats/{sc['id']}/files/{afile}")
-    ok("schat: an image attachment reaches the model (vision) and is served back as a file", st_i == 200 and bool(di) and "red" in di["message"]["text"].lower() and st_f == 200 and (fbody or b"").startswith(b"\x89PNG"), f"{st_i} {(di or {}).get('message', {}).get('text', '')[:60]} file={st_f}")
+    ok("schat: an image attachment reaches the model (vision) and is served back as a file", st_i == 200 and bool(di) and any(w in di["message"]["text"].lower() for w in ("red", "pink", "crimson", "scarlet")) and st_f == 200 and (fbody or b"").startswith(b"\x89PNG"), f"{st_i} {(di or {}).get('message', {}).get('text', '')[:60]} file={st_f}")
     st_t, evt = sse(sc["id"], {"text": "Use the fetch_url tool to fetch https://example.com and reply with the exact text of its main heading, nothing else."})
     dt = next((e for e in evt if e["kind"] == "done"), None); tools_ev = [e for e in evt if e["kind"] == "tool"]
     ok("schat: the fetch_url tool runs in the loop (tool event with the page text) and the answer uses it", st_t == 200 and bool(dt) and tools_ev and tools_ev[0]["name"] == "fetch_url" and "Example Domain" in tools_ev[0]["result"] and "example domain" in dt["message"]["text"].lower() and dt["message"]["tools"][0]["ok"] is True, f"{st_t} tools={[(e['name'], e.get('ok')) for e in tools_ev]} {(dt or {}).get('message', {}).get('text', '')[:60]}")
@@ -1598,6 +1785,36 @@ with sync_playwright() as p:
         raw(f"/agents/api/chats/{ccx.get('id')}", "DELETE")
     else: print("SKIP  schat: no gate route offers gpt-6-astra under the Codex channel", flush=True)
     ok("schat: empty message and unknown chat are rejected", raw(f"/agents/api/chats/{sc['id']}/messages", "POST", b'{"text": "  "}')[0] == 400 and raw("/agents/api/chats/ch_nope/messages", "POST", b'{"text": "hi"}')[0] == 404)
+    # reliability, retry and edit (slice 95, docs/agents-ux.md §6.6)
+    pad = lambda mb: json.dumps({"text": "", "attachments": [], "pad": "x" * int(mb * 1024 * 1024)}).encode()
+    def refused(body):
+        # 404 would mean the body got through to the handler; a refusal by size reaches the client as 413, as the edge's 502
+        # (the service closed the connection mid-upload) or as a dropped connection
+        try: st = raw("/agents/api/chats/ch_nope/messages", "POST", body)[0]; return st != 404 and st >= 400
+        except Exception: return True
+    ok("schat: a 3 MB message passes the request limit (the default 2 MB turned a phone photo into «HTTP 413»), a 13 MB one is refused", raw("/agents/api/chats/ch_nope/messages", "POST", pad(3))[0] == 404 and refused(pad(13)))
+    cr2 = json.loads(raw("/agents/api/chats", "POST", json.dumps({"route": RT, "model": MD, "tools": {"search": False, "fetch": True}}).encode())[1] or b"{}"); rid = cr2.get("id", "x")
+    sse(rid, {"text": f"Reply with exactly: first-{MARK}"}); sse(rid, {"text": f"Reply with exactly: second-{MARK}"})
+    h0 = (get(f"/agents/api/chats/{rid}")[1] or {}).get("messages", [])
+    st_rg, evr = sse(rid, {"regenerate": True}); h1 = (get(f"/agents/api/chats/{rid}")[1] or {}).get("messages", [])
+    ok("schat: retry answers the last question again — no new message of the owner, the old answer is replaced", st_rg == 200 and not any(e["kind"] == "user" for e in evr) and any(e["kind"] == "done" for e in evr) and len(h0) == 4 and [m["role"] for m in h1] == ["user", "assistant", "user", "assistant"] and h1[2]["id"] == h0[2]["id"] and h1[3]["id"] != h0[3]["id"] and f"second-{MARK}" in h1[3]["text"], f"{st_rg} {[m['role'] for m in h1]}")
+    st_ed, eve = sse(rid, {"text": f"Reply with exactly: edited-{MARK}", "replace_from": h1[0]["id"] if h1 else "x"}); h2 = (get(f"/agents/api/chats/{rid}")[1] or {}).get("messages", [])
+    ok("schat: an edit replaces the message and the tail of the chat", st_ed == 200 and [m["role"] for m in h2] == ["user", "assistant"] and f"edited-{MARK}" in h2[0]["text"] and f"edited-{MARK}" in h2[1]["text"] and raw(f"/agents/api/chats/{rid}/messages", "POST", json.dumps({"text": "x", "replace_from": "m_nope"}).encode())[0] == 404, f"{st_ed} {[m['text'][:30] for m in h2]}")
+    # the page tool refuses an inside address whatever its spelling: 2130706433 is 127.0.0.1, where the core listens
+    st_in, evin = sse(rid, {"text": "Call the fetch_url tool exactly once with the URL http://2130706433:7100/api/status and then reply with the single word done."})
+    tin = [e for e in evin if e["kind"] == "tool" and e.get("name") == "fetch_url"]
+    if tin: ok("schat: the page tool refuses an inside address written as a number", tin[0]["ok"] is False and "внутри сети" in tin[0]["result"] and "version" not in tin[0]["result"], tin[0]["result"][:120])
+    else: print("SKIP  schat: the model did not call fetch_url with the inside address — the refusal is covered by unit tests", flush=True)
+    # an answer in progress: a reopened tab sees what is written so far; a stop works at once and leaves the text with a mark
+    stop_out = {}
+    def long_turn(): stop_out["r"] = sse(rid, {"text": "Write the numbers from 1 to 1500, one per line, nothing else."})
+    th = threading.Thread(target=long_turn); th.start(); time.sleep(3)
+    busy_mid = get(f"/agents/api/chats/{rid}")[1] or {}
+    t_stop = time.time(); raw(f"/agents/api/chats/{rid}/stop", "POST", b"{}"); th.join(timeout=30); stop_secs = time.time() - t_stop
+    h3 = get(f"/agents/api/chats/{rid}")[1] or {}; last3 = (h3.get("messages") or [{}])[-1]
+    ok("schat: an answer in progress is visible to a reopened tab and stops at once, the text written so far is kept with the mark", busy_mid.get("busy") is True and "partial" in busy_mid and not th.is_alive() and stop_secs < 5 and h3.get("busy") is False and last3.get("role") == "assistant" and last3.get("error") == "stopped" and any(e["kind"] == "done" for e in (stop_out.get("r") or (0, []))[1]),
+       f"busy={busy_mid.get('busy')} partial={len((busy_mid.get('partial') or {}).get('text', ''))} stop={stop_secs:.1f}s error={last3.get('error')!r} text={len(last3.get('text', ''))}")
+    raw(f"/agents/api/chats/{rid}", "DELETE")
     us = get("/agents/api/core/usage?days=1")[1] or {}
     ok("schat: spend recorded in the core ledger under project «chat»", any(b.get("key") == "chat" and (b.get("cost_usd") or 0) >= 0 and (b.get("turns") or b.get("output") or 0) > 0 for b in us.get("by_project", [])), str([b.get("key") for b in us.get("by_project", [])])[:120])
     # second pass (slice 37, §6.5): system prompt presets, a PDF with a text layer, an image via /img
@@ -1635,8 +1852,8 @@ with sync_playwright() as p:
     st_h, ho = raw(f"/agents/api/chats/{sc['id']}/handoff", "POST", json.dumps({"agent": "claude"}).encode()); ho = json.loads(ho or b"{}"); hsid = (ho.get("session") or {}).get("id")
     ok("schat: handoff opens a Claude Code session in scratch with the history as the first message", st_h == 200 and bool(hsid) and ho.get("project") == "scratch", f"{st_h} {str(ho)[:100]}")
     if hsid:
-        for _ in range(30):
-            time.sleep(3); evh = get(f"/agents/api/core/projects/scratch/sessions/{hsid}/events?since=0&limit=60")[1] or []
+        for _ in range(90):
+            time.sleep(1); evh = get(f"/agents/api/core/projects/scratch/sessions/{hsid}/events?since=0&limit=60")[1] or []
             if any(e["kind"] == "user" for e in evh): break
         uh = " ".join(b.get("text", "") for e in evh if e["kind"] == "user" for b in (e.get("content") or []))
         ok("schat: the handoff prompt carries the simple chat transcript", f"simple-{MARK}" in uh and "Пользователь" in uh, uh[:100])
@@ -1654,7 +1871,9 @@ with sync_playwright() as p:
     ok("schat: the model menu is grouped by provider (Claude Code and Codex subscriptions first) with real model ids", any(x.startswith("Claude Code") for x in subs) and any(x.startswith("Codex") for x in subs) and not any("-dd-" in x for x in mitems) and any("gpt-6-astra" in x for x in mitems), f"subs={subs[:8]}")
     pg.locator(".menu input.ms").fill("opus 4.6"); time.sleep(0.4)
     oitems = pg.locator(".menu .mi").all_inner_texts()
-    ok("schat: search matches words separately and treats '-' as '.' (opus 4.6 finds claude-opus-4-6 and «Claude 4.6 Opus»)", any("claude-opus-4-6" in x and "thinking" not in x and "devin/" not in x for x in oitems) and any("devin/claude-opus-4-6" in x for x in oitems), str([x.replace(chr(10), ' ')[:40] for x in oitems][:6]))
+    # (the second spelling used to be the Devin channel's `devin/claude-opus-4-6`; the channel left the catalogue, the thinking
+    # variant of another channel shows the same thing: the query words are matched one by one against id and name)
+    ok("schat: search matches words separately and treats '-' as '.' (opus 4.6 finds claude-opus-4-6 and «Claude 4.6 Opus»)", any("claude-opus-4-6" in x and "thinking" not in x.lower() for x in oitems) and any("claude-opus-4-6-thinking" in x for x in oitems) and all("4.6" in x or "4-6" in x for x in oitems), str([x.replace(chr(10), ' ')[:40] for x in oitems][:6]))
     pg.locator(".menu input.ms").fill("astra"); time.sleep(0.4)
     fitems = pg.locator(".menu .mi").all_inner_texts()
     ok("schat: the search field filters models and keeps their provider headers", fitems and all("astra" in x.lower() for x in fitems) and pg.locator(".menu .mh.sub").count() >= 1 and len(fitems) < len(mitems), f"{len(fitems)} of {len(mitems)}"); pg.keyboard.press("Escape"); time.sleep(0.3)
@@ -1850,14 +2069,26 @@ with sync_playwright() as p:
             time.sleep(3)
     # ---- agentd restart without losing conversations (slice 38, docs/agents-ux.md §4.3.11): live Claude and Gemini conversations come back by themselves
     # after systemctl restart ----
-    rs = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "claude", "title": f"restart probe {MARK}"}).encode())[1] or b"{}"); rsid = rs.get("id")
+    rs = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "claude", "title": f"restart probe {MARK}", "permission_mode": "auto"}).encode())[1] or b"{}"); rsid = rs.get("id")
     rg = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "gemini", "title": f"restart gemini {MARK}"}).encode())[1] or b"{}"); rgid = rg.get("id")
-    raw(f"/agents/api/core/projects/{P}/sessions/{rsid}/prompt", "POST", json.dumps({"content": f"Remember the word restart-{MARK}. Reply with exactly: ok"}).encode())
+    raw(f"/agents/api/core/projects/{P}/sessions/{rsid}/prompt", "POST", json.dumps({"content": f"Use the Bash tool to run: echo tool-{MARK}. Then remember the word restart-{MARK} and reply with exactly: ok"}).encode())
     raw(f"/agents/api/core/projects/{P}/sessions/{rgid}/prompt", "POST", json.dumps({"content": f"Remember the word gemini-{MARK}. Reply with exactly: ok"}).encode())
     for _ in range(60):
         time.sleep(3)
         ev_a = get(f"/agents/api/core/projects/{P}/sessions/{rsid}/events?since=0&limit=100")[1] or []; ev_g = get(f"/agents/api/core/projects/{P}/sessions/{rgid}/events?since=0&limit=100")[1] or []
         if any(e["kind"] == "result" for e in ev_a) and any(e["kind"] == "result" for e in ev_g): break
+    # a second turn, cut short by the owner: the CLI notes the interruption in its own journal on the owner's side ("[Request
+    # interrupted by user]"). Read back after a restart, such lines used to come into the feed as messages of the owner, in the
+    # wrong place — together with compaction summaries, /model commands and notes about finished background tasks
+    raw(f"/agents/api/core/projects/{P}/sessions/{rsid}/prompt", "POST", json.dumps({"content": "Use the Bash tool to run: python3 -c 'import time; time.sleep(120)'. Then reply with exactly: slept"}).encode())
+    for _ in range(30):
+        time.sleep(2)
+        ev_i = get(f"/agents/api/core/projects/{P}/sessions/{rsid}/events?since=0&limit=200")[1] or []
+        if sum(1 for e in ev_i if e["kind"] == "assistant" and any(isinstance(b_, dict) and b_.get("type") == "tool_use" for b_ in (e.get("content") or []))) >= 2: break
+    time.sleep(2); raw(f"/agents/api/core/projects/{P}/sessions/{rsid}/interrupt", "POST", b"{}")
+    for _ in range(20):
+        time.sleep(2)
+        if (get(f"/agents/api/core/projects/{P}/sessions/{rsid}")[1] or {}).get("info", {}).get("status") == "idle": break
     psid_before = (get(f"/agents/api/core/projects/{P}/sessions/{rsid}")[1] or {}).get("info", {}).get("provider_session_id")
     st_rr, rr_ = raw(f"/agents/api/core/projects/{P}/agentd/restart", "POST", b"{}")
     ok("restart: the core restarts agentd in the workspace on request", st_rr == 200 and json.loads(rr_ or b"{}").get("restarted") is True, f"{st_rr} {(rr_ or b'')[:80]}")
@@ -1870,26 +2101,42 @@ with sync_playwright() as p:
     # Gemini CLI 0.62 cannot find its ACP sessions in session/load ("Invalid session identifier") — it comes up as a new session with a history retelling; loaded is not
     # required of it
     ok("restart: both sessions come back alive by themselves with a restart note in the journal and the same provider session for Claude", bool(back) and back["a"].get("alive") and back["g"].get("alive") and any(e["kind"] == "system" and e.get("subtype") == "agentd_restart" for e in ev_a2) and any(e["kind"] == "system" and e.get("subtype") == "agentd_restart" for e in ev_g2) and back["a"].get("provider_session_id") == psid_before and len([e for e in ev_g2 if e["kind"] == "init"]) >= 2, f"a={(back.get('a') or {}).get('status')} g={(back.get('g') or {}).get('status')} psid_same={(back.get('a') or {}).get('provider_session_id') == psid_before} gemini_loaded={any(e['kind'] == 'init' and e.get('loaded') is True for e in ev_g2)}")
+    # what the process wrote before the restart must not come back from the provider journal: neither as second copies (the two
+    # messages of the owner once each, every tool call answered once — copies used to pile up at the end of the journal after
+    # every restart, the feed then opened empty and showed old messages again), nor as the CLI's own lines turned into messages of
+    # the owner (a message read from the file carries a uuid, one sent through agentd does not)
+    def copies(evs):
+        ids_c = [b_.get("tool_use_id") for e in evs if e["kind"] == "tool_result" for b_ in (e.get("content") or []) if isinstance(b_, dict) and b_.get("type") == "tool_result"]
+        return len([e for e in evs if e["kind"] == "user"]), len(ids_c), len(set(ids_c))
+    cu, ci, cs = copies(ev_a2); own_lines = len([e for e in ev_a2 if e["kind"] == "user" and e.get("uuid")])
+    ok("restart: nothing the process had written comes back from the provider journal — the two messages of the owner once each, each tool result once, and the CLI's note about the interrupted turn does not become a message of the owner", cu == 2 and own_lines == 0 and ci >= 1 and ci == cs and any(e["kind"] == "interrupt" for e in ev_a2) and any(e["kind"] == "spawn" for e in ev_a2[-6:]), f"users={cu} from_file={own_lines} results={ci} distinct={cs} interrupt={any(e['kind'] == 'interrupt' for e in ev_a2)} tail={[e['kind'] for e in ev_a2[-6:]]}")
     raw(f"/agents/api/core/projects/{P}/sessions/{rsid}/prompt", "POST", json.dumps({"content": "What word did I ask you to remember? Reply with just that word."}).encode())
     raw(f"/agents/api/core/projects/{P}/sessions/{rgid}/prompt", "POST", json.dumps({"content": "What word did I ask you to remember? Reply with just that word."}).encode())
     for _ in range(60):
         time.sleep(3)
         ev_a3 = get(f"/agents/api/core/projects/{P}/sessions/{rsid}/events?since=0&limit=200")[1] or []; ev_g3 = get(f"/agents/api/core/projects/{P}/sessions/{rgid}/events?since=0&limit=200")[1] or []
-        if len([e for e in ev_a3 if e["kind"] == "result"]) >= 2 and len([e for e in ev_g3 if e["kind"] == "result"]) >= 2: break
+        if len([e for e in ev_a3 if e["kind"] == "result"]) >= 3 and len([e for e in ev_g3 if e["kind"] == "result"]) >= 2: break
     ta = " ".join(str(b.get("text", "")) for e in ev_a3 if e["kind"] == "assistant" for b in (e.get("content") or []) if isinstance(b, dict)); tg = " ".join(str(b.get("text", "")) for e in ev_g3 if e["kind"] == "assistant" for b in (e.get("content") or []) if isinstance(b, dict))
     recap = any(e["kind"] == "system" and e.get("subtype") == "recap_sent" for e in ev_g3)
     # Gemini: either session/load found the session (native context) or the journal retelling as the first prompt (system recap_sent)
     # — the result matters
     ok("restart: the resumed sessions keep their context — Claude natively, Gemini natively or through the journal recap sent with the first prompt after the restart — both recall the word", f"restart-{MARK}" in ta and f"gemini-{MARK}" in tg, f"claude={ta[-60:]!r} gemini={tg[-60:]!r} recap={recap}")
+    # the feed of the restarted conversation: the three messages of the owner, once each, and the restart note
+    tree_expand(pg, P)
+    try:
+        pg.locator(f".panel .sess[data-id='{rsid}']").click(); pg.wait_for_selector(".thread .chat .log .m", timeout=20000); time.sleep(1.5)
+    except Exception: pass
+    fu = pg.locator(".thread .chat .log .m.user").count(); fnote = pg.locator(".thread .chat .log .m.sys:has-text('agentd перезапущен')").count()
+    ok("restart: the feed of the restarted conversation shows each message of the owner once, with the restart note between them", fu == 3 and fnote == 1 and copies(ev_a3)[0] == 3, f"bubbles={fu} note={fnote} journal users={copies(ev_a3)[0]}")
     for sdel in (rsid, rgid):
         if sdel:
             for _ in range(3):
                 if raw(f"/agents/api/core/projects/{P}/sessions/{sdel}", "DELETE")[0] in (204, 404): break
                 time.sleep(3)
-    # ---- ACP engines (slice 32: agentd acp.rs + engines.rs, docs/agents-ux.md §4.3.8): the engine catalog, Gemini CLI and pi through the gate, permissions, model and mode on the fly,
-    # the "+" menu ----
+    # ---- ACP engines (slice 32: agentd acp.rs + engines.rs, docs/agents-ux.md §4.3.8): the engine catalog, its version in the hub, the «+» menu.
+    # Each engine has a block of its own below («engines: …») so that the parts run side by side ----
     st_e, eng = get(f"/agents/api/core/projects/{P}/engines"); engs = {e["id"]: e for e in (eng or {}).get("engines", [])}
-    ok("engines: catalog — Claude Code, Codex, Gemini CLI, pi, Antigravity and Oh My Pi listed; the first four installed with versions; Gemini, pi and omp speak ACP, Antigravity — its own agy protocol without an npm adapter", st_e == 200 and set(engs) == {"claude", "codex", "gemini", "pi", "antigravity", "omp"} and engs["omp"]["protocol"] == "acp" and engs["omp"]["bin"] == "omp" and not (engs["omp"].get("npm") or []) and (engs["omp"]["installed"] is False or bool(engs["omp"].get("version"))) and all(engs[k]["installed"] and engs[k].get("version") for k in ("claude", "codex", "gemini", "pi")) and engs["gemini"]["protocol"] == "acp" and engs["pi"]["protocol"] == "acp" and engs["antigravity"]["protocol"] == "agy" and engs["antigravity"]["bin"] == "agy" and not (engs["antigravity"].get("npm") or []) and (engs["antigravity"]["installed"] is False or bool(engs["antigravity"].get("version"))), f"{st_e} {{k: (v.get('version'), v['protocol'], v['installed']) for k, v in engs.items()}}")
+    ok("engines: catalog — Claude Code, Codex, Gemini CLI, pi, Antigravity and Oh My Pi listed; the first four installed with versions; Gemini, pi and omp speak ACP, Antigravity — its own agy protocol without an npm adapter", st_e == 200 and set(engs) == {"claude", "codex", "gemini", "pi", "antigravity", "omp"} and engs["omp"]["protocol"] == "acp" and engs["omp"]["bin"] == "omp" and not (engs["omp"].get("npm") or []) and (engs["omp"]["installed"] is False or bool(engs["omp"].get("version"))) and all(engs[k]["installed"] and engs[k].get("version") for k in ("claude", "codex", "gemini", "pi")) and engs["gemini"]["protocol"] == "acp" and engs["pi"]["protocol"] == "acp" and engs["antigravity"]["protocol"] == "agy" and engs["antigravity"]["bin"] == "agy" and not (engs["antigravity"].get("npm") or []) and (engs["antigravity"]["installed"] is False or bool(engs["antigravity"].get("version"))), f"{st_e} {dict((k, (v.get('version'), v['protocol'], v['installed'])) for k, v in engs.items())}")
     # catalog version in the hub (slice 80): the install stamp → an agentd snapshot with engines_v → a project frame → the client
     # re-reads the catalog; simulate the end of an install by touching the stamp from a terminal and wait for a new version in
     # /workspaces
@@ -1898,24 +2145,33 @@ with sync_playwright() as p:
     v0 = ws_engines_v()
     st_tp, tpb = raw(f"/agents/api/core/projects/{P}/ptys", "POST", json.dumps({"cmd": ["bash", "-lc", "mkdir -p ~/.cache/cloudos && sleep 1 && touch ~/.cache/cloudos/engines.stamp && sleep 2"], "title": "stamp"}).encode()); tp = json.loads(tpb or b"{}")
     v1 = v0
-    for _ in range(20):
-        time.sleep(3); v1 = ws_engines_v()
+    for _ in range(60):
+        time.sleep(1); v1 = ws_engines_v()
         if v1 and v0 is not None and v1 > v0: break
     ok("engines: touching the install stamp in the workspace bumps engines_v in the hub snapshot within 30 s (clients re-read the catalog, the «+» menu switches «Install…» → «Chat with …» on its own)", st_tp == 200 and v0 is not None and v1 is not None and v1 > v0, f"before={v0} after={v1}")
     if tp.get("id"): raw(f"/agents/api/core/projects/{P}/ptys/{tp['id']}", "DELETE")
     # ?refresh=1 (slice 77): the catalog is re-read bypassing the agentd cache — the same set of
     # engines and versions
     st_r, eng_r = get(f"/agents/api/core/projects/{P}/engines?refresh=1"); engs_r = {e["id"]: e for e in (eng_r or {}).get("engines", [])}
-    ok("engines: ?refresh=1 re-detects the catalog past the agentd cache — same engines and versions", st_r == 200 and set(engs_r) == set(engs) and all(engs_r[k].get("installed") == engs[k].get("installed") and engs_r[k].get("version") == engs[k].get("version") for k in engs), f"{st_r} {[(k, v.get('installed'), v.get('version')) for k, v in engs_r.items()]}")
+    ok("engines: ?refresh=1 re-detects the catalog past the agentd cache — same engines and versions", st_r == 200 and set(engs_r) == set(engs) and all(engs_r[k].get("installed") == engs[k].get("installed") and engs_r[k].get("version") == engs[k].get("version") for k in engs), f"{st_r} differ (id, cached, re-detected): {[(k, (engs[k].get('installed'), engs[k].get('version')), (engs_r.get(k, {}).get('installed'), engs_r.get(k, {}).get('version'))) for k in engs if (engs[k].get('installed'), engs[k].get('version')) != (engs_r.get(k, {}).get('installed'), engs_r.get(k, {}).get('version'))]} extra={sorted(set(engs_r) - set(engs))}")
     def e_sess(sid_e): return get(f"/agents/api/core/projects/{P}/sessions/{sid_e}")[1] or {}
+    # UI: the "+" menu with a chat and a TUI for every installed engine
+    pg.keyboard.press("Escape"); time.sleep(0.3); pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(1)
+    wse = pg.locator(f".panel .ws:has(.wname:has-text('{P}'))"); wse.locator(".wrow").hover(); wse.locator(".wrow button").click(); pg.wait_for_selector(".menu", timeout=5000); time.sleep(0.5)
+    mi = [x.strip() for x in pg.locator(".menu .mi").all_inner_texts()]
+    ok("engines: the «+» menu offers a chat and a TUI for every installed engine", any(x.startswith("Чат с Gemini CLI") for x in mi) and any(x.startswith("Чат с pi") for x in mi) and any(x.startswith("Gemini CLI TUI") for x in mi) and any(x.startswith("pi TUI") for x in mi) and (not engs.get("omp", {}).get("installed") or (any(x.startswith("Чат с Oh My Pi") for x in mi) and any(x.startswith("Oh My Pi TUI") for x in mi))) and any(x.startswith("Чат с Claude") for x in mi) and any(x.startswith("Чат с Codex") for x in mi), str(mi)[:220]); pg.keyboard.press("Escape"); time.sleep(0.3)
+    # ---- engines: Oh My Pi over its own ACP (docs/agents-ux.md §4.3.18): the gate provider, a permission request, «allow» ----
+    # (the command is `printf`, not `echo`: the Antigravity part adds the project rule Bash(echo:*) for a while, and with the
+    # parts running side by side an `echo` here would be allowed by that rule without a request)
+    engs = {e["id"]: e for e in ((get(f"/agents/api/core/projects/{P}/engines")[1] or {}).get("engines", []))}
     # Oh My Pi (§4.3.18): an ACP engine like pi — the gate provider in ~/.omp/agent/models.json, the model as the --model flag
     # before acp; modes and models from configOptions; a command in the "ask" mode → a permission request → "allow" → a Bash card
     # with output
     if engs.get("omp", {}).get("installed"):
         om = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "omp", "title": f"omp probe {MARK}"}).encode())[1] or b"{}"); omid = om.get("id")
         oev = []; oinit = {}
-        for _ in range(40):
-            time.sleep(3); oev = get(f"/agents/api/core/projects/{P}/sessions/{omid}/events?since=0&limit=60")[1] or [] if omid else []
+        for _ in range(120):
+            time.sleep(1); oev = get(f"/agents/api/core/projects/{P}/sessions/{omid}/events?since=0&limit=60")[1] or [] if omid else []
             oinit = next((e for e in oev if e.get("kind") == "init"), {})
             if oinit or any(e.get("kind") in ("error", "exit") for e in oev): break
         oc = (e_sess(omid).get("caps") or {}) if omid else {}; omods = [(m.get("value"), m.get("label")) for m in oc.get("models", [])]; omodes = oc.get("modes") or []
@@ -1923,18 +2179,18 @@ with sync_playwright() as p:
         ok("omp: caps — only gate models with bare labels (from configOptions), modes default/plan from configOptions", bool(omods) and all(str(v).startswith("agentverse-gate/") and not str(l).startswith("agentverse-gate/") for v, l in omods) and set(omodes) >= {"default", "plan"}, f"models={omods[:3]} modes={omodes}")
         if omid:
             n_o = len(get(f"/agents/api/core/projects/{P}/sessions/{omid}/events?since=0&limit=400")[1] or [])
-            raw(f"/agents/api/core/projects/{P}/sessions/{omid}/prompt", "POST", json.dumps({"content": f"Run the shell command `echo omp-{MARK}` and reply with its output only."}).encode())
+            raw(f"/agents/api/core/projects/{P}/sessions/{omid}/prompt", "POST", json.dumps({"content": f"Run the shell command `printf 'omp-{MARK}\\n'` and reply with its output only."}).encode())
             perm = None
-            for _ in range(50):
-                time.sleep(3); oev = (get(f"/agents/api/core/projects/{P}/sessions/{omid}/events?since=0&limit=400")[1] or [])[n_o:]
+            for _ in range(150):
+                time.sleep(1); oev = (get(f"/agents/api/core/projects/{P}/sessions/{omid}/events?since=0&limit=400")[1] or [])[n_o:]
                 perm = next((e for e in oev if e.get("kind") == "permission_request"), None)
                 if perm or any(e.get("kind") == "result" for e in oev): break
-            ok("omp: a shell command in the «ask» mode raises a permission request through ACP (Bash card with the command)", perm is not None and "echo omp-" in json.dumps(perm.get("input") or perm, ensure_ascii=False), f"perm={json.dumps(perm, ensure_ascii=False)[:160] if perm else None} kinds={[e.get('kind') for e in oev][:8]}")
+            ok("omp: a shell command in the «ask» mode raises a permission request through ACP (Bash card with the command)", perm is not None and f"omp-{MARK}" in json.dumps(perm.get("input") or perm, ensure_ascii=False), f"perm={json.dumps(perm, ensure_ascii=False)[:160] if perm else None} kinds={[e.get('kind') for e in oev][:8]}")
             if perm:
                 rid = perm.get("request_id") or (perm.get("data") or {}).get("request_id") or perm.get("id")
                 st_a, _ = raw(f"/agents/api/core/projects/{P}/sessions/{omid}/permission", "POST", json.dumps({"request_id": rid, "behavior": "allow"}).encode())
-                for _ in range(50):
-                    time.sleep(3); oev = (get(f"/agents/api/core/projects/{P}/sessions/{omid}/events?since=0&limit=400")[1] or [])[n_o:]
+                for _ in range(150):
+                    time.sleep(1); oev = (get(f"/agents/api/core/projects/{P}/sessions/{omid}/events?since=0&limit=400")[1] or [])[n_o:]
                     if any(e.get("kind") == "result" for e in oev): break
                 ores = [b for e in oev if e.get("kind") == "tool_result" for b in (e.get("content") or []) if isinstance(b, dict) and b.get("type") == "tool_result"]
                 otext = " ".join(str(b.get("text", "")) for e in oev if e.get("kind") == "assistant" for b in (e.get("content") or []) if isinstance(b, dict) and b.get("type") == "text")
@@ -1942,6 +2198,8 @@ with sync_playwright() as p:
             for _ in range(3):
                 if raw(f"/agents/api/core/projects/{P}/sessions/{omid}", "DELETE")[0] in (204, 404): break
                 time.sleep(3)
+    # ---- engines: Antigravity (docs/agents-ux.md §9.11, §4.3.17): the sign-in flows, a session through the gate, «allow and retry» ----
+    engs = {e["id"]: e for e in ((get(f"/agents/api/core/projects/{P}/engines")[1] or {}).get("engines", []))}
     # Antigravity account (§9.11): a Google sign-in in an agy terminal under a separate HOME; the core watches the sign-in
     # itself. Without a Google account we check the start of the flow: a terminal with HOME=…/logins/antigravity-…, a Google link
     # in the terminal text, status waiting, closing the terminal → cancelled and the sign-in directory removed
@@ -1951,8 +2209,8 @@ with sync_playwright() as p:
         ltext = ""; lurl = ""
         if lpty:
             time.sleep(5); raw(f"/agents/api/core/projects/{P}/ptys/{lpty}/input", "POST", json.dumps({"data": "\r"}).encode())   # 1. Google OAuth
-            for _ in range(20):
-                time.sleep(2); ltext = (get(f"/agents/api/core/projects/{P}/ptys/{lpty}/text")[1] or {}).get("text", "")
+            for _ in range(40):
+                time.sleep(1); ltext = (get(f"/agents/api/core/projects/{P}/ptys/{lpty}/text")[1] or {}).get("text", "")
                 i = ltext.rfind("https://accounts.google.com/")
                 if i >= 0:
                     lurl = "".join(ltext[i:].split("Copy and paste")[0].split()); break
@@ -1960,8 +2218,8 @@ with sync_playwright() as p:
         ok("accounts: an Antigravity sign-in opens the agy terminal under its own HOME, the Google link is readable from the terminal text and the core is waiting for the sign-in", st_l == 200 and bool(lpty) and "/home/coder/.cloudos/logins/antigravity-" in ldir and "redirect_uri" in lurl and "oauth-callback" in lurl and lst.get("status") == "waiting", f"{st_l} dir={ldir} url={lurl[:60]} status={lst.get('status')} text={ltext[-80:]!r}")
         if lpty:
             raw(f"/agents/api/core/projects/{P}/ptys/{lpty}", "DELETE"); lst2 = {}
-            for _ in range(10):
-                time.sleep(3); lst2 = get(f"/agents/api/core/accounts/login/{lpty}")[1] or {}
+            for _ in range(30):
+                time.sleep(1); lst2 = get(f"/agents/api/core/accounts/login/{lpty}")[1] or {}
                 if lst2.get("status") in ("cancelled", "timeout", "done", "error"): break
             st_d, _ = raw(f"/agents/api/core/projects/{P}/fs/file?path={ldir}/.gemini/antigravity-cli/installation_id")
             ok("accounts: closing the sign-in terminal cancels the Antigravity sign-in and removes the login directory", lst2.get("status") == "cancelled" and st_d == 404, f"status={lst2.get('status')} dir_file={st_d}")
@@ -1972,8 +2230,8 @@ with sync_playwright() as p:
         ok("accounts: an Antigravity sign-in by link returns agy's Google link and a state without showing a terminal to the owner", st_o == 200 and ourl.startswith("https://accounts.google.com/") and "redirect_uri" in ourl and "\n" not in ourl and bool(oj.get("state")) and bool(opty) and oj.get("hint") == "agy-code", f"{st_o} url={ourl[:60]} hint={oj.get('hint')}")
         if opty:
             raw(f"/agents/api/core/projects/{P}/ptys/{opty}", "DELETE"); ost = {}
-            for _ in range(10):
-                time.sleep(3); ost = get(f"/agents/api/core/accounts/login/{opty}")[1] or {}
+            for _ in range(30):
+                time.sleep(1); ost = get(f"/agents/api/core/accounts/login/{opty}")[1] or {}
                 if ost.get("status") in ("cancelled", "timeout", "done", "error"): break
             st_f, fb = raw("/agents/api/core/accounts/oauth/finish", "POST", json.dumps({"state": oj.get("state"), "code": "4/0nope"}).encode())
             ok("accounts: after the hidden terminal is gone the sign-in is cancelled and finishing with a code reports that the link must be requested again", ost.get("status") == "cancelled" and st_f >= 400 and ("заново" in (fb or b"").decode("utf8", "replace")), f"status={ost.get('status')} finish={st_f} {(fb or b'')[:80]!r}")
@@ -1986,8 +2244,8 @@ with sync_playwright() as p:
         ag = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "antigravity", "title": f"agy probe {MARK}", "account": ""}).encode())[1] or b"{}"); agid = ag.get("id")
         ag_text = ""; ag_note = ""; ag_st = ""; ag_model = ""
         if agid and raw(f"/agents/api/core/projects/{P}/sessions/{agid}/prompt", "POST", json.dumps({"content": f"Reply with exactly: agy-{MARK}"}).encode())[0] == 200:
-            for _ in range(60):
-                time.sleep(3); agi = e_sess(agid); ag_st = (agi.get("info") or {}).get("status", ""); ag_model = (agi.get("info") or {}).get("model") or ""
+            for _ in range(180):
+                time.sleep(1); agi = e_sess(agid); ag_st = (agi.get("info") or {}).get("status", ""); ag_model = (agi.get("info") or {}).get("model") or ""
                 evs = get(f"/agents/api/core/projects/{P}/sessions/{agid}/events?since=0&limit=80")[1] or []
                 ag_text = " ".join(str(b.get("text", "")) for e in evs if e.get("kind") == "assistant" for b in (e.get("content") or []) if isinstance(b, dict) and b.get("type") == "text")
                 ag_note = " | ".join((e.get("data") or {}).get("message", "") for e in evs if e.get("kind") == "system" and e.get("subtype") in ("agent_note", "provider_error"))
@@ -1998,8 +2256,8 @@ with sync_playwright() as p:
         def ag_turn(text, secs=150):
             n0 = len(get(f"/agents/api/core/projects/{P}/sessions/{agid}/events?since=0&limit=400")[1] or [])
             if raw(f"/agents/api/core/projects/{P}/sessions/{agid}/prompt", "POST", json.dumps({"content": text}).encode())[0] != 200: return []
-            for _ in range(secs // 3):
-                time.sleep(3); evs = get(f"/agents/api/core/projects/{P}/sessions/{agid}/events?since=0&limit=400")[1] or []
+            for _ in range(secs):
+                time.sleep(1); evs = get(f"/agents/api/core/projects/{P}/sessions/{agid}/events?since=0&limit=400")[1] or []
                 if any(e.get("kind") == "result" for e in evs[n0:]): return evs[n0:]
             return get(f"/agents/api/core/projects/{P}/sessions/{agid}/events?since=0&limit=400")[1][n0:]
         if agid:
@@ -2008,6 +2266,50 @@ with sync_playwright() as p:
             tools1 = [b for e in ev1 if e.get("kind") == "assistant" for b in (e.get("content") or []) if isinstance(b, dict) and b.get("type") == "tool_use"]
             res1 = [b for e in ev1 if e.get("kind") == "tool_result" for b in (e.get("content") or []) if isinstance(b, dict) and b.get("type") == "tool_result"]
             ok("engines: Antigravity in the «ask» mode cannot prompt — the command card is marked declined and the journal says so (switch to auto or add a permissions.allow rule)", "Antigravity отклонил" in note1 and "авто" in note1 and all(t.get("name") == "Bash" and "echo agy-cmd" in str(t.get("input", {}).get("command", "")) for t in tools1) and any(r.get("is_error") and "отклонено" in str(r.get("content", "")) for r in res1), f"note={note1[:120]!r} tools={[(t.get('name'), t.get('input', {}).get('command')) for t in tools1]} results={[(str(r.get('content', ''))[:40], r.get('is_error')) for r in res1]}")
+            # "allow and retry" (§4.3.17, 2026-10-25): the button on the declined card adds a rule for this call to the project rules
+            # (<cwd>/.claude/settings.local.json), syncs our rules into agy's permissions.allow (~/.gemini/antigravity-cli/settings.json,
+            # marker ~/.cloudos/agy-rules.json), restarts agy with the same conversation and asks it to continue — the command runs
+            ag_cwd = (e_sess(agid).get("info") or {}).get("cwd") or "/home/coder"; PQA = f"/agents/api/core/projects/{P}/permissions?scope=project&cwd={ag_cwd}"
+            rules_before = get(PQA)[1] or {}
+            n_ar = len(get(f"/agents/api/core/projects/{P}/sessions/{agid}/events?since=0&limit=400")[1] or [])
+            # in the browser: the declined card (Chat.svelte, adapter antigravity only) carries the button; the click is the trigger,
+            # the API call is the fallback so that the rest of the check still runs
+            btn_n = 0; btn_err = ""; toast_ar = ""
+            try:
+                pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(0.8); tree_expand(pg, P); pg.locator(f".panel .sess[data-id='{agid}']").click(); pg.wait_for_selector(".thread .chat .m.tool", timeout=20000); time.sleep(1.5)
+                card = pg.locator(".thread .chat .m.tool.err").last; card.locator("> summary").click(); time.sleep(0.5)
+                btn = card.locator("button:has-text('Разрешить и повторить')"); btn_n = btn.count()
+                if btn_n == 1 and btn.is_visible():
+                    btn.click()
+                    try: pg.wait_for_selector(".toasts .toast:has-text('добавлено')", timeout=20000)
+                    except Exception: pass
+                    toast_ar = " | ".join(pg.locator(".toasts .toast").all_inner_texts())
+            except Exception as ex: btn_err = str(ex)[:160]
+            ok("engines: in the thread the declined Antigravity card shows the «Allow and retry» button, the click reports the added rule in a toast", btn_n == 1 and "Bash(echo:*)" in toast_ar and "добавлено" in toast_ar, f"buttons={btn_n} toast={toast_ar[:120]!r} err={btn_err}")
+            if btn_n == 1 and "добавлено" in toast_ar: st_ar, arj = 200, {"ok": True, "rule": "Bash(echo:*)", "added": True, "sent": True, "via": "button"}
+            else: st_ar, arb = raw(f"/agents/api/core/projects/{P}/sessions/{agid}/allow_retry", "POST", json.dumps({"tool_use_id": tools1[0].get("id", "") if tools1 else "none"}).encode()); arj = json.loads(arb or b"{}")
+            ev_ar = []
+            for _ in range(180):
+                time.sleep(1); ev_ar = (get(f"/agents/api/core/projects/{P}/sessions/{agid}/events?since=0&limit=400")[1] or [])[n_ar:]
+                if any(e.get("kind") == "result" for e in ev_ar): break
+            tools_ar = [b for e in ev_ar if e.get("kind") == "assistant" for b in (e.get("content") or []) if isinstance(b, dict) and b.get("type") == "tool_use"]
+            res_ar = [b for e in ev_ar if e.get("kind") == "tool_result" for b in (e.get("content") or []) if isinstance(b, dict) and b.get("type") == "tool_result"]
+            spawned_ar = any(e.get("kind") == "spawn" and "--conversation" in (e.get("cmd") or []) for e in ev_ar)
+            note_ar = " | ".join((e.get("data") or {}).get("message", "") for e in ev_ar if e.get("kind") == "system" and e.get("subtype") == "agent_note")
+            rules_after = get(PQA)[1] or {}
+            st_gs, gsb = raw(f"/agents/api/core/projects/{P}/fs/file?path=/home/coder/.gemini/antigravity-cli/settings.json"); gsj = json.loads(gsb or b"{}") if st_gs == 200 else {}
+            st_mk, _ = raw(f"/agents/api/core/projects/{P}/fs/file?path=/home/coder/.cloudos/agy-rules.json")
+            ok("engines: «allow and retry» on the declined Antigravity card — the rule Bash(echo:*) lands in the project rules and in agy's permissions.allow as command(echo) (marker file written), agy restarts with --conversation and the command runs", st_ar == 200 and arj.get("ok") is True and arj.get("rule") == "Bash(echo:*)" and arj.get("added") is True and arj.get("sent") is True and "Bash(echo:*)" in (rules_after.get("allow") or []) and "Bash(echo:*)" not in (rules_before.get("allow") or []) and "command(echo)" in ((gsj.get("permissions") or {}).get("allow") or []) and st_mk == 200 and spawned_ar and any(t.get("name") == "Bash" for t in tools_ar) and any(f"agy-cmd-{MARK}" in str(r.get("content", "")) and not r.get("is_error") for r in res_ar), f"st={st_ar} {str(arj)[:120]} rules={rules_after.get('allow')} agy_allow={(gsj.get('permissions') or {}).get('allow')} marker={st_mk} spawned={spawned_ar} tools={[t.get('name') for t in tools_ar]} res={[str(r.get('content'))[:40] for r in res_ar]} note={note_ar[:160]}")
+            st_ar2, arb2 = raw(f"/agents/api/core/projects/{P}/sessions/{agid}/allow_retry", "POST", json.dumps({"tool_use_id": "no-such-tool"}).encode())
+            cl_s = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "claude", "title": f"ar probe {MARK}"}).encode())[1] or b"{}")
+            st_ar3, arb3 = raw(f"/agents/api/core/projects/{P}/sessions/{cl_s.get('id', 'x')}/allow_retry", "POST", json.dumps({"tool_use_id": "x"}).encode())
+            for _ in range(3):   # the first DELETE of a live session only stops it (202): repeat until it is gone
+                if not cl_s.get("id") or raw(f"/agents/api/core/projects/{P}/sessions/{cl_s['id']}", "DELETE")[0] in (204, 404): break
+                time.sleep(2)
+            ok("engines: «allow and retry» refuses an unknown tool call and non-Antigravity sessions with a clear error", st_ar2 >= 400 and "не найден" in (arb2 or b"").decode("utf-8", "replace") and st_ar3 == 400 and "Antigravity" in (arb3 or b"").decode("utf-8", "replace"), f"{st_ar2} {(arb2 or b'')[:80]!r} / {st_ar3} {(arb3 or b'')[:80]!r}")
+            # the rule is removed again (only ours — the "permissions by rules" block may be writing the same file in a parallel part)
+            cur_rules = get(PQA)[1] or {}
+            raw(PQA, "PUT", json.dumps({"allow": [r for r in (cur_rules.get("allow") or []) if r != "Bash(echo:*)"], "deny": cur_rules.get("deny") or [], "ask": cur_rules.get("ask") or []}).encode())
             st_m, _ = raw(f"/agents/api/core/projects/{P}/sessions/{agid}/mode", "POST", json.dumps({"mode": "auto"}).encode())
             ev2 = ag_turn(f"Run the shell command `echo agy-cmd-{MARK}` and reply with its output only.")
             tools2 = [b for e in ev2 if e.get("kind") == "assistant" for b in (e.get("content") or []) if isinstance(b, dict) and b.get("type") == "tool_use"]
@@ -2021,13 +2323,30 @@ with sync_playwright() as p:
                 time.sleep(3)
     def e_events(sid_e): return get(f"/agents/api/core/projects/{P}/sessions/{sid_e}/events?since=0&limit=600")[1] or []
     def e_wait(sid_e, pred, secs=120):
-        for _ in range(max(1, secs // 3)):
-            time.sleep(3); evw = e_events(sid_e)
+        for _ in range(max(1, secs)):
+            time.sleep(1); evw = e_events(sid_e)
             if any(pred(e) for e in evw): return evw
         return e_events(sid_e)
     def e_results(evs): return [e for e in evs if e["kind"] == "result"]
     def e_atext(evs): return " ".join(str(b.get("text", "")) for e in evs if e["kind"] == "assistant" for b in (e.get("content") or []) if isinstance(b, dict) and b.get("type") == "text")
     def e_prompt(sid_e, text): return raw(f"/agents/api/core/projects/{P}/sessions/{sid_e}/prompt", "POST", json.dumps({"content": text}).encode())[0]
+    def live_check(label, sid_l):
+        pg.wait_for_selector(f".panel .sess[data-id='{sid_l}']", timeout=30000); pg.locator(f".panel .sess[data-id='{sid_l}']").click(); pg.wait_for_selector(".thread .pane .tabs", timeout=20000); pg.locator(".thread .pane .tabs .tab").first.click(); time.sleep(1)
+        last = max([e["seq"] for e in e_events(sid_l)] or [0])
+        e_prompt(sid_l, f"Write 30 numbered lines; line N must be exactly 'line N of thirty, token live-{MARK}'. No other text before or after.")
+        seen = []; t0 = time.time()
+        while time.time() - t0 < 75:
+            lb = pg.locator(".thread .chat .m.agent.live")
+            if lb.count(): seen.append(len(lb.first.inner_text()))
+            if len(seen) >= 2 and seen[-1] > seen[0]: break
+            time.sleep(0.1)
+        evl = e_wait(sid_l, lambda e: e["kind"] == "result" and e["seq"] > last, 150); rl = [e for e in e_results(evl) if e["seq"] > last]
+        try: pg.wait_for_selector(f".thread .chat .m.agent:has-text('live-{MARK}')", timeout=20000)
+        except Exception: pass
+        time.sleep(1.5); gone = pg.locator(".thread .chat .m.agent.live").count() == 0; final = pg.locator(f".thread .chat .m.agent:has-text('live-{MARK}')").count() >= 1
+        ok(f"live: {label} streams the answer while it is written — the live bubble appears and grows, then the journal message replaces it and no live bubble stays",
+           len(seen) >= 2 and seen[-1] > seen[0] and bool(rl) and rl[-1]["subtype"] == "success" and gone and final, f"seen={seen[:3]}…{seen[-2:]} n={len(seen)} gone={gone} final={final} result={[r['subtype'] for r in rl]}")
+    # ---- engines: Gemini CLI over ACP: a session through the gate, a permission request, modes, the feed, live text, the model switch ----
     gs = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "gemini", "title": f"gemini probe {MARK}"}).encode())[1] or b"{}"); gid = gs.get("id")
     gev = e_wait(gid, lambda e: e["kind"] == "init", 90) if gid else []; ginit = next((e for e in gev if e["kind"] == "init"), {})
     ok("gemini: the session starts over ACP through the gate — init with protocol acp, route gate, a gate Gemini model picked by agentd and the CLI's four approval modes", bool(gid) and ginit.get("protocol") == "acp" and ginit.get("route") == "gate" and str(ginit.get("model", "")).startswith("gemini-") and [m.get("id") for m in ginit.get("modes", [])] == ["default", "autoEdit", "yolo", "plan"], f"{str(gs)[:80] if not gid else ''} model={ginit.get('model')} modes={[m.get('id') for m in ginit.get('modes', [])]}")
@@ -2037,7 +2356,9 @@ with sync_playwright() as p:
     gev = e_wait(gid, lambda e: e["kind"] == "result", 150); gr = e_results(gev)
     ok("gemini: a plain turn — user, assistant text and a result with the model, stop reason, duration and tokens from _meta", len(gr) == 1 and gr[0]["subtype"] == "success" and not gr[0]["is_error"] and f"gem-{MARK}" in e_atext(gev) and gr[0].get("model") == ginit.get("model") and gr[0].get("stop_reason") == "end_turn" and any(e["kind"] == "user" for e in gev) and ((gr[0].get("usage") or {}).get("input_tokens") or 0) > 0, f"{(gr or [{}])[-1].get('subtype')} {e_atext(gev)[:60]} usage={(gr or [{}])[-1].get('usage')}")
     # a tool in the default mode: Gemini lets `echo` through as a safe command, `touch` — asks → session/request_permission → a card; "allow" → allow_once → tool_result
-    e_prompt(gid, f"Run the shell command `touch /tmp/gem-{MARK}.txt && echo tool-{MARK}` and tell me its output.")
+    # the file name must not carry the reply marker: Gemini CLI 0.68 explains the command before running it, and that text
+    # would count as a second «gem-…» answer in the feed check below
+    e_prompt(gid, f"Run the shell command `touch /tmp/gfile-{MARK}.txt && echo tool-{MARK}` and tell me its output.")
     gev = e_wait(gid, lambda e: e["kind"] == "permission_request", 120); preq = [e for e in gev if e["kind"] == "permission_request"]
     popts = [o.get("kind") for o in ((preq[-1].get("options") or []) if preq else [])]
     ok("gemini: a file-changing shell command in default mode asks for permission — request with the agent's own options and a pending entry", bool(preq) and preq[-1].get("tool_name") == "Bash" and preq[-1].get("provider") == "acp" and "allow_once" in popts and "allow_always" in popts and "reject_once" in popts and len(e_sess(gid).get("pending") or []) == 1, f"{(preq or [{}])[-1].get('tool_name')} {popts}")
@@ -2049,10 +2370,37 @@ with sync_playwright() as p:
     st_m, mres = raw(f"/agents/api/core/projects/{P}/sessions/{gid}/mode", "POST", json.dumps({"mode": "yolo"}).encode()); mres = json.loads(mres or b"{}"); gc2 = e_sess(gid).get("caps") or {}
     time.sleep(2); gst = (e_sess(gid).get("info") or {}).get("status")
     ok("gemini: the approval mode switches live (session/set_mode → yolo), caps follow and the session stays idle (the CLI's text notice becomes a system note, not a turn)", st_m == 200 and mres.get("mode") == "yolo" and gc2.get("current_mode") == "yolo" and gst == "idle", f"{st_m} {str(mres)[:80]} caps={gc2.get('current_mode')} status={gst}")
+    # UI: the Gemini session card — the engine avatar, an answer, a tool card, turn totals
+    pg.keyboard.press("Escape"); time.sleep(0.3); pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(1); tree_expand(pg, P)
+    if pg.locator(".top .seg button:has-text('Thread')").count(): pg.locator(".top .seg button:has-text('Thread')").click(); time.sleep(0.5)
+    pg.locator(f".panel .sess[data-id='{gid}']").click(); pg.wait_for_selector(".thread .pane .tabs", timeout=20000); pg.locator(".thread .pane .tabs .tab").first.click(); time.sleep(1)
+    for sel in (f".thread .chat .m.agent:has-text('gem-{MARK}')", f".thread .chat .m.tool:has-text('tool-{MARK}')"):
+        try: pg.wait_for_selector(sel, timeout=30000)
+        except Exception: pass
+    n_ag = pg.locator(f".thread .chat .m.agent:has-text('gem-{MARK}')").count(); n_tl = pg.locator(f".thread .chat .m.tool:has-text('tool-{MARK}')").count(); n_tn = pg.locator(".thread .chat .m.sys.turn").count(); ttxt = pg.locator(".thread .chat .tools").inner_text()
+    ok("engines: the Gemini session renders like any other — engine avatar in the header, assistant text, the Bash tool card with its output, turn footers, the yolo mode in the composer and no «thinking» indicator while idle", pg.locator(".thread .t-head .av.gemini").count() >= 1 and n_ag == 1 and n_tl >= 1 and n_tn >= 2 and "YOLO" in ttxt and "думает" not in ttxt, f"av={pg.locator('.thread .t-head .av.gemini').count()} agent={n_ag} tool={n_tl} turns={n_tn} tools-text={ttxt[:80]!r}")
+    pg.screenshot(path="shots/ap14-gemini.png")
+    # live text on the model the session started with: the provider has already answered on it twice above
+    live_check("Gemini CLI (ACP chunks)", gid)
     alt = next((m for m in gmods if m != ginit.get("model")), None)
     st_md, mdres = (raw(f"/agents/api/core/projects/{P}/sessions/{gid}/model", "POST", json.dumps({"model": alt}).encode()) if alt else (0, b"{}")); mdres = json.loads(mdres or b"{}"); gi3 = e_sess(gid)
     if not alt: print("SKIP  gemini: the gate lists a single Gemini model — the live model switch is not exercised", flush=True)
     else: ok("gemini: the model switches live (session/set_model with a gate id the CLI does not know) — caps and session info follow", bool(alt) and st_md == 200 and mdres.get("applied") == "live" and (gi3.get("caps") or {}).get("model") == alt and (gi3.get("info") or {}).get("model") == alt, f"{st_md} {alt} {str(mdres)[:60]}")
+    # a turn on the switched model is what proves the switch works: the gate id is one the CLI does not know. Which model comes
+    # second in the gate list is the provider's business, and so is whether it answers today — a silent provider is reported
+    # as a skip, not as a failure (the turn is interrupted so that the session can be removed)
+    if alt and st_md == 200:
+        aseq = max([e["seq"] for e in e_events(gid)] or [0]); e_prompt(gid, f"Reply with exactly: alt-{MARK}")
+        aev = e_wait(gid, lambda e: e["kind"] == "result" and e["seq"] > aseq, 30); ar = [e for e in e_results(aev) if e["seq"] > aseq]
+        if not ar:
+            raw(f"/agents/api/core/projects/{P}/sessions/{gid}/interrupt", "POST", b"{}")
+            print(f"SKIP  gemini: the provider did not answer on the second gate model {alt} within 30 s — the turn after the live model switch is not checked", flush=True)
+        else: ok("gemini: a turn after the live model switch runs and answers", ar[-1]["subtype"] == "success" and f"alt-{MARK}" in e_atext([e for e in aev if e["seq"] > aseq]), f"{alt} {[r['subtype'] for r in ar]}")
+    for _ in range(3):
+        if not gid or raw(f"/agents/api/core/projects/{P}/sessions/{gid}", "DELETE")[0] in (204, 404): break
+        time.sleep(3)
+    ok("engines: the Gemini probe session is removed", not gid or get(f"/agents/api/core/projects/{P}/sessions/{gid}")[0] == 404)
+    # ---- engines: pi over pi-acp: the gate provider, tools without permissions, a model error, a stale default, the TUI ----
     # pi via pi-acp: the gate provider in ~/.pi/agent/models.json, the model via configOptions, tools without permissions, bash output from the pi session file, model errors —
     # from the same file
     ps = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "pi", "title": f"pi probe {MARK}", "model": "claude-sonnet-4-6"}).encode())[1] or b"{}"); pid = ps.get("id")
@@ -2097,19 +2445,10 @@ with sync_playwright() as p:
     gate_prov = (pmod.get("providers") or {}).get("agentverse-gate") or {}
     ok("engines: a pi TUI from the «+» menu gets the gate provider and a default model written before pi starts (models.json + settings.json)", st_pt == 200 and ptb.get("id") and st_ps == 200 and pset.get("defaultProvider") == "agentverse-gate" and str(pset.get("defaultModel", "")).startswith("claude-sonnet") and pset.get("quietStartup") is True and st_pm == 200 and gate_prov.get("api") == "openai-completions" and gate_prov.get("apiKey") == "$OPENAI_API_KEY" and len(gate_prov.get("models") or []) > 20, f"{st_pt} settings={str(pset)[:90]} models={len(gate_prov.get('models') or [])}")
     if ptb.get("id"): raw(f"/agents/api/core/projects/{P}/ptys/{ptb['id']}", "DELETE")
-    # UI: the "+" menu with engines, the Gemini session card — the engine avatar, an answer, a tool card, turn totals
-    pg.keyboard.press("Escape"); time.sleep(0.3); pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(1)
-    wse = pg.locator(f".panel .ws:has(.wname:has-text('{P}'))"); wse.locator(".wrow").hover(); wse.locator(".wrow button").click(); pg.wait_for_selector(".menu", timeout=5000); time.sleep(0.5)
-    mi = [x.strip() for x in pg.locator(".menu .mi").all_inner_texts()]
-    ok("engines: the «+» menu offers a chat and a TUI for every installed engine", any(x.startswith("Чат с Gemini CLI") for x in mi) and any(x.startswith("Чат с pi") for x in mi) and any(x.startswith("Gemini CLI TUI") for x in mi) and any(x.startswith("pi TUI") for x in mi) and (not engs.get("omp", {}).get("installed") or (any(x.startswith("Чат с Oh My Pi") for x in mi) and any(x.startswith("Oh My Pi TUI") for x in mi))) and any(x.startswith("Чат с Claude") for x in mi) and any(x.startswith("Чат с Codex") for x in mi), str(mi)[:220]); pg.keyboard.press("Escape"); time.sleep(0.3)
-    if pg.locator(".top .seg button:has-text('Thread')").count(): pg.locator(".top .seg button:has-text('Thread')").click(); time.sleep(0.5)
-    pg.locator(f".panel .sess[data-id='{gid}']").click(); pg.wait_for_selector(".thread .pane .tabs", timeout=20000); pg.locator(".thread .pane .tabs .tab").first.click(); time.sleep(1)
-    for sel in (f".thread .chat .m.agent:has-text('gem-{MARK}')", f".thread .chat .m.tool:has-text('tool-{MARK}')"):
-        try: pg.wait_for_selector(sel, timeout=30000)
-        except Exception: pass
-    n_ag = pg.locator(f".thread .chat .m.agent:has-text('gem-{MARK}')").count(); n_tl = pg.locator(f".thread .chat .m.tool:has-text('tool-{MARK}')").count(); n_tn = pg.locator(".thread .chat .m.sys.turn").count(); ttxt = pg.locator(".thread .chat .tools").inner_text()
-    ok("engines: the Gemini session renders like any other — engine avatar in the header, assistant text, the Bash tool card with its output, turn footers, the yolo mode in the composer and no «thinking» indicator while idle", pg.locator(".thread .t-head .av.gemini").count() >= 1 and n_ag == 1 and n_tl >= 1 and n_tn >= 2 and "YOLO" in ttxt and "думает" not in ttxt, f"av={pg.locator('.thread .t-head .av.gemini').count()} agent={n_ag} tool={n_tl} turns={n_tn} tools-text={ttxt[:80]!r}")
-    pg.screenshot(path="shots/ap14-gemini.png")
+    for _ in range(3):
+        if not pid or raw(f"/agents/api/core/projects/{P}/sessions/{pid}", "DELETE")[0] in (204, 404): break
+        time.sleep(3)
+    ok("engines: the pi probe session is removed", not pid or get(f"/agents/api/core/projects/{P}/sessions/{pid}")[0] == 404)
     # ---- feed on the device (docs/agents-ux.md §4.3.16): a lightweight replay, "show whole", a cache in IndexedDB, reconciliation by since,
     # reset ----
     pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(0.6); tree_expand(pg, P); pg.locator(f".panel .sess[data-id='{sid}']").click(); pg.wait_for_selector(".thread .pane .tabs", timeout=20000); pg.locator(".thread .pane .tabs .tab:has-text('Чат')").click(); pg.wait_for_selector(".thread .chat textarea", timeout=20000); time.sleep(1)
@@ -2261,6 +2600,15 @@ with sync_playwright() as p:
     # the owner's ElevenLabs key is left alone: check on the OpenAI provider (mock), restore the original provider and
     # language at the end
     v0 = get("/agents/api/voice")[1] or {}
+    # guard: the mock below overwrites the OpenAI key, and an owner's OpenAI key cannot be put back (the API only shows its tail)
+    if (v0.get("openai") or {}).get("has_key"):
+        ok("voice: the owner has no OpenAI key — otherwise the block would overwrite it, so it stops here", False, f"tail={(v0.get('openai') or {}).get('key_tail')}"); raise SystemExit(1)
+    # whatever happens below (a failed check, a timeout, a crash), the owner's provider, language and streaming switch come back
+    # at exit: a crashed run on 2026-10-31 left the service on the mock provider with a fake key
+    def _voice_restore():
+        try: raw("/agents/api/voice", "PUT", json.dumps({"provider": v0.get("provider") or "elevenlabs", "language": v0.get("language") or "", "stream": bool(v0.get("stream")), "openai": {"clear": True, "model": "", "base": "", "tts_model": (v0.get("openai") or {}).get("tts_model") or "", "tts_voice": (v0.get("openai") or {}).get("tts_voice") or "", "stream_model": ""}}).encode())
+        except Exception: pass
+    import atexit; atexit.register(_voice_restore)
     raw("/agents/api/voice", "PUT", json.dumps({"provider": "openai", "language": "", "openai": {"clear": True, "model": "", "base": ""}}).encode())
     pg.locator(".rail .nav[data-tip='Настройки']").click(); pg.wait_for_selector(".subnav button:has-text('Голос')", timeout=20000); pg.locator(".subnav button:has-text('Голос')").click(); pg.wait_for_selector(".voice .voice-provider", timeout=20000); time.sleep(0.5)
     ok("voice: the Voice tab shows the provider switch, model, language, both key fields and the API address; dictation is reported off while the selected provider has no key", pg.locator(".voice-provider button").count() == 2 and pg.locator(".voice-provider button.active").inner_text().startswith("OpenAI") and pg.locator(".voice-model").count() == 1 and pg.locator(".voice-lang").count() == 1 and pg.locator(".voice-key-elevenlabs").count() == 1 and pg.locator(".voice-key-openai").count() == 1 and pg.locator(".voice-base").count() == 1 and pg.locator(".voice-ready:not(.ok)").count() == 1 and pg.locator(".voice-check").is_disabled())
@@ -2375,15 +2723,19 @@ with sync_playwright() as p:
     ok("vcmd: «прочитай ответ» reads the last reply aloud", any(f"vcmd-{MARK}" in t for t in sp4), str(sp4)[:80])
     if pg.locator(".thread .chat .m.agent .ma.speak.on").count(): pg.locator(".thread .chat .m.agent .ma.speak.on").first.click()
     VOICE_REPLY[0] = "новая беседа в энерджи хаб"; ids_v = {x["id"] for x in (get(f"/agents/api/core/projects/{P}/sessions")[1] or [])}; n_sess_v = len(ids_v); hold(mic_)
-    toast_v = False; sess_v = []
+    # the other parts of a parallel run add and remove conversations in the same workspace: look at the new ids, not at the count; the voice
+    # command opens its conversation, so it is the selected one
+    toast_v = False; sess_v = []; new_v = []
     for _ in range(40):
         if pg.locator(".toast:has-text('Создаю беседу')").count(): toast_v = True
         sess_v = get(f"/agents/api/core/projects/{P}/sessions")[1] or []
-        if len(sess_v) > n_sess_v and toast_v: break
+        new_v = [x for x in sess_v if x["id"] not in ids_v and x.get("agent") == "claude"]
+        if new_v and toast_v: break
         time.sleep(0.3)
-    newest = next((x for x in sess_v if x["id"] not in ids_v), {})
-    ok("vcmd: «новая беседа в энерджи хаб» matches the workspace by sound and opens a fresh Claude conversation there", len(sess_v) == n_sess_v + 1 and newest.get("agent") == "claude" and toast_v and (pg.locator(f".panel .sess[data-id='{newest.get('id')}']").count() == 1 or ui_sel_is(newest.get("id"))), f"sessions {n_sess_v} → {len(sess_v)} newest={newest.get('title')} toast={toast_v}")
-    if len(sess_v) == n_sess_v + 1:
+    time.sleep(0.6)
+    newest = next((x for x in new_v if ui_sel_is(x["id"])), new_v[0] if len(new_v) == 1 else {})   # several new ones and none selected — not ours to delete
+    ok("vcmd: «новая беседа в энерджи хаб» matches the workspace by sound and opens a fresh Claude conversation there", bool(newest) and newest.get("agent") == "claude" and toast_v and (pg.locator(f".panel .sess[data-id='{newest.get('id')}']").count() == 1 or ui_sel_is(newest.get("id"))), f"sessions {n_sess_v} → {len(sess_v)} new={len(new_v)} newest={newest.get('title')} toast={toast_v}")
+    if newest:
         for _ in range(3):
             if raw(f"/agents/api/core/projects/{P}/sessions/{newest['id']}", "DELETE")[0] in (204, 404): break
             time.sleep(2)
@@ -2457,7 +2809,7 @@ with sync_playwright() as p:
     pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(0.6); pg.locator(f".panel .sess[data-id='{vsid}']").click(); pg.wait_for_selector(".thread .chat .composer-actions .ptt-btn", timeout=20000); time.sleep(0.4)
     pg.locator(".thread .chat .composer-actions .ptt-btn").click(); time.sleep(0.8)
     ok("voice: without a key the microphone button opens Настройки → Голос", pg.locator(".voice .voice-provider").count() == 1 and pg.locator(".subnav button.active:has-text('Голос')").count() == 1)
-    raw("/agents/api/voice", "PUT", json.dumps({"provider": v0.get("provider") or "elevenlabs", "language": v0.get("language") or "", "openai": {"clear": True, "model": "", "base": ""}}).encode()); vsrv.shutdown()
+    _voice_restore(); vsrv.shutdown()
     v1 = get("/agents/api/voice")[1] or {}
     ok("voice: the owner's provider settings are restored after the block (ElevenLabs key untouched)", v1.get("provider") == (v0.get("provider") or "elevenlabs") and v1.get("elevenlabs", {}).get("has_key") == v0.get("elevenlabs", {}).get("has_key") and v1.get("elevenlabs", {}).get("key_tail") == v0.get("elevenlabs", {}).get("key_tail"))
     pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(0.6)
@@ -2546,6 +2898,439 @@ with sync_playwright() as p:
     pg.unroute("**/agents/api/chat"); pg.unroute("**/agents/api/chats")
     pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(0.6)
 
+    # ---- owner's servers (ADR-008, docs/agents-ux.md §4.12): a server = agentd outside the workspaces; the "server" of this check
+    # is a second agentd inside the workspace container, installed by the core's own install script (PORT=7201 NO_SYSTEMD=1), registered by
+    # the container IP; the tree shows it with kind host, a conversation and a terminal open on it, removal takes it out ----
+    HN = f"srv-{MARK}"[:40].lower()
+    st_ha, hab = raw("/agents/api/core/hosts", "POST", json.dumps({"name": HN, "note": f"e2e server {MARK}"}).encode()); ha = json.loads(hab or b"{}")
+    inst_cmd = ha.get("install") or ""; code = inst_cmd.rsplit("/", 1)[-1].split(" ")[0] if "/api/hosts/install/" in inst_cmd else ""
+    st_hs, hsb = raw(f"/agents/api/core/hosts/install/{code}") if code else (0, b"")
+    script = (hsb or b"").decode("utf-8", "replace")
+    ok("hosts: a server is created with a one-time install command; the script is served as text, carries the core address and no token of the server (it is made on the server and sent with the registration), refuses root", st_ha == 200 and ha.get("status") == "new" and inst_cmd.startswith("curl -fsSL https://") and inst_cmd.endswith(" | bash") and st_hs == 200 and "cloudos-agentd" in script and "id -u" in script and "/api/hosts/register" in script and "/dev/urandom" in script and "Bearer " not in script and not re.search(r'TOKEN="[0-9a-f]{20,}"', script), f"{st_ha} {str(ha)[:120]} script={st_hs} {len(script)}")
+    st_bad, bb = raw("/agents/api/core/hosts", "POST", json.dumps({"name": "Bad Name!"}).encode())
+    st_dup, _ = raw("/agents/api/core/hosts", "POST", json.dumps({"name": P}).encode())
+    st_nocode, _ = raw("/agents/api/core/hosts/install/" + "0" * 32)
+    ok("hosts: a bad name, a name taken by a project and an unknown code are refused", st_bad == 400 and st_dup == 400 and st_nocode == 404, f"{st_bad} {(bb or b'')[:80]!r} {st_dup} {st_nocode}")
+    # the LLM for this "server": the external provider is not reachable from a workspace directly (no egress) — the owner's
+    # override points at the project gate; the grant is re-rendered
+    st_pe, peb = raw(f"/agents/api/core/hosts/{HN}", "PATCH", json.dumps({"llm_url": "http://llm.gate"}).encode()); pe = json.loads(peb or b"{}")
+    # the installer runs inside the workspace as the "server". A real server is a machine of the tailnet and reaches the core by its name;
+    # a workspace must not (ADR-010), so the test carries the script's two calls to the core itself (host_install below).
+    wsip = ((get(f"/agents/api/core/projects/{P}")[1] or {}).get("workspace") or {}).get("ip") or ""   # the project-network address of the container (hostname -I would give the nested docker bridge)
+    HDIR = "/home/coder/.cloudos-host"
+    def host_install(code_h, title_h):
+        """The core's install script for a code, run inside the workspace. The script and the server build of agentd are fetched here and
+        put into the workspace through the file API; `curl` is shadowed for the download (a copy of that file) and for the registration
+        (the body is left in register.json for the test to post). Everything else is the script as the core serves it. Returns the
+        terminal text."""
+        CA = f"/home/coder/.cache/host-{MARK}"
+        relay_h = ("curl() { case \"$*\" in\n"
+                   f"  */api/hosts/install/*/agentd*) local o=\"\"; while [ $# -gt 0 ]; do [ \"$1\" = \"-o\" ] && o=\"$2\"; shift; done; cp {CA}-agentd \"$o\" ;;\n"
+                   "  */api/hosts/register*) local d=\"\"; while [ $# -gt 0 ]; do [ \"$1\" = \"-d\" ] && d=\"$2\"; shift; done; printf '%s' \"$d\" > \"$DIR/register.json\"; echo '{\"relayed\":true}' ;;\n"
+                   "  *) command curl \"$@\" ;;\nesac; }\nexport -f curl\n")
+        st_i, ib = raw(f"/agents/api/core/hosts/install/{code_h}"); st_a, ab = raw(f"/agents/api/core/hosts/install/{code_h}/agentd?arch=x86_64")
+        if st_i != 200 or st_a != 200: return f"script={st_i} agentd={st_a}"
+        raw(f"/agents/api/core/projects/{P}/fs/file?path={CA}-install.sh", "PUT", ib, "text/plain")
+        raw(f"/agents/api/core/projects/{P}/fs/file?path={CA}-agentd", "PUT", ab, "application/octet-stream")
+        raw(f"/agents/api/core/projects/{P}/fs/file?path={CA}-relay.sh", "PUT", relay_h.encode(), "text/plain")
+        pid_h = json.loads(raw(f"/agents/api/core/projects/{P}/ptys", "POST", json.dumps({"cmd": ["bash", "-lc", f"export ADDR={wsip} PORT=7201 NO_SYSTEMD=1 DIR={HDIR}; . {CA}-relay.sh; bash {CA}-install.sh; echo INSTALL_EXIT=$?; rm -f {CA}-relay.sh {CA}-install.sh {CA}-agentd; sleep 1"], "cwd": "/home/coder", "title": title_h}).encode())[1] or b"{}").get("id")
+        text_h = ""
+        for _ in range(120):
+            time.sleep(1); text_h = (get(f"/agents/api/core/projects/{P}/ptys/{pid_h}/text")[1] or {}).get("text", "") if pid_h else ""
+            if "INSTALL_EXIT=" in text_h: break
+        if pid_h: raw(f"/agents/api/core/projects/{P}/ptys/{pid_h}", "DELETE")
+        return text_h
+    def host_register_relayed():
+        """Post the registration body the script left in the workspace; returns (body, status)"""
+        st_f, fb = raw(f"/agents/api/core/projects/{P}/fs/file?path={HDIR}/register.json"); body_r = json.loads(fb or b"{}") if st_f == 200 else {}
+        raw(f"/agents/api/core/projects/{P}/fs?path={HDIR}/register.json", "DELETE")
+        return body_r, (raw("/agents/api/core/hosts/register", "POST", json.dumps(body_r).encode())[0] if body_r else 0)
+    htext = host_install(code, f"install host {MARK}")
+    st_tk, tkb = raw(f"/agents/api/core/projects/{P}/fs/file?path={HDIR}/agentd.token"); tok_srv = (tkb or b"").decode("utf-8", "replace").strip() if st_tk == 200 else ""
+    # a token of a wrong shape for the same code is refused; the body the script made registers the server with the token made on it
+    st_r0, _ = raw("/agents/api/core/hosts/register", "POST", json.dumps({"code": code, "addr": wsip, "port": 7201, "token": "short"}).encode())
+    reg, st_r1 = host_register_relayed()
+    hv = get(f"/agents/api/core/hosts/{HN}")[1] or {}
+    ok("hosts: the install script starts agentd on the given port with a token it made itself and registers the server under the one-time code — the core takes that token, probes the server and marks it online with the facts (user, home, arch, OS) and the llm grant through the external provider by the override address", "INSTALL_EXIT=0" in htext and "зарегистрирован" in htext and re.fullmatch(r"[0-9a-f]{48}", tok_srv or "") is not None and reg.get("token") == tok_srv and reg.get("code") == code and st_r0 == 400 and st_r1 == 200 and hv.get("status") == "online" and hv.get("port") == 7201 and hv.get("user") == "coder" and hv.get("home") == "/home/coder" and hv.get("arch") == "x86_64" and bool(hv.get("os")) and bool(hv.get("agentd_version")) and hv.get("llm_url") == "http://llm.gate", f"pe={st_pe} register={st_r0}/{st_r1} token={len(tok_srv)} text={htext[-200:]!r} host={ {k: hv.get(k) for k in ('status', 'addr', 'port', 'user', 'home', 'arch', 'os', 'llm', 'llm_url', 'last_error')} }")
+    st_spent, _ = raw(f"/agents/api/core/hosts/install/{code}")
+    ok("hosts: the install code is spent by the registration", st_spent == 404, str(st_spent))
+    # the "server" keeps everything under its own DIR (the workspace's agentd lives in ~/.cloudos and must not be touched)
+    st_env, envb = raw(f"/agents/api/core/projects/{HN}/fs/file?path=~/.cloudos-host/env.sh"); envt = (envb or b"").decode("utf-8", "replace")
+    ok("hosts: env.sh is rendered by the core from the server's grants and delivered through agentd's file API (gate addresses point at the override)", st_env == 200 and "ANTHROPIC_BASE_URL='http://llm.gate'" in envt and "LLM_URL=" in envt, f"{st_env} keys={[l.split('=')[0].replace('export ', '') for l in envt.splitlines() if l.startswith('export ')]}")   # names only: the values are the provider keys
+    # the tree: kind host, running, reachable; the "+" menu works on it
+    tree = None
+    for _ in range(36):
+        time.sleep(1); w = get("/agents/api/workspaces")[1] or {}
+        tree = next((p for p in w.get("projects", []) if p.get("name") == HN), None)
+        if tree and tree.get("reachable"): break
+    ok("hosts: the server is in the workplaces tree with kind host, status running and a reachable agentd", bool(tree) and tree.get("kind") == "host" and tree.get("status") == "running" and tree.get("reachable") is True and str(tree.get("addr", "")).endswith(":7201"), str(tree)[:200])
+    pg.reload(wait_until="load"); pg.wait_for_selector(".app .rail", timeout=30000); time.sleep(2)
+    pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(0.8)
+    hrow = pg.locator(f".panel .ws[data-kind='host']:has(.wname:text-is('{HN}'))")
+    # the tree in the app comes from the event hub, which learns that a new server is up a little later than the API says so —
+    # until then the row is there, but without the «+» button (it is drawn for a running workplace only)
+    for _ in range(20):
+        if hrow.count() == 1 and hrow.locator("button[aria-label*='" + HN + "']").count() == 1: break
+        time.sleep(1)
+    ok("hosts: the panel row carries the server glyph and the «+» button", hrow.count() == 1 and hrow.locator(".hostglyph").count() == 1 and hrow.locator("button[aria-label*='" + HN + "']").count() == 1, f"rows={hrow.count()} glyph={hrow.locator('.hostglyph').count()} plus={hrow.locator('button[aria-label*=' + repr(HN) + ']').count()}")
+    # Desktop «Система → Серверы» (ADR-008 §7): the row with the status badge, the facts and the actions; the install command block
+    dh = b.new_page(); dh.goto(f"https://{HOST}/#system", wait_until="domcontentloaded")
+    try: dh.wait_for_selector(f".host:has-text('{HN}')", timeout=30000)
+    except Exception: pass
+    hrow_d = dh.locator(f".host:has-text('{HN}')")
+    d_ok = hrow_d.count() == 1 and hrow_d.locator(".badge.ok").count() == 1 and "10.77." in (hrow_d.inner_text() if hrow_d.count() else "") and hrow_d.locator("button").count() >= 4 and hrow_d.locator(".host-switch[aria-pressed='true']").count() == 1
+    if hrow_d.count(): hrow_d.locator("button:has-text('Install command'), button:has-text('Команда установки')").first.click(); time.sleep(1.5)
+    d_cmd = dh.locator(".install code.cmd").inner_text() if dh.locator(".install code.cmd").count() else ""
+    ok("desktop: the System window lists the server with an online badge, its address and actions; «Команда установки» shows a fresh curl | bash line", d_ok and d_cmd.startswith("curl -fsSL https://") and d_cmd.endswith("| bash") and d_cmd != inst_cmd, f"rows={hrow_d.count()} cmd={d_cmd[:60]!r}")
+    dh.screenshot(path="shots/hosts-desktop-system.png"); dh.close()
+    # a conversation on the server: Claude through the gate (env.sh of the server), a terminal, files and git through agentd
+    # the server's env.sh must reach the processes through agentd itself (a real server has no /etc/profile.d that sources it;
+    # inside this workspace the login shell adds the same gate keys, so the proof is the AGENTVERSE_HOST marker only the
+    # server's env.sh carries): a terminal prints it, and a Claude session runs printenv through the Bash tool
+    hs = json.loads(raw(f"/agents/api/core/projects/{HN}/sessions", "POST", json.dumps({"agent": "claude", "title": f"host probe {MARK}", "allowed_tools": ["Bash(printenv:*)"]}).encode())[1] or b"{}"); hsid = hs.get("id")
+    htxt = ""; hst = ""
+    if hsid and raw(f"/agents/api/core/projects/{HN}/sessions/{hsid}/prompt", "POST", json.dumps({"content": "Run exactly this with the Bash tool: printenv AGENTVERSE_HOST   — then reply with exactly: host-marker=<its output>"}).encode())[0] == 200:
+        for _ in range(120):
+            time.sleep(1); hi = get(f"/agents/api/core/projects/{HN}/sessions/{hsid}")[1] or {}; hst = (hi.get("info") or {}).get("status", "")
+            evs = get(f"/agents/api/core/projects/{HN}/sessions/{hsid}/events?since=0&limit=60")[1] or []
+            htxt = " ".join(str(b.get("text", "")) for e in evs if e.get("kind") == "assistant" for b in (e.get("content") or []) if isinstance(b, dict) and b.get("type") == "text")
+            if f"host-marker={HN}" in htxt or hst in ("error", "exited"): break
+    ok("hosts: a Claude conversation on the server answers and sees the server's env.sh (AGENTVERSE_HOST injected by agentd, not by a login shell)", bool(hsid) and f"host-marker={HN}" in htxt, f"status={hst} text={htxt[-100:]!r}")
+    hp = json.loads(raw(f"/agents/api/core/projects/{HN}/ptys", "POST", json.dumps({"cmd": ["bash", "-lc", f"echo host-pty-{MARK}-$AGENTVERSE_HOST; sleep 2"], "title": "host shell"}).encode())[1] or b"{}"); hpid = hp.get("id")
+    ptxt = ""
+    for _ in range(20):
+        time.sleep(1); ptxt = (get(f"/agents/api/core/projects/{HN}/ptys/{hpid}/text")[1] or {}).get("text", "") if hpid else ""
+        if f"host-pty-{MARK}-" in ptxt: break
+    st_fs, fsb = raw(f"/agents/api/core/projects/{HN}/fs?path=~/.cloudos-host"); fsj = json.loads(fsb or b"{}")
+    st_git, gitb = raw(f"/agents/api/core/projects/{HN}/git/status?cwd=/home/coder"); gitj = json.loads(gitb or b"{}")
+    ok("hosts: a terminal (with the server's env.sh injected), the file list and the git status work on the server through its agentd", f"host-pty-{MARK}-{HN}" in ptxt and st_fs == 200 and any(e.get("name") == "env.sh" for e in fsj.get("entries", [])) and st_git == 200 and "repo" in gitj, f"pty={ptxt[-60:]!r} fs={st_fs} {[e.get('name') for e in fsj.get('entries', [])][:6]} git={st_git} {str(gitj)[:80]}")
+    # the agentd on the server is this core's build: the update endpoint says so by fingerprint; the probe endpoint answers at once
+    st_pr, prb = raw(f"/agents/api/core/hosts/{HN}/probe", "POST", b"{}"); pr = json.loads(prb or b"{}")
+    ok("hosts: an explicit probe answers with the current state and the agentd fingerprint equals the core's embedded one", st_pr == 200 and pr.get("status") == "online" and pr.get("agentd_version") == pr.get("core_agentd_version") and bool(pr.get("last_seen")), f"{st_pr} {pr.get('agentd_version')} vs {pr.get('core_agentd_version')}")
+    if hsid: raw(f"/agents/api/core/projects/{HN}/sessions/{hsid}", "DELETE"); time.sleep(2); raw(f"/agents/api/core/projects/{HN}/sessions/{hsid}", "DELETE")
+    # the switch (ADR-008): Settings → Servers in the Agents app — the row with the switch; a click switches the server off: agentd on
+    # the server exits (code 75, the unit would not restart it), the core marks it disabled, the tree says so, sessions are refused
+    def host_procs():
+        hp_ = json.loads(raw(f"/agents/api/core/projects/{P}/ptys", "POST", json.dumps({"cmd": ["bash", "-lc", "sleep 1; echo PROCS=$(pgrep -f '[c]loudos-host/bin/cloudos-agentd' | wc -l); sleep 1"], "title": "host procs"}).encode())[1] or b"{}"); pid_ = hp_.get("id")
+        for _ in range(8):
+            time.sleep(1.5); tx = (get(f"/agents/api/core/projects/{P}/ptys/{pid_}/text")[1] or {}).get("text", "") if pid_ else ""
+            if "PROCS=" in tx: break
+        if pid_: raw(f"/agents/api/core/projects/{P}/ptys/{pid_}", "DELETE")
+        return int(tx.split("PROCS=")[1].split()[0]) if "PROCS=" in tx else -1
+    pg.goto(f"https://{HOST}/agents/?section=settings&tab=hosts", wait_until="load"); pg.wait_for_selector(".app .rail", timeout=30000)
+    try: pg.wait_for_selector(f".host-row[data-host='{HN}'] .host-switch", timeout=20000)
+    except Exception: pass
+    srow = pg.locator(f".host-row[data-host='{HN}']")
+    sw_on = srow.locator(".host-switch").count() == 1 and srow.locator(".host-switch").get_attribute("aria-pressed") == "true"
+    if sw_on: srow.locator(".host-switch").click()
+    sw_off = False
+    for _ in range(10):
+        time.sleep(1.5); hv2 = get(f"/agents/api/core/hosts/{HN}")[1] or {}
+        if hv2.get("disabled") is True: sw_off = True; break
+    procs_off = host_procs()
+    st_sc, scb = raw(f"/agents/api/core/projects/{HN}/sessions", "POST", json.dumps({"agent": "claude", "title": "refused"}).encode())
+    w3 = get("/agents/api/workspaces")[1] or {}; tree3 = next((p for p in w3.get("projects", []) if p.get("name") == HN), {})
+    ok("hosts: Settings → Servers shows the row with the switch on; switching it off stops agentd on the server (process gone), the core marks the server disabled, the tree shows it stopped and a new session is refused with a clear error", sw_on and sw_off and procs_off == 0 and hv2.get("status") == "disabled" and st_sc >= 400 and "отключён" in (scb or b"").decode("utf-8", "replace") and tree3.get("status") == "stopped" and tree3.get("host_status") == "disabled" and srow.locator(".host-switch").get_attribute("aria-pressed") == "false", f"on={sw_on} off={sw_off} procs={procs_off} st={hv2.get('status')} sess={st_sc} tree={tree3.get('status')}/{tree3.get('host_status')}")
+    # switching on without agentd running: the core says it is offline and what to do; a re-issued install command brings it back online
+    st_en, enb = raw(f"/agents/api/core/hosts/{HN}", "PATCH", json.dumps({"enabled": True}).encode()); en = json.loads(enb or b"{}")
+    st_cd, cdb = raw(f"/agents/api/core/hosts/{HN}/code", "POST", b"{}"); cd = json.loads(cdb or b"{}"); code2 = (cd.get("install") or "").rsplit("/", 1)[-1].split(" ")[0] if "/api/hosts/install/" in (cd.get("install") or "") else ""
+    rtext = host_install(code2, f"reinstall host {MARK}") if code2 else ""
+    st_tk2, tkb2 = raw(f"/agents/api/core/projects/{P}/fs/file?path={HDIR}/agentd.token"); tok2 = (tkb2 or b"").decode("utf-8", "replace").strip() if st_tk2 == 200 else ""
+    reg2, st_rr = host_register_relayed()
+    hv3 = get(f"/agents/api/core/hosts/{HN}")[1] or {}
+    ok("hosts: switching on while agentd is down leaves the server offline with the reason; a re-issued install command registers it again — with a new token made on the server — and it is online", st_en == 200 and en.get("disabled") is False and en.get("status") == "offline" and bool(en.get("last_error")) and st_cd == 200 and "INSTALL_EXIT=0" in rtext and st_rr == 200 and len(tok2) == 48 and tok2 != tok_srv and reg2.get("token") == tok2 and hv3.get("status") == "online" and hv3.get("disabled") is False, f"en={st_en} {en.get('status')} err={str(en.get('last_error'))[:60]!r} code={st_cd} register={st_rr} new_token={tok2 != tok_srv} text={rtext[-120:]!r} after={hv3.get('status')}")
+    # removal: the view carries the wipe command for the owner; the core stops agentd on the server before forgetting it
+    uninst = hv3.get("uninstall") or ""
+    st_rm, _ = raw(f"/agents/api/core/hosts/{HN}", "DELETE")
+    procs_rm = host_procs()
+    ok("hosts: the record carries the wipe command and removal stops agentd on the server first", "systemctl" in uninst and "rm -rf ~/.cloudos" in uninst and st_rm == 204 and procs_rm == 0, f"uninstall={uninst[:50]!r} rm={st_rm} procs={procs_rm}")
+    raw(f"/agents/api/core/projects/{P}/ptys", "POST", json.dumps({"cmd": ["bash", "-lc", "pkill -f '[c]loudos-host/bin/cloudos-agentd' ; sleep 0.5; rm -rf /home/coder/.cloudos-host; echo CLEAN"], "title": "host cleanup"}).encode())
+    # the "server" shares the workspace's home, so the workspace's own agentd picked its conversation up from disk as one of its
+    # own: remove that record too, otherwise every run leaves one in the project
+    for x in (get(f"/agents/api/core/projects/{P}/sessions")[1] or []):
+        if x.get("imported") and str(x.get("title") or "").startswith("Run exactly this with the Bash tool: printenv AGENTVERSE_HOS") and time.time() - (x.get("created_at") or 0) < 3600:
+            for _ in range(3):
+                if raw(f"/agents/api/core/projects/{P}/sessions/{x['id']}", "DELETE")[0] in (204, 404): break
+                time.sleep(2)
+    time.sleep(3); w2 = get("/agents/api/workspaces")[1] or {}
+    ok("hosts: removing the server takes it out of the core and the tree (the files on the server are the owner's business)", st_rm == 204 and raw(f"/agents/api/core/hosts/{HN}")[0] == 404 and not any(p.get("name") == HN for p in w2.get("projects", [])), f"{st_rm}")
+    pg.goto(f"https://{HOST}/agents/", wait_until="load"); pg.wait_for_selector(".app .rail", timeout=30000); time.sleep(1)
+
+    # ---- memory watch (ADR-009, docs/agents-ux.md §4.13): the core watches the memory pressure of every workspace from the host; a workspace
+    # stalled at its limit loses its largest process (or only gets a report), the infrastructure is shielded from the kernel OOM killer, a
+    # kernel OOM is reported; "Inbox" shows the cards, the tree — the label; a turn silent for longer than the threshold gets a card ----
+    def _mem_restore():
+        # the lowered thresholds live only in this project's override — never leave them behind
+        try: raw("/agents/api/core/system/pressure", "PUT", json.dumps({"projects": {P: None}}).encode())
+        except Exception: pass
+    def _mem_view():
+        d = get(f"/agents/api/core/projects/{P}/memory")[1] or {}
+        return d.get("memory") or {}, d.get("procs") or []
+    def _mem_hog(mode, extra=""):
+        # the load runs as if a conversation had started it: the watch finds the conversation by CLOUDOS_SESSION in the process environment
+        cmd = f"CLOUDOS_SESSION={sid} python3 {HOG} {mode} {MARK} {extra}; echo HOG_EXIT=$?; sleep 2"
+        return (json.loads(raw(f"/agents/api/core/projects/{P}/ptys", "POST", json.dumps({"cmd": ["bash", "-lc", cmd], "cwd": "/home/coder", "title": f"hog {mode} {MARK}"}).encode())[1] or b"{}")).get("id")
+    def _mem_pty_text(pid):
+        # the shell prints the exit code a moment after its child is gone, and agentd of a workspace that has just been stalled answers late — patient reads
+        text = ""
+        for _ in range(15):
+            st_t, t = get(f"/agents/api/core/projects/{P}/ptys/{pid}/text") if pid else (0, None)
+            if st_t == 200: text = (t or {}).get("text", "")
+            if "HOG_EXIT=" in text: break
+            time.sleep(2)
+        return text
+    def _mem_running(procs): return any(f"{HOG} " in (r.get("cmd") or "") for r in procs)
+    def _mem_wait_calm():
+        # the next load must start from a calm workspace: the stall share of the previous one fades for a minute or two
+        for _ in range(60):
+            if (_mem_view()[0].get("full10") or 0) < 1: return
+            time.sleep(2)
+    import atexit; atexit.register(_mem_restore)
+    HOG = f"/home/coder/hog-{MARK}.py"
+    hog_src = r"""
+# e2e memory load for the pressure watch (ADR-009). "stall": the process fills the container with anonymous memory up to its limit minus a
+# margin and then keeps reading random pages of its own data file that no longer fits into what is left for the page cache — its pages are
+# evicted and read back all the time. Only this process stalls (the 2026-11-14 stall in small); it ends by itself after max_secs. "oom": just
+# allocate until the kernel OOM killer comes.
+import mmap, os, random, sys, time
+mode, mark = sys.argv[1], sys.argv[2]
+num = lambda i, d: float(sys.argv[i]) if len(sys.argv) > i else d
+margin, data_mib, busy, idle, max_secs = int(num(3, 384)) << 20, int(num(4, 512)), num(5, 0.5), num(6, 0.5), num(7, 120)
+CG = "/sys/fs/cgroup"
+def rd(name):
+    try: return open(f"{CG}/{name}").read()
+    except OSError: return ""
+def stat(key):
+    for line in rd("memory.stat").splitlines():
+        k, _, v = line.partition(" ")
+        if k == key: return int(v)
+    return 0
+limit = rd("memory.max").strip(); limit = int(limit) if limit.isdigit() else 0
+chunks = []
+def grab(n):
+    b = bytearray(n)
+    for i in range(0, n, 4096): b[i] = 1
+    chunks.append(b)
+if mode == "oom":
+    print(f"HOG oom {mark}", flush=True)
+    while True: grab(64 << 20)
+if not limit: print("HOG no limit"); sys.exit(2)
+data = f"/home/coder/.hog-data-{mark}"
+try:
+    with open(data, "wb") as f:
+        block = os.urandom(1 << 20)
+        for _ in range(data_mib): f.write(block)
+        f.flush(); os.fsync(f.fileno())
+    fd = os.open(data, os.O_RDONLY); os.posix_fadvise(fd, 0, 0, os.POSIX_FADV_DONTNEED)
+    mm = mmap.mmap(fd, data_mib << 20, prot=mmap.PROT_READ); pages = (data_mib << 20) // 4096
+    step = 16 << 20
+    while True:
+        cur = int(rd("memory.current").strip() or 0)
+        solid = cur - stat("file") + stat("shmem")      # what stays if the whole page cache goes (tmpfs cannot be dropped without swap)
+        if limit - solid <= margin + step: break
+        grab(step)
+    print(f"HOG filled {mark} {sum(len(c) for c in chunks) >> 20} MiB", flush=True)
+    deadline = time.time() + max_secs; x = 0
+    while time.time() < deadline:
+        end = time.time() + busy
+        while time.time() < end:
+            for _ in range(256): x ^= mm[random.randrange(pages) * 4096]
+        if idle: time.sleep(idle)
+    print(f"HOG done {mark}", flush=True)
+finally:
+    try: os.unlink(data)
+    except OSError: pass
+"""
+    st_pc, pc = get("/agents/api/core/system/pressure"); pc = pc or {}
+    ok("memory: the watch settings are served — on, what to do with a stalled workspace, the stall threshold and hold time in the stand-wide safe range, the long-command threshold", st_pc == 200 and isinstance(pc.get("enabled"), bool) and pc.get("action") in ("kill", "notify") and pc.get("full_pct", 0) >= 20 and pc.get("hold_secs", 0) >= 30 and 1 <= pc.get("tight_pct", 0) <= pc.get("full_pct", 0) and "long_turn_hours" in pc, str(pc)[:220])
+    bad = [raw("/agents/api/core/system/pressure", "PUT", json.dumps(b).encode())[0] for b in ({"full_pct": 5}, {"hold_secs": 3}, {"action": "reboot"}, {"nope": 1}, {"projects": {P: {"action": "burn"}}})]
+    ok("memory: stand-wide thresholds cannot be lowered into the dangerous range; unknown keys and actions are refused", all(x == 400 for x in bad), str(bad))
+    others_before = {x.get("name"): ((x.get("workspace") or {}).get("memory") or {}) for x in (get("/agents/api/core/projects?all=1")[1] or []) if x.get("name") != P}
+    st_ov, ovb = raw("/agents/api/core/system/pressure", "PUT", json.dumps({"projects": {P: {"action": "kill", "full_pct": 2, "hold_secs": 5, "long_turn_hours": 0.01}}}).encode()); ov = json.loads(ovb or b"{}")
+    ok("memory: a project override may go below the stand-wide range — for this project only, the stand-wide values stay", st_ov == 200 and (ov.get("projects") or {}).get(P, {}).get("full_pct") == 2 and ov.get("full_pct") == pc.get("full_pct") and ov.get("hold_secs") == pc.get("hold_secs") and ov.get("action") == pc.get("action"), str(ov)[:260])
+    mv, rows = {}, []
+    for _ in range(30):
+        mv, rows = _mem_view()
+        if mv.get("limit") and mv.get("action") == "kill" and rows and not [r for r in rows if not r.get("protected") and r.get("adj", 0) < 0]: break
+        time.sleep(2)
+    ok("memory: the project carries the workspace memory as the watch sees it from the host — used, the limit, the stall share, the state", mv.get("limit", 0) > 0 and 0 < mv.get("used", 0) <= mv.get("limit", 0) and mv.get("state") in ("ok", "tight") and mv.get("action") == "kill" and ((get(f"/agents/api/core/projects/{P}")[1] or {}).get("workspace") or {}).get("memory", {}).get("limit") == mv.get("limit"), str({k: mv.get(k) for k in ("used", "limit", "full60", "state", "action")}))
+    prot = [r for r in rows if r.get("protected")]
+    agd = next((r for r in prot if r.get("comm") == "cloudos-agentd"), {})
+    ok("memory: the workspace infrastructure is shielded from the kernel OOM killer from the host (inside the container nobody can lower oom_score_adj): init, agentd, the Coder agent and dockerd get a negative oom_score_adj just deep enough to outweigh their own memory, ordinary processes keep 0 or more", {"cloudos-agentd", "coder", "dockerd"} <= {r.get("comm") for r in prot} and any(r.get("pid") == 1 for r in prot) and all(-900 <= r.get("adj", 0) <= -50 for r in prot) and agd.get("adj", 0) <= -50 - int(agd.get("rss", 0) * 1000 / max(1, mv.get("limit", 1))) and all(r.get("adj", 0) >= 0 for r in rows if not r.get("protected")), f"protected={[(r.get('comm'), r.get('adj')) for r in prot][:10]} negative={[(r.get('comm'), r.get('adj')) for r in rows if not r.get('protected') and r.get('adj', 0) < 0][:5]}")
+    st_hw, _ = raw(f"/agents/api/core/projects/{P}/fs/file?path={HOG}", "PUT", hog_src.encode(), "application/octet-stream")
+    # 1. a stall at the limit in the "end the process" mode
+    hp = _mem_hog("stall"); states = set(); last = {}; t0 = time.time()
+    for _ in range(120):
+        time.sleep(1); m, _r = _mem_view(); states.add(m.get("state")); last = m.get("last") or {}
+        if last.get("kind") == "killed" and f"{HOG} " in (last.get("cmd") or "") and last.get("at", 0) >= t0 - 5: break
+    took = time.time() - t0; htxt = _mem_pty_text(hp)
+    ok("memory: a workspace stalled at its own limit loses exactly its largest process — the watch ends the memory hog from the host within seconds of the hold time; the action names the process, its size, how long it ran, the conversation it came from and the stall", st_hw == 200 and last.get("kind") == "killed" and not last.get("note") and last.get("rss", 0) > mv.get("limit", 0) * 0.5 and last.get("session") == sid and last.get("limit") == mv.get("limit") and last.get("stalled_secs", 0) >= 5 and took < 60 and "HOG_EXIT=137" in htxt and "HOG filled" in htxt and bool(states & {"tight", "stalled"}), f"{took:.0f}s last={str(last)[:300]} states={states} pty={htxt[-80:]!r}")
+    evs = [e for e in (get("/agents/api/core/events")[1] or []) if e.get("kind") == "memory" and e.get("subject") == P]
+    ok("memory: the feed gets an event with the process and the stall", any("завершён процесс" in e.get("message", "") and f"hog-{MARK}" in e.get("message", "") and "стоял у лимита" in e.get("message", "") for e in evs), str([e.get("message", "")[:160] for e in evs][:2]))
+    note = False
+    for _ in range(40):
+        ev_s = get(f"/agents/api/core/projects/{P}/sessions/{sid}/events?since=0&lite=1")[1] or []
+        note = any(e.get("kind") == "system" and e.get("subtype") == "agent_note" and "сторожем памяти" in str((e.get("data") or {}).get("message", "")) for e in ev_s)
+        if note: break
+        time.sleep(3)
+    ok("memory: the conversation that started the process gets a grey line about it", note)
+    card = None
+    for _ in range(30):
+        ib = get("/agents/api/inbox")[1] or {}
+        card = next((c for c in ib.get("memory") or [] if c.get("project") == P and c.get("kind") == "killed"), None)
+        if card: break
+        time.sleep(2)
+    ok("memory: Inbox gets a card — the ended process, the workspace, the conversation by its title", bool(card) and f"hog-{MARK}" in card.get("cmd", "") and card.get("session") == sid and bool(card.get("session_title")) and card.get("can_kill") is False and card.get("key", "").startswith(f"mem:{P}:"), str(card)[:300])
+    pg.locator(".rail .nav[data-tip='Входящие']").click()
+    try: pg.wait_for_selector(f".inbox .item.mem[data-mem-card='killed']:has-text('hog-{MARK}')", timeout=45000)
+    except Exception: pass
+    kc = pg.locator(f".inbox .item.mem[data-mem-card='killed']:has-text('hog-{MARK}')").first
+    ktext = kc.inner_text() if kc.count() else ""
+    ok("memory: the card in the app — \"Process ended\", the command with its size and age, the stall, the conversation, the buttons", "Завершён процесс" in ktext and "занимал" in ktext and "ГиБ" in ktext and "стоял у лимита" in ktext and "Беседа: «" in ktext and kc.locator("button.mem-open").count() == 1 and kc.locator("button.mem-limit").count() == 1 and kc.locator("button.mem-kill").count() == 0, ktext[:300])
+    pg.screenshot(path="shots/ap-mem-killed.png")
+    if kc.count(): kc.locator("button.mem-hide").click()
+    time.sleep(2.5); ib = get("/agents/api/inbox")[1] or {}
+    ok("memory: \"hide\" removes the card for good", pg.locator(f".inbox .item.mem[data-mem-card='killed']:has-text('hog-{MARK}')").count() == 0 and not [c for c in ib.get("memory") or [] if card and c.get("key") == card.get("key")], str([c.get("key") for c in ib.get("memory") or []]))
+    # 2. the same stall in the "only report" mode: nothing is ended, the tree shows the label, the card offers the button
+    raw("/agents/api/core/system/pressure", "PUT", json.dumps({"projects": {P: {"action": "notify", "full_pct": 2, "hold_secs": 5, "long_turn_hours": 0.01}}}).encode())
+    _mem_wait_calm(); hp2 = _mem_hog("stall"); last = {}; m = {}; t0 = time.time()
+    for _ in range(120):
+        time.sleep(1); m, rows = _mem_view(); last = m.get("last") or {}
+        if last.get("kind") == "stalled" and last.get("at", 0) >= t0 - 5: break
+    time.sleep(8); m2, rows = _mem_view()
+    ok("memory: in the only-report mode nothing is ended — one report names the largest process, the process lives on", last.get("kind") == "stalled" and last.get("note") == "notify" and f"{HOG} " in (last.get("cmd") or "") and m.get("action") == "notify" and _mem_running(rows) and (m2.get("last") or {}).get("at") == last.get("at"), f"last={str(last)[:240]} running={_mem_running(rows)}")
+    pg.locator(".rail .nav[data-tip='Рабочие места']").click(); lab = pg.locator(f".panel .ws:has(.wname:text-is('{P}')) .badge.memtag")
+    for _ in range(40):
+        if lab.count(): break
+        time.sleep(1)
+    ltxt = lab.first.inner_text() if lab.count() else ""; ltip = (lab.first.get_attribute("title") or "") if lab.count() else ""
+    ok("memory: the workspace row in the tree gets a label while under pressure, the hint tells used of the limit, the stall share and the largest process", ltxt in ("тесно", "пробуксовка") and "ГиБ" in ltip and "простой из-за памяти" in ltip and "крупнейший процесс" in ltip and f"hog-{MARK}" in ltip, f"{ltxt!r} {ltip[:200]!r}")
+    pg.screenshot(path="shots/ap-mem-label.png")
+    pg.locator(".rail .nav[data-tip='Входящие']").click()
+    try: pg.wait_for_selector(".inbox .item.mem[data-mem-card='stalled']", timeout=40000)
+    except Exception: pass
+    sc = pg.locator(".inbox .item.mem[data-mem-card='stalled']").first; stext = sc.inner_text() if sc.count() else ""
+    ok("memory: the \"stands at the limit\" card — the largest process, the mode, the \"End process\" button", "Workspace стоит у лимита памяти" in stext and "Крупнейший процесс" in stext and f"hog-{MARK}" in stext and "только сообщать" in stext and sc.locator("button.mem-kill").count() == 1, stext[:300])
+    pg.screenshot(path="shots/ap-mem-stalled.png")
+    if sc.count() and sc.locator("button.mem-kill").count():
+        pg.once("dialog", lambda d: d.accept()); sc.locator("button.mem-kill").click()
+    for _ in range(40):
+        time.sleep(1); m, rows = _mem_view(); last = m.get("last") or {}
+        if last.get("kind") == "killed" and last.get("note") == "manual" and not _mem_running(rows): break
+    htxt2 = _mem_pty_text(hp2)
+    ok("memory: the button ends the largest process by the owner's word", last.get("kind") == "killed" and last.get("note") == "manual" and f"{HOG} " in (last.get("cmd") or "") and not _mem_running(rows) and "HOG_EXIT=137" in htxt2, f"last={str(last)[:200]} pty={htxt2[-60:]!r}")
+    # 3. the kernel's own OOM killer at the workspace limit (the watch keeps its hands off here: the thresholds are out of reach)
+    raw("/agents/api/core/system/pressure", "PUT", json.dumps({"projects": {P: {"action": "kill", "full_pct": 100, "hold_secs": 3600, "long_turn_hours": 0.01}}}).encode())
+    _mem_wait_calm(); hp3 = _mem_hog("oom"); last = {}; t0 = time.time()
+    for _ in range(90):
+        time.sleep(1); m, rows = _mem_view(); last = m.get("last") or {}
+        if last.get("kind") == "oom" and last.get("at", 0) >= t0 - 5: break
+    htxt3 = _mem_pty_text(hp3)
+    evs = [e for e in (get("/agents/api/core/events")[1] or []) if e.get("kind") == "memory" and e.get("subject") == P]
+    ok("memory: a process ended by the kernel OOM killer at the workspace limit is reported too — named from the kernel log, with its size; its terminal lives on", last.get("kind") == "oom" and "python3" in (last.get("cmd") or "") and last.get("rss", 0) > mv.get("limit", 0) * 0.5 and "HOG_EXIT=137" in htxt3 and any("завершён системой" in e.get("message", "") for e in evs), f"last={str(last)[:240]} pty={htxt3[-60:]!r}")
+    m, rows = _mem_view(); ag = [r for r in rows if r.get("comm") == "cloudos-agentd"]; st_alive, sl = get(f"/agents/api/core/projects/{P}/sessions")
+    for _ in range(10):
+        if not [r for r in rows if not r.get("protected") and r.get("adj", 0) < 0]: break
+        time.sleep(3); m, rows = _mem_view(); ag = [r for r in rows if r.get("comm") == "cloudos-agentd"]
+    ok("memory: agentd lived through all three without a restart (the same process: a kernel OOM kill of one of its children does not stop the unit) and keeps its shield; the conversations it started have none", st_alive == 200 and any(x.get("id") == sid for x in (sl or [])) and len(ag) == 1 and ag[0].get("pid") == agd.get("pid") and -900 <= ag[0].get("adj", 0) <= -50 and ag[0].get("protected") is True and all(r.get("adj", 0) >= 0 for r in rows if not r.get("protected")), f"{st_alive} agentd before={agd.get('pid')} after={[(r.get('pid'), r.get('adj')) for r in ag]}")
+    others_after = {x.get("name"): ((x.get("workspace") or {}).get("memory") or {}) for x in (get("/agents/api/core/projects?all=1")[1] or []) if x.get("name") != P}
+    touched = [n for n, v in others_after.items() if ((v.get("last") or {}).get("at")) != ((others_before.get(n, {}).get("last") or {}).get("at"))]
+    ok("memory: the other workspaces were not touched — the watch did nothing in any of them", not touched, f"touched={touched} states={ {n: v.get('state') for n, v in others_after.items() if v} }")
+    # 4. a turn silent for longer than the project's threshold (36 s here): the Inbox card with the running command, "Interrupt turn"
+    # (Claude Code refuses a bare foreground `sleep`, hence `timeout … tail -f /dev/null`: a command that runs silently and ends by itself)
+    ls = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "claude", "title": f"long {MARK}", "permission_mode": "default"}).encode())[1] or b"{}"); lsid = ls.get("id")
+    raw(f"/agents/api/core/projects/{P}/sessions/{lsid}/prompt", "POST", json.dumps({"content": "Run exactly this one bash command in the foreground and wait for it to finish, then reply with the single word done: timeout 100 tail -f /dev/null"}).encode())
+    for _ in range(90):
+        time.sleep(1); pend = ((get(f"/agents/api/core/projects/{P}/sessions/{lsid}")[1] or {}).get("pending") or [])
+        if pend:
+            raw(f"/agents/api/core/projects/{P}/sessions/{lsid}/permission", "POST", json.dumps({"request_id": pend[0].get("request_id"), "behavior": "allow"}).encode()); break
+    lcard = None
+    for _ in range(100):
+        time.sleep(1); ib = get("/agents/api/inbox")[1] or {}
+        lcard = next((c for c in ib.get("long") or [] if (c.get("session") or {}).get("id") == lsid), None)
+        if lcard: break
+    ok("long command: a turn with no journal event for longer than the project's threshold becomes an Inbox card with the running command", bool(lcard) and "tail -f /dev/null" in (lcard.get("tool") or "") and lcard.get("since", 0) > 0 and lcard.get("key", "").startswith(f"long:{P}:{lsid}:"), str(lcard)[:260])
+    pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(0.5); pg.locator(".rail .nav[data-tip='Входящие']").click()
+    try: pg.wait_for_selector(f".inbox .item.long[data-long-card='{lsid}']", timeout=60000)
+    except Exception: pass
+    lc = pg.locator(f".inbox .item.long[data-long-card='{lsid}']").first; ltext = lc.inner_text() if lc.count() else ""
+    ok("long command: the card in the app — how long the command has been running, the command, \"Open\", \"Interrupt turn\", \"do not remind\"", "команда идёт" in ltext and "tail -f /dev/null" in ltext and lc.locator("button.long-open").count() == 1 and lc.locator("button.long-interrupt").count() == 1 and lc.locator("button.long-mute").count() == 1, ltext[:240])
+    pg.screenshot(path="shots/ap-mem-long.png")
+    if lc.count(): lc.locator("button.long-interrupt").click()
+    lst = ""
+    for _ in range(40):
+        time.sleep(1); lst = ((get(f"/agents/api/core/projects/{P}/sessions/{lsid}")[1] or {}).get("info") or {}).get("status", "")
+        if lst != "working": break
+    time.sleep(3); ib = get("/agents/api/inbox")[1] or {}
+    ok("long command: \"Interrupt turn\" stops the turn, the card goes away", bool(lcard) and lst in ("idle", "exited") and not [c for c in ib.get("long") or [] if (c.get("session") or {}).get("id") == lsid], f"status={lst}")
+    pp = (get("/agents/api/push")[1] or {}).get("prefs") or {}
+    ok("memory: push about memory and long commands is a separate switch, on by default", pp.get("memory") is True, str(pp))
+    _mem_restore()
+    for x in (hp, hp2, hp3):
+        if x: raw(f"/agents/api/core/projects/{P}/ptys/{x}", "DELETE")
+    raw(f"/agents/api/core/projects/{P}/fs?path={HOG}", "DELETE"); raw(f"/agents/api/core/projects/{P}/fs?path=/home/coder/.hog-data-{MARK}", "DELETE")
+    for _ in range(5):
+        if raw(f"/agents/api/core/projects/{P}/sessions/{lsid}", "DELETE")[0] == 204: break
+        time.sleep(1)
+    # the cards of this check are not the owner's news: hide what is left of them
+    for c in (get("/agents/api/inbox")[1] or {}).get("memory") or []:
+        if c.get("project") == P and (f"hog-{MARK}" in (c.get("cmd") or "") or (c.get("cmd") or "") in ("", "python3", "[python3]")): raw("/agents/api/inbox/dismiss", "POST", json.dumps({"key": c.get("key")}).encode())
+    pc2 = get("/agents/api/core/system/pressure")[1] or {}
+    ok("memory: the project override is removed, the stand-wide settings are as they were", P not in (pc2.get("projects") or {}) and all(pc2.get(k) == pc.get(k) for k in ("enabled", "action", "full_pct", "hold_secs", "tight_pct", "long_turn_hours")), str(pc2)[:200])
+    pg.goto(f"https://{HOST}/agents/", wait_until="load"); pg.wait_for_selector(".app .rail", timeout=30000); time.sleep(1)
+
+    # ---- perimeter (ADR-010, stage 1): the edge reaches the core through unix sockets, the control plane refuses other sites and the app
+    # networks, and the host firewall keeps a workspace away from the control plane's published ports and from the host's own services.
+    # What a container of an app can reach is checked by hand on the stand (the test has no docker): docs/qa-plan.md ----
+    st_pm, pm = get("/agents/api/core/system/perimeter"); pm = pm if isinstance(pm, dict) else {}
+    AP = (pm.get("control_ports") or [443, 8445])[-1]
+    ok("perimeter: the edge container mounts the socket directory — Caddy's admin API listens on a socket there, nothing is asked of the docker bridge, the guard knows the app networks and the one NAT address to let through, the firewall is on",
+       st_pm == 200 and pm.get("edge_sockets") is True and str(pm.get("admin_listen") or "").startswith("unix/") and pm.get("bridge_listen") is None and pm.get("firewall") == "on" and len((pm.get("guard") or {}).get("deny") or []) >= 1 and len((pm.get("guard") or {}).get("allow") or []) == 1, json.dumps(pm)[:320])
+    def tcp_open(host_t, port_t):
+        try: socket.create_connection((host_t, port_t), timeout=3).close(); return True
+        except Exception: return False
+    tcp = {"bridge:7100": tcp_open("172.17.0.1", 7100), "bridge:7300": tcp_open("172.17.0.1", 7300), "admin:2019": tcp_open("127.0.0.1", 2019), "loopback:7100": tcp_open("127.0.0.1", 7100)}
+    ok("perimeter: besides loopback nothing of the control plane listens on TCP — the core and «Agents» are gone from the docker bridge, Caddy's admin port is closed", tcp == {"bridge:7100": False, "bridge:7300": False, "admin:2019": False, "loopback:7100": True}, str(tcp))
+    def edge_req(path_e, method="GET", origin=None, port=None):
+        hdr = {"Origin": origin} if origin else {}
+        try:
+            r = urllib.request.urlopen(urllib.request.Request(f"https://{HOST}{':' + str(port) if port else ''}{path_e}", data=b"" if method != "GET" else None, method=method, headers=hdr), context=ctx_ssl, timeout=30); return r.status, r.read()[:200]
+        except urllib.error.HTTPError as e: return e.code, e.read()[:200]
+        except Exception as e: return 0, str(e).encode()[:200]
+    def ws_status(path_w, origin=None, port=443):
+        """Status of a WebSocket handshake over HTTP/1.1 (what a browser sends), 0 — no answer"""
+        try:
+            sk = ctx_ssl.wrap_socket(socket.create_connection((HOST, port), timeout=8), server_hostname=HOST)
+            sk.sendall((f"GET {path_w} HTTP/1.1\r\nHost: {HOST}{'' if port == 443 else ':' + str(port)}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n" + (f"Origin: {origin}\r\n" if origin else "") + "\r\n").encode())
+            line = sk.recv(64).split(b"\r\n")[0].decode("latin1"); sk.close(); return int(line.split(" ")[1])
+        except Exception: return 0
+    EVIL = "https://evil.example"; nosess = f"/projects/{P}/sessions/00000000-0000-0000-0000-000000000000/interrupt"
+    po = {"evil": edge_req("/api" + nosess, "POST", EVIL), "null": edge_req("/api" + nosess, "POST", "null"), "own": edge_req("/api" + nosess, "POST", f"https://{HOST}"), "agents-origin": edge_req("/api" + nosess, "POST", f"https://{HOST}:{AP}"), "none": edge_req("/api" + nosess, "POST"), "get": edge_req("/api/status", "GET", EVIL)}
+    ok("perimeter: a state-changing request from another site is refused by the edge (403 with the reason) while the stand's own origins, a client without Origin and reads pass",
+       po["evil"][0] == 403 and "Origin" in po["evil"][1].decode("utf-8", "replace") and po["null"][0] == 403 and po["own"][0] not in (0, 403) and po["agents-origin"][0] not in (0, 403) and po["none"][0] not in (0, 403) and po["get"][0] == 200, str({k: v[0] for k, v in po.items()}) + " " + po["evil"][1].decode("utf-8", "replace")[:80].strip())
+    pa = {"evil": edge_req("/agents/api/core" + nosess, "POST", EVIL), "own": edge_req("/agents/api/core" + nosess, "POST", f"https://{HOST}"), "evil@agents": edge_req("/agents/api/core" + nosess, "POST", EVIL, AP), "own@agents": edge_req("/agents/api/core" + nosess, "POST", f"https://{HOST}:{AP}", AP), "none@agents": edge_req("/agents/api/core" + nosess, "POST", None, AP)}
+    ok("perimeter: the same for the «Agents» service — under /agents on the Desktop origin and on its own port", pa["evil"][0] == 403 and pa["evil@agents"][0] == 403 and all(pa[k][0] not in (0, 403) for k in ("own", "own@agents", "none@agents")), str({k: v[0] for k, v in pa.items()}))
+    # the share target of the installed app: the phone's share sheet posts there without a page behind it (Origin: null)
+    sh = {"null": edge_req("/agents/share", "POST", "null")[0], "evil": edge_req("/agents/share", "POST", EVIL)[0], "null@agents": edge_req("/agents/share", "POST", "null", AP)[0], "null elsewhere": edge_req("/agents/api/core" + nosess, "POST", "null")[0]}
+    ok("perimeter: the share sheet of a phone still reaches the app's share target (Origin: null passes there and nowhere else)", sh["null"] not in (0, 403) and sh["null@agents"] not in (0, 403) and sh["evil"] == 403 and sh["null elsewhere"] == 403, str(sh))
+    wsx = {"hub evil": ws_status("/agents/api/hub", EVIL), "hub own": ws_status("/agents/api/hub", f"https://{HOST}"), "hub none": ws_status("/agents/api/hub"), "events evil": ws_status(f"/api/projects/{P}/events", EVIL), "events own": ws_status(f"/api/projects/{P}/events", f"https://{HOST}"),
+           "hub evil@agents": ws_status("/agents/api/hub", EVIL, AP), "hub own@agents": ws_status("/agents/api/hub", f"https://{HOST}:{AP}", AP)}
+    ok("perimeter: a WebSocket from another site is refused — a page in the owner's browser can no longer read the event stream; the app's own sockets open",
+       wsx == {"hub evil": 403, "hub own": 101, "hub none": 101, "events evil": 403, "events own": 101, "hub evil@agents": 403, "hub own@agents": 101}, str(wsx))
+    # from inside the workspace: the control plane's published ports and the host itself are closed, Coder's port, the project gate and DNS work
+    wsip_p = ((get(f"/agents/api/core/projects/{P}")[1] or {}).get("workspace") or {}).get("ip") or ""; gw_p = ".".join(wsip_p.split(".")[:3] + ["1"])
+    probe = ("c() { curl -sk -m 6 -o /dev/null -w '%{http_code}' \"$1\"; }; "
+             f"echo \"API=$(c https://{HOST}/api/status) IP=$(c https://{gw_p}/api/status) AGENTS=$(c https://{HOST}:{AP}/agents/) CODER=$(c https://{HOST}:8444/api/v2/buildinfo) GATE=$(c http://llm.gate/v1/models) "
+             f"SSH=$(timeout 4 bash -c 'exec 3<>/dev/tcp/{gw_p}/22' 2>/dev/null && echo open || echo closed) DNS=$(getent hosts {HOST} >/dev/null && echo ok || echo fail) PERIM_END\"; sleep 1")
+    ppty = json.loads(raw(f"/agents/api/core/projects/{P}/ptys", "POST", json.dumps({"cmd": ["bash", "-lc", probe], "cwd": "/home/coder", "title": f"perimeter {MARK}"}).encode())[1] or b"{}").get("id")
+    ptxt = ""
+    for _ in range(40):
+        time.sleep(1); ptxt = (get(f"/agents/api/core/projects/{P}/ptys/{ppty}/text")[1] or {}).get("text", "") if ppty else ""
+        if "PERIM_END" in ptxt: break
+    if ppty: raw(f"/agents/api/core/projects/{P}/ptys/{ppty}", "DELETE")
+    pv = dict(re.findall(r"(API|IP|AGENTS|CODER|GATE|SSH|DNS)=(\w+)", ptxt.split("echo")[-1] if "PERIM_END" in ptxt else ""))
+    ok("perimeter: from inside a workspace the core API and «Agents» do not answer (by the stand's name and by the bridge address) and the host's sshd is closed, while Coder's port, the project gate and name resolution work as before",
+       pv.get("API") == "000" and pv.get("IP") == "000" and pv.get("AGENTS") == "000" and pv.get("CODER") == "200" and pv.get("GATE") not in (None, "000") and pv.get("SSH") == "closed" and pv.get("DNS") == "ok", str(pv) or ptxt[-200:])
     # ---- pwa: "Agents" as a separate app (docs/agents-ux.md §9.8): its own origin :8445, manifest, service worker, offline from the cache
     # ----
     AP = int(os.environ.get("AGENTS_PORT", "8445")); AH = f"{HOST}:{AP}"
@@ -2626,7 +3411,7 @@ with sync_playwright() as p:
     # the "Notifications" tab: the push block, the device list, the event kind
     # toggle
     pg.locator(".rail .nav[data-tip='Настройки']").click(); pg.locator(".subnav button:has-text('Уведомления')").click(); pg.wait_for_selector(".card-s.push", timeout=20000); time.sleep(1.2)
-    ok("pwa: the Notifications tab lists the subscribed device and the four event kinds", pg.locator(".push-device").count() == 1 and "127.0.0.1" in pg.locator(".push-device").inner_text() and pg.locator(".push-pref").count() == 4 and pg.locator(".push-pref[data-kind='done']").is_checked(), pg.locator(".push-devices").inner_text()[:160])
+    ok("pwa: the Notifications tab lists the subscribed device and the five event kinds", pg.locator(".push-device").count() == 1 and "127.0.0.1" in pg.locator(".push-device").inner_text() and pg.locator(".push-pref").count() == 5 and pg.locator(".push-pref[data-kind='done']").is_checked(), pg.locator(".push-devices").inner_text()[:160])
     pg.locator(".push-pref[data-kind='done']").uncheck(); time.sleep(0.8)
     ok("pwa: unchecking «finished turns» is saved on the server", (get("/agents/api/push")[1] or {}).get("prefs", {}).get("done") is False)
     pg.locator(".push-pref[data-kind='done']").check(); time.sleep(0.8)
@@ -2638,8 +3423,8 @@ with sync_playwright() as p:
     pw = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "claude", "title": f"push probe {MARK}", "permission_mode": "default"}).encode())[1] or b"{}")
     time.sleep(4); raw(f"/agents/api/core/projects/{P}/sessions/{pw['id']}/prompt", "POST", json.dumps({"content": f"Run this exact shell command with the Bash tool: touch push-ask-{MARK}.txt   (relative path, nothing else). Then reply with exactly: push-ask-{MARK}"}).encode())
     pwi = {}
-    for _ in range(40):
-        time.sleep(3); pwi = get(f"/agents/api/core/projects/{P}/sessions/{pw['id']}")[1] or {}
+    for _ in range(120):
+        time.sleep(1); pwi = get(f"/agents/api/core/projects/{P}/sessions/{pw['id']}")[1] or {}
         if pwi.get("info", {}).get("status") in ("waiting", "idle", "error"): break
     perm_push = None
     for _ in range(20):
@@ -2662,8 +3447,8 @@ with sync_playwright() as p:
         answered = pwp.evaluate("() => (window.__swm || []).find(m => m.kind === 'permission-answered') || null")
         if answered: break
         time.sleep(0.5)
-    for _ in range(40):
-        time.sleep(3); pwi = get(f"/agents/api/core/projects/{P}/sessions/{pw['id']}")[1] or {}
+    for _ in range(120):
+        time.sleep(1); pwi = get(f"/agents/api/core/projects/{P}/sessions/{pw['id']}")[1] or {}
         if pwi.get("info", {}).get("status") in ("idle", "error"): break
     done_push = None
     for _ in range(20):
@@ -2731,8 +3516,8 @@ with sync_playwright() as p:
         time.sleep(1)
         if op.locator(".composer-notice.outbox").count() == 0 and op.locator(f".thread .chat .m.user:has-text('outbox-{MARK}')").count() >= 1: sent_ok = True; break
     ok("pwa: back online, the queued message is sent by itself and appears in the conversation", sent_ok, f"notice={op.locator('.composer-notice.outbox').count()} users={op.locator('.thread .chat .m.user').count()}/{n_users0}")
-    for _ in range(40):
-        time.sleep(3); _oi = (get(f"/agents/api/core/projects/{P}/sessions/{sid}")[1] or {}).get("info", {})
+    for _ in range(120):
+        time.sleep(1); _oi = (get(f"/agents/api/core/projects/{P}/sessions/{sid}")[1] or {}).get("info", {})
         if _oi.get("status") == "idle": break
     # §9.10: a half-open socket during a live answer. Playwright's offline emulation neither breaks nor mutes open WebSockets, so we
     # mute them ourselves: the replaced WebSocket with window.__wsMute does not call onmessage/onopen (as after a network change on
@@ -2768,27 +3553,10 @@ with sync_playwright() as p:
     oc.close()
     # ---- live answer text as it goes (slice 39, docs/agents-ux.md §4.3.12): `delta` chunks over WebSocket → the .m.agent.live bubble grows, the finished message
     # replaces it
-    def live_check(label, sid_l):
-        pg.wait_for_selector(f".panel .sess[data-id='{sid_l}']", timeout=30000); pg.locator(f".panel .sess[data-id='{sid_l}']").click(); pg.wait_for_selector(".thread .pane .tabs", timeout=20000); pg.locator(".thread .pane .tabs .tab").first.click(); time.sleep(1)
-        last = max([e["seq"] for e in e_events(sid_l)] or [0])
-        e_prompt(sid_l, f"Write 30 numbered lines; line N must be exactly 'line N of thirty, token live-{MARK}'. No other text before or after.")
-        seen = []; t0 = time.time()
-        while time.time() - t0 < 75:
-            lb = pg.locator(".thread .chat .m.agent.live")
-            if lb.count(): seen.append(len(lb.first.inner_text()))
-            if len(seen) >= 2 and seen[-1] > seen[0]: break
-            time.sleep(0.1)
-        evl = e_wait(sid_l, lambda e: e["kind"] == "result" and e["seq"] > last, 150); rl = [e for e in e_results(evl) if e["seq"] > last]
-        try: pg.wait_for_selector(f".thread .chat .m.agent:has-text('live-{MARK}')", timeout=20000)
-        except Exception: pass
-        time.sleep(1.5); gone = pg.locator(".thread .chat .m.agent.live").count() == 0; final = pg.locator(f".thread .chat .m.agent:has-text('live-{MARK}')").count() >= 1
-        ok(f"live: {label} streams the answer while it is written — the live bubble appears and grows, then the journal message replaces it and no live bubble stays",
-           len(seen) >= 2 and seen[-1] > seen[0] and bool(rl) and rl[-1]["subtype"] == "success" and gone and final, f"seen={seen[:3]}…{seen[-2:]} n={len(seen)} gone={gone} final={final} result={[r['subtype'] for r in rl]}")
     if pg.locator(".top .seg button:has-text('Thread')").count(): pg.locator(".top .seg button:has-text('Thread')").click(); time.sleep(0.5)
-    live_check("Gemini CLI (ACP chunks)", gid)
     lc = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "claude", "title": f"live claude {MARK}"}).encode())[1] or b"{}"); lcid = lc.get("id")
     lx = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "codex", "title": f"live codex {MARK}"}).encode())[1] or b"{}"); lxid = lx.get("id")
-    if lcid: e_wait(lcid, lambda e: e["kind"] == "init", 90); live_check("Claude Code (stream_event text deltas)", lcid)
+    if lcid: live_check("Claude Code (stream_event text deltas)", lcid)   # no wait for init: Claude Code reports it with the first prompt
     if lxid: e_wait(lxid, lambda e: e["kind"] == "init", 120); live_check("Codex (item/agentMessage/delta)", lxid)
     if lxid:
         # Codex context window (§9.6): for GPT-6 Codex itself takes 272k (×0.95 = 258 400) — agentd passes model_context_window from the
@@ -2803,17 +3571,139 @@ with sync_playwright() as p:
             for _ in range(3):
                 if raw(f"/agents/api/core/projects/{P}/sessions/{sdel}", "DELETE")[0] in (204, 404): break
                 time.sleep(3)
-    for sdel in (gid, pid):
-        if sdel:
-            for _ in range(3):
-                if raw(f"/agents/api/core/projects/{P}/sessions/{sdel}", "DELETE")[0] in (204, 404): break
-                time.sleep(3)
-    ok("engines: probe sessions removed", (not gid or get(f"/agents/api/core/projects/{P}/sessions/{gid}")[0] == 404) and (not pid or get(f"/agents/api/core/projects/{P}/sessions/{pid}")[0] == 404))
+    # ---- notification channels (slice 99, docs/agents-ux.md §9.12): a webhook channel pointed at a receiver in this process — its secret is never given back and is out of the proxy's reach, "Check" delivers a signed body, a bound conversation tells that its turn has ended with the whole answer, its agent hands in a report with a file through the report box without seeing where it goes, a "once" binding goes away by itself
+    import hmac, hashlib
+    got_ch = []
+    class ChannelSink(http.server.BaseHTTPRequestHandler):
+        protocol_version = "HTTP/1.1"
+        def log_message(self, *a): pass
+        def do_POST(self):
+            n = int(self.headers.get("Content-Length") or 0); body = self.rfile.read(n)
+            got_ch.append({"path": self.path, "ctype": self.headers.get("Content-Type", ""), "sig": self.headers.get("X-AgentVerse-Signature", ""), "body": body, "t": time.time()})
+            self.close_connection = True; self.send_response(204); self.send_header("Content-Length", "0"); self.send_header("Connection", "close"); self.end_headers()
+    csrv = http.server.ThreadingHTTPServer(("127.0.0.1", 18799), ChannelSink); threading.Thread(target=csrv.serve_forever, daemon=True).start()
+    SINK = f"http://127.0.0.1:18799/sink-{MARK}"
+    def ch_json(path, method="GET", body=None):
+        st_x, b_x = raw(path, method, json.dumps(body).encode() if body is not None else None)
+        try: return st_x, json.loads(b_x or b"null")
+        except Exception: return st_x, {"raw": (b_x or b"")[:200].decode("utf-8", "replace")}
+    def payload_of(hit):
+        """The JSON a receiver got: the body itself, or the `payload_json` field of a multipart body"""
+        if "multipart" in hit["ctype"]:
+            m = re.search(rb'name="payload_json"\r\n\r\n(.*?)\r\n--', hit["body"], re.S); return (json.loads(m.group(1)) if m else {}), (m.group(1) if m else b"")
+        return json.loads(hit["body"] or b"{}"), hit["body"]
+    def sink_wait(pred, secs=60):
+        for _ in range(secs * 2):
+            hits = [h for h in got_ch if pred(payload_of(h)[0])]
+            if hits: return hits[-1]
+            time.sleep(0.5)
+        return None
+    # an address inside the stand is not taken unless the owner says so; with his word it is, and the body will be signed
+    st_no, no = ch_json("/agents/api/notify/channels", "POST", {"kind": "webhook", "name": f"e2e {MARK}", "url": SINK})
+    ok("channels: a webhook address inside the stand is refused unless marked as internal", st_no == 400 and "внутренний адрес" in str(no.get("error")), f"{st_no} {str(no)[:160]}")
+    st_c, chn = ch_json("/agents/api/notify/channels", "POST", {"kind": "webhook", "name": f"e2e {MARK}", "url": SINK, "internal": True, "origin": f"https://{HOST}"}); chid = chn.get("id") if isinstance(chn, dict) else None
+    skey = (chn or {}).get("signing_key", "")
+    ok("channels: the channel is made, signed, and its answer carries the signing key once and no address", st_c == 200 and bool(chid) and len(skey) == 64 and chn.get("signed") is True and chn.get("internal") is True and SINK not in json.dumps(chn) and chn.get("tail") == SINK[-4:], f"{st_c} {str({k: v for k, v in (chn or {}).items() if k != 'signing_key'})[:200]}")
+    if chid:
+        st_l, lst = ch_json("/agents/api/notify/channels"); shown = json.dumps(lst)
+        ok("channels: the list gives neither the address nor the key back", st_l == 200 and any(c.get("id") == chid for c in lst.get("channels", [])) and SINK not in shown and skey not in shown and "signing_key" not in shown)
+        # the core keeps the secrets for the services of its own host; a browser reaches them neither through the app's proxy nor through the edge
+        probes = [f"/agents/api/core/internal/secrets/notify:{chid}/url", f"/agents/api/core/internal/secrets/notify:{chid}/signing", f"/agents/api/core/projects/../internal/secrets/notify:{chid}/url", f"/api/internal/secrets/notify:{chid}/url", f"/api/internal/secrets/notify:{chid}/signing",
+                  # what an address parser silently drops from inside a word (a tab, a line break) and what it folds or decodes again: found by an independent reading of slice 99 — the proxy used to let these through
+                  f"/agents/api/core/in%09ternal/secrets/notify:{chid}/url", f"/agents/api/core/in%0Aternal/secrets/notify:{chid}/url", f"/agents/api/core/inter%0Dnal/secrets/notify:{chid}/signing", f"/agents/api/core/x/.%09./internal/secrets/notify:{chid}/url", f"/agents/api/core/%2569nternal/secrets/notify:{chid}/url", f"/agents/api/core/Internal/secrets/notify:{chid}/url"]
+        seen_p = [(pth, raw(pth)) for pth in probes]
+        # and straight at the core's loopback port, as any program on the host could: without the host's key there is nothing
+        try: lo = urllib.request.urlopen(urllib.request.Request(f"http://127.0.0.1:7100/api/internal/secrets/notify:{chid}/url"), timeout=10); lo_st, lo_b = lo.status, lo.read()
+        except urllib.error.HTTPError as e: lo_st, lo_b = e.code, e.read()
+        except Exception as e: lo_st, lo_b = 0, str(e).encode()
+        ok("channels: the core's loopback port gives no secret to a caller without the host's key", lo_st == 404 and SINK.encode() not in lo_b and b'"value"' not in lo_b, f"{lo_st} {lo_b[:80]!r}")
+        # the app's proxy answers 404; through the edge the core does not know such a path at all and gives what it gives for any unknown one — the Desktop shell
+        def refused(pth, stx, bx): return SINK.encode() not in (bx or b"") and skey.encode() not in (bx or b"") and b'"value"' not in (bx or b"") and (stx in (400, 404) if pth.startswith("/agents/") else stx in (400, 403, 404) or (bx or b"").lstrip().lower().startswith(b"<!doctype html"))
+        ok("channels: the secrets of a channel are out of a browser's reach — through the app's proxy and through the edge", all(refused(pth, stx, bx) for pth, (stx, bx) in seen_p), str([(pth[-34:], stx) for pth, (stx, _) in seen_p]))
+        # "Check": at once, signed as sent, and written into the journal of the channel
+        st_t, tst = ch_json(f"/agents/api/notify/channels/{chid}/test", "POST", {})
+        hit_t = sink_wait(lambda j: j.get("event") == "test", 15)
+        sig_ok = bool(hit_t) and hit_t["sig"] == "sha256=" + hmac.new(skey.encode(), hit_t["body"], hashlib.sha256).hexdigest()
+        ok("channels: «Check» delivers a body signed with the channel's key (X-AgentVerse-Signature)", st_t == 200 and tst.get("ok") is True and sig_ok and hit_t["path"] == f"/sink-{MARK}", f"{st_t} {tst} sig={bool(hit_t) and hit_t['sig'][:20]}")
+        st_j, jr = ch_json(f"/agents/api/notify/channels/{chid}/log")
+        ok("channels: the delivery is in the journal of the channel", st_j == 200 and (jr.get("log") or [{}])[0].get("event") == "test" and (jr.get("log") or [{}])[0].get("status") == "sent", str(jr)[:160])
+        # a conversation bound "once", with the whole answer and with reports allowed; its agent may run the report command and nothing else
+        cs = json.loads(raw(f"/agents/api/core/projects/{P}/sessions", "POST", json.dumps({"agent": "claude", "title": f"e2e channels {MARK}", "model": AGENT_MODEL if "AGENT_MODEL" in dir() else os.environ.get("AGENT_MODEL", "claude-haiku-5-5"), "allowed_tools": ["Bash(sh ~/.cloudos/bin/cloudos-report:*)"]}).encode())[1] or b"{}"); csid = cs.get("id")
+        st_b, bnd = ch_json("/agents/api/notify/bindings", "POST", {"channel": chid, "scope": "session", "project": P, "session": csid or "", "when": "once", "content": "full", "reports": True})
+        ok("channels: the conversation is bound — once, the whole answer, reports allowed", bool(csid) and st_b == 200 and bnd.get("when") == "once" and bnd.get("content") == "full" and bnd.get("reports") is True, f"{st_b} {str(bnd)[:160]}")
+        if csid and st_b == 200:
+            rdir = f"/home/coder/e2e-report-{MARK}"
+            raw(f"/agents/api/core/projects/{P}/fs/mkdir", "POST", json.dumps({"path": rdir}).encode())
+            raw(f"/agents/api/core/projects/{P}/fs/file?path={rdir}/report.md", "PUT", f"# Отчёт {MARK}\n\n- первая **строка**\n- вторая строка\n\n| имя | цена |\n|---|---|\n| A | 10 |\n".encode(), "application/octet-stream")
+            raw(f"/agents/api/core/projects/{P}/fs/file?path={rdir}/data.csv", "PUT", f"name,price\n{MARK},10\n".encode(), "application/octet-stream")
+            cmd = f"sh ~/.cloudos/bin/cloudos-report {csid} {rdir}/report.md {rdir}/data.csv"
+            st_p, _ = raw(f"/agents/api/core/projects/{P}/sessions/{csid}/prompt", "POST", json.dumps({"content": f"Run exactly this one command with the Bash tool and nothing else:\n{cmd}\nThen reply with exactly one line: channel-says=<the first word of its output>"}).encode())
+            ctext = ""; cstat = ""; cevs = []
+            for _ in range(150):
+                time.sleep(1); ci = (get(f"/agents/api/core/projects/{P}/sessions/{csid}")[1] or {}).get("info", {}); cstat = ci.get("status", "")
+                cevs = get(f"/agents/api/core/projects/{P}/sessions/{csid}/events?since=0&limit=200")[1] or []
+                ctext = " ".join(str(b_.get("text", "")) for e in cevs if e.get("kind") == "assistant" for b_ in (e.get("content") or []) if isinstance(b_, dict) and b_.get("type") == "text")
+                if "channel-says=" in ctext and cstat == "idle": break
+                if cstat in ("error", "exited"): break
+            first_user = next((e.get("content") if isinstance(e.get("content"), str) else " ".join(str(b_.get("text", "")) for b_ in (e.get("content") or []) if isinstance(b_, dict)) for e in cevs if e.get("kind") == "user"), "")
+            ok("channels: the owner's message reached the agent with the note about its report box after it (the name of the conversation stays the owner's)", st_p == 200 and first_user.startswith("Run exactly this one command") and "# Отчёты владельцу" in first_user and f"cloudos-report {csid}" in first_user, first_user[:80])
+            ok("channels: the note names neither the channel nor its address", "127.0.0.1:18799" not in first_user and f"e2e {MARK}" not in first_user and "webhook" not in first_user.lower())
+            ok("channels: the agent ran the report command and got «sent» from the service", "channel-says=sent" in ctext.replace(" ", ""), f"status={cstat} text={ctext[-140:]!r}")
+            hit_r = sink_wait(lambda j: j.get("event") == "report", 30)
+            rj, rraw = payload_of(hit_r) if hit_r else ({}, b"")
+            ok("channels: the report arrived with its text, its file and a valid signature", bool(hit_r) and "multipart" in hit_r["ctype"] and rj.get("project") == P and rj.get("session") == csid and f"# Отчёт {MARK}" in rj.get("text", "") and [f.get("name") for f in rj.get("files", [])] == ["data.csv"] and f"{MARK},10".encode() in hit_r["body"] and hit_r["sig"] == "sha256=" + hmac.new(skey.encode(), rraw, hashlib.sha256).hexdigest(), f"{str(rj)[:200]}")
+            notes_c = [str((e.get("data") or {}).get("message", "")) for e in cevs if e.get("kind") == "system" and e.get("subtype") == "agent_note"]
+            ok("channels: the report is a line in the conversation — and the line does not name the channel (the journal is a file in the workspace)", any(f"отчёт «Отчёт {MARK}»" in n and "отправлен владельцу ✓" in n and "файлов: 1" in n for n in notes_c) and not any(f"e2e {MARK}" in n or "127.0.0.1" in n for n in notes_c), str(notes_c)[:200])
+            box = get(f"/agents/api/core/projects/{P}/fs?path=/home/coder/.cloudos/outbox/{csid}")[1] or {}
+            ok("channels: the box is empty after the report was taken", isinstance(box, dict) and not [e for e in box.get("entries", []) if e.get("name", "").startswith("r-")], str(box)[:160])
+            # the «once» binding is gone with the end of the turn: the box is closed, so that the agent's script would answer at once
+            for _ in range(20):
+                box2 = get(f"/agents/api/core/projects/{P}/fs?path=/home/coder/.cloudos/outbox/{csid}")[1] or {}
+                if not any(e.get("name") == ".open" for e in (box2.get("entries") or [])): break
+                time.sleep(1)
+            ok("channels: the box is closed once reports are no longer allowed", isinstance(box2, dict) and not any(e.get("name") == ".open" for e in (box2.get("entries") or [])), str(box2)[:160])
+            # the turn has ended: the bound channel hears it once, with the whole answer; the "once" binding is gone
+            hit_d = sink_wait(lambda j: j.get("event") == "done" and j.get("session") == csid, 40)
+            dj = payload_of(hit_d)[0] if hit_d else {}
+            ok("channels: the end of the turn is told with the whole answer and a link back to the conversation", bool(hit_d) and "channel-says=" in dj.get("text", "") and dj.get("title") == f"{P} · e2e channels {MARK}" and dj.get("url") == f"https://{HOST}/agents/?open={P}/{csid}" and "ход завершён" in dj.get("line", ""), str(dj)[:220])
+            left_b = [b_ for c in (ch_json("/agents/api/notify/channels")[1] or {}).get("channels", []) if c.get("id") == chid for b_ in c.get("bindings", [])]
+            ok("channels: a «once» binding goes away after the turn it waited for", left_b == [], str(left_b)[:160])
+            # in the app: the note is folded in the feed, the report line is there, the header no longer says the conversation reports
+            try:
+                pg.goto(f"https://{HOST}/agents/?open={P}/{csid}", wait_until="load"); pg.wait_for_selector(".thread .chat .m.user", timeout=30000); time.sleep(1.5)
+                um = pg.locator(".thread .chat .m.user").first.inner_text()
+                ok("channels: in the feed the note is folded into one line next to the owner's own words", "агенту рассказано, как прислать владельцу отчёт" in um and "Отчёты владельцу" not in um and "Владелец разрешил" not in um and "Run exactly this one command" in um, um[:160].replace("\n", " | "))
+                ok("channels: the report line is in the feed", pg.locator(".thread .chat .m.sys", has_text=f"отчёт «Отчёт {MARK}»").count() >= 1)
+                ok("channels: with the binding gone the header carries no mark", pg.locator(".thread .thread-menu.ntf-on").count() == 0)
+            except Exception as e: ok("channels: the conversation with a report opens in the app", False, str(e)[:160])
+            raw(f"/agents/api/core/projects/{P}/fs?path={rdir}&recursive=1", "DELETE")
+        # Settings → Notifications: the card shows the channel without its address
+        try:
+            pg.goto(f"https://{HOST}/agents/?section=settings&tab=notify", wait_until="load"); pg.wait_for_selector(f".ntf-card .ntf-ch[data-id='{chid}']", timeout=30000)
+            card_t = pg.locator(f".ntf-card .ntf-ch[data-id='{chid}']").inner_text()
+            ok("channels: the card in Settings shows the host and a tail of the address, the count of the day, and no address", "127.0.0.1" in card_t and SINK not in card_t and "сегодня отправлено:" in card_t and "привязок нет — канал молчит" in card_t, card_t[:200].replace("\n", " | "))
+        except Exception as e: ok("channels: the card in Settings", False, str(e)[:160])
+        if csid:
+            for _ in range(4):
+                if raw(f"/agents/api/core/projects/{P}/sessions/{csid}", "DELETE")[0] in (204, 404): break
+                time.sleep(2)
+        st_d, _ = raw(f"/agents/api/notify/channels/{chid}", "DELETE")
+        after = ch_json("/agents/api/notify/channels")[1] or {}
+        ok("channels: deleting the channel removes it with its bindings", st_d == 204 and not any(c.get("id") == chid for c in after.get("channels", [])), str(st_d))
+    csrv.shutdown()
     b.close()
 if sid:
-    for _ in range(2):
-        try: urllib.request.urlopen(urllib.request.Request(f"https://{HOST}/agents/api/core/projects/{P}/sessions/{sid}", method="DELETE"), context=ctx_ssl, timeout=30)
+    for _ in range(6):   # the first DELETE of a live session only stops it (202): repeat until it is gone
+        try:
+            if raw(f"/agents/api/core/projects/{P}/sessions/{sid}", "DELETE")[0] in (204, 404): break
         except Exception: pass
-        time.sleep(3)
+        time.sleep(1)
     ok("cleanup: session removed", get(f"/agents/api/core/projects/{P}/sessions/{sid}")[0] == 404)
+    # the canvas layout is shared with the owner and lives in the core: the card of the run's session would stay there until
+    # the next visit with this workspace running
+    try:
+        lay_c = get("/agents/api/core/agents/layout")[1] or {}
+        kept_c = [c for c in (lay_c.get("cards") or []) if c.get("id") != sid]
+        if len(kept_c) != len(lay_c.get("cards") or []): lay_c["cards"] = kept_c; raw("/agents/api/core/agents/layout", "PUT", json.dumps(lay_c).encode())
+    except Exception: pass
 print("ALL PASS" if all(res) else "SOME FAIL")

@@ -17,11 +17,18 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:8080/
       timeout: 20s
-    image: lissy93/dashy
+    image: lissy93/dashy:4.9.18
     networks:
       appnet:
         aliases:
         - dashy-coolify_dashy_1
     restart: unless-stopped
     volumes:
-    - ./dashy/conf.yml:/app/public/conf.yml
+    - dashy-user-data:/app/user-data
+volumes:
+  dashy-user-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/dashy-user-data
+      o: bind
+      type: none

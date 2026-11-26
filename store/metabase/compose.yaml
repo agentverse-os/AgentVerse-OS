@@ -9,7 +9,7 @@ services:
       JAVA_TIMEZONE: ${TZ}
       MB_DB_FILE: /metabase-data/metabase.db
       MGID: ${GID-1000}
-    image: metabase/metabase:v0.63.15
+    image: metabase/metabase:v0.65.4
     networks:
       appnet:
         aliases:

@@ -7,7 +7,8 @@ services:
   web:
     environment:
     - NODE_ENV=production
-    image: ghcr.io/fccview/jotty:1.26.1@sha256:20fce87deab74c3b1758126f288fb230a7982a024103b9d65bb8479cede2c405
+    - INTERNAL_API_URL=http://localhost:3000
+    image: ghcr.io/fccview/jotty:1.30.0@sha256:4face8fd1049d1ec3813f3da949d69fb68703f0f8421902a7a2de8ba3f1d61a6
     networks:
       appnet:
         aliases:

@@ -18,7 +18,7 @@ services:
       - ctl
       - status
       timeout: 30s
-    image: emqx/emqx-enterprise:6.2.0
+    image: emqx/emqx-enterprise:6.3.3
     networks:
       appnet:
         aliases:

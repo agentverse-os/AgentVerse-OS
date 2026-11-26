@@ -12,9 +12,9 @@ env:
   APP_PASSWORD:
     generate: password
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/urbit/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/urbit/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/urbit/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/urbit/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/urbit/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/urbit/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

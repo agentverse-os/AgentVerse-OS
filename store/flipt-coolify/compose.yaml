@@ -17,7 +17,7 @@ services:
       - --quiet
       - http://127.0.0.1:8080
       timeout: 10s
-    image: docker.flipt.io/flipt/flipt:latest
+    image: docker.flipt.io/flipt/flipt:v1.62.0
     networks:
       appnet:
         aliases:

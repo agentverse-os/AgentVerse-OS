@@ -13,7 +13,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: ${TZ}
-    image: b3log/siyuan:v3.8.2
+    image: b3log/siyuan:v3.8.10
     networks:
       appnet:
         aliases:

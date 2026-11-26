@@ -23,7 +23,7 @@ services:
       - -e
       - 'require(''http'').get(''http://127.0.0.1:52345/health'', r => process.exit(r.statusCode === 200 ? 0 : 1)).on(''error'', () => process.exit(1))'
       timeout: 5s
-    image: ghcr.io/bluewave-labs/checkmate-backend-mono-multiarch:v3.2.0
+    image: ghcr.io/bluewave-labs/checkmate-backend-mono-multiarch:v3.9.2
     networks:
       appnet:
         aliases:
@@ -44,7 +44,7 @@ services:
       - db.adminCommand('ping')
       - --quiet
       timeout: 30s
-    image: ghcr.io/bluewave-labs/checkmate-mongo:v3.2.0
+    image: ghcr.io/bluewave-labs/checkmate-mongo:v3.9.2
     networks:
       appnet:
         aliases:

@@ -9,14 +9,22 @@ endpoint:
   port: 3000
   service: forgejo
 env:
+  FORGEJO_ADMIN_EMAIL: admin@example.com
+  FORGEJO_SSH_PORT: '22222'
   MYSQL_DATABASE: forgejo
-  RUNNER_SHARED_SECRET: '0000000000000000000000000000000000000000'
+  SERVICE_FQDN_FORGEJO: ${APP_DOMAIN}
+  SERVICE_HEX_64_RUNNER:
+    generate: hex64
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
   SERVICE_PASSWORD_MYSQL:
     generate: password
   SERVICE_PASSWORD_MYSQLROOT:
     generate: password
   SERVICE_URL_FORGEJO: https://${APP_DOMAIN}
   SERVICE_URL_FORGEJO_3000: https://${APP_DOMAIN}
+  SERVICE_USER_ADMIN:
+    generate: password
   SERVICE_USER_MYSQL:
     generate: password
 gallery: []
@@ -25,14 +33,14 @@ hooks: {}
 host_docker_socket: false
 icon: ./logo.svg
 login:
-  mode: app
+  mode: generated
   note: null
-  password: null
+  password: SERVICE_PASSWORD_ADMIN
   path: null
-  user: null
+  user: SERVICE_USER_ADMIN
 name: forgejo-with-runner-with-mariadb-coolify
 notes:
-- 'порт 22222:22 (forgejo) не публикуется: доступ только через edge/gate'
+- 'порт ${FORGEJO_SSH_PORT:-22222}:22 (forgejo) не публикуется: доступ только через edge/gate'
 origin: coolify
 provides: []
 readme: null
@@ -42,18 +50,24 @@ route:
   open: iframe
 schema: 1
 settings:
+- env: FORGEJO_SSH_PORT
+  hint: 'по умолчанию: 22222'
+  label: forgejo ssh port
+  options: null
+  required: false
+  type: text
 - env: MYSQL_DATABASE
   hint: 'по умолчанию: forgejo'
   label: mysql database
   options: null
   required: false
   type: text
-- env: RUNNER_SHARED_SECRET
-  hint: 'по умолчанию: 0000000000000000000000000000000000000000'
-  label: runner shared secret
+- env: FORGEJO_ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: forgejo admin email
   options: null
   required: false
-  type: password
+  type: text
 tags:
 - version control
 - collaboration

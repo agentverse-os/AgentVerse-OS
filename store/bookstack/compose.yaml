@@ -8,14 +8,14 @@ services:
     depends_on:
     - bookstack-db
     environment:
-      APP_KEY: base64:${APP_KEY}
-      APP_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
-      DB_DATABASE: bookstackapp
-      DB_HOST: bookstack-db
-      DB_PASSWORD: ${BOOKSTACK_DB_PASS}
-      DB_USERNAME: tipi
-      TZ: ${TZ}
-    image: lscr.io/linuxserver/bookstack:26.05.20260608
+    - TZ=${TZ}
+    - APP_URL=${APP_PROTOCOL:-http}://${APP_DOMAIN}
+    - APP_KEY=base64:${APP_KEY}
+    - DB_HOST=bookstack-db
+    - DB_USERNAME=tipi
+    - DB_PASSWORD=${BOOKSTACK_DB_PASS}
+    - DB_DATABASE=bookstackapp
+    image: lscr.io/linuxserver/bookstack:26.09.20260929
     networks:
       appnet:
         aliases:
@@ -25,11 +25,11 @@ services:
     - ${APP_DATA_DIR}/data/config:/config
   bookstack-db:
     environment:
-      MYSQL_DATABASE: bookstackapp
-      MYSQL_PASSWORD: ${BOOKSTACK_DB_PASS}
-      MYSQL_ROOT_PASSWORD: ${ROOT_ACCESS_PASSWORD}
-      MYSQL_USER: tipi
-      TZ: ${TZ}
+    - TZ=${TZ}
+    - MYSQL_ROOT_PASSWORD=${ROOT_ACCESS_PASSWORD}
+    - MYSQL_DATABASE=bookstackapp
+    - MYSQL_USER=tipi
+    - MYSQL_PASSWORD=${BOOKSTACK_DB_PASS}
     image: lscr.io/linuxserver/mariadb
     networks:
       appnet:

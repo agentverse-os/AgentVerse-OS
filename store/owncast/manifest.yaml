@@ -40,6 +40,6 @@ upstream:
   categories:
   - media
   source: https://github.com/owncast/owncast
-  tipi_version: 13
-  version: 0.2.5
+  tipi_version: 15
+  version: 0.3.0
 website: https://github.com/owncast/owncast

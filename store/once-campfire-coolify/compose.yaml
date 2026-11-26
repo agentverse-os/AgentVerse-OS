@@ -23,7 +23,7 @@ services:
       - -f
       - http://localhost/up
       timeout: 5s
-    image: ghcr.io/basecamp/once-campfire:${TAG:-main}
+    image: ghcr.io/basecamp/once-campfire:${TAG:-v1.5.10}
     networks:
       appnet:
         aliases:

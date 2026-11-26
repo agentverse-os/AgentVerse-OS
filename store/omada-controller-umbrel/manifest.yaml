@@ -1,0 +1,48 @@
+# Imported from the umbrel catalog by `cloudd store import umbrel`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/omada-controller-umbrel
+description: Manage your TP-Link Omada network from your Umbrel
+endpoint:
+  port: 8074
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/omada-controller/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/omada-controller/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/omada-controller/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/omada-controller/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: omada-controller-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Omada Controller
+type: app
+upstream:
+  author: TP-Link
+  categories:
+  - networking
+  release_notes: null
+  source: https://github.com/mbentley/docker-omada-controller
+  version: 6.3.0.111
+  website: https://www.omadanetworks.com
+website: https://www.omadanetworks.com

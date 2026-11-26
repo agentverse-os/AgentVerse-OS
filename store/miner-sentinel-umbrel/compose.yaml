@@ -18,8 +18,8 @@ services:
     environment:
       ALLOWED_HOSTS: '*'
       API_BASE_URL: http://${DEVICE_DOMAIN_NAME}:3082
-      CORS_ALLOWED_ORIGINS: http://${DEVICE_DOMAIN_NAME}:3082,http://*.ts.net:3082
-      CSRF_TRUSTED_ORIGINS: http://${DEVICE_DOMAIN_NAME}:3082,http://*.ts.net:3082
+      CORS_ALLOWED_ORIGINS: http://${DEVICE_DOMAIN_NAME}:3082,https://${DEVICE_DOMAIN_NAME}:3082,http://${DEVICE_HOSTNAME}:3082,https://${DEVICE_HOSTNAME}:3082,http://*.ts.net:3082,${APP_MINER_SENTINEL_LOCAL_URLS}
+      CSRF_TRUSTED_ORIGINS: http://${DEVICE_DOMAIN_NAME}:3082,https://${DEVICE_DOMAIN_NAME}:3082,http://${DEVICE_HOSTNAME}:3082,https://${DEVICE_HOSTNAME}:3082,http://*.ts.net:3082,${APP_MINER_SENTINEL_LOCAL_URLS}
       DJANGO_DEBUG: 'False'
       DJANGO_SECRET_KEY: ${APP_SEED}
       DJANGO_SUPERUSER_EMAIL: admin@umbrel.local
@@ -30,7 +30,7 @@ services:
       POSTGRES_PASSWORD: minersentinel
       POSTGRES_PORT: 5432
       POSTGRES_USER: minersentinel
-    image: dcbert/minersentinel-backend:v1.0.3@sha256:a890925f66df5b3f80334fe9d00c02f027e282d77015613a5b08925adfa5523b
+    image: dcbert/minersentinel-backend:v1.2.0@sha256:d2bb7fd12bf2b06705ead137f56f9101e6bfc761bc9bdce2e5fac83e93e9a49e
     networks:
       appnet:
         aliases:
@@ -45,6 +45,7 @@ services:
       AVALON_POLL_INTERVAL: 60
       BACKEND_URL: http://miner-sentinel_backend_1:8000
       BITAXE_POLL_INTERVAL: 60
+      DISCORD_WEBHOOK_URL: ''
       POOL_POLL_INTERVAL: 300
       POSTGRES_DB: minersentinel
       POSTGRES_HOST: miner-sentinel_db_1
@@ -53,7 +54,7 @@ services:
       POSTGRES_USER: minersentinel
       TELEGRAM_BOT_TOKEN: ''
       TELEGRAM_CHAT_ID: ''
-    image: dcbert/minersentinel-data-service:v1.0.3@sha256:ce4b2a955dc70e5c3fd897c910e8a7a525b6133ff37e49f0a7f7a7f6239b5bc4
+    image: dcbert/minersentinel-data-service:v1.2.0@sha256:9fab2cce9d5b0591ca7f14b7b1af078e84cae4edd261d0d4d86d19444e4bf623
     networks:
       appnet:
         aliases:
@@ -72,7 +73,7 @@ services:
       - CMD-SHELL
       - pg_isready -U minersentinel
       timeout: 5s
-    image: postgres:17.7@sha256:bac8128cd62a35471a1e97966861aa2ac88c8d2f408767a425ae70695a607c99
+    image: postgres:17.7@sha256:2006493727bd5277eece187319af1ef82b4cf82cf4fc1ed00da0775b646ac2a4
     networks:
       appnet:
         aliases:
@@ -87,7 +88,7 @@ services:
     - backend
     environment:
       VITE_API_URL: http://${DEVICE_DOMAIN_NAME}:3082
-    image: dcbert/minersentinel-frontend:v1.0.3@sha256:e4ac190cbf5cdb9c6959b59bdff70d6135c34c18bf492b6b0303bbfd75489e59
+    image: dcbert/minersentinel-frontend:v1.2.0@sha256:f98ece2ebc2fea9fe9cf0b8363fc1e917783c4185cdb3498bbd6a1c495fed074
     networks:
       appnet:
         aliases:

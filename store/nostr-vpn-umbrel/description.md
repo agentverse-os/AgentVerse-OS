@@ -1,3 +1,5 @@
 Nostr VPN turns your Umbrel into a private mesh VPN node for your own devices and trusted groups. Approve signed join-request QRs, manage peers, and route traffic through trusted exit nodes without relying on a hosted VPN provider or a central control server.
 
+Before updating or uninstalling this app, turn VPN off using the switch inside Nostr VPN and wait until it shows "VPN off". This releases connection protection so Umbrel can access the Internet. VPN routing and protection are paused until you turn VPN back on. Use a local connection to Umbrel for these steps.
+
 To connect a device, choose Join on the device you want to add so it displays its signed QR code or link. On your Umbrel, scan or paste that request, review it, and accept it. The joining device then receives the signed network roster and your devices can reach each other using their private Nostr VPN IPs.

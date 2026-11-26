@@ -12,6 +12,7 @@ env:
   ALLOWED_EMAILS: ''
   POSTGRES_DB: rallly
   POSTGRES_USER: ''
+  REGISTRATION_ENABLED: 'true'
   SERVICE_PASSWORD_64_RALLLY:
     generate: hex64
   SERVICE_PASSWORD_POSTGRES:
@@ -24,8 +25,8 @@ env:
   SMTP_PORT: ''
   SMTP_PWD: ''
   SMTP_SECURE: 'false'
+  SMTP_TLS_ENABLED: 'false'
   SMTP_USER: ''
-  SUPPORT_EMAIL: support@example.com
 gallery: []
 health: null
 hooks: {}
@@ -60,15 +61,15 @@ settings:
   options: null
   required: false
   type: text
-- env: ALLOWED_EMAILS
-  hint: null
-  label: allowed emails
+- env: REGISTRATION_ENABLED
+  hint: 'по умолчанию: true'
+  label: registration enabled
   options: null
   required: false
   type: text
-- env: SUPPORT_EMAIL
-  hint: 'по умолчанию: support@example.com'
-  label: support email
+- env: ALLOWED_EMAILS
+  hint: null
+  label: allowed emails
   options: null
   required: false
   type: text
@@ -99,6 +100,12 @@ settings:
 - env: SMTP_PWD
   hint: null
   label: smtp pwd
+  options: null
+  required: false
+  type: text
+- env: SMTP_TLS_ENABLED
+  hint: 'по умолчанию: false'
+  label: smtp tls enabled
   options: null
   required: false
   type: text

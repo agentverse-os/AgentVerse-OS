@@ -4,25 +4,36 @@ auth: own
 compose: ./compose.yaml
 data:
 - tank/apps/lobe-chat-coolify
-description: An open-source, modern-design AI chat framework.
+description: LobeHub (formerly Lobe Chat) is an open-source AI chat and agent workspace for many model providers.
 endpoint:
   port: 3210
-  service: lobe-chat
+  service: rustfs
 env:
   OPENAI_API_KEY: ''
   OPENAI_BASE_URL: https://api.openai.com/v1
-  SERVICE_PASSWORD_ACCESSCODE:
+  POSTGRES_DB: lobechat
+  S3_BUCKET: lobe
+  SERVICE_PASSWORD_POSTGRES:
     generate: password
+  SERVICE_PASSWORD_RUSTFS:
+    generate: password
+  SERVICE_REALBASE64_32:
+    generate: hex64
+  SERVICE_URL_LOBECHAT: https://${APP_DOMAIN}
   SERVICE_URL_LOBECHAT_3210: https://${APP_DOMAIN}
+  SERVICE_URL_RUSTFS: https://${APP_DOMAIN}
+  SERVICE_URL_RUSTFS_9000: https://${APP_DOMAIN}
+  SERVICE_USER_RUSTFS:
+    generate: password
 gallery: []
 health: null
 hooks: {}
 host_docker_socket: false
 icon: ./logo.png
 login:
-  mode: generated
+  mode: app
   note: null
-  password: SERVICE_PASSWORD_ACCESSCODE
+  password: null
   path: null
   user: null
 name: lobe-chat-coolify
@@ -36,6 +47,18 @@ route:
   open: iframe
 schema: 1
 settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: lobechat'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: S3_BUCKET
+  hint: 'по умолчанию: lobe'
+  label: s3 bucket
+  options: null
+  required: false
+  type: text
 - env: OPENAI_API_KEY
   hint: null
   label: openai api key
@@ -54,17 +77,21 @@ tags:
 - openai
 - llm
 - chatbot
+- agent
+- lobehub
 title: Lobe Chat
 type: app
 upstream:
   categories:
   - ai
-  source: https://github.com/lobehub/lobe-chat?tab=readme-ov-file#b-deploying-with-docker
+  source: https://lobehub.com/docs/self-hosting/platform/docker-compose
   tags:
   - ai
   - chat
   - openai
   - llm
   - chatbot
+  - agent
+  - lobehub
   template: lobe-chat.yaml
-website: https://github.com/lobehub/lobe-chat?tab=readme-ov-file#b-deploying-with-docker
+website: https://lobehub.com/docs/self-hosting/platform/docker-compose

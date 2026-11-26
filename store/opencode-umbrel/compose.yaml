@@ -13,7 +13,7 @@ services:
     - '4096'
     environment:
       HOME: /home/opencode
-    image: ghcr.io/anomalyco/opencode:1.18.26@sha256:494e9bc5de428686aa6656141f231a67aa4d2e8abd55080367277edb88c3f3ba
+    image: ghcr.io/anomalyco/opencode:1.19.6@sha256:de0dcdfb45b47080f9c01770cdd1c7af514cc2fb3dcd6cc3253b792fadb92dfa
     networks:
       appnet:
         aliases:

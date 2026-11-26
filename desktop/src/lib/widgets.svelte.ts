@@ -2,7 +2,7 @@
 // layout per device class, storage in the core (kv desktop.settings.widgets) and localStorage. On the phone —
 // a column without dragging.
 import { api } from './api';
-import { deviceClass } from './windows.svelte';
+import { deviceClass, wm } from './windows.svelte';
 
 export type WidgetType = 'monitor' | 'news' | 'clock' | 'projects' | 'health' | 'events' | 'notes' | 'apps' | 'weather';
 export interface WidgetInst { id: string; type: WidgetType; x: number; y: number; w: number; h: number; config: Record<string, any> }
@@ -51,6 +51,28 @@ class WidgetStore {
   picker = $state(false);
   private timer: ReturnType<typeof setTimeout> | undefined;
   private loaded = false;
+  /** The layout as drawn (id → rectangle): the saved one fitted into the current screen. The saved layout is not rewritten, so
+   *  one made on a wide monitor comes back there intact. A widget that would stick out is moved inside; a column taller than
+   *  the screen is compressed — first the gaps, then the heights (the content of a widget scrolls). */
+  fitted = $derived.by(() => {
+    const out = new Map<string, { x: number; y: number; w: number; h: number }>();
+    const area = wm.workArea(), M = 12, MIN_H = 96;
+    const rs = this.items.map(w => { const W = Math.min(w.w, area.w - M * 2); return { id: w.id, x: Math.max(M, Math.min(w.x, area.w - W - M)), y: Math.max(0, w.y), w: W, h: Math.min(w.h, area.h - M) }; });
+    const cols: (typeof rs)[] = [];
+    for (const r of [...rs].sort((a, b) => a.y - b.y)) { const c = cols.find(c => c.some(o => r.x < o.x + o.w && o.x < r.x + r.w)); if (c) c.push(r); else cols.push([r]); }
+    for (const c of cols) {
+      const bottom = Math.max(...c.map(r => r.y + r.h));
+      if (bottom > area.h - 6) {
+        let y = Math.min(c[0].y, M);
+        const gaps = c.map((r, i) => i ? Math.min(10, Math.max(0, r.y - (c[i - 1].y + c[i - 1].h))) : 0);
+        const room = area.h - 6 - y - gaps.reduce((a, b) => a + b, 0), need = c.reduce((a, r) => a + r.h, 0);
+        const f = Math.min(1, room / need);
+        c.forEach((r, i) => { y += gaps[i]; r.y = Math.round(y); r.h = Math.max(MIN_H, Math.floor(r.h * f)); y += r.h; });
+      }
+      for (const r of c) out.set(r.id, r);
+    }
+    return out;
+  });
 
   constructor() {
     // an empty list counts as a "setting" only if the user explicitly removed all widgets (the cleared

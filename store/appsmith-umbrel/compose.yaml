@@ -8,7 +8,7 @@ services:
     environment:
       APPSMITH_ENCRYPTION_PASSWORD: ${APP_PASSWORD}
       APPSMITH_ENCRYPTION_SALT: ${APP_PASSWORD}
-    image: appsmith/appsmith-ce:v2.3@sha256:6e6ff29dc25f359793a6031f1ec7acf6bbdbb95e36f3a33e366ba4c14a929b3a
+    image: appsmith/appsmith-ce:v2.7.1@sha256:0d2f4d4122b47e0a0b80fe7681d7bf8dfb4b14ccb9f6ee3e6092968c22c04b15
     networks:
       appnet:
         aliases:

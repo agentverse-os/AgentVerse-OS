@@ -14,7 +14,6 @@ env:
   AUTHENTICATION_APIKEY_USERS: admin@example.com
   AUTHORIZATION_ADMINLIST_USERS: admin@example.com
   CLUSTER_HOSTNAME: node1
-  DEFAULT_VECTORIZER_MODULE: none
   DISABLE_TELEMETRY: 'true'
   ENABLE_MODULES: text2vec-openai,generative-openai,qna-openai
   GOMAXPROCS: '2'
@@ -100,12 +99,6 @@ settings:
   options: null
   required: false
   type: password
-- env: DEFAULT_VECTORIZER_MODULE
-  hint: 'по умолчанию: none'
-  label: default vectorizer module
-  options: null
-  required: false
-  type: text
 - env: ENABLE_MODULES
   hint: 'по умолчанию: text2vec-openai,generative-openai,qna-openai'
   label: enable modules

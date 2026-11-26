@@ -6,7 +6,7 @@ networks:
 services:
   proxy:
     command: -log /data/snowflake.log -verbose
-    image: thetorproject/snowflake-proxy:v2.14.1@sha256:1ded2a9bbb5d67d41f3c11f6b392b8a2735964e7b070e1bcb1278fddf28f90a4
+    image: thetorproject/snowflake-proxy:v2.15.4@sha256:7d442bc13392fd3f4ab67ff7c457773ccfc4996e25f14c67081b9375c690e367
     networks:
       appnet:
         aliases:

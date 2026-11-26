@@ -10,22 +10,31 @@ services:
     - SYS_ADMIN
     - SYS_RESOURCE
     environment:
-    - NB_SETUP_KEY=${NB_SETUP_KEY}
+    - NB_SETUP_KEY=
+    - NB_MANAGEMENT_URL=${NB_MANAGEMENT_URL:-https://api.netbird.io:443}
     - NB_ENABLE_ROSENPASS=${NB_ENABLE_ROSENPASS:-false}
-    - NB_ENABLE_EXPERIMENTAL_LAZY_CONN=${NB_ENABLE_EXPERIMENTAL_LAZY_CONN:-false}
+    - NB_LAZY_CONN=${NB_LAZY_CONN:-off}
+    - NB_LOG_LEVEL=${NB_LOG_LEVEL:-info}
+    - NB_DISABLE_DNS=${NB_DISABLE_DNS:-false}
+    - NB_ALLOW_SERVER_SSH=${NB_ALLOW_SERVER_SSH:-false}
     healthcheck:
-      interval: 5s
+      interval: 10s
       retries: 10
+      start_period: 30s
       test:
       - CMD
       - netbird
-      - version
-      timeout: 20s
-    image: netbirdio/netbird:latest
+      - status
+      - --check
+      - ready
+      timeout: 10s
+    image: netbirdio/netbird:0.83.1
     network_mode: host
     restart: unless-stopped
+    uts: host
     volumes:
     - netbird-client:/var/lib/netbird
+    - /etc/os-release:/etc/os-release:ro
 volumes:
   netbird-client:
     driver: local

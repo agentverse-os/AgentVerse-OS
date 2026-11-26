@@ -19,7 +19,7 @@ services:
       - -f
       - http://127.0.0.1:6555
       timeout: 10s
-    image: lscr.io/linuxserver/embystat:latest
+    image: lscr.io/linuxserver/embystat:0.2.0
     networks:
       appnet:
         aliases:

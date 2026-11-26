@@ -28,7 +28,7 @@ services:
       test:
       - CMD
       - 'true'
-    image: 1dev/server:latest
+    image: 1dev/server:17.2.0
     networks:
       appnet:
         aliases:

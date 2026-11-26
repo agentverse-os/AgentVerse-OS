@@ -35,7 +35,7 @@ services:
       - -f
       - http://127.0.0.1:30000
       timeout: 5s
-    image: felddy/foundryvtt:release
+    image: felddy/foundryvtt:14.370.0
     networks:
       appnet:
         aliases:

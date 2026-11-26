@@ -16,9 +16,10 @@ services:
       setup-config:
         condition: service_completed_successfully
     environment:
-    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/$POSTGRES_DB
+    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/${POSTGRES_DB:-hatchet}
     - SERVICE_URL_HATCHET_80=${SERVICE_URL_HATCHET_80}
-    image: ghcr.io/hatchet-dev/hatchet/hatchet-dashboard:latest
+    - SERVER_AUTH_SET_EMAIL_VERIFIED=${SERVER_AUTH_SET_EMAIL_VERIFIED:-true}
+    image: ghcr.io/hatchet-dev/hatchet/hatchet-dashboard:v0.120.6
     networks:
       appnet:
         aliases:
@@ -39,10 +40,10 @@ services:
       setup-config:
         condition: service_completed_successfully
     environment:
-    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/$POSTGRES_DB
+    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/${POSTGRES_DB:-hatchet}
     - SERVER_GRPC_BIND_ADDRESS=${SERVER_GRPC_BIND_ADDRESS:-0.0.0.0}
     - SERVER_GRPC_INSECURE=${SERVER_GRPC_INSECURE:-t}
-    image: ghcr.io/hatchet-dev/hatchet/hatchet-engine:latest
+    image: ghcr.io/hatchet-dev/hatchet/hatchet-engine:v0.120.6
     networks:
       appnet:
         aliases:
@@ -57,8 +58,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
-    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/$POSTGRES_DB
-    image: ghcr.io/hatchet-dev/hatchet/hatchet-migrate:latest
+    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/${POSTGRES_DB:-hatchet}
+    image: ghcr.io/hatchet-dev/hatchet/hatchet-migrate:v0.120.6
     networks:
       appnet:
         aliases:
@@ -92,8 +93,9 @@ services:
     - PORT=${RABBITMQ_PORT:-5672}
     healthcheck:
       interval: 5s
-      retries: 10
-      test: rabbitmq-diagnostics -q ping
+      retries: 20
+      start_period: 60s
+      test: rabbitmq-diagnostics -q check_port_connectivity
       timeout: 30s
     hostname: rabbitmq
     image: rabbitmq:3-management
@@ -114,7 +116,7 @@ services:
       rabbitmq:
         condition: service_healthy
     environment:
-    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/$POSTGRES_DB
+    - DATABASE_URL=postgres://$SERVICE_USER_POSTGRES:$SERVICE_PASSWORD_POSTGRES@postgres:5432/${POSTGRES_DB:-hatchet}
     - SERVER_TASKQUEUE_RABBITMQ_URL=amqp://$SERVICE_USER_RABBITMQ:$SERVICE_PASSWORD_RABBITMQ@rabbitmq:5672/
     - SERVER_AUTH_COOKIE_DOMAIN=${SERVER_AUTH_COOKIE_DOMAIN:-localhost:8080}
     - SERVER_AUTH_COOKIE_INSECURE=${SERVER_AUTH_COOKIE_INSECURE:-t}
@@ -122,16 +124,16 @@ services:
     - SERVER_GRPC_INSECURE=${SERVER_GRPC_INSECURE:-t}
     - SERVER_GRPC_BROADCAST_ADDRESS=${SERVER_GRPC_BROADCAST_ADDRESS:-localhost:7077}
     - SERVER_DEFAULT_ENGINE_VERSION=V1
-    - SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS=${SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS:-hatchet-engine:7077}
-    image: ghcr.io/hatchet-dev/hatchet/hatchet-admin:latest
+    - SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS=${SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS:-hatchet-engine:7070}
+    image: ghcr.io/hatchet-dev/hatchet/hatchet-admin:v0.120.6
     networks:
       appnet:
         aliases:
         - hatchet-coolify_setup-config_1
     restart: no
     volumes:
-    - hatchet_certs:/hatchet/certs
-    - hatchet_config:/hatchet/config
+    - hatchet-certs:/hatchet/certs
+    - hatchet-config:/hatchet/config
 volumes:
   hatchet-certs:
     driver: local
@@ -143,18 +145,6 @@ volumes:
     driver: local
     driver_opts:
       device: ${APP_DATA_DIR}/hatchet-config
-      o: bind
-      type: none
-  hatchet_certs:
-    driver: local
-    driver_opts:
-      device: ${APP_DATA_DIR}/hatchet_certs
-      o: bind
-      type: none
-  hatchet_config:
-    driver: local
-    driver_opts:
-      device: ${APP_DATA_DIR}/hatchet_config
       o: bind
       type: none
   postgresql-data:

@@ -17,14 +17,14 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     networks:
       appnet:
         aliases:
         - ryot-coolify_postgresql_1
     restart: unless-stopped
     volumes:
-    - ryot_postgresql_data:/var/lib/postgresql/data
+    - ryot_postgresql_data:/var/lib/postgresql
   ryot:
     depends_on:
       postgresql:
@@ -43,7 +43,7 @@ services:
       - -f
       - http://127.0.0.1:8000/health
       timeout: 20s
-    image: ignisda/ryot:v10.3.0
+    image: ignisda/ryot:v10.5.8
     networks:
       appnet:
         aliases:

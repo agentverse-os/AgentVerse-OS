@@ -54,6 +54,6 @@ upstream:
   categories:
   - ai
   source: https://github.com/open-webui/open-webui
-  tipi_version: 110
-  version: v0.11.1
+  tipi_version: 126
+  version: v0.13.3
 website: https://github.com/open-webui/open-webui

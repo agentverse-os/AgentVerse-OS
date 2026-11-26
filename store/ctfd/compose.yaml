@@ -17,7 +17,7 @@ services:
       SECRET_KEY: ${CTFD_SECRET_KEY}
       UPLOAD_FOLDER: /var/uploads
       WORKERS: '1'
-    image: ctfd/ctfd:3.8.7
+    image: ctfd/ctfd:3.8.9
     networks:
       appnet:
         aliases:

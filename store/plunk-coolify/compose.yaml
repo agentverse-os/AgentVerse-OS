@@ -9,41 +9,73 @@ services:
       postgresql:
         condition: service_healthy
       redis:
-        condition: service_started
-    entrypoint:
-    - /app/entry.sh
+        condition: service_healthy
     environment:
     - SERVICE_URL_PLUNK_3000=${SERVICE_URL_PLUNK_3000}
+    - SERVICE=all
+    - NODE_ENV=production
+    - DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB:-plunk}
+    - DIRECT_DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB:-plunk}
     - REDIS_URL=redis://redis:6379
-    - DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql/plunk-db?schema=public
-    - JWT_SECRET=${SERVICE_PASSWORD_JWTSECRET}
-    - AWS_REGION=
-    - AWS_ACCESS_KEY_ID=
-    - AWS_SECRET_ACCESS_KEY=
-    - AWS_SES_CONFIGURATION_SET=
-    - NEXT_PUBLIC_API_URI=${SERVICE_URL_PLUNK}/api
-    - APP_URI=${SERVICE_URL_PLUNK}
-    - API_URI=${SERVICE_URL_PLUNK}/api
-    - DISABLE_SIGNUPS=${DISABLE_SIGNUPS:-False}
-    - NODE_OPTIONS=--no-network-family-autoselection
+    - JWT_SECRET=${SERVICE_PASSWORD_64_JWTSECRET}
+    - API_DOMAIN=${SERVICE_FQDN_API}
+    - API_URI=${SERVICE_URL_API}
+    - DASHBOARD_DOMAIN=${SERVICE_FQDN_PLUNK}
+    - DASHBOARD_URI=${SERVICE_URL_PLUNK}
+    - AWS_SES_REGION=
+    - AWS_SES_ACCESS_KEY_ID=
+    - AWS_SES_SECRET_ACCESS_KEY=
+    - SES_CONFIGURATION_SET=${SES_CONFIGURATION_SET:-plunk-configuration-set}
+    - DISABLE_SIGNUPS=${DISABLE_SIGNUPS:-false}
+    - AUTO_PROJECT_DISABLE=${AUTO_PROJECT_DISABLE:-false}
+    - S3_ENDPOINT=${S3_ENDPOINT}
+    - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+    - S3_ACCESS_KEY_SECRET=${S3_ACCESS_KEY_SECRET}
+    - S3_BUCKET=${S3_BUCKET:-uploads}
+    - S3_PUBLIC_URL=${S3_PUBLIC_URL}
     healthcheck:
-      interval: 2s
-      retries: 15
+      interval: 10s
+      retries: 10
+      start_period: 60s
       test:
       - CMD-SHELL
-      - (wget -S --spider http://127.0.0.1:3000/api/health 2>&1 | grep -q "HTTP/1.1 [1-3]")
+      - curl -fsS http://127.0.0.1:8080/health && curl -fsS -o /dev/null http://127.0.0.1:3000
       timeout: 10s
-    image: driaug/plunk:latest
+    image: ghcr.io/useplunk/plunk:0.18.0
     networks:
       appnet:
         aliases:
         - plunk-coolify_plunk_1
     restart: unless-stopped
+    volumes:
+    - plunk-data:/app/data
+  plunk-api:
+    command: tcp-listen:8080,fork,reuseaddr tcp-connect:plunk:8080
+    depends_on:
+    - plunk
+    environment:
+    - SERVICE_URL_API_8080=${SERVICE_URL_API_8080}
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://127.0.0.1:8080/health
+      timeout: 10s
+    image: alpine/socat:1.8.1.3
+    networks:
+      appnet:
+        aliases:
+        - plunk-coolify_plunk-api_1
+    restart: unless-stopped
   postgresql:
     environment:
     - POSTGRES_USER=${SERVICE_USER_POSTGRES}
     - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
-    - POSTGRES_DB=${POSTGRES_DB:-plunk-db}
+    - POSTGRES_DB=${POSTGRES_DB:-plunk}
     healthcheck:
       interval: 5s
       retries: 10
@@ -60,6 +92,7 @@ services:
     volumes:
     - plunk-postgresql-data:/var/lib/postgresql/data
   redis:
+    command: redis-server --appendonly yes
     healthcheck:
       interval: 5s
       retries: 20
@@ -77,6 +110,12 @@ services:
     volumes:
     - plunk-redis-data:/data
 volumes:
+  plunk-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/plunk-data
+      o: bind
+      type: none
   plunk-postgresql-data:
     driver: local
     driver_opts:

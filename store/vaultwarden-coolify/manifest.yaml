@@ -16,7 +16,7 @@ env:
     generate: hex64
   SERVICE_URL_VAULTWARDEN: https://${APP_DOMAIN}
   SIGNUP_ALLOWED: 'true'
-  VAULTWARDEN_DB_URL: data/db.sqlite3
+  VAULTWARDEN_DB_URL: sqlite:///data/db.sqlite3
 gallery: []
 health: null
 hooks: {}
@@ -40,7 +40,7 @@ route:
 schema: 1
 settings:
 - env: VAULTWARDEN_DB_URL
-  hint: 'по умолчанию: data/db.sqlite3'
+  hint: 'по умолчанию: sqlite:///data/db.sqlite3'
   label: vaultwarden db url
   options: null
   required: false

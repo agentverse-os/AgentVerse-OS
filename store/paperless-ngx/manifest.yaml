@@ -69,6 +69,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/paperless-ngx/paperless-ngx
-  tipi_version: 134
-  version: 3.0.5
+  tipi_version: 160
+  version: 3.4.2
 website: https://github.com/paperless-ngx/paperless-ngx

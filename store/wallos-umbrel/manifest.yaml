@@ -43,10 +43,12 @@ upstream:
   categories:
   - finance
   release_notes: |-
-    This update improves authentication and session security by fixing login-token revocation, TOTP replay protection, and a theme-cookie XSS issue.
-    It also fixes OIDC token exchange behind proxies, payment-method in-use checks, subscription warnings for unseeded stats, and adds an admin option for standard users to use the Webhook Allowlist.
-    Full release notes are available at https://github.com/ellite/Wallos/releases/tag/v5.5.0
+    This update validates subscription payment frequencies and prevents invalid payment schedules from causing calculations or background updates to run indefinitely.
+
+    It also repairs invalid legacy frequencies and disables automatic renewal for one-time purchases.
+
+    Full release notes are available at https://github.com/ellite/Wallos/releases/tag/v5.11.2
   source: https://github.com/ellite/Wallos
-  version: 5.5.0
+  version: 5.11.2
   website: https://wallosapp.com
 website: https://wallosapp.com

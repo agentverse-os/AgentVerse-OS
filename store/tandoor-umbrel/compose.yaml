@@ -44,7 +44,7 @@ services:
       SECRET_KEY: ${APP_TANDOOR_SECRET_KEY}
       TANDOOR_PORT: 80
       TZ: Etc/UTC
-    image: vabene1111/recipes:2.6.13@sha256:f6c58afdea7a721d079ebd6ee5483f2c9da77dd1e709e16d60a82c218e80a451
+    image: vabene1111/recipes:2.7.6@sha256:6c467bf484044a0305ff39bed5badb48b58bb963d4276fc248e101921151895b
     networks:
       appnet:
         aliases:

@@ -13,9 +13,9 @@ env:
     generate: password
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/duplicati/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/duplicati/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/duplicati/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/duplicati/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/duplicati/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/duplicati/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,18 +45,18 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This release patches Duplicati 2.3.0.3 with stability, security, and backend fixes.
+    This release upgrades the local backup databases. To return to version 2.4.0.1, first downgrade the databases using Duplicati's DatabaseTool downgrade command.
 
-    New in 2.3.0.4:
-      - Improved privacy handling for filtered paths and reported log data
-      - Fixed backup crashes caused by metadata errors and a macOS Photos memory leak
-      - Added backend authentication timeouts and retry handling for transient HTTP failures
-      - Fixed MSSQL default instance handling, S3 lock mode option values, and several remote-source edge cases
-      - Improved secret provider loading, licensing flexibility, KDE libsecret support, rclone, and ngclient browser/filter behavior
+    Highlights:
+      - Added restore tests that recover and verify a sample of your backup, with an option to run them automatically after backups
+      - Added incremental change tracking for Microsoft 365 and Google Workspace backups
+      - Added labels for backup versions and saved logs for sync jobs
+      - Improved restore reliability, backup cancellation, scheduling, and file browsing
+      - Fixed reverse-proxy login cookies and hardened control-file restores and recovery tools
 
 
-    Full release notes can be found at https://github.com/duplicati/duplicati/releases/tag/v2.3.0.4_stable_2026-07-09
+    Full release notes can be found at https://github.com/duplicati/duplicati/releases/tag/v2.4.1.0_stable_2026-10-29
   source: https://github.com/duplicati/duplicati
-  version: v2.3.0.4_stable_2026-07-09
+  version: v2.4.1.0_stable_2026-10-29
   website: https://duplicati.com/
 website: https://duplicati.com/

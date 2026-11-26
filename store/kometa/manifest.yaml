@@ -40,6 +40,6 @@ upstream:
   - utilities
   - media
   source: https://github.com/Kometa-Team/Kometa
-  tipi_version: 23
-  version: 2.4.8
+  tipi_version: 35
+  version: 2.5.5
 website: https://github.com/Kometa-Team/Kometa

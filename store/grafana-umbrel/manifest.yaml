@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/grafana/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/grafana/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/grafana/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/grafana/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/grafana/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/grafana/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,14 +42,16 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    ⚠️ If you're updating from before Grafana 13.1, Prometheus Azure/SigV4 authentication and the Zipkin core plugin were removed from Grafana core. Review the upstream notes if you use those integrations.
+    This update lets you connect an SMTP email provider in Grafana's app settings on umbrelOS 2.0, for email alerts, invitations and password resets.
 
-    Grafana 13.2.1 includes security fixes for CVE-2026-12704 and CVE-2026-14199.
+    Previous Grafana 13.3.1 release notes:
 
-    This release also fixes dashboard import variables, bundled plugin packaging, and panel editor resizing.
+    This update fixes six security vulnerabilities and updates time zone data for 2026. It also allows same-host URL changes for connection-backed provisioning repositories.
 
-    Full release notes can be found at https://github.com/grafana/grafana/releases/tag/v13.2.1
+    If you're updating from before Grafana 13.1, Prometheus Azure/SigV4 authentication and the Zipkin core plugin were removed from Grafana core. Review the upstream notes if you use those integrations.
+
+    Full release notes: https://github.com/grafana/grafana/releases/tag/v13.3.1
   source: https://github.com/grafana/grafana
-  version: 13.2.1
+  version: 13.3.1-patch.1
   website: https://grafana.com
 website: https://grafana.com

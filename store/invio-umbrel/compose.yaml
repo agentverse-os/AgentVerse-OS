@@ -13,7 +13,7 @@ services:
       JWT_SECRET: ${APP_SEED}
       SECURE_HEADERS_DISABLED: 'false'
       SESSION_TTL_SECONDS: 43200
-    image: ghcr.io/kittendevv/invio-backend:v2.2.0@sha256:402c3b2255021834fefeeaaae32cd0f68563a2205dbd6b99914a42cf89e699b5
+    image: ghcr.io/kittendevv/invio-backend:v2.4.1@sha256:7d3a3bbae9b682038f1ab3453b019a5a3893d0a4e7fd1934854442dac1a09651
     networks:
       appnet:
         aliases:
@@ -29,9 +29,8 @@ services:
       COOKIE_SECURE: 'false'
       ENABLE_HSTS: 'false'
       FRONTEND_SECURE_HEADERS_DISABLED: 'false'
-      ORIGIN: http://${DEVICE_DOMAIN_NAME}:8003
       PORT: 8000
-    image: ghcr.io/kittendevv/invio-frontend:v2.2.0@sha256:b2a48dc3bfa04771a2b658905268dfc766958c72be6f783f141e313c189c61b8
+    image: ghcr.io/kittendevv/invio-frontend:v2.4.1@sha256:22244b93397802e19326f8d36f9b0a864e1dd7b253648f6274d5287c783b37e4
     networks:
       appnet:
         aliases:

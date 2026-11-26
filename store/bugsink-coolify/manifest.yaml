@@ -7,19 +7,30 @@ data:
 description: Self-hosted Error Tracking.
 endpoint:
   port: 8000
-  service: mysql
+  service: postgres
 env:
-  MYSQL_DATABASE: bugsink
+  DEFAULT_FROM_EMAIL: ''
+  EMAIL_HOST: ''
+  EMAIL_HOST_PASSWORD: ''
+  EMAIL_HOST_USER: ''
+  EMAIL_PORT: '587'
+  EMAIL_USE_SSL: 'False'
+  EMAIL_USE_TLS: 'True'
+  PHONEHOME: 'False'
+  POSTGRES_DB: bugsink
+  POSTGRES_USER: ''
   SERVICE_PASSWORD_64_BUGSINK:
     generate: hex64
   SERVICE_PASSWORD_BUGSINK:
     generate: password
-  SERVICE_PASSWORD_ROOT:
+  SERVICE_PASSWORD_POSTGRES:
     generate: password
   SERVICE_URL_BUGSINK: https://${APP_DOMAIN}
   SERVICE_URL_BUGSINK_8000: https://${APP_DOMAIN}
-  SERVICE_USER_BUGSINK:
+  SERVICE_USER_POSTGRES:
     generate: password
+  SITE_TITLE: Bugsink
+  TIME_ZONE: UTC
 gallery: []
 health: null
 hooks: {}
@@ -28,9 +39,9 @@ icon: ./logo.svg
 login:
   mode: generated
   note: null
-  password: SERVICE_PASSWORD_BUGSINK
+  password: SERVICE_PASSWORD_POSTGRES
   path: null
-  user: SERVICE_USER_BUGSINK
+  user: SERVICE_USER_POSTGRES
 name: bugsink-coolify
 notes: []
 origin: coolify
@@ -42,9 +53,75 @@ route:
   open: iframe
 schema: 1
 settings:
-- env: MYSQL_DATABASE
+- env: POSTGRES_DB
   hint: 'по умолчанию: bugsink'
-  label: mysql database
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: SITE_TITLE
+  hint: 'по умолчанию: Bugsink'
+  label: site title
+  options: null
+  required: false
+  type: text
+- env: TIME_ZONE
+  hint: 'по умолчанию: UTC'
+  label: time zone
+  options: null
+  required: false
+  type: text
+- env: PHONEHOME
+  hint: 'по умолчанию: False'
+  label: phonehome
+  options: null
+  required: false
+  type: text
+- env: EMAIL_HOST
+  hint: null
+  label: email host
+  options: null
+  required: false
+  type: text
+- env: EMAIL_PORT
+  hint: 'по умолчанию: 587'
+  label: email port
+  options: null
+  required: false
+  type: text
+- env: EMAIL_HOST_USER
+  hint: null
+  label: email host user
+  options: null
+  required: false
+  type: text
+- env: EMAIL_HOST_PASSWORD
+  hint: null
+  label: email host password
+  options: null
+  required: false
+  type: password
+- env: EMAIL_USE_TLS
+  hint: 'по умолчанию: True'
+  label: email use tls
+  options: null
+  required: false
+  type: text
+- env: EMAIL_USE_SSL
+  hint: 'по умолчанию: False'
+  label: email use ssl
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_FROM_EMAIL
+  hint: null
+  label: default from email
   options: null
   required: false
   type: text
@@ -52,7 +129,7 @@ tags:
 - python
 - error-tracking
 - django
-- mysql
+- postgresql
 title: Bugsink
 type: app
 upstream:
@@ -63,6 +140,6 @@ upstream:
   - python
   - error-tracking
   - django
-  - mysql
+  - postgresql
   template: bugsink.yaml
 website: https://www.bugsink.com/docs/

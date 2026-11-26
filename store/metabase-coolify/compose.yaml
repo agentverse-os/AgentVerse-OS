@@ -18,7 +18,7 @@ services:
       retries: 10
       test: curl --fail -I http://127.0.0.1:3000/api/health || exit 1
       timeout: 20s
-    image: metabase/metabase:latest
+    image: metabase/metabase:v0.65.4.4
     networks:
       appnet:
         aliases:

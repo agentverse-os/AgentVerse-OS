@@ -55,12 +55,20 @@ upstream:
   categories:
   - developer
   release_notes: |-
-    This update includes OneDev 16.5.10, a maintenance release. Upstream did not list fixed issues or target-specific incompatibilities in the 16.5.10 release.
+    ⚠️ Before upgrading, update webhook receivers to verify X-OneDev-Signature as a lowercase hexadecimal HMAC-SHA256 of the raw request body using your webhook secret, instead of comparing the header directly with the secret. Existing receivers using the old comparison will reject deliveries until updated.
+
+    This release improves access-token security by storing only token hashes. Copy newly created or rotated tokens immediately, as their values cannot be retrieved later. Integrations that create tokens through the REST API must use description instead of name and handle the new response containing both id and value.
+
+    It also fixes pull request diffs for intermediate commits, container image uploads with OCI clients, and returning to the requested page after SSO login. Workspace terminals gain clipboard support and improved mobile controls.
+
+    Important: OneDev 16.8.4 disables the Build Image, Run Buildx Image Tools, and Prune Builder Cache CI/CD steps by default for security. Jobs using these steps will fail until the relevant executor security setting is explicitly enabled for trusted projects.
+
+    Important: OneDev 16.8.0 upgrades the build log format. Build logs created before the upgrade will no longer be displayed.
 
     Note: If you're updating from a pre-16.5.0 version, OneDev may regenerate the system GPG signing key when changing the default system signing email. Commits previously signed with the old system key may show as unverified.
 
-    Full release notes can be found at https://github.com/theonedev/onedev/releases/tag/v16.5.10
+    Full release notes can be found at https://github.com/theonedev/onedev/releases/tag/v17.2.1
   source: https://github.com/theonedev/onedev
-  version: 16.5.10
+  version: 17.2.1
   website: https://onedev.io/
 website: https://onedev.io/

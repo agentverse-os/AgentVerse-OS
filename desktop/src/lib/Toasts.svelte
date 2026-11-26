@@ -20,9 +20,9 @@
 </div>
 
 <style>
-  .toasts { position: fixed; right: 14px; bottom: 60px; z-index: 5000; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 28px)); pointer-events: none; }
-  .toasts.phone { right: 10px; left: 10px; bottom: 70px; width: auto; }
-  .toast { pointer-events: auto; display: flex; gap: 10px; align-items: flex-start; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--r-sm); box-shadow: var(--shadow); padding: 10px 12px; }
+  .toasts { position: fixed; right: 14px; bottom: calc(var(--shell-b) + 12px); z-index: 5000; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 28px)); pointer-events: none; }
+  .toasts.phone { right: calc(10px + var(--m-nav-r)); left: 10px; bottom: calc(var(--m-nav-b) + env(safe-area-inset-bottom, 0px) + 12px); width: auto; }
+  .toast { pointer-events: auto; display: flex; gap: 10px; align-items: flex-start; background: var(--pop-bg); backdrop-filter: var(--pop-blur); -webkit-backdrop-filter: var(--pop-blur); border: 1px solid var(--line-2); border-left: 4px solid var(--accent); border-radius: var(--r-sm); box-shadow: var(--pop-shadow); padding: 10px 12px; }
   .toast.ok { border-left-color: var(--ok); }
   .toast.error { border-left-color: var(--bad); }
   .ic { width: 20px; text-align: center; font-weight: 700; flex: 0 0 auto; margin-top: 1px; }
@@ -31,5 +31,6 @@
   .title { font-weight: 600; }
   .text { font-size: .85rem; color: var(--muted); word-break: break-word; }
   .act { align-self: flex-start; padding: 2px 10px; }
-  .x { padding: 0 6px; line-height: 1.5; border: 0; background: transparent; color: var(--muted); }
+  .x { padding: 0 6px; line-height: 1.5; border: 0; background: transparent; color: var(--muted); box-shadow: none; }
+  :global(:root[data-look="umbrel"]) .toast { border-left-width: 1px; border-radius: 18px; }
 </style>

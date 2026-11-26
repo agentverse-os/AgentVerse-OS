@@ -42,10 +42,17 @@ upstream:
   categories:
   - bitcoin
   release_notes: |-
-    Important security update that fixes vulnerabilities identified during Bisq's recent security audit. Updating to this version is required to continue trading.
+    **Security update. Update now to keep trading.** A Bisq security alert requires version 2.1.15 or newer for trading. Until this node is updated, Bisq Connect cannot take offers through it and asks you to have the node upgraded, and offers published through it cannot be taken. Bisq Connect stays paired and needs no update.
 
-    Full release notes can be found at https://github.com/bisq-network/bisq2/releases/tag/v2.1.12
+    This update moves the node to Bisq 2 API 2.1.15.
+
+    - **Tor:** The node now runs the Tor bundled with Bisq (Tor 0.4.9.15) inside a sandbox, instead of a Tor package installed in the image. The sandbox keeps a compromised Tor away from the node's files and keys.
+    - **Hardening:** Oversized responses from the network are refused instead of using unbounded memory, and file cleanup no longer follows links.
+
+    Bisq 2 release: https://github.com/bisq-network/bisq2/releases/tag/v2.1.15
+
+    Full changes: https://github.com/bisq-network/bisq2/compare/7f68c09...cfe8ab2 (bisq2 @ cfe8ab2)
   source: https://github.com/bisq-network/bisq2
-  version: 2.1.12.0
+  version: 2.1.15.0
   website: https://bisq.network
 website: https://bisq.network

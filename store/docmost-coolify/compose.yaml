@@ -34,7 +34,7 @@ services:
       - -f
       - http://127.0.0.1:3000
       timeout: 10s
-    image: docmost/docmost:latest
+    image: docmost/docmost:0.97.0
     networks:
       appnet:
         aliases:
@@ -54,14 +54,14 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 10s
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     networks:
       appnet:
         aliases:
         - docmost-coolify_postgresql_1
     restart: unless-stopped
     volumes:
-    - postgresql-data:/var/lib/postgresql/data
+    - postgresql-data:/var/lib/postgresql
   redis:
     healthcheck:
       interval: 5s
@@ -71,7 +71,7 @@ services:
       - redis-cli
       - PING
       timeout: 10s
-    image: redis:7.2-alpine
+    image: redis:8.10-alpine
     networks:
       appnet:
         aliases:

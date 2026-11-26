@@ -4,18 +4,27 @@ auth: own
 compose: ./compose.yaml
 data:
 - tank/apps/hermes-agent-with-webui-coolify
-description: Hermes Agent — autonomous AI agent with persistent memory, scheduling, and a self-hosted web chat UI.
+description: Hermes Agent - autonomous AI agent with persistent memory, scheduling, and a self-hosted web chat UI.
 endpoint:
   port: 8787
   service: hermes-webui
 env:
   ANTHROPIC_API_KEY: ''
+  FIRECRAWL_API_KEY: ''
+  FIRECRAWL_API_URL: https://api.firecrawl.dev
   GOOGLE_API_KEY: ''
+  HERMES_ALLOW_PRIVATE_URLS: 'false'
+  HERMES_ENABLE_PROJECT_PLUGINS: 'true'
+  HERMES_OPTIONAL_SKILLS: ''
   OPENAI_API_KEY: ''
   OPENROUTER_API_KEY: ''
+  SERVICE_PASSWORD_64_HERMESAPI:
+    generate: hex64
   SERVICE_PASSWORD_HERMESWEBUI:
     generate: password
   SERVICE_URL_HERMESWEBUI_8787: https://${APP_DOMAIN}
+  SERVICE_USER_HERMESWEBUI:
+    generate: password
 gallery: []
 health: null
 hooks: {}
@@ -26,7 +35,7 @@ login:
   note: null
   password: SERVICE_PASSWORD_HERMESWEBUI
   path: null
-  user: null
+  user: SERVICE_USER_HERMESWEBUI
 name: hermes-agent-with-webui-coolify
 notes: []
 origin: coolify
@@ -38,6 +47,36 @@ route:
   open: iframe
 schema: 1
 settings:
+- env: HERMES_ENABLE_PROJECT_PLUGINS
+  hint: 'по умолчанию: true'
+  label: hermes enable project plugins
+  options: null
+  required: false
+  type: text
+- env: HERMES_OPTIONAL_SKILLS
+  hint: null
+  label: hermes optional skills
+  options: null
+  required: false
+  type: text
+- env: HERMES_ALLOW_PRIVATE_URLS
+  hint: 'по умолчанию: false'
+  label: hermes allow private urls
+  options: null
+  required: false
+  type: text
+- env: FIRECRAWL_API_KEY
+  hint: null
+  label: firecrawl api key
+  options: null
+  required: false
+  type: password
+- env: FIRECRAWL_API_URL
+  hint: 'по умолчанию: https://api.firecrawl.dev'
+  label: firecrawl api url
+  options: null
+  required: false
+  type: text
 - env: OPENROUTER_API_KEY
   hint: null
   label: openrouter api key

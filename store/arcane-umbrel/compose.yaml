@@ -6,19 +6,20 @@ networks:
 services:
   arcane:
     depends_on:
-    - docker
+      docker:
+        condition: service_healthy
     environment:
       APP_URL: http://${DEVICE_DOMAIN_NAME}:3552
       ENCRYPTION_KEY: ${APP_PASSWORD}
-      JWT_SECRET: ${APP_PASSWORD}
       PGID: 1000
       PUID: 1000
-    image: ghcr.io/getarcaneapp/arcane:v2.10.1@sha256:5695ac9b3ffb4dc8ac33030e92c87f2fa64f431b03d63605316af0cb713156de
+    image: ghcr.io/getarcaneapp/arcane:v2.17.3@sha256:2e0dc9f5ef03599181a49baf6470055d82e24d9cb15bbc62498ea642c0f882a7
     networks:
       appnet:
         aliases:
         - arcane_arcane_1
     restart: on-failure
+    stop_grace_period: 15s
     volumes:
     - ${APP_DATA_DIR}/data/app_data:/app/data
     - ${APP_DATA_DIR}/data/projects:/app/data/projects
@@ -34,6 +35,18 @@ services:
     entrypoint: /entrypoint.sh
     environment:
       DOCKER_ENSURE_BRIDGE: dind0:10.32.0.1/16
+      DOCKER_IPTABLES_LEGACY: ''
+    healthcheck:
+      interval: 5s
+      retries: 6
+      start_period: 5m
+      test:
+      - CMD
+      - docker
+      - --host
+      - unix:///data/docker.sock
+      - version
+      timeout: 10s
     image: docker:27.2.0-dind@sha256:f9f72ad901a78f27be922b2d320bbc263174f12919c1b37e6a01f828fa904565
     network_mode: host
     privileged: true

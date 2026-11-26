@@ -10,11 +10,11 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/openhands/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/openhands/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/openhands/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/openhands/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/openhands/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/openhands/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/openhands/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/openhands/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/openhands/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/openhands/5.webp
 health: null
 hooks: {}
 host_docker_socket: false

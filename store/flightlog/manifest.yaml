@@ -40,6 +40,6 @@ upstream:
   - utilities
   - data
   source: https://github.com/perdian/flightlog/
-  tipi_version: 20
-  version: v2.1.14
+  tipi_version: 22
+  version: v2.1.15
 website: https://github.com/perdian/flightlog/

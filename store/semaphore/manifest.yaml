@@ -77,6 +77,6 @@ upstream:
   categories:
   - development
   source: https://github.com/semaphoreui/semaphore
-  tipi_version: 121
-  version: v2.19.11
+  tipi_version: 133
+  version: v2.20.24
 website: https://github.com/semaphoreui/semaphore

@@ -78,7 +78,7 @@ services:
       - CMD
       - curl
       - http://localhost:7376/health
-    image: sequin/sequin:latest
+    image: sequin/sequin:v0.14.6
     networks:
       appnet:
         aliases:

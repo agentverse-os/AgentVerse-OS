@@ -201,7 +201,7 @@ type: app
 upstream:
   categories:
   - backend
-  source: https://github.com/get-convex/convex-backend/blob/main/self-hosted/README.md
+  source: https://github.com/convex/convex-backend/blob/main/self-hosted/README.md
   tags:
   - database
   - reactive
@@ -214,4 +214,4 @@ upstream:
   - bot
   - flows
   template: convex.yaml
-website: https://github.com/get-convex/convex-backend/blob/main/self-hosted/README.md
+website: https://github.com/convex/convex-backend/blob/main/self-hosted/README.md

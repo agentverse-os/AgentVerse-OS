@@ -1,6 +1,6 @@
 # Hermes Agent
 
-The official [Hermes Agent](https://github.com/NousResearch/hermes-agent) image by Nous Research, latest version (v2026.8.31), with the
+The official [Hermes Agent](https://github.com/NousResearch/hermes-agent) image by Nous Research, latest version (v2026.9.24), with the
 official Web Dashboard. Unlike the Coolify catalog variant (“Hermes Agent With Webui”: a third-party web chat on top of a three-month-old
 agent), this is a single container and everything is native.
 

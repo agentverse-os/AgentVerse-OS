@@ -44,8 +44,13 @@ upstream:
   author: Thomas Miceli
   categories:
   - developer
-  release_notes: This update adds anonymous LDAP user search and fixes several edge cases, including symbolic-link writes in gists, empty CSV rendering crashes, invalid Git cat-file batch headers, and overlapping headers in narrow embeds.
+  release_notes: |-
+    This update adds a copy button to code blocks in rendered Markdown and supports OAuth sign-up through invitation links.
+
+    It also fixes Markdown list markers, Unicode topic links, uploaded file name rendering, user deletion, and missing notifications on HTTP deployments. Database migrations now run within their transactions, and oversized gist submissions receive a clearer error response.
+
+    Full release notes can be found at https://github.com/thomiceli/opengist/releases/tag/v1.15.3
   source: https://github.com/thomiceli/opengist
-  version: 1.15.2
+  version: 1.15.3
   website: https://opengist.io/
 website: https://opengist.io/

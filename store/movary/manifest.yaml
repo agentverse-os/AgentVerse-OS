@@ -70,6 +70,6 @@ upstream:
   categories:
   - media
   source: https://github.com/leepeuker/movary
-  tipi_version: 67
-  version: 0.72.0
+  tipi_version: 111
+  version: 0.83.0
 website: https://github.com/leepeuker/movary

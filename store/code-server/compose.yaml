@@ -12,7 +12,7 @@ services:
       PUID: '1000'
       SUDO_PASSWORD: ${CODESERVER_SUDO_PASSWORD}
       TZ: ${TZ}
-    image: lscr.io/linuxserver/code-server:4.134.0
+    image: lscr.io/linuxserver/code-server:4.145.2
     networks:
       appnet:
         aliases:

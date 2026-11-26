@@ -17,7 +17,7 @@ services:
       HERMES_UID: '1000'
       HERMES_UMBREL_APP_PROXY_AUTH: '1'
       HERMES_UPSTREAM_TUI_ENTRY: /opt/hermes/ui-tui/dist/entry.js
-    image: ghcr.io/getumbrel/hermes-agent-umbrel:v2026.8.27@sha256:5b4a5aed75ecbc5f914ebfefdfe768c5fcb5dab0db348d95fae415832ac2af5d
+    image: ghcr.io/getumbrel/hermes-agent-umbrel:v0.23.2@sha256:db175a91bbe1794a294a1ca7b2e9754160ad99da1c9bd89ee9047158610dadd3
     networks:
       appnet:
         aliases:

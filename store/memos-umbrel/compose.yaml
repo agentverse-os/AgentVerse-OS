@@ -6,9 +6,10 @@ networks:
 services:
   main:
     environment:
+    - GODEBUG=multipathtcp=0
     - MEMOS_MODE=prod
     - MEMOS_PORT=5230
-    image: neosmemo/memos:0.30.0@sha256:71a5b4738d1bed96e92112004054f0888e92791b64eb78afd79077c96e6f9327
+    image: neosmemo/memos:26.11.1@sha256:5dcd6e6b973a55b964f2fe2ccdaa33319463ab448a23404ebb5d2acbd19299ba
     networks:
       appnet:
         aliases:

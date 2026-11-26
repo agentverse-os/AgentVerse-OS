@@ -13,9 +13,9 @@ env:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/kan/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kan/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kan/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kan/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kan/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kan/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,12 +45,16 @@ upstream:
   categories:
   - files
   release_notes: |-
-    Kan 0.6.0 adds card context menus and duplication, card ticket numbers with workspace prefixes, and mobile list snap scrolling.
+    Kan 0.7.0 adds a calendar view, board invitations, and the ability to move boards between workspaces. Existing workspace members keep access to existing boards after the update.
 
-    It also improves workspace onboarding and logging, expands board slug length, and fixes avatar uploads, label fetching, card reordering, archive redirects, markdown paste formatting, password changes, attachment filename encoding, and drag-and-drop on wide boards.
+    You can now submit comments with a keyboard shortcut, choose the order of card activity, and copy board links from the board menu.
 
-    Full release notes can be found at https://github.com/kanbn/kan/releases/tag/v0.6.0
+    This release also improves drag-and-drop, board filters and scrolling, preserves custom label colours, and fixes card descriptions, login redirects, and MCP tools.
+
+    Security improvements protect stored Trello tokens, redact secrets from request logs, and restrict card labels and member assignments to the appropriate board and workspace.
+
+    Full release notes can be found at https://github.com/kanbn/kan/releases/tag/v0.7.0
   source: https://github.com/kanbn/kan
-  version: 0.6.0
+  version: 0.7.0
   website: https://kan.bn/
 website: https://kan.bn/

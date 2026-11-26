@@ -47,6 +47,6 @@ upstream:
   categories:
   - security
   source: https://github.com/Bubka/2FAuth
-  tipi_version: 39
-  version: 8.0.2
+  tipi_version: 42
+  version: 9.0.1
 website: https://github.com/Bubka/2FAuth

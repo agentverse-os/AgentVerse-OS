@@ -28,7 +28,7 @@ services:
       - doctor
       - healthcheck
       timeout: 10s
-    image: inngest/inngest:v1.27.0
+    image: inngest/inngest:v1.53.0
     networks:
       appnet:
         aliases:

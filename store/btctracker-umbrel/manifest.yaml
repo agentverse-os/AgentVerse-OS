@@ -13,10 +13,10 @@ env:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/btctracker/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,21 +46,16 @@ upstream:
   categories:
   - bitcoin
   release_notes: |-
-    ✨ New Features
-      - Exchange Auto-Sync (Beta) — connect exchange API keys to automatically import BTC spot trades; supports Binance, Kraken, Coinbase, Bybit, and Gemini
-      - Exchange Connections UI — new "Exchanges" tab in Settings to manage connections, test credentials, and trigger syncs
+    This update includes a redesigned interface, an important API authentication security hardening, and safer automatic database upgrades with pre-upgrade backups.
+
+    Highlights:
+      - API routes now require a valid session or API key, admin-only actions are restricted to admins, and data is scoped to its owner
+      - Database upgrades now create a backup before migration and no longer silently drop unknown columns or tables
+      - Adds BTC/sats display switching, backup and restore options, more CSV import sources, improved transfer fee handling, and expanded export fields
 
 
-    🐛 Bug Fixes
-      - Fixed "Net Holdings" on Transactions page showing USD values regardless of display currency setting
-
-
-    🔧 Improvements
-      - Calendar now has month/year dropdowns for faster navigation
-      - Sort and filter on Transactions page now works across all pages (server-side)
-      - New optional "Wallet" column in transactions showing source/destination wallet
-      - Named wallets now show individual BTC balances in the portfolio sidebar
+    Full release notes can be found at https://github.com/wilqq-the/BTC-Tracker/releases/tag/v0.8.0
   source: https://github.com/wilqq-the/BTC-Tracker
-  version: 0.7.0
+  version: 0.8.0
   website: https://github.com/wilqq-the
 website: https://github.com/wilqq-the

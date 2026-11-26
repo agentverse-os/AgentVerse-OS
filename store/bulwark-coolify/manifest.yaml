@@ -1,0 +1,56 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/bulwark-coolify
+description: Modern webmail platform
+endpoint:
+  port: 3000
+  service: bulwark
+env:
+  SERVICE_HEX_64_BULWARK:
+    generate: hex64
+  SERVICE_URL_BULWARK_3000: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: null
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: bulwark-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- mail
+- webmail
+- jmap
+- email
+- messaging
+title: Bulwark
+type: app
+upstream:
+  categories:
+  - Mail
+  source: https://bulwarkmail.org/docs
+  tags:
+  - mail
+  - webmail
+  - jmap
+  - email
+  - messaging
+  template: bulwark.yaml
+website: https://bulwarkmail.org/docs

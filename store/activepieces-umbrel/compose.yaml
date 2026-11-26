@@ -30,7 +30,7 @@ services:
       AP_TEMPLATES_SOURCE_URL: https://cloud.activepieces.com/api/v1/flow-templates
       AP_TRIGGER_DEFAULT_POLL_INTERVAL: 5
       AP_WEBHOOK_TIMEOUT_SECONDS: 30
-    image: ghcr.io/activepieces/activepieces:0.89.0@sha256:20661f279285a3e05de8378d827f485768e6e629682adb42165f9920ecc83dfb
+    image: ghcr.io/activepieces/activepieces:0.93.0@sha256:151c2a4326c30a6a8086297136644da9b58072212c35bca7c87dcb5724e7d687
     networks:
       appnet:
         aliases:

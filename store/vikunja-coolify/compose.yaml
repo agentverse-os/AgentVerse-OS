@@ -8,14 +8,15 @@ services:
     command:
     - sh
     - -c
-    - touch /db/vikunja.db && chown -R 1000 /db
-    image: busybox
+    - touch /db/vikunja.db && chown -R 1000 /db && chown -R 1000 /app/vikunja
+    image: busybox:1.38.0
     networks:
       appnet:
         aliases:
         - vikunja-coolify_init_1
     restart: no
     volumes:
+    - vikunja-data:/app/vikunja
     - vikunja-sqlite-data:/db
   vikunja:
     depends_on:
@@ -23,11 +24,20 @@ services:
     environment:
     - SERVICE_URL_VIKUNJA=${SERVICE_URL_VIKUNJA}
     - VIKUNJA_SERVICE_PUBLICURL=$SERVICE_URL_VIKUNJA
-    - VIKUNJA_SERVICE_JWTSECRET=$SERVICE_PASSWORD_JWTSECRET
+    - VIKUNJA_SERVICE_SECRET=$SERVICE_PASSWORD_JWTSECRET
     - VIKUNJA_SERVICE_ENABLEREGISTRATION=true
     - VIKUNJA_DATABASE_PATH=/db/vikunja.db
     - VIKUNJA_DATABASE_TYPE=sqlite
-    image: vikunja/vikunja
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 15s
+      test:
+      - CMD
+      - /app/vikunja/vikunja
+      - healthcheck
+      timeout: 5s
+    image: vikunja/vikunja:2.8.0
     networks:
       appnet:
         aliases:

@@ -37,7 +37,7 @@ services:
       - -f
       - http://127.0.0.1
       timeout: 10s
-    image: adamzammit/limesurvey:latest
+    image: adamzammit/limesurvey:7.10.0
     networks:
       appnet:
         aliases:

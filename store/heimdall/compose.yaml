@@ -9,7 +9,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: ${TZ}
-    image: lscr.io/linuxserver/heimdall:2.8.2
+    image: lscr.io/linuxserver/heimdall:2.8.4
     networks:
       appnet:
         aliases:

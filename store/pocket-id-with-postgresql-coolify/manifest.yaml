@@ -12,7 +12,6 @@ env:
   EMAIL_API_KEY_EXPIRATION_ENABLED: 'false'
   EMAIL_LOGIN_NOTIFICATION_ENABLED: 'false'
   EMAIL_ONE_TIME_ACCESS_AS_ADMIN_ENABLED: 'false'
-  KEYS_STORAGE: database
   MAXMIND_LICENSE_KEY: ''
   PGID: '1000'
   POSTGRES_DB: pocketid
@@ -68,12 +67,6 @@ settings:
   options: null
   required: false
   type: text
-- env: KEYS_STORAGE
-  hint: 'по умолчанию: database'
-  label: keys storage
-  options: null
-  required: false
-  type: password
 - env: MAXMIND_LICENSE_KEY
   hint: null
   label: maxmind license key

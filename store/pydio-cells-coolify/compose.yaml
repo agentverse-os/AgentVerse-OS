@@ -9,7 +9,7 @@ services:
     - SERVICE_URL_CELLS_8080=${SERVICE_URL_CELLS_8080}
     - CELLS_SITE_EXTERNAL=${SERVICE_URL_CELLS}
     - CELLS_SITE_NO_TLS=1
-    image: pydio/cells:4.4
+    image: pydio/cells:5.1
     networks:
       appnet:
         aliases:

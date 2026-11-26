@@ -22,7 +22,7 @@ services:
       - --quiet
       - http://127.0.0.1:4533/ping
       timeout: 5s
-    image: deluan/navidrome:latest
+    image: deluan/navidrome:0.64.2
     networks:
       appnet:
         aliases:

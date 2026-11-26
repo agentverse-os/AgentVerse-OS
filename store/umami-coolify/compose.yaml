@@ -42,7 +42,7 @@ services:
       - -f
       - http://127.0.0.1:3000/api/heartbeat
       timeout: 20s
-    image: ghcr.io/umami-software/umami:3.0.3
+    image: ghcr.io/umami-software/umami:3.5.0
     networks:
       appnet:
         aliases:

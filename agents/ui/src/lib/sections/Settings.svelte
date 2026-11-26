@@ -9,7 +9,7 @@
   // Settings: agent accounts (the core), routes and defaults (the service), notifications (ntfy through the core), default
   // permissions, appearance (the browser), voice (dictation, §4.7), about.
   import { ui, data, actions, MODELS_FOR, MODES_FOR, modeLabel, hardReload } from '../state.svelte';
-  import { byProvider, api, agents, type AgentsSettings, type GateAuth, type GateTarget, type GateLogin, type GateStart , type ChatSettings, type McpServer, type McpList, type AccountLimits, type PushInfo, type PushPrefs, type LimitWindow, type TtsVoice, type McpHealthRow } from '../api';
+  import { byProvider, byFamily, familyOf, familyRank, api, agents, type HostView, type AgentsSettings, type GateAuth, type GateTarget, type GateLogin, type GateStart , type ChatSettings, type McpServer, type McpList, type AccountLimits, type PushInfo, type PushPrefs, type LimitWindow, type TtsVoice, type McpHealthRow } from '../api';
   import { menu } from '../menu.svelte';
   import { toast } from '../toast.svelte';
   import { t, fmt, locale } from '../i18n';
@@ -172,7 +172,32 @@
   const updatedLabel = (iso: string) => { const ago = fmt.ago(Math.floor(new Date(iso).getTime() / 1000)); return ago === t('time.now') ? t('lim.updatedNow') : t('lim.updatedAgo', { ago }); };
   import Icon from '../Icon.svelte';
   import Term from '../Term.svelte';
-  const TABS = $derived<[string, string, string][]>([['accounts', 'key', t('set.accounts')], ['routes', 'globe', t('set.routes')], ['chat', 'zap', t('set.chat')], ['notify', 'bell', t('set.notify')], ['perm', 'shield', t('set.perm')], ['mcp', 'cpu', t('set.mcp')], ['look', 'sun', t('set.look')], ['voice', 'mic', t('set.voice')], ['browser', 'globe', t('browser.title')], ['about', 'info', t('set.about')]] as const);
+  import Channels from '../Channels.svelte';
+  // owner's servers (ADR-008, docs/agents-ux.md §4.12): the list with the switch, the install command, removal with the
+  // wipe command for the server — the core keeps the records, agentd on the server is stopped by the switch
+  let hosts = $state<HostView[]>([]); let hostsLoaded = $state(false); let hostsError = $state(''); let hostBusy = $state('');
+  let hostName = $state(''); let hostNote = $state(''); let hostInstall = $state<{ name: string; cmd: string } | null>(null); let hostUninstall = $state<{ name: string; cmd: string } | null>(null);
+  async function loadHosts() { try { hosts = await api.hosts(); hostsError = ''; } catch (e) { hostsError = msg(e); } finally { hostsLoaded = true; } }
+  $effect(() => { if (ui.settingsTab === 'hosts') untrack(() => { loadHosts(); const iv = setInterval(loadHosts, 15000); return () => clearInterval(iv); }); });
+  async function hostAct(key: string, f: () => Promise<void>) { if (hostBusy) return; hostBusy = key; try { await f(); } catch (e) { toast(msg(e), 'bad'); } finally { hostBusy = ''; await loadHosts(); } }
+  const hostAdd = () => { const name = hostName.trim().toLowerCase(); if (!name) return; hostAct('add', async () => { const v = await api.hostAdd(name, hostNote.trim()); hostInstall = { name: v.name, cmd: v.install ?? '' }; hostUninstall = null; hostName = ''; hostNote = ''; toast(t('hosts.added', { name: v.name }), 'info'); }); };
+  const hostToggle = (h: HostView) => hostAct(`${h.name}:toggle`, async () => { const v = await api.hostEdit(h.name, { enabled: !!h.disabled }); toast(v.disabled ? t('hosts.switchedOff', { name: h.name }) : v.status === 'online' ? t('hosts.switchedOn', { name: h.name }) : t('hosts.switchedOnOffline', { name: h.name }), v.disabled || v.status === 'online' ? 'info' : 'bad'); });
+  const hostProbe = (h: HostView) => hostAct(`${h.name}:probe`, async () => { const v = await api.hostProbe(h.name); toast(v.status === 'online' ? t('hosts.probeOk', { name: h.name }) : t('hosts.probeFail', { name: h.name, error: v.last_error ?? '' }), v.status === 'online' ? 'info' : 'bad'); });
+  const hostCode = (h: HostView) => hostAct(`${h.name}:code`, async () => { const v = await api.hostCode(h.name); hostInstall = { name: v.name, cmd: v.install ?? '' }; hostUninstall = null; });
+  const hostUpdate = (h: HostView) => hostAct(`${h.name}:update`, async () => { await api.hostUpdate(h.name); toast(t('hosts.updated', { name: h.name }), 'info'); setTimeout(loadHosts, 5000); });
+  const hostRemove = (h: HostView) => { if (!window.confirm(t('hosts.removeConfirm', { name: h.name }))) return; hostAct(`${h.name}:remove`, async () => { await api.hostRemove(h.name); hostUninstall = { name: h.name, cmd: h.uninstall }; if (hostInstall?.name === h.name) hostInstall = null; toast(t('hosts.removed', { name: h.name }), 'info'); }); };
+  async function hostCopy(text: string) { try { await navigator.clipboard.writeText(text); toast(t('hosts.copied'), 'info'); } catch (e) { toast(msg(e), 'bad'); } }
+  const hostBehind = (h: HostView) => h.status === 'online' && !!h.agentd_version && h.agentd_version !== h.core_agentd_version;
+  const hostStatus = (h: HostView) => h.disabled ? t('hosts.stDisabled') : h.status === 'online' ? t('hosts.stOnline') : h.status === 'offline' ? t('hosts.stOffline') : t('hosts.stWaiting');
+  // the price table by family (2026-10-26): "Gemini 3.8", "GPT 6", …; families of more than six rows start folded
+  let priceOpen = $state<Record<string, boolean>>({});
+  const priceGroups = $derived.by(() => {
+    const groups = new Map<string, { family: string; rows: [string, any][]; missing: number }>();
+    for (const [id, p] of Object.entries((settings?.prices ?? {}) as Record<string, any>)) { const f = familyOf(id); if (!groups.has(f)) groups.set(f, { family: f, rows: [], missing: 0 }); const g = groups.get(f)!; g.rows.push([id, p]); if (p?.note) g.missing++; }
+    const vendor = (f: string) => f.replace(/\s[\d.]+$/, '').replace(/ latest$/, '');
+    return [...groups.values()].map(g => { g.rows.sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })); return g; }).sort((a, b) => vendor(a.family).localeCompare(vendor(b.family)) || familyRank(b.family) - familyRank(a.family) || a.family.localeCompare(b.family));
+  });
+  const TABS = $derived<[string, string, string][]>([['accounts', 'key', t('set.accounts')], ['routes', 'globe', t('set.routes')], ['chat', 'zap', t('set.chat')], ['notify', 'bell', t('set.notify')], ['perm', 'shield', t('set.perm')], ['mcp', 'cpu', t('set.mcp')], ['look', 'sun', t('set.look')], ['voice', 'mic', t('set.voice')], ['browser', 'globe', t('browser.title')], ['hosts', 'server', t('hosts.title')], ['about', 'info', t('set.about')]] as const);
   let settings = $state<AgentsSettings | null>(null);
   let settingsLoading = $state(false); let settingsError = $state('');
   let notify = $state<{ app: string | null; server: string | null; topic: string; user: string; password: string | null } | null>(null);
@@ -617,7 +642,7 @@
             {#if data.chatRoutesLoading && !data.chatRoutes}<p class="muted sm" role="status">{t('common.loading')}</p>{/if}
             <fieldset class="frm" disabled={settingsLoading || !settings || chatSaving}>
               <span>{t('chat.route')}</span><select class="sm" aria-label={t('chat.route')} disabled={!data.chatRoutes || data.chatRoutesLoading} bind:value={chatCfg.route} onchange={() => (chatCfg.model = '')}><option value="">{t('set.chatAuto')}</option>{#each data.chatRoutes?.routes ?? [] as r (r.id)}<option value={r.id}>{r.title}{r.error ? ' · ' + r.error : ''}</option>{/each}</select>
-              <span>{t('chat.model')}</span><select class="sm" aria-label={t('chat.model')} disabled={!data.chatRoutes || data.chatRoutesLoading} bind:value={chatCfg.model}><option value="">{t('set.chatAuto')}</option>{#each chatRouteGroups as g (g.key)}<optgroup label={g.title}>{#each g.models as m, i (m.id + i)}<option value={m.id}>{m.name && m.name !== m.id ? `${m.name} · ${m.id}` : m.id}</option>{/each}</optgroup>{/each}</select>
+              <span>{t('chat.model')}</span><select class="sm" aria-label={t('chat.model')} disabled={!data.chatRoutes || data.chatRoutesLoading} bind:value={chatCfg.model}><option value="">{t('set.chatAuto')}</option>{#each chatRouteGroups as g (g.key)}{#each byFamily(g.models) as f (g.key + f.family)}<optgroup label={f.family ? `${g.title} · ${f.family}` : g.title}>{#each f.models as m, i (m.id + i)}<option value={m.id}>{m.name && m.name !== m.id ? `${m.name} · ${m.id}` : m.id}</option>{/each}</optgroup>{/each}{/each}</select>
               <span>{t('set.chatSearch')}<div class="hint">{t('set.chatSearchHint')}</div></span>
               <span class="stack" style="gap: 6px">
                 <select class="sm search-kind" aria-label={t('set.chatSearch')} bind:value={chatCfg.search.kind}><option value="none">{t('set.chatSearchNone')}</option><option value="searxng">SearXNG</option><option value="brave">Brave Search</option><option value="tavily">Tavily</option></select>
@@ -633,7 +658,7 @@
             {#if settings}<div class="frm"><span>Claude</span><select class="sm" aria-label="Claude" value={settings.defaults.claude ?? ''} onchange={(e) => save({ defaults: { ...settings!.defaults, claude: (e.target as HTMLSelectElement).value } })}><option value="">{t('agents.modelDefault')}</option>{#each MODELS_FOR.claude as x (x)}<option value={x}>{x}</option>{/each}</select><span>Codex</span><select class="sm" aria-label="Codex" value={settings.defaults.codex ?? ''} onchange={(e) => save({ defaults: { ...settings!.defaults, codex: (e.target as HTMLSelectElement).value } })}><option value="">{t('agents.modelDefault')}</option>{#each MODELS_FOR.codex as x (x)}<option value={x}>{x}</option>{/each}</select><span>gate</span><span class="muted sm">{t('set.gateHint')}</span></div>{/if}
           </div>
           {#if settings}<div class="card-s fs prices-card" style="margin-top: 14px"><div class="prices-head"><div><h3>{t('set.prices')}</h3><p>{t('set.pricesHint')}</p></div><button class="sm prices-sync" disabled={pricesSyncing} onclick={syncPrices}><Icon name="refresh" size="s" /> {pricesSyncing ? t('prices.syncing') : t('prices.sync')}</button></div>
-            <p class="muted sm prices-synced">{settings.prices_sync ? t('prices.syncedAt', { source: sourceName(settings.prices_sync.source), when: fmt.date(settings.prices_sync.at * 1000, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), n: settings.prices_sync.models }) : t('prices.never')} · {t('prices.hint')}</p><div class="tbl prices"><div class="tw"><table><thead><tr><th>{t('models.model')}</th><th class="num">{t('set.colIn')}</th><th class="num">{t('set.colOut')}</th><th class="num">{t('set.colCacheR')}</th><th class="num">{t('set.colCacheW')}</th><th class="num">{t('set.colWindow')}</th></tr></thead><tbody>{#each Object.entries(settings.prices) as [id, p] (id)}<tr><td class="mono">{id}</td>{#if p.note}<td class="note" colspan="4">{p.note}</td>{:else}<td class="num" data-l={t('set.colIn')}>${p.input}</td><td class="num" data-l={t('set.colOut')}>${p.output}</td><td class="num" data-l={t('set.colCacheR')}>${p.cache_read}</td><td class="num" data-l={t('set.colCacheW')}>${p.cache_write}</td>{/if}<td class="num win" data-l={t('set.colWindow')}>{p.context ? (p.context >= 1e6 ? `${Math.round(p.context / 1e5) / 10}M` : `${Math.round(p.context / 1000)}k`) : '—'}</td></tr>{/each}</tbody></table></div></div></div>{/if}
+            <p class="muted sm prices-synced">{settings.prices_sync ? t('prices.syncedAt', { source: sourceName(settings.prices_sync.source), when: fmt.date(settings.prices_sync.at * 1000, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), n: settings.prices_sync.models }) : t('prices.never')} · {t('prices.hint')}</p><div class="tbl prices"><div class="tw"><table><thead><tr><th>{t('models.model')}</th><th class="num">{t('set.colIn')}</th><th class="num">{t('set.colOut')}</th><th class="num">{t('set.colCacheR')}</th><th class="num">{t('set.colCacheW')}</th><th class="num">{t('set.colWindow')}</th></tr></thead><tbody>{#each priceGroups as g (g.family)}<tr class="pg-head" data-family={g.family}><td colspan="6"><button class="pg-toggle" aria-expanded={priceOpen[g.family] ?? g.rows.length <= 6} onclick={() => (priceOpen[g.family] = !(priceOpen[g.family] ?? g.rows.length <= 6))}><Icon name="chevD" size="s" /> <b>{g.family}</b> <span class="muted">· {g.rows.length}{#if g.missing}{' '}· {t('prices.noPriceN', { n: g.missing })}{/if}</span></button></td></tr>{#if priceOpen[g.family] ?? g.rows.length <= 6}{#each g.rows as [id, p] (id)}<tr class="pg-row"><td class="mono">{id}</td>{#if p.note}<td class="note" colspan="4">{p.note}</td>{:else}<td class="num" data-l={t('set.colIn')}>${p.input}</td><td class="num" data-l={t('set.colOut')}>${p.output}</td><td class="num" data-l={t('set.colCacheR')}>${p.cache_read}</td><td class="num" data-l={t('set.colCacheW')}>${p.cache_write}</td>{/if}<td class="num win" data-l={t('set.colWindow')}>{p.context ? (p.context >= 1e6 ? `${Math.round(p.context / 1e5) / 10}M` : `${Math.round(p.context / 1000)}k`) : '—'}</td></tr>{/each}{/if}{/each}</tbody></table></div></div></div>{/if}
         {:else if ui.settingsTab === 'notify'}
           <div class="card-s fs"><h3>{t('set.notifyTitle')}</h3><p>{t('set.notifyHint')}</p>
             {#if !notify}<button class="sm" style="justify-self: start" onclick={showNotify}><Icon name="bell" size="s" /> {t('set.notifyShow')}</button>
@@ -651,7 +676,7 @@
               {#if pushErr}<p class="sm bad push-err" role="alert">{pushErr}</p>{/if}
               {#if pushInfo}
                 <fieldset class="frm push-prefs" style="margin-top: 12px"><legend>{t('push.kinds')}</legend>
-                  {#each [['permission', t('push.kindPermission')], ['done', t('push.kindDone')], ['error', t('push.kindError')], ['limit', t('push.kindLimit')]] as [k, l] (k)}
+                  {#each [['permission', t('push.kindPermission')], ['done', t('push.kindDone')], ['error', t('push.kindError')], ['limit', t('push.kindLimit')], ['memory', t('push.kindMemory')]] as [k, l] (k)}
                     <span></span><label class="row" style="gap: 8px"><input type="checkbox" class="push-pref" data-kind={k} checked={pushInfo.prefs[k as keyof PushPrefs]} onchange={(e) => setPushPref(k as keyof PushPrefs, e.currentTarget.checked)} /> {l}</label>
                   {/each}
                 </fieldset>
@@ -659,7 +684,7 @@
                   <p class="muted sm">{t('push.devices', { n: pushInfo.count })}</p>
                   {#each pushInfo.subscriptions as sub (sub.endpoint)}
                     <div class="row push-device" class:mine={sub.endpoint === pushMine} style="gap: 8px; align-items: center; flex-wrap: wrap">
-                      <span class="mono sm">{sub.host}…{sub.tail}</span><span class="muted sm">{sub.ua || '—'}{#if sub.endpoint === pushMine} · {t('push.thisDevice')}{/if}{#if sub.fails} · {t('push.fails', { n: sub.fails })}{/if}</span>
+                      <span class="mono sm">{sub.host}…{sub.tail}</span><span class="muted sm">{sub.ua || '—'}{#if sub.endpoint === pushMine}{' '}· {t('push.thisDevice')}{/if}{#if sub.fails}{' '}· {t('push.fails', { n: sub.fails })}{/if}</span>
                       <button class="xs ghost push-device-drop" onclick={() => dropPushSub(sub.endpoint)}>{t('push.drop')}</button>
                     </div>
                   {/each}
@@ -668,6 +693,7 @@
               <p class="muted sm" style="margin-top: 10px">{t('push.ios')}</p>
             {/if}
           </div>
+          <Channels />
         {:else if ui.settingsTab === 'mcp'}
           <div class="card-s fs mcp"><h3>{t('mcp.title')}</h3><p>{t('mcp.hint')}</p>
             <div class="frm"><label for="mcp-workspace">{t('rt.workspace')}</label><select id="mcp-workspace" class="sm" value={mcpWs} disabled={mcpBusy || !data.running.length} onchange={(e) => changeMcp(e.currentTarget.value)}>{#each data.running as p (p.name)}<option value={p.name}>{p.name}</option>{/each}</select></div>
@@ -701,7 +727,7 @@
                 {/if}
                 <span></span><span class="inl"><button class="sm primary add" disabled={!mcpReady || !mcpForm.name.trim() || (mcpForm.transport === 'stdio' ? !mcpForm.command.trim() : !mcpForm.url.trim())} onclick={addMcp}>{mcpBusy ? t('sx.saving') : t('mcp.add')}</button></span>
               </div>
-              <p class="muted sm engines">{t('mcp.engines', { c: mcp.engines.claude ?? '—', x: mcp.engines.codex ?? '—', g: mcp.engines.gemini ?? '—' })}{#if mcpApplied} · {Object.entries(mcpApplied).map(([k, v]) => `${k}: ${v}`).join(' · ')}{/if}</p>
+              <p class="muted sm engines">{t('mcp.engines', { c: mcp.engines.claude ?? '—', x: mcp.engines.codex ?? '—', g: mcp.engines.gemini ?? '—' })}{#if mcpApplied}{' '}· {Object.entries(mcpApplied).map(([k, v]) => `${k}: ${v}`).join(' · ')}{/if}</p>
               <p class="muted xs">{t('mcp.newSessions')}</p>
             {/if}
           </div>
@@ -748,6 +774,52 @@
                 {/each}
               </tbody></table></div></div>
             {/if}
+          </div>
+        {:else if ui.settingsTab === 'hosts'}
+          <div class="card-s fs hosts-card" style="max-width: 820px">
+            <h3>{t('hosts.title')}</h3>
+            <p class="muted sm">{t('hosts.intro')}</p>
+            {#if hostsError}<div class="load-error" role="alert"><span>{hostsError}</span><button class="sm" onclick={loadHosts}>{t('sx.retry')}</button></div>{/if}
+            {#if hostsLoaded && !hosts.length}<p class="muted sm">{t('hosts.none')}</p>{/if}
+            {#each hosts as h (h.name)}
+              <div class="host-row" data-host={h.name} class:off={h.disabled}>
+                <div class="row" style="gap: 8px; flex-wrap: wrap; align-items: center;">
+                  <button class="switch host-switch" class:on={!h.disabled} aria-pressed={!h.disabled} aria-label={t('hosts.switch')} title={h.disabled ? t('hosts.switchOnHint') : t('hosts.switchOffHint')} disabled={!!hostBusy || !h.addr} onclick={() => hostToggle(h)}></button>
+                  <b class="mono">{h.name}</b>
+                  {#if h.addr}<span class="muted sm mono">{h.addr}:{h.port}</span>{/if}
+                  <span class="badge {h.disabled ? '' : h.status === 'online' ? 'ok' : h.status === 'offline' ? 'bad' : ''}">{hostStatus(h)}</span>
+                  {#if hostBehind(h)}<span class="badge warn">{t('hosts.behind')}</span><button class="sm" disabled={!!hostBusy} onclick={() => hostUpdate(h)}>{t('hosts.updateAgentd')}</button>{/if}
+                  <span class="sp"></span>
+                  <button class="sm" disabled={!!hostBusy || !h.addr || h.disabled} onclick={() => hostProbe(h)}>{t('hosts.probe')}</button>
+                  <button class="sm" disabled={!!hostBusy} onclick={() => hostCode(h)}>{t('hosts.code')}</button>
+                  <button class="sm danger" disabled={!!hostBusy} onclick={() => hostRemove(h)}>{t('hosts.remove')}</button>
+                </div>
+                <div class="muted xs" style="margin-top: 4px;">
+                  {#if h.addr}{h.os} {h.arch} · {h.user}@{h.hostname || h.addr} · {h.llm ? t('hosts.llm', { provider: h.llm }) : t('hosts.llmNone')}{#if h.llm_url}{' '}· {h.llm_url}{/if}{:else}{t('hosts.notInstalled')}{/if}
+                  {#if h.disabled} · {t('hosts.disabledHint')}{:else if h.status === 'offline' && h.last_error}{' '}· {h.last_error}{/if}
+                  {#if h.note}<div>{h.note}</div>{/if}
+                </div>
+              </div>
+            {/each}
+            {#if hostInstall}
+              <div class="host-cmd" role="status"><b>{t('hosts.installTitle', { name: hostInstall.name })}</b>
+                <div class="row" style="gap: 8px; margin-top: 6px; align-items: center;"><code class="mono cmd">{hostInstall.cmd}</code><button class="sm" onclick={() => hostCopy(hostInstall!.cmd)}>{t('hosts.copy')}</button></div>
+                <p class="muted xs" style="margin: 6px 0 0;">{t('hosts.installHint')}</p>
+              </div>
+            {/if}
+            {#if hostUninstall}
+              <div class="host-cmd" role="status"><b>{t('hosts.uninstallTitle', { name: hostUninstall.name })}</b>
+                <div class="row" style="gap: 8px; margin-top: 6px; align-items: center;"><code class="mono cmd">{hostUninstall.cmd}</code><button class="sm" onclick={() => hostCopy(hostUninstall!.cmd)}>{t('hosts.copy')}</button></div>
+                <p class="muted xs" style="margin: 6px 0 0;">{t('hosts.uninstallHint')}</p>
+              </div>
+            {/if}
+            <h4 style="margin: 14px 0 6px;">{t('hosts.add')}</h4>
+            <div class="row" style="gap: 8px; flex-wrap: wrap;">
+              <input class="sm mono host-name" placeholder={t('hosts.namePh')} maxlength="40" bind:value={hostName} onkeydown={(e) => { if (e.key === 'Enter') hostAdd(); }} />
+              <input class="sm host-note" placeholder={t('hosts.notePh')} maxlength="500" bind:value={hostNote} onkeydown={(e) => { if (e.key === 'Enter') hostAdd(); }} style="flex: 1; min-width: 160px;" />
+              <button class="primary sm" disabled={!!hostBusy || !hostName.trim()} onclick={hostAdd}>{hostBusy === 'add' ? t('hosts.adding') : t('hosts.addBtn')}</button>
+            </div>
+            <p class="muted xs" style="margin-top: 6px;">{t('hosts.addHint')}</p>
           </div>
         {:else if ui.settingsTab === 'voice'}
           <div class="card-s fs voice" style="max-width: 760px">
@@ -838,11 +910,11 @@
             {/if}
           </div>
         {:else}
-          <div class="card-s fs"><h3>{t('set.aboutTitle')}</h3><div class="frm"><span>{t('set.service')}</span><span>cloudos-agents {data.health?.version ?? '—'}</span><span>{t('set.core')}</span><span>cloudd {data.health?.cloudd_version ?? (data.health?.cloudd ? 'ok' : t('api.offline'))}</span><span>agentd</span><span>{data.running.filter(p => p.reachable).length} {t('set.of')} {data.running.length} {t('set.aboutWs')}</span><span>{t('hub.events')}</span><span class="hub-state">{data.hubLive ? t('hub.live') : t('hub.poll')}{#if data.health?.hub_subscriptions != null} · {t('hub.subs', { n: data.health.hub_subscriptions })}{/if}</span><span>{t('set.docs')}</span><span><a href="https://github.com/" target="_blank" rel="noopener">docs/agents-ux.md</a> · ADR-006</span></div></div>
+          <div class="card-s fs"><h3>{t('set.aboutTitle')}</h3><div class="frm"><span>{t('set.service')}</span><span>cloudos-agents {data.health?.version ?? '—'}</span><span>{t('set.core')}</span><span>cloudd {data.health?.cloudd_version ?? (data.health?.cloudd ? 'ok' : t('api.offline'))}</span><span>agentd</span><span>{data.running.filter(p => p.reachable).length} {t('set.of')} {data.running.length} {t('set.aboutWs')}</span><span>{t('hub.events')}</span><span class="hub-state">{data.hubLive ? t('hub.live') : t('hub.poll')}{#if data.health?.hub_subscriptions != null}{' '}· {t('hub.subs', { n: data.health.hub_subscriptions })}{/if}</span><span>{t('set.docs')}</span><span><a href="https://github.com/" target="_blank" rel="noopener">docs/agents-ux.md</a> · ADR-006</span></div></div>
           <div class="card-s fs" style="margin-top: 14px"><h3>{t('set.uiTitle')}</h3><p>{t('set.uiHint')}</p>
             <p class="muted sm chat-cache-line">{t('set.chatCache', { n: chatCacheN })} · {t('set.chatCacheHint')}</p>
             {#if storageUse}<p class="muted sm storage-line">{t('set.storage', { used: fmtMb(storageUse.used), quota: fmtMb(storageUse.quota) })} · {data.storagePersisted ? t('set.storagePersistent') : t('set.storageBestEffort')}{#if data.storagePersisted === false || data.storagePersisted === null} <button class="xs ghost storage-persist" onclick={() => data.persistStorage().then(loadStorage)}>{t('set.storageAsk')}</button>{/if}</p>{/if}
-            <div class="frm"><span>{t('set.uiBuild')}</span><span class="mono">{data.uiBuild() || '—'}{#if data.uiServerBuild && data.uiServerBuild !== data.uiBuild()} · <span style="color: var(--warn)">{t('set.uiServer', { b: data.uiServerBuild })}</span>{/if}</span></div>
+            <div class="frm"><span>{t('set.uiBuild')}</span><span class="mono">{data.uiBuild() || '—'}{#if data.uiServerBuild && data.uiServerBuild !== data.uiBuild()}{' '}· <span style="color: var(--warn)">{t('set.uiServer', { b: data.uiServerBuild })}</span>{/if}</span></div>
             <div class="row" style="gap: 8px; margin-top: 8px; flex-wrap: wrap"><button class="sm primary reset-cache" onclick={hardReload}><Icon name="refresh" size="s" /> {t('set.resetCache')}</button><button class="sm ghost" onclick={() => data.checkUiFresh().then(() => toast(data.uiStale ? t('upd.banner') : t('set.uiFresh')))}>{t('set.uiCheck')}</button></div>
             <!-- install to the home screen: a button when the browser gave beforeinstallprompt; otherwise a per-platform
                  hint -->
@@ -864,6 +936,8 @@
   fieldset.frm { border: 0; padding: 0; min-width: 0; margin: 0 0 14px; }
   .prices-head { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; } .prices-head > div { flex: 1 1 240px; min-width: 0; } .prices-head .prices-sync { flex: none; }
   .prices-synced { margin: 2px 0 8px; overflow-wrap: anywhere; }
+  .pg-head td { padding: 8px 0 4px; border-bottom: 0; } .pg-toggle { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 0; color: var(--fg-1); cursor: pointer; font: inherit; }
+  .pg-toggle[aria-expanded="false"] :global(svg) { transform: rotate(-90deg); } .pg-toggle :global(svg) { transition: transform var(--dur); color: var(--fg-3); }
   .voice-ready { color: var(--fg-3); } .voice-ready.ok { color: var(--ok); }
   .browser-tbl .browser-port { width: 92px; }
   .voice-acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

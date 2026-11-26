@@ -54,6 +54,6 @@ upstream:
   categories:
   - data
   source: https://github.com/nextcloud/server
-  tipi_version: 35
-  version: 33-apache
+  tipi_version: 46
+  version: 35.0.3
 website: https://github.com/nextcloud/server

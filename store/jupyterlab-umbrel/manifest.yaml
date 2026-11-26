@@ -12,9 +12,9 @@ env:
   APP_PASSWORD:
     generate: password
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/jupyterlab/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/jupyterlab/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/jupyterlab/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jupyterlab/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/jupyterlab/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/jupyterlab/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,8 +43,13 @@ upstream:
   author: jupyterlab
   categories:
   - developer
-  release_notes: Adds GPU access so notebooks can use CUDA or ROCm frameworks when a supported GPU is available. Using an AMD or NVIDIA GPU requires umbrelOS 2.0 Beta or later.
+  release_notes: |-
+    This update fixes notebook editing, search, and file handling.
+
+    - Fixes cells running in the old kernel when restarting just after a page loads. - Improves notebook scrolling, cell metadata editing, and search result tracking. - Fixes replacing files with cut-and-paste and improves Markdown previews and the table of contents.
+
+    Full release notes can be found at https://github.com/jupyterlab/jupyterlab/releases/tag/v4.6.6
   source: https://github.com/jupyterlab/jupyterlab
-  version: v4.6.3-patch.1
+  version: v4.6.6
   website: https://jupyterlab.readthedocs.io/en/latest/
 website: https://jupyterlab.readthedocs.io/en/latest/

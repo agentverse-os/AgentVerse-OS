@@ -192,7 +192,7 @@
 
 <text x="272" y="140" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif" font-weight="600" font-size="64" letter-spacing="-1.3" fill="#F4F7FF">AgentVerse <tspan fill="#A2B4FF">OS</tspan></text>
 <text x="274" y="180" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif" font-weight="500" font-size="14" letter-spacing="3.4" fill="#8E97B8">ONE SYSTEM. MANY WORLDS.</text></g>
-<text x="800.0" y="424" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif" font-weight="500" font-size="22" fill="#C9D2FF" opacity="0.92">A personal cloud OS for a developer and their AI agents: isolated workspaces, a store of 944 self-hosted apps, one server, browser only.</text>
+<text x="800.0" y="424" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif" font-weight="500" font-size="22" fill="#C9D2FF" opacity="0.92">A personal cloud OS for a developer and their AI agents</text>
 <text x="800.0" y="460" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif" font-weight="500" font-size="15" letter-spacing="3" fill="#8E97B8">RUST · SVELTE 5 · INCUS · DOCKER · CODER · TAILSCALE</text>
 </g>
 </svg>

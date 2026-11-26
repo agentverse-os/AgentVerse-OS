@@ -11,10 +11,11 @@ services:
       interval: 5s
       retries: 10
       test:
-      - CMD-SHELL
-      - wget -qO- http://127.0.0.1:3000/
+      - CMD
+      - node
+      - healthcheck.js
       timeout: 20s
-    image: lissy93/web-check
+    image: lissy93/web-check:2.4.2
     networks:
       appnet:
         aliases:

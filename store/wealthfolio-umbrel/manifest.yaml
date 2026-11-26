@@ -50,20 +50,26 @@ upstream:
   categories:
   - finance
   release_notes: |-
-    Wealthfolio 3.7.0 adds closed positions and cash to the holdings table, with open/closed views, realized P&L columns, cash filtering, and instrument-aware quantity labels.
+    ⚠️ In rare cases, the first broker sync after updating can reset a holding's average cost to zero, including costs you entered manually. This can affect holdings with three or more decimal places when the broker supplies no average cost. Later syncs will not restore the previous cost.
 
-    Japanese and Korean translations are now included, and UI language can be set independently from regional number, date, time, and currency formatting.
+    ⚠️ The in-app assistant can now read Spending data and send it to your AI provider if Data access is still on its default. To prevent this, turn off Spending in Settings → AI providers → Data access. Explicitly saved selections are unchanged.
 
-    The add-on runtime was rebuilt so add-ons load reliably on WebKit and iOS, with a new private asset registry for packaged add-on resources.
+    Wealthfolio 3.13.0 adds recurring contribution limits, bulk transfer matching, savings goals in budgets, spending-category merging, and full-data export. It also fixes holdings valuations, imports and spending calculations, and error messages no longer expose API keys or financial details.
 
-    Broker sync now preserves exact contract multipliers and resolves share-class suffixes more accurately, while the AI assistant has a clearer financial-safety boundary for drafts and untrusted attachment/tool output.
+    Update all synced devices before making a contribution limit repeat. Crypto exchange-rate pairs such as BTC/USD need renaming to BTC-USD, and alternative assets in another currency may need a rate added in Settings → General → Exchange rates. AI agents need Accounts or Holdings write access and a reconnect to use the new write tools.
 
-    This release also fixes negative-opening account returns, credit/refund accounting, allocation residuals, phantom $0 rows, foreign-currency gain display, retirement and goal money fields, mobile finance views, and several table, account-selection, localization, and dependency issues.
+    Update all synced devices before using the new gain colours, fund conversions, or shared savings and retirement accounts. If a device received a fund conversion on 3.11, update it and choose Recalculate History for that account.
 
-    Note: Wealthfolio now requires iOS/iPadOS 16, macOS 12, and Chrome/Edge 107, Firefox 104, or Safari 16 and newer.
+    AI agents using categorization tools now need View spending and, to make changes, Organize spending permissions. Activities — commit/write now also permits deleting and voiding activities. Review your token permissions in Settings → AI agent access.
 
-    Full release notes can be found at https://github.com/wealthfolio/wealthfolio/releases/tag/v3.7.0
+    Savings goals may show different monthly amounts or status because expected returns now use a yearly rate, and goals without a saved plan assume 5% instead of 7%.
+
+    If you used external credits, custom Other holdings, same-account currency conversions, or currency codes such as USDT on 3.10.0, run Settings → Market Data → History → Refresh full history once to correct past values.
+
+    Upgrading from before 3.10.0 also introduces the new calculation engine: first launch creates a backup and recalculates history, which may change derived cost basis, realized gains, and past values.
+
+    Full release notes can be found at https://github.com/wealthfolio/wealthfolio/releases/tag/v3.13.0
   source: https://github.com/wealthfolio/wealthfolio
-  version: 3.7.0
+  version: 3.13.0
   website: https://wealthfolio.app/
 website: https://wealthfolio.app/

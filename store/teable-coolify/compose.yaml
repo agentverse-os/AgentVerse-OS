@@ -8,6 +8,8 @@ services:
     depends_on:
       teable-cache:
         condition: service_healthy
+      teable-db:
+        condition: service_healthy
     environment:
     - SERVICE_URL_TEABLE_3000=${SERVICE_URL_TEABLE_3000}
     - PUBLIC_ORIGIN=${SERVICE_URL_TEABLE}
@@ -36,7 +38,7 @@ services:
       - -f
       - http://127.0.0.1:3000
       timeout: 20s
-    image: ghcr.io/teableio/teable:latest
+    image: ghcr.io/teableio/teable:release.2026-11-13T02-21-01Z.3890
     networks:
       appnet:
         aliases:
@@ -90,19 +92,6 @@ services:
     restart: unless-stopped
     volumes:
     - teable_db_data:/var/lib/postgresql/data:rw
-  teable-db-migrate:
-    depends_on:
-      teable-db:
-        condition: service_healthy
-    environment:
-    - TZ=${TIMEZONE}
-    - PRISMA_DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@teable-db:${POSTGRES_PORT}/${POSTGRES_DB}
-    image: ghcr.io/teableio/teable-db-migrate:latest
-    networks:
-      appnet:
-        aliases:
-        - teable-coolify_teable-db-migrate_1
-    restart: no
 volumes:
   teable_cache_data:
     driver: local

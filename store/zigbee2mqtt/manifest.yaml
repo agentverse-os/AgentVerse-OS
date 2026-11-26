@@ -47,6 +47,6 @@ upstream:
   - utilities
   - automation
   source: https://github.com/Koenkk/zigbee2mqtt
-  tipi_version: 49
-  version: 2.13.0
+  tipi_version: 55
+  version: 2.14.3
 website: https://github.com/Koenkk/zigbee2mqtt

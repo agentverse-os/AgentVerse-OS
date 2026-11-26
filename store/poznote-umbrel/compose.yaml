@@ -22,7 +22,7 @@ services:
       - /dev/null
       - http://127.0.0.1/api/health
       timeout: 10s
-    image: ghcr.io/timothepoznanski/poznote:6.70.3@sha256:cb49e81398c67d50b498ea3ba92d54e861cbce3da9c5cc1aa3dae2f66dcd98a2
+    image: ghcr.io/timothepoznanski/poznote:6.151.1@sha256:2a87e4147d796064899303b2d0328721cbe96e9aa946295a700712e122c7aa1b
     networks:
       appnet:
         aliases:
@@ -30,13 +30,15 @@ services:
     restart: on-failure
     volumes:
     - ${APP_DATA_DIR}/data:/var/www/html/data
+    - ${APP_DATA_DIR}/umbrel-mcp.php:/var/www/html/public/umbrel-mcp.php:ro
   mcp:
     depends_on:
     - app
     environment:
       POZNOTE_API_URL: http://poznote_app_1:80/api/v1
       POZNOTE_DEBUG: ${POZNOTE_DEBUG:-false}
-    image: ghcr.io/timothepoznanski/poznote-mcp:6.70.3@sha256:4a01ec2be1d9f5ab33961b728f343fdbe76b35491dca2d11bddc01aa1886e277
+      POZNOTE_MCP_AUTH_TOKEN: ${APP_POZNOTE_MCP_AUTH_TOKEN:?MCP authentication token is required}
+    image: ghcr.io/timothepoznanski/poznote-mcp:6.151.1@sha256:a4a85302775590be1399d13da63d30ce3b8cd7f47545f8e8cd639171c63573b3
     networks:
       appnet:
         aliases:

@@ -89,6 +89,6 @@ upstream:
   categories:
   - social
   source: https://gitlab.com/famedly/conduit
-  tipi_version: 14
-  version: 0.10.12
+  tipi_version: 17
+  version: 0.10.16
 website: https://gitlab.com/famedly/conduit

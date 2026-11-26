@@ -38,7 +38,7 @@ upstream:
   author: emby.media
   categories:
   - media
-  source: https://emby.media
-  tipi_version: 11
-  version: 4.9.5
-website: https://emby.media
+  source: https://github.com/MediaBrowser/Emby
+  tipi_version: 17
+  version: 4.10.2
+website: https://github.com/MediaBrowser/Emby

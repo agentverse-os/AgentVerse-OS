@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/firefly-iii/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/firefly-iii/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/firefly-iii/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/firefly-iii/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/firefly-iii/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/firefly-iii/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,10 +42,10 @@ upstream:
   categories:
   - finance
   release_notes: |-
-    This update fixes a bug in v6.6.5 that could remove foreign currency information from deposits.
+    This update includes PHP 8.5.12, which fixes two critical security vulnerabilities (CVE-2026-109618 and CVE-2026-109619). Updating is strongly recommended. Firefly III remains on version 6.7.9.
 
-    Full release notes can be found at https://github.com/firefly-iii/firefly-iii/releases/tag/v6.6.6
+    Full release notes can be found at https://www.php.net/archive/2026.php#2026-10-21-5
   source: https://github.com/firefly-iii/firefly-iii
-  version: 6.6.6
+  version: 6.7.9-patch.1
   website: https://www.firefly-iii.org/
 website: https://www.firefly-iii.org/

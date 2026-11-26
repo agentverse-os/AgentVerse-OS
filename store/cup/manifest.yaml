@@ -40,6 +40,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/sergi0g/cup
-  tipi_version: 23
-  version: v3.5.1
+  tipi_version: 25
+  version: v3.6.0
 website: https://github.com/sergi0g/cup

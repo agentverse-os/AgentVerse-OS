@@ -17,7 +17,7 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: elestio/postgres:latest
+    image: elestio/postgres:16
     networks:
       appnet:
         aliases:
@@ -78,7 +78,7 @@ services:
       - --spider
       - http://127.0.0.1:1337/
       timeout: 20s
-    image: elestio/strapi-production:v5.33.4
+    image: elestio/strapi-production:v5.62.0
     networks:
       appnet:
         aliases:

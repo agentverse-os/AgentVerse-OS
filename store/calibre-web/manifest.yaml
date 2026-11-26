@@ -39,6 +39,6 @@ upstream:
   categories:
   - books
   source: https://github.com/janeczku/calibre-web
-  tipi_version: 19
+  tipi_version: 20
   version: 0.6.27
 website: https://github.com/janeczku/calibre-web

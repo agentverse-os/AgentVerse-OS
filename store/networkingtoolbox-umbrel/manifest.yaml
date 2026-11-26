@@ -10,12 +10,12 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/5.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/6.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/5.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/networkingtoolbox/6.webp
 health: null
 hooks: {}
 host_docker_socket: false

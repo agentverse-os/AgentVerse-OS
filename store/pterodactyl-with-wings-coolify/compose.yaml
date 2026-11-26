@@ -206,7 +206,7 @@ services:
       - CMD-SHELL
       - curl -sf http://localhost:80 || exit 1
       timeout: 1s
-    image: ghcr.io/pterodactyl/panel:v1.12.0
+    image: ghcr.io/pterodactyl/panel:v1.15.2
     networks:
       appnet:
         aliases:
@@ -224,7 +224,7 @@ services:
       - CMD-SHELL
       - redis-cli ping || exit 1
       timeout: 1s
-    image: redis:alpine
+    image: redis:8.10.3-alpine
     networks:
       appnet:
         aliases:
@@ -239,7 +239,7 @@ services:
     - TZ=${TIMEZONE:-UTC}
     - WINGS_USERNAME=pterodactyl
     - DOCKER_HOST=tcp://cloudos-docker-ro:2375
-    image: ghcr.io/pterodactyl/wings:v1.12.1
+    image: ghcr.io/pterodactyl/wings:v1.13.5
     networks:
       appnet:
         aliases:

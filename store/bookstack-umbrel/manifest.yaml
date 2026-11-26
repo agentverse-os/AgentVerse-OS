@@ -12,6 +12,7 @@ env:
   APP_BOOKSTACK_APP_KEY: ''
   APP_BOOKSTACK_DB_PASSWORD: ''
   APP_BOOKSTACK_DB_ROOT_PASSWORD: ''
+  GATEWAY_IP: ''
   MARIADB_ROOT_PASSWORD: ''
 gallery:
 - https://getumbrel.github.io/umbrel-apps-gallery/bookstack/1.webp
@@ -72,14 +73,19 @@ upstream:
   categories:
   - files
   release_notes: |-
-    BookStack 26.05.4 is a security release that fixes vulnerabilities affecting attachment updates, drawing requests, draft page handling, ZIP imports, draft search visibility, and recycle-bin permission updates.
+    This update lets you connect an SMTP email provider in BookStack's app settings on umbrelOS 2.0, for notifications, invitations and password resets.
 
-    The release also improves image content-type checks and fixes issues with anchor and SFTP links in page content.
+    Previous BookStack 26.09.3 release notes:
 
-    Updating is especially recommended for instances where untrusted users have access.
+    This security update improves protection of private content. Updating is recommended.
+      - Fixed access to images and drawings attached to inaccessible draft or deleted pages.
+      - Fixed personal editor drafts being visible to other users in certain situations.
+      - Fixed book and chapter conversions incorrectly deleting content in the recycle bin.
+      - Prevented attachment responses from revealing whether inaccessible pages exist.
 
-    Full release notes can be found at https://github.com/BookStackApp/BookStack/releases/tag/v26.05.4
+
+    Full release notes can be found at https://github.com/BookStackApp/BookStack/releases/tag/v26.09.3
   source: https://github.com/BookStackApp/BookStack
-  version: 26.05.4
+  version: 26.09.3-patch.1
   website: https://www.bookstackapp.com/
 website: https://www.bookstackapp.com/

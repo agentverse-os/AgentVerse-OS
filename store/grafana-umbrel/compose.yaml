@@ -7,7 +7,8 @@ services:
   web:
     environment:
       GF_PLUGINS_PREINSTALL_AUTO_UPDATE: 'false'
-    image: grafana/grafana:13.2.1@sha256:f772d434e8fab0049deb2b1b30abd43342bcfca1537614aa8d36080232cf4283
+      GODEBUG: multipathtcp=0
+    image: grafana/grafana:13.3.1@sha256:0615ec4fbd4072004b7d86b46ded63013a74b7d6eb1119273dd89e8fa25c13cf
     networks:
       appnet:
         aliases:

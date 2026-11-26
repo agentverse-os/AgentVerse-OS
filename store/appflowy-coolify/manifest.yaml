@@ -9,7 +9,11 @@ endpoint:
   port: 80
   service: admin_frontend
 env:
+  AI_ENABLED: 'true'
   AI_OPENAI_API_KEY: ''
+  APPFLOWY_INDEXER_DATABASE_ENABLED: 'false'
+  APPFLOWY_KEYWORD_INDEX_MAP_SIZE_BYTES: '2147483648'
+  APPFLOWY_KEYWORD_SEARCH_ENABLED: 'true'
   APPFLOWY_MAILER_SMTP_EMAIL: notify@appflowy.io
   APPFLOWY_MAILER_SMTP_HOST: smtp.gmail.com
   APPFLOWY_MAILER_SMTP_PASSWORD: email_sender_password
@@ -19,6 +23,10 @@ env:
   APPFLOWY_S3_BUCKET: appflowy
   APPFLOWY_S3_CREATE_BUCKET: 'true'
   APPFLOWY_S3_REGION: us-east-1
+  APPFLOWY_SEARCH_REQUEST_TIMEOUT_SECS: '10'
+  ASSEMBLYAI_API_BASE: https://api.assemblyai.com/v2
+  ASSEMBLYAI_API_KEY: ''
+  ASSEMBLYAI_STREAMING_API_BASE: https://streaming.assemblyai.com/v3
   AZURE_OPENAI_API_KEY: ''
   AZURE_OPENAI_API_VERSION: ''
   AZURE_OPENAI_ENDPOINT: ''
@@ -29,8 +37,10 @@ env:
   GOTRUE_SMTP_PASS: ''
   GOTRUE_SMTP_PORT: '587'
   GOTRUE_SMTP_USER: ''
+  GUEST_INVITES_REQUIRE_ADMIN_APPROVAL: 'false'
   POSTGRES_DB: appflowy
   RUST_LOG: info
+  SERVICE_FQDN_ADMIN: ${APP_DOMAIN}
   SERVICE_PASSWORD_ADMIN:
     generate: password
   SERVICE_PASSWORD_JWT:
@@ -45,6 +55,7 @@ env:
     generate: password
   SERVICE_USER_POSTGRES:
     generate: password
+  SIGNUP_WHITELIST_ENABLED: 'false'
 gallery: []
 health: null
 hooks: {}
@@ -139,6 +150,48 @@ settings:
   options: null
   required: false
   type: password
+- env: ASSEMBLYAI_API_KEY
+  hint: null
+  label: assemblyai api key
+  options: null
+  required: false
+  type: password
+- env: ASSEMBLYAI_API_BASE
+  hint: 'по умолчанию: https://api.assemblyai.com/v2'
+  label: assemblyai api base
+  options: null
+  required: false
+  type: text
+- env: ASSEMBLYAI_STREAMING_API_BASE
+  hint: 'по умолчанию: https://streaming.assemblyai.com/v3'
+  label: assemblyai streaming api base
+  options: null
+  required: false
+  type: text
+- env: APPFLOWY_SEARCH_REQUEST_TIMEOUT_SECS
+  hint: 'по умолчанию: 10'
+  label: appflowy search request timeout secs
+  options: null
+  required: false
+  type: text
+- env: AI_ENABLED
+  hint: 'по умолчанию: true'
+  label: ai enabled
+  options: null
+  required: false
+  type: text
+- env: SIGNUP_WHITELIST_ENABLED
+  hint: 'по умолчанию: false'
+  label: signup whitelist enabled
+  options: null
+  required: false
+  type: text
+- env: GUEST_INVITES_REQUIRE_ADMIN_APPROVAL
+  hint: 'по умолчанию: false'
+  label: guest invites require admin approval
+  options: null
+  required: false
+  type: text
 - env: GOTRUE_ADMIN_EMAIL
   hint: 'по умолчанию: admin@example.com'
   label: gotrue admin email
@@ -199,6 +252,24 @@ settings:
   options: null
   required: false
   type: text
+- env: APPFLOWY_INDEXER_DATABASE_ENABLED
+  hint: 'по умолчанию: false'
+  label: appflowy indexer database enabled
+  options: null
+  required: false
+  type: text
+- env: APPFLOWY_KEYWORD_SEARCH_ENABLED
+  hint: 'по умолчанию: true'
+  label: appflowy keyword search enabled
+  options: null
+  required: false
+  type: password
+- env: APPFLOWY_KEYWORD_INDEX_MAP_SIZE_BYTES
+  hint: 'по умолчанию: 2147483648'
+  label: appflowy keyword index map size bytes
+  options: null
+  required: false
+  type: password
 tags:
 - appflowy
 - notion

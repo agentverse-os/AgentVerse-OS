@@ -14,7 +14,7 @@ services:
       CORE_RETURN_HTTPS: 'false'
       CORE_SECRET: ${ZIPLINE_CORE_SECRET}
       DATABASE_URL: postgres://tipi:${ZIPLINE_DB_PASSWORD}@zipline-db/zipline
-    image: ghcr.io/diced/zipline:4.7.0
+    image: ghcr.io/diced/zipline:4.8.3
     networks:
       appnet:
         aliases:

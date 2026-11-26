@@ -20,7 +20,7 @@ services:
       - -f
       - http://127.0.0.1:8000
       timeout: 10s
-    image: lscr.io/linuxserver/babybuddy:latest
+    image: lscr.io/linuxserver/babybuddy:2.11.0
     networks:
       appnet:
         aliases:

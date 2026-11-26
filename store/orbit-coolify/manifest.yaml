@@ -1,0 +1,74 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/orbit-coolify
+description: Self-hosted workspace for teams with tasks, docs, chat, and an MCP server for AI clients.
+endpoint:
+  port: 8080
+  service: orbit
+env:
+  ORBIT_TRUSTED_PROXIES: 127.0.0.1/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+  SERVICE_REALBASE64_32:
+    generate: hex64
+  SERVICE_URL_ORBIT: https://${APP_DOMAIN}
+  SERVICE_URL_ORBIT_8080: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: orbit-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: ORBIT_TRUSTED_PROXIES
+  hint: 'по умолчанию: 127.0.0.1/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'
+  label: orbit trusted proxies
+  options: null
+  required: false
+  type: text
+tags:
+- orbit
+- tasks
+- docs
+- wiki
+- chat
+- project-management
+- kanban
+- mcp
+- ai
+- coollabs
+title: Orbit
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://github.com/coollabsio/orbit/blob/main/docs/operations.md
+  tags:
+  - orbit
+  - tasks
+  - docs
+  - wiki
+  - chat
+  - project-management
+  - kanban
+  - mcp
+  - ai
+  - coollabs
+  template: orbit.yaml
+website: https://github.com/coollabsio/orbit/blob/main/docs/operations.md

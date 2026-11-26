@@ -7,8 +7,9 @@ services:
   app:
     environment:
     - DT_ENV=selfhosted
+    - DT_JWT_SECRET=${APP_SEED}
     - DT_SQLITE_PATH=/donetick-data/donetick.db
-    image: donetick/donetick:v0.1.79@sha256:a1cc21dd5a37acb5009009f13e5d2529153049361afb0a1cd94bde312382d36a
+    image: donetick/donetick:v0.1.86@sha256:66253a32a8e8ed8c49c49418b43abe1181db23e07defe97748d2cb7508c487cd
     networks:
       appnet:
         aliases:

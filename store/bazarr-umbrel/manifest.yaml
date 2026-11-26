@@ -11,9 +11,9 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/bazarr/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bazarr/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bazarr/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bazarr/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bazarr/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bazarr/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,16 +44,15 @@ upstream:
   - media
   release_notes: |-
     Key improvements in this release include:
-      - Improved post-processing path safety and platform handling to avoid command injection issues
-      - Added SSL verification controls and new subtitle providers including Bayflix and Vladoon
-      - Improved SubDL, LegendasNet, Gestdown, RegieLive.ro, and other provider error handling
-      - Improved audio and subtitle language detection, including embedded Chinese subtitles
-      - Improved Sonarr/Radarr sync performance and existing-subtitle database handling
-      - Removed the offline Podnapisi provider
+      - Fixed cutoff logic for non-HI subtitles when HI subtitles are excluded from language profiles
+      - Added the Tsukihime anime provider and hash-only mode for the napiprojekt provider
+      - Improved subtitle provider handling for napiprojekt, subssabbz, and history queries
+      - Added safer subtitle deletion checks and safer post-processing command handling
+      - Added subsync quality controls and generic webhook URL parameters
 
 
-    Full release notes are found at https://github.com/morpheus65535/bazarr/releases/tag/v1.6.0
+    Full release notes are found at https://github.com/morpheus65535/bazarr/releases/tag/v1.6.2
   source: https://github.com/morpheus65535/bazarr
-  version: 1.6.0
+  version: 1.6.2
   website: https://www.bazarr.media/
 website: https://www.bazarr.media/

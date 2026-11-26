@@ -9,7 +9,7 @@ services:
       DB_PATH: /data
       LEPTOS_SITE_ADDR: 0.0.0.0:3000
       NODE_MGR_ROOT_DIR: /data
-    image: bochaco/formicaio:0.8.4-native-lcd-disabled@sha256:9f745c0b3dac2bae47de23cb4c444d2c04ce83610a84a26c784534011f4e01f7
+    image: bochaco/formicaio:0.8.9-native-lcd-disabled@sha256:2e5b9e540d934523f623facbf58eb7f382e856e3b459c7f639e9952e30840383
     network_mode: host
     restart: on-failure
     stop_grace_period: 5s

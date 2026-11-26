@@ -14,7 +14,7 @@ services:
       DISK_SIZE: ${WINDOWS_DISK_SIZE_GB}G
       RAM_SIZE: ${WINDOWS_RAM_GB}G
       VERSION: ${WINDOWS_VERSION}
-    image: dockurr/windows:6.05
+    image: dockurr/windows:6.06
     networks:
       appnet:
         aliases:

@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   web:
-    image: ghcr.io/remsky/kokoro-fastapi-cpu:v0.8.1@sha256:28d6f0b6e4df369559012578299d201b855a08fac466f616653edd1f08c5370a
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:v0.10.0@sha256:f54c5960c2b9387f6349080a9944f8bc7e8cdb98a4ef9238cb0b0f9ff9795f44
     networks:
       appnet:
         aliases:

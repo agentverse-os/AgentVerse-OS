@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/dgtlmoon/changedetection.io
-  tipi_version: 115
-  version: 0.55.8
+  tipi_version: 131
+  version: 0.70.3
 website: https://github.com/dgtlmoon/changedetection.io

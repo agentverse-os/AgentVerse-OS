@@ -1,0 +1,48 @@
+# Imported from the umbrel catalog by `cloudd store import umbrel`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/portainer-business-umbrel
+description: Manage Docker containers on your Umbrel with Portainer Business Edition
+endpoint:
+  port: 9000
+  service: portainer
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/portainer-business/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/portainer-business/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/portainer-business/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/portainer-business/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: changeme
+  path: null
+  user: admin
+name: portainer-business-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Portainer Business
+type: app
+upstream:
+  author: Portainer
+  categories:
+  - developer
+  release_notes: null
+  source: null
+  version: 2.45.3
+  website: https://www.portainer.io
+website: https://www.portainer.io

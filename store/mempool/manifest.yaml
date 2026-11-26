@@ -75,6 +75,6 @@ upstream:
   categories:
   - finance
   source: https://github.com/mempool/mempool
-  tipi_version: 18
-  version: v3.3.1
+  tipi_version: 22
+  version: v3.3.2
 website: https://github.com/mempool/mempool

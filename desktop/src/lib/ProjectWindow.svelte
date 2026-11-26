@@ -2,6 +2,7 @@
   import { api, type ProjectView, type AppView } from './api';
   import ProjectCard from './ProjectCard.svelte';
   import { t } from './i18n.svelte';
+  import AppIcon from './AppIcon.svelte';
   let { name, showIps = true }: { name: string; showIps?: boolean } = $props();
   let p = $state<ProjectView | null>(null);
   let caps = $state<string[]>([]);
@@ -15,9 +16,9 @@
 
 {#if error}<div class="card" style="border-color: var(--bad);">{error}</div>{/if}
 {#if p}
-  <div class="row" style="align-items: baseline; gap: 12px; margin-bottom: 10px;">
-    <h2 style="margin:0; font-size: 1.3rem;">🧩 {p.name}</h2>
-    <span class="muted">{t('project.createdAs', { runtime: p.spec.workspace.runtime, agents: p.spec.agents.join(', ') || '—' })}</span>
+  <div class="phead">
+    <AppIcon icon={{ sys: 'project' }} size={40} status={p.workspace?.status === 'running' ? 'ok' : 'off'} />
+    <div class="ptext"><h2>{p.name}</h2><span class="muted">{t('project.createdAs', { runtime: p.spec.workspace.runtime, agents: p.spec.agents.join(', ') || '—' })}</span></div>
   </div>
   <ProjectCard {p} {showIps} capabilitiesAvailable={caps} onchange={load} compact />
   <h3 style="margin-top: 16px;">{t('project.howTo')}</h3>
@@ -27,3 +28,9 @@
     <li>{@html t('project.help3')}</li>
   </ul>
 {/if}
+
+<style>
+  .phead { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; --icon-ring: var(--panel); }
+  .ptext { min-width: 0; }
+  .ptext h2 { margin: 0; font-size: 1.3rem; line-height: 1.2; overflow-wrap: anywhere; }
+</style>

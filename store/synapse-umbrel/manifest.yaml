@@ -13,9 +13,9 @@ env:
   APP_SYNAPSE_PORT: '8008'
   APP_SYNAPSE_TOR_HS_EXTRA_PORTS: ${APP_SYNAPSE_PORT}:synapse_server_1:${APP_SYNAPSE_PORT}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/synapse/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/synapse/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/synapse/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/synapse/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/synapse/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/synapse/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,10 +45,12 @@ upstream:
   categories:
   - social
   release_notes: |-
-    This update improves media thumbnail generation for MPO images and falls back to static thumbnails when animations cannot be decoded.
-    It also adds optional support for MSC4429 profile updates for legacy sync, fixes quarantined media replication when that stream is handled by a worker, and improves Docker log output when troubleshooting.
-    Full release notes can be found at https://github.com/element-hq/synapse/releases/tag/v1.159.0
+    ⚠️ If you manually enabled limit_profile_requests_to_users_who_share_rooms in homeserver.yaml, also enable require_auth_for_profile_requests before updating, or remove the shared-room restriction option. Synapse will no longer start with the shared-room restriction enabled without authenticated profile requests. The default Umbrel configuration is unaffected.
+    This update improves room synchronization, federation reliability, and Matrix calling support.
+    - Fixes missing room memberships during initial synchronization. - Improves verification of federated event signatures and error reporting for third-party invitations. - Adds stable MatrixRTC transport discovery for compatible calling clients.
+    If you manually configured LiveKit transports, add matching m.livekit entries alongside your existing livekit entries for compatibility with newer clients.
+    Full release notes can be found at https://github.com/element-hq/synapse/releases/tag/v1.165.0
   source: https://github.com/element-hq/synapse
-  version: 1.159.0
+  version: 1.165.0
   website: https://element-hq.github.io/synapse/latest/
 website: https://element-hq.github.io/synapse/latest/

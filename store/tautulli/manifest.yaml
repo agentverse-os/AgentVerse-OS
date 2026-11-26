@@ -40,6 +40,6 @@ upstream:
   - media
   - utilities
   source: https://github.com/Tautulli/Tautulli
-  tipi_version: 36
-  version: 2.18.0
+  tipi_version: 42
+  version: 2.19.1
 website: https://github.com/Tautulli/Tautulli

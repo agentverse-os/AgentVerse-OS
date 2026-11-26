@@ -9,6 +9,7 @@ services:
     - /bin/sh
     - /entrypoint.sh
     environment:
+      GODEBUG: multipathtcp=0
       NTFY_AUTH_DEFAULT_ACCESS: deny-all
       NTFY_AUTH_FILE: /var/lib/ntfy/user.db
       NTFY_BASE_URL: http://${DEVICE_DOMAIN_NAME}:${APP_PROXY_PORT}
@@ -16,7 +17,7 @@ services:
       NTFY_ENABLE_LOGIN: 'true'
       NTFY_PASSWORD: ${APP_PASSWORD}
       NTFY_UPSTREAM_BASE_URL: https://ntfy.sh
-    image: binwiederhier/ntfy:v2.28.0@sha256:6ef4b819f722fccdc036af611c4774cfdc2de821ab74fdd48bbf4c9d6f8973da
+    image: binwiederhier/ntfy:v2.38.1@sha256:038da2be5e668fee6d36a62884eea48975e1b71c29a56964e5298c1b9165a573
     networks:
       appnet:
         aliases:

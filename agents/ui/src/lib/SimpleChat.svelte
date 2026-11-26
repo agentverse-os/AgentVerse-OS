@@ -58,6 +58,8 @@
       const r = await agents.chatGet(requestId);
       if (!active || requestId !== id || seq !== loadSeq) return;
       chat = r.chat; messages = r.messages; working = r.busy; loadError = '';
+      // an answer being written in another tab, or left running by a closed one: what the server has so far (§6.6)
+      if (!abort) live = r.busy ? { text: r.partial?.text ?? '', tools: r.partial?.tools ?? [], running: r.partial?.running ?? null } : null;
       await tick();
       if (initial || following) scroll();
     } catch (e) { if (active && requestId === id && seq === loadSeq) loadError = msg(e); }
@@ -68,8 +70,8 @@
   // and wipe the typed text; a `$derived` of a string suppresses equal values, and untrack keeps it from depending on chatRoutes
   const chatId = $derived(id);
   $effect(() => { const currentId = chatId; untrack(() => { const draft = drafts.get(currentId); live = null; text = draft?.text ?? ''; files = draft?.files ?? []; load(true); tick().then(autoGrow); }); });
-  $effect(() => { const draftText = text; const draftFiles = [...files]; untrack(() => saveDraft(id, draftText, draftFiles)); });
-  onDestroy(() => { active = false; saveDraft(id, text, files); abort?.abort(); });
+  $effect(() => { const draftText = text; const draftFiles = [...files]; untrack(() => { if (!editing) saveDraft(id, draftText, draftFiles); }); });
+  onDestroy(() => { active = false; if (editing) saveDraft(id, beforeEdit?.text ?? '', beforeEdit?.files ?? []); else saveDraft(id, text, files); abort?.abort(); });
   $effect(() => { if (!data.chatRoutes && !data.chatRoutesLoading && !data.chatRoutesError) untrack(() => data.loadChatRoutes()); });
   // A reopened chat or interrupted stream can still be running on the server.
   $effect(() => { if (!working || abort) return; const timer = setInterval(() => { if (!loading) load(); }, 2500); return () => clearInterval(timer); });
@@ -109,12 +111,36 @@
     if (cmd) { voiceCommand(cmd).catch(e => toast(msg(e), 'bad')); return; }
     insertText(piece);
   }
-  function onKey(e: KeyboardEvent) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { if (touch()) return; e.preventDefault(); send(); } }
+  function onKey(e: KeyboardEvent) {
+    if (e.key === 'Escape' && editing) { e.preventDefault(); e.stopPropagation(); cancelEdit(); return; }
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { if (touch()) return; e.preventDefault(); send(); }
+  }
+  /** A photo is reduced before upload (§6.6): a phone shot of 3–6 MB is slow to send and is sent again with every later
+   *  turn, while vision models scale an image down to about two thousand pixels anyway. Small images go as they are;
+   *  a format the browser cannot decode (HEIC outside Safari) too. */
+  async function shrinkImage(f: File): Promise<File> {
+    if (!f.type.startsWith('image/') || f.type === 'image/gif' || f.type === 'image/svg+xml') return f;
+    try {
+      const bmp = await createImageBitmap(f, { imageOrientation: 'from-image' });
+      const scale = Math.min(1, 2048 / Math.max(bmp.width, bmp.height));
+      if (scale === 1 && f.size <= 1024 * 1024) { bmp.close(); return f; }
+      const draw = (white: boolean) => { const c = document.createElement('canvas'); c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale); const g = c.getContext('2d')!; if (white) { g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); } g.drawImage(bmp, 0, 0, c.width, c.height); return c; };
+      const blobOf = (c: HTMLCanvasElement, type: string) => new Promise<Blob | null>(res => c.toBlob(res, type, 0.85));
+      // a screenshot or a drawing stays PNG while that is small; a photo (and a heavy PNG) becomes JPEG on white
+      let blob = f.type === 'image/png' ? await blobOf(draw(false), 'image/png') : null;
+      if (!blob || blob.size > 1024 * 1024) blob = await blobOf(draw(true), 'image/jpeg');
+      bmp.close();
+      if (!blob || blob.size >= f.size) return f;
+      return new File([blob], (f.name || 'image').replace(/\.[^.]+$/, '') + (blob.type === 'image/png' ? '.png' : '.jpg'), { type: blob.type });
+    } catch { return f; }
+  }
   async function addFiles(list: FileList | File[]) {
     if (addingFiles) return;
     addingFiles = true;
     try {
-      for (const f of Array.from(list)) {
+      for (const original of Array.from(list)) {
+        const f = await shrinkImage(original);
+        if (!active) return;
         if (f.size > 8 * 1024 * 1024) { toast(t('chat.tooBig', { name: f.name }), 'bad'); continue; }
         const data64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] ?? ''); r.onerror = () => rej(r.error); r.readAsDataURL(f); });
         if (!active) return;
@@ -126,21 +152,64 @@
   function removeFile(i: number) { const [file] = files.splice(i, 1); if (file?.url) URL.revokeObjectURL(file.url); }
   function onPaste(e: ClipboardEvent) { const items = Array.from(e.clipboardData?.items ?? []).filter(i => i.kind === 'file'); if (!items.length) return; e.preventDefault(); addFiles(items.map(i => i.getAsFile()!).filter(Boolean)); }
   function onDrop(e: DragEvent) { e.preventDefault(); if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files); }
+  // edit of an own message (§6.6): it returns to the field, sending replaces it and the tail of the chat
+  let editing = $state<{ id: string; kept: ChatMessage['attachments'] } | null>(null);
+  let beforeEdit: { text: string; files: Attachment[] } | null = null;
+  function startEdit(m: ChatMessage) {
+    if (working) return;
+    if (!editing) beforeEdit = { text, files: [...files] };
+    editing = { id: m.id, kept: [...m.attachments] }; text = m.text; files = []; sendError = '';
+    tick().then(() => { autoGrow(); ta?.focus(); });
+  }
+  function cancelEdit() { if (!editing) return; editing = null; text = beforeEdit?.text ?? ''; files = beforeEdit?.files ?? []; beforeEdit = null; tick().then(autoGrow); }
+  const lastMessage = $derived(messages.length ? messages[messages.length - 1] : null);
+  const errText = (e: string) => (e === 'stopped' ? t('sc.stopped') : e === 'interrupted' ? t('sc.interrupted') : e);
+  async function copyText(value: string) {
+    try { await navigator.clipboard.writeText(value); }
+    catch { const el = document.createElement('textarea'); el.value = value; el.style.position = 'fixed'; el.style.opacity = '0'; document.body.appendChild(el); el.select(); try { document.execCommand('copy'); } finally { el.remove(); } }
+    toast(t('md.copied'));
+  }
   async function send() {
-    if (!chat || working || addingFiles || (!text.trim() && !files.length)) return;
-    const sentText = text, sentFiles = [...files], requestId = chat.id;
-    const body = { text: sentText.trim(), attachments: sentFiles.map(f => ({ name: f.name, mime: f.mime, data: f.data })), tools: chat.tools };
-    let accepted = false, completed = false;
-    sendError = ''; working = true; sending = true; live = { text: '', tools: [], running: null }; abort = new AbortController();
+    if (!chat || working || addingFiles) return;
+    const edit = editing;
+    if (!text.trim() && !files.length && !edit?.kept.length) return;
+    const sentText = text, sentFiles = [...files];
+    await run({ text: sentText.trim(), attachments: sentFiles.map(f => ({ name: f.name, mime: f.mime, data: f.data })), tools: chat.tools, ...(edit ? { replace_from: edit.id, keep_files: edit.kept.map(a => a.file) } : {}) }, sentText, sentFiles, edit?.id ?? null);
+  }
+  /** Answer the last question again (§6.6): what came after it leaves the screen at once; if the request fails, the reload
+   *  after it brings the old answer back. */
+  async function regenerate() {
+    if (!chat || working || addingFiles) return;
+    let last = -1; for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'user') { last = i; break; }
+    if (last < 0) return;
+    messages = messages.slice(0, last + 1);
+    await run({ text: '', regenerate: true, tools: chat.tools }, null, [], null);
+  }
+  /** "Another model…": the pick becomes the model of the chat, then the answer is retried. */
+  function retryModelMenu(el: HTMLElement) { modelMenu(el, async (routeId, model) => { await setModel(routeId, model); if (chat?.route === routeId && chat.model === model) await regenerate(); }); }
+  /** One request to the answer stream: a message (`sentText` is its text), an edit (`editId`) or a retry (`sentText` null). */
+  async function run(body: Parameters<typeof agents.chatSend>[1], sentText: string | null, sentFiles: Attachment[], editId: string | null) {
+    const requestId = chat!.id;
+    let accepted = sentText === null, completed = false;
+    sendError = ''; working = true; sending = sentText !== null; live = { text: '', tools: [], running: null }; abort = new AbortController();
     scroll();
     try {
       await agents.chatSend(requestId, body, (ev: ChatEvent) => {
         if (!active || id !== requestId) return;
         if (ev.kind === 'user') {
-          accepted = true; sending = false; messages.push(ev.message);
-          // Clear only the accepted draft; typing during the request belongs to the next turn.
-          if (text === sentText) text = '';
-          files = files.filter(f => !sentFiles.includes(f));
+          accepted = true; sending = false;
+          if (editId) {
+            // the edited message and everything after it give place to the new one; the draft set aside for the edit returns
+            const at = messages.findIndex(m => m.id === editId); if (at >= 0) messages = messages.slice(0, at);
+            const stash = beforeEdit; editing = null; beforeEdit = null;
+            if (text === sentText) text = stash?.text ?? '';
+            files = [...files.filter(f => !sentFiles.includes(f)), ...(stash?.files ?? [])];
+          } else {
+            // Clear only the accepted draft; typing during the request belongs to the next turn.
+            if (text === sentText) text = '';
+            files = files.filter(f => !sentFiles.includes(f));
+          }
+          messages.push(ev.message);
           sentFiles.forEach(f => { if (f.url) URL.revokeObjectURL(f.url); });
           tick().then(autoGrow);
         }
@@ -153,7 +222,7 @@
       if (active && !completed) sendError = t('chat.disconnected');
     } catch (e) {
       if (active && !(e instanceof DOMException && e.name === 'AbortError')) {
-        sendError = accepted ? t('chat.disconnected') : `${t('chat.sendFailed')} ${msg(e)}`;
+        sendError = (e as { status?: number })?.status === 413 ? t('sc.tooBig') : accepted ? t('chat.disconnected') : `${t('chat.sendFailed')} ${msg(e)}`;
         toast(sendError, 'bad');
       }
     } finally {
@@ -161,7 +230,7 @@
     }
   }
   async function stop() { if (!chat || stopping) return; stopping = true; try { await agents.chatStop(chat.id); } catch (e) { toast(msg(e), 'bad'); } finally { stopping = false; } }
-  function modelMenu(el: HTMLElement) {
+  function modelMenu(el: HTMLElement, pick: (routeId: string, model: string) => void = setModel) {
     const rs = data.chatRoutes?.routes ?? [];
     if (!rs.length) { toast(t('chat.noRoutes'), 'bad'); return; }
     const win = (n?: number | null) => (n ? (n >= 1e6 ? `${Math.round(n / 1e5) / 10}M` : `${Math.round(n / 1000)}k`) : '');
@@ -174,7 +243,7 @@
         items.push({ sub: true, label: `${g.title} · ${g.models.length}` });
         for (const m of g.models) {
           const label = m.name && m.name !== m.id ? m.name : m.id;
-          items.push({ icon: 'cpu', checked: r.id === chat?.route && m.id === chat?.model, label, hint: [label !== m.id ? m.id : '', win(m.context), m.price_in != null ? `$${m.price_in}/${m.price_out}` : ''].filter(Boolean).join(' · '), on: () => setModel(r.id, m.id) });
+          items.push({ icon: 'cpu', checked: r.id === chat?.route && m.id === chat?.model, label, hint: [label !== m.id ? m.id : '', win(m.context), m.price_in != null ? `$${m.price_in}/${m.price_out}` : ''].filter(Boolean).join(' · '), on: () => pick(r.id, m.id) });
         }
       }
     }
@@ -222,20 +291,22 @@
 </script>
 
 <div class="chat" ondragover={(e) => e.preventDefault()} ondrop={onDrop} role="region" aria-label={t('chat.title')}>
-  {#if chat?.incognito}<div class="incog"><Icon name="eyeOff" size="s" /> <span>{t('chat.incognitoBar')}{#if chat.expires_at} · {t('chat.expires', { t: when(chat.expires_at) })}{/if}</span></div>{/if}
+  {#if chat?.incognito}<div class="incog"><Icon name="eyeOff" size="s" /> <span>{t('chat.incognitoBar')}{#if chat.expires_at}{' '}· {t('chat.expires', { t: when(chat.expires_at) })}{/if}</span></div>{/if}
   <div class="msgs" bind:this={box} data-following={following} onscroll={trackScroll}>
     {#if loading && !messages.length}<div class="muted" role="status">{t('common.loading')}</div>{/if}
     {#if !loading && !loadError && !messages.length && !live}<div class="empty" style="padding: 40px 12px"><span class="ic"><Icon name="zap" size="l" /></span><b>{t('chat.emptySimple')}</b><span style="max-width: 460px">{t('chat.emptySimpleHint')}</span></div>{/if}
     {#each messages as m (m.id)}
       {#if m.role === 'user'}
         <div class="m user" data-mid={m.id}>{#if m.text}<div class="txt">{m.text}</div>{/if}
-          {#if m.attachments.length}<div class="atts">{#each m.attachments as a (a.file)}{#if a.mime.startsWith('image/')}<a href={agents.chatFileUrl(chat!.id, a.file)} target="_blank" rel="noopener"><img src={agents.chatFileUrl(chat!.id, a.file)} alt={a.name} /></a>{:else}<a class="chip file" href={agents.chatFileUrl(chat!.id, a.file)} target="_blank" rel="noopener"><Icon name="clip" size="s" /> {a.name} · {Math.round(a.size / 1024)} KB{#if a.mime === 'application/pdf' || a.name.toLowerCase().endsWith('.pdf')} · {a.text ? t('chat.pdfText') : t('chat.pdfNoText')}{/if}</a>{/if}{/each}</div>{/if}</div>
+          {#if m.attachments.length}<div class="atts">{#each m.attachments as a (a.file)}{#if a.mime.startsWith('image/')}<a href={agents.chatFileUrl(chat!.id, a.file)} target="_blank" rel="noopener"><img src={agents.chatFileUrl(chat!.id, a.file)} alt={a.name} /></a>{:else}<a class="chip file" href={agents.chatFileUrl(chat!.id, a.file)} target="_blank" rel="noopener"><Icon name="clip" size="s" /> {a.name} · {Math.round(a.size / 1024)} KB{#if a.mime === 'application/pdf' || a.name.toLowerCase().endsWith('.pdf')}{' '}· {a.text ? t('chat.pdfText') : t('chat.pdfNoText')}{/if}</a>{/if}{/each}</div>{/if}
+          {#if !working}<span class="macts"><button class="ma edit" title={t('edit.title')} aria-label={t('edit.title')} onclick={() => startEdit(m)}><Icon name="edit" size="s" /></button></span>{/if}</div>
       {:else}
         {#each m.tools as tu, i (m.id + i)}<details class="m tool" class:err={!tu.ok}><summary><b>{toolLabel(tu.name)}</b> <span class="muted mono">{argText(tu.args)}</span> <span class="badge {tu.ok ? 'ok' : 'bad'}">{tu.ok ? t('agents.toolDone') : t('agents.toolError')}</span></summary><pre class="mono res">{tu.result}</pre></details>{/each}
-        {#if m.text}{@const sk = `chat:${m.id}`}<div class="m agent" data-mid={m.id} class:wide={/(^|\n)\s*(\||```|#{1,4} |[-*] |\d+\. )/.test(m.text) || m.attachments?.length > 0}><Md text={m.text} /><span class="macts"><button class="ma speak" class:on={voice.speaking === sk} class:busy={voice.speakLoading === sk} aria-pressed={voice.speaking === sk} title={voice.speaking === sk ? t('voice.stop') : t('voice.speak')} onclick={() => speakMsg(sk, m.text)}><Icon name={voice.speaking === sk ? 'square' : 'volume'} size="s" /></button></span>{#if m.attachments?.length}<div class="atts">{#each m.attachments as a (a.file)}{#if a.mime.startsWith('image/')}<a href={agents.chatFileUrl(chat!.id, a.file)} target="_blank" rel="noopener"><img src={agents.chatFileUrl(chat!.id, a.file)} alt={a.name} /></a>{/if}{/each}</div>{/if}<div class="meta muted xs">{m.tokens_in + m.tokens_out} {t('chat.tokens')} · {money(m.cost_usd)}{#if m.error} · <span class="bad">{m.error}</span>{/if}</div></div>
-        {:else if m.error}<div class="m sys"><span class="bad">⚠ {m.error}</span></div>{/if}
+        {#if m.text}{@const sk = `chat:${m.id}`}<div class="m agent" data-mid={m.id} class:wide={/(^|\n)\s*(\||```|#{1,4} |[-*] |\d+\. )/.test(m.text) || m.attachments?.length > 0}><Md text={m.text} /><span class="macts"><button class="ma copy" title={t('sc.copy')} aria-label={t('sc.copy')} onclick={() => copyText(m.text)}><Icon name="copy" size="s" /></button><button class="ma speak" class:on={voice.speaking === sk} class:busy={voice.speakLoading === sk} aria-pressed={voice.speaking === sk} title={voice.speaking === sk ? t('voice.stop') : t('voice.speak')} onclick={() => speakMsg(sk, m.text)}><Icon name={voice.speaking === sk ? 'square' : 'volume'} size="s" /></button>{#if m === lastMessage && !working}<button class="ma retry" title={t('sc.retryHint')} aria-label={t('sc.retryHint')} onclick={regenerate}><Icon name="refresh" size="s" /></button>{/if}</span>{#if m.attachments?.length}<div class="atts">{#each m.attachments as a (a.file)}{#if a.mime.startsWith('image/')}<a href={agents.chatFileUrl(chat!.id, a.file)} target="_blank" rel="noopener"><img src={agents.chatFileUrl(chat!.id, a.file)} alt={a.name} /></a>{/if}{/each}</div>{/if}<div class="meta muted xs">{m.tokens_in + m.tokens_out} {t('chat.tokens')} · {money(m.cost_usd)}{#if m.error}{' '}· <span class={m.error === 'stopped' ? '' : 'bad'}>{errText(m.error)}</span>{/if}</div></div>
+        {:else if m.error}<div class="m sys note" data-mid={m.id}><span class={m.error === 'stopped' ? '' : 'bad'}>{m.error === 'stopped' ? '' : '⚠ '}{errText(m.error)}</span>{#if m === lastMessage && !working}<span class="retry-acts"><button class="xs retry" onclick={regenerate}>{t('sc.retry')}</button><button class="xs ghost retry-model" aria-haspopup="menu" onclick={(e) => { e.stopPropagation(); retryModelMenu(e.currentTarget as HTMLElement); }}>{t('sc.retryModel')}</button></span>{/if}</div>{/if}
       {/if}
     {/each}
+    {#if !live && !working && lastMessage?.role === 'user'}<div class="m sys note"><span>{t('sc.noAnswer')}</span><span class="retry-acts"><button class="xs retry" onclick={regenerate}>{t('sc.retry')}</button><button class="xs ghost retry-model" aria-haspopup="menu" onclick={(e) => { e.stopPropagation(); retryModelMenu(e.currentTarget as HTMLElement); }}>{t('sc.retryModel')}</button></span></div>{/if}
     {#if live}
       {#each live.tools as tu, i (i)}<details class="m tool" class:err={!tu.ok}><summary><b>{toolLabel(tu.name)}</b> <span class="muted mono">{argText(tu.args)}</span> <span class="badge {tu.ok ? 'ok' : 'bad'}">{tu.ok ? t('agents.toolDone') : t('agents.toolError')}</span></summary><pre class="mono res">{tu.result}</pre></details>{/each}
       {#if live.running}<div class="m sys"><span class="spin"></span> {toolLabel(live.running)} · {t('chat.toolRunning')}</div>{/if}
@@ -249,7 +320,8 @@
     {#if working || addingFiles}
       <div class="composer-state"><span class="composer-status" role="status"><span class="spin"></span> {addingFiles ? t('common.loading') : sending ? t('cmp.sending') : t('chat.thinkingDots')}</span></div>
     {/if}
-    {#if files.length}<div class="thumbs">{#each files as f, i (i)}<span class="thumb">{#if f.url}<img src={f.url} alt={f.name} />{:else}<span class="chip"><Icon name="clip" size="s" /> {f.name}</span>{/if}<button class="x" onclick={() => removeFile(i)} aria-label={t('cmp.removeAttachment', { name: f.name })} title={t('cmp.removeAttachment', { name: f.name })}>×</button></span>{/each}</div>{/if}
+    {#if editing}<div class="editbar"><Icon name="edit" size="s" /> {t('sc.editBanner')}<span class="sp"></span><button class="xs ghost" onclick={cancelEdit}>{t('rt.cancel')}</button></div>{/if}
+    {#if files.length || editing?.kept.length}<div class="thumbs">{#each editing?.kept ?? [] as a (a.file)}<span class="thumb kept">{#if a.mime.startsWith('image/')}<img src={agents.chatFileUrl(chat!.id, a.file)} alt={a.name} />{:else}<span class="chip"><Icon name="clip" size="s" /> {a.name}</span>{/if}<button class="x" onclick={() => { if (editing) editing.kept = editing.kept.filter(x => x.file !== a.file); }} aria-label={t('sc.removeKept', { name: a.name })} title={t('sc.removeKept', { name: a.name })}>×</button></span>{/each}{#each files as f, i (i)}<span class="thumb">{#if f.url}<img src={f.url} alt={f.name} />{:else}<span class="chip"><Icon name="clip" size="s" /> {f.name}</span>{/if}<button class="x" onclick={() => removeFile(i)} aria-label={t('cmp.removeAttachment', { name: f.name })} title={t('cmp.removeAttachment', { name: f.name })}>×</button></span>{/each}</div>{/if}
     <div class="in composer-input">
       <textarea bind:this={ta} bind:value={text} rows="2" placeholder={t('cmp.placeholderPhone')} aria-label={t('cmp.messageLabel')} onkeydown={onKey} oninput={() => { sendError = ''; autoGrow(); }} onpaste={onPaste}></textarea>
     </div>
@@ -269,7 +341,7 @@
           <input bind:this={cameraInput} type="file" accept="image/*" capture="environment" hidden onchange={(e) => { const input = e.currentTarget; if (input.files) addFiles(input.files); input.value = ''; }} />
           <button class="icon ghost cam composer-attach" title={t('chat.camera')} aria-label={t('chat.camera')} disabled={addingFiles} onclick={() => cameraInput?.click()}><Icon name="camera" /></button>
         {/if}
-        {#if working && !sending}<button class="danger composer-send composer-stop" disabled={stopping} onclick={stop} aria-label={t('chat.stop')} title={t('chat.stop')}><Icon name="square" size="s" /><span class="action-label">{t('chat.stop')}</span></button>{:else}<button class="primary send composer-send" disabled={!chat || addingFiles || sending || (!text.trim() && !files.length)} onclick={send} aria-label={sending ? t('cmp.sending') : t('chat.send')} title={t('chat.send')}><Icon name="send" size="s" /><span class="action-label">{sending ? t('cmp.sending') : t('chat.send')}</span></button>{/if}
+        {#if working && !sending}<button class="danger composer-send composer-stop" disabled={stopping} onclick={stop} aria-label={t('chat.stop')} title={t('chat.stop')}><Icon name="square" size="s" /><span class="action-label">{t('chat.stop')}</span></button>{:else}<button class="primary send composer-send" disabled={!chat || addingFiles || sending || (!text.trim() && !files.length && !editing?.kept.length)} onclick={send} aria-label={sending ? t('cmp.sending') : editing ? t('cmp.saveEdit') : t('chat.send')} title={editing ? t('cmp.saveEdit') : t('chat.send')}><Icon name={editing ? 'edit' : 'send'} size="s" /><span class="action-label">{sending ? t('cmp.sending') : editing ? t('cmp.saveEdit') : t('chat.send')}</span></button>{/if}
       </div>
     </div>
     {#if !touch()}<div class="composer-hint">{t('cmp.enterHint')}</div>{/if}
@@ -299,6 +371,12 @@
   .m.agent.wide { max-width: 100%; }
   .m.agent .meta { margin-top: 6px; }
   .m.sys { align-self: center; background: transparent; border: 0; font-size: 11.5px; color: var(--fg-3); padding: 0 8px; display: flex; align-items: center; gap: 6px; }
+  /* a state instead of an answer (an error, a stop, no answer) with its actions */
+  .m.sys.note { flex-wrap: wrap; justify-content: center; row-gap: 6px; max-width: 100%; }
+  /* a provider error may carry words of a hundred characters without a space (metric names, URLs): they break
+     anywhere instead of pushing the chat wider than a phone screen */
+  .m.sys.note > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+  .retry-acts { display: inline-flex; gap: 6px; }
   .m.tool { align-self: stretch; max-width: 100%; width: 100%; padding: 0; background: var(--bg-4); font-size: 12.5px; }
   .m.tool summary { display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 4px 10px; cursor: pointer; list-style: none; color: var(--fg-2); }
   .m.tool summary::-webkit-details-marker { display: none; }

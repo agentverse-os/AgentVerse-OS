@@ -11,10 +11,11 @@ endpoint:
 env:
   APP_PASSWORD:
     generate: password
+  NETWORK_IP: ''
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/endurain/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/endurain/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/endurain/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/endurain/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/endurain/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/endurain/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,14 +46,23 @@ upstream:
   categories:
   - social
   release_notes: |-
-    ⚠️ Warning: Your user sessions will be deleted on upgrade. Users will have to authenticate again.
+    ⚠️ Requires umbrelOS 2.0 or later. Endurain now opens over HTTPS.
 
-    Bug fixes and improvements:
-      - Fixed Garmin Connect login
+    Back up Endurain before updating. This release migrates your database and files; restoring a backup is the only way back to 0.19.x. The first startup may take longer than usual.
 
+    What's new:
+    - Fixed pauses in GPX and TCX imports incorrectly adding to moving time, pace, and distance. Activity summaries now distinguish moving time from elapsed time.
+    - Corrected per-lap elevation totals and handling of missing altitude data.
+    - Fixed timezones for indoor FIT workouts and imports with an unset effort rating.
+    - Fixed Strava export ZIP imports skipping compressed FIT files.
+    - Fixed notification timestamps and errors when completing a fasting session.
 
-    Full release notes can be found at https://github.com/joaovitoriasilva/endurain/releases
-  source: https://github.com/joaovitoriasilva/endurain
-  version: 0.17.7
+    If you import files from disk, move pending bulk-import or Strava-export files into a subfolder named for your user ID before importing. You can also upload a Strava export ZIP from the Import page. Third-party REST API clients need updating for the new endpoints and response formats.
+
+    If Endurain asks you to reconnect Garmin Connect, reconnect it in Endurain's settings.
+
+    Full release notes can be found at https://github.com/endurain-project/endurain/releases/tag/v0.20.2
+  source: https://github.com/endurain-project/endurain
+  version: 0.20.2
   website: https://docs.endurain.com/
 website: https://docs.endurain.com/

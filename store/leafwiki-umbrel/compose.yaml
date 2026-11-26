@@ -9,7 +9,7 @@ services:
       LEAFWIKI_ADMIN_PASSWORD: ${APP_PASSWORD}
       LEAFWIKI_ALLOW_INSECURE: 'true'
       LEAFWIKI_JWT_SECRET: ${APP_SEED}
-    image: ghcr.io/perber/leafwiki:v0.12.1@sha256:2e70745f69a43eb32a74d7962c1334c57ea56f2487fb3a1b8d4c0d0fa6185209
+    image: ghcr.io/perber/leafwiki:v0.14.2@sha256:bc07b7d0f3de916233a570f6d4b54fe14de0e2cb77e179e6a07bf417fb109585
     networks:
       appnet:
         aliases:

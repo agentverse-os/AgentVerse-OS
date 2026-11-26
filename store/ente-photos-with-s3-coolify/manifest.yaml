@@ -7,23 +7,24 @@ data:
 description: Ente Photos is a fully open source, End to End Encrypted alternative to Google Photos and Apple Photos.
 endpoint:
   port: 8080
-  service: web
+  service: albums
 env:
   ENTE_HTTP_USE_TLS: 'false'
   ENTE_INTERNAL_ADMIN: '1580559962386438'
   ENTE_INTERNAL_DISABLE_REGISTRATION: 'false'
   ENTE_SMTP_EMAIL: ''
-  ENTE_SMTP_ENCRYPTION: tls
-  ENTE_SMTP_HOST: smtp.gmail.com
+  ENTE_SMTP_ENCRYPTION: ''
+  ENTE_SMTP_HOST: ''
   ENTE_SMTP_PASSWORD: ''
-  ENTE_SMTP_PORT: '587'
+  ENTE_SMTP_PORT: ''
   ENTE_SMTP_SENDER_NAME: ''
   ENTE_SMTP_USERNAME: ''
-  MINIO_CORS_URLS: ''
   MINIO_ROOT_PASSWORD: ''
   MINIO_ROOT_USER: ''
+  MINIO_SERVER_URL: ''
   POSTGRES_DB: ente_db
-  SERVICE_FQDN_MINIO_9000: ${APP_DOMAIN}
+  SERVICE_PASSWORD_64_JWT:
+    generate: hex64
   SERVICE_PASSWORD_MINIO:
     generate: password
   SERVICE_PASSWORD_POSTGRES:
@@ -32,8 +33,8 @@ env:
     generate: hex64
   SERVICE_REALBASE64_ENCRYPTION:
     generate: hex64
-  SERVICE_REALBASE64_JWT:
-    generate: hex64
+  SERVICE_URL_ALBUMS: https://${APP_DOMAIN}
+  SERVICE_URL_ALBUMS_3002: https://${APP_DOMAIN}
   SERVICE_URL_MUSEUM: https://${APP_DOMAIN}
   SERVICE_URL_MUSEUM_8080: https://${APP_DOMAIN}
   SERVICE_URL_WEB: https://${APP_DOMAIN}
@@ -76,6 +77,12 @@ settings:
   options: null
   required: false
   type: text
+- env: MINIO_SERVER_URL
+  hint: null
+  label: minio server url
+  options: null
+  required: false
+  type: text
 - env: ENTE_INTERNAL_ADMIN
   hint: 'по умолчанию: 1580559962386438'
   label: ente internal admin
@@ -89,13 +96,13 @@ settings:
   required: false
   type: text
 - env: ENTE_SMTP_HOST
-  hint: 'по умолчанию: smtp.gmail.com'
+  hint: null
   label: ente smtp host
   options: null
   required: false
   type: text
 - env: ENTE_SMTP_PORT
-  hint: 'по умолчанию: 587'
+  hint: null
   label: ente smtp port
   options: null
   required: false
@@ -125,14 +132,8 @@ settings:
   required: false
   type: text
 - env: ENTE_SMTP_ENCRYPTION
-  hint: 'по умолчанию: tls'
-  label: ente smtp encryption
-  options: null
-  required: false
-  type: text
-- env: MINIO_CORS_URLS
   hint: null
-  label: minio cors urls
+  label: ente smtp encryption
   options: null
   required: false
   type: text

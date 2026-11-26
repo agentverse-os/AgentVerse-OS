@@ -9,6 +9,7 @@ services:
     - grampsweb_redis
     environment:
     - SERVICE_URL_GRAMPSWEB_5000=${SERVICE_URL_GRAMPSWEB_5000}
+    - GRAMPSWEB_BASE_URL=${SERVICE_URL_GRAMPSWEB}
     - GRAMPSWEB_TREE=${GRAMPSWEB_TREE:-Gramps Web}
     - GRAMPSWEB_CELERY_CONFIG__broker_url=redis://grampsweb_redis:6379/0
     - GRAMPSWEB_CELERY_CONFIG__result_backend=redis://grampsweb_redis:6379/0
@@ -19,7 +20,7 @@ services:
       retries: 3
       test: wget -O - http://localhost:5000 > /dev/null 2>&1
       timeout: 10s
-    image: ghcr.io/gramps-project/grampsweb:25.9.0
+    image: ghcr.io/gramps-project/grampsweb:26.11.2
     networks:
       appnet:
         aliases:
@@ -48,7 +49,7 @@ services:
       retries: 3
       test: SECRET_KEY="$(cat secret/secret)" celery -A gramps_webapi.celery status || exit 1
       timeout: 10s
-    image: ghcr.io/gramps-project/grampsweb:25.9.0
+    image: ghcr.io/gramps-project/grampsweb:26.11.2
     networks:
       appnet:
         aliases:

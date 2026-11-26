@@ -60,6 +60,6 @@ upstream:
   categories:
   - automation
   source: https://github.com/esphome/esphome
-  tipi_version: 127
-  version: 2026.8.2
+  tipi_version: 137
+  version: 2026.10.2
 website: https://github.com/esphome/esphome

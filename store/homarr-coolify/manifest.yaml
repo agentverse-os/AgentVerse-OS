@@ -11,6 +11,7 @@ endpoint:
 env:
   SERVICE_HEX_64_HOMARR:
     generate: hex64
+  SERVICE_URL_HOMARR: https://${APP_DOMAIN}
   SERVICE_URL_HOMARR_7575: https://${APP_DOMAIN}
 gallery: []
 health: null

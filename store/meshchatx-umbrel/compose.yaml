@@ -17,7 +17,7 @@ services:
       - -c
       - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/status')
       timeout: 5s
-    image: ghcr.io/quad4-software/meshchatx:4.8.5@sha256:ab9d73028f9da1c15274a08a8fe2d937f7f613e68289cdc28931af0df0c2cb63
+    image: ghcr.io/quad4-software/meshchatx:4.10.7@sha256:051f8169e0b2950327fbe19327b946f48085b9c91f82bf13e617d13a9591685b
     networks:
       appnet:
         aliases:

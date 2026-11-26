@@ -6,8 +6,9 @@ networks:
 services:
   web:
     environment:
+      AUTH_SECRET: ${APP_SEED}
       SECRET_ENCRYPTION_KEY: ${APP_SEED}
-    image: ghcr.io/homarr-labs/homarr:v1.76.2@sha256:7d87f7fdd35f8bbee1b922b9b74fad8ce9967a1a66b8c6db1a168780c03d693b
+    image: ghcr.io/homarr-labs/homarr:v2.13.1@sha256:7b3ab85bad2656be6c940b9d26117254edb6d998aeb5b66dfdc795f2e737802a
     networks:
       appnet:
         aliases:

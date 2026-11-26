@@ -10,7 +10,7 @@ endpoint:
   service: freescout
 env:
   ADMIN_EMAIL: admin@example.com
-  DISPLAY_ERRORS: 'FALSE'
+  FREESCOUT_APP_DEBUG: 'false'
   MARIADB_DATABASE: freescout
   SERVICE_PASSWORD_ADMIN:
     generate: password
@@ -57,9 +57,9 @@ settings:
   options: null
   required: false
   type: text
-- env: DISPLAY_ERRORS
-  hint: 'по умолчанию: FALSE'
-  label: display errors
+- env: FREESCOUT_APP_DEBUG
+  hint: 'по умолчанию: false'
+  label: freescout app debug
   options: null
   required: false
   type: text

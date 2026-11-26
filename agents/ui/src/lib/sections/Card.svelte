@@ -4,6 +4,7 @@
   import { ROW_UNIT, GRID_GAP, H_DEF, H_MIN, H_MAX, ui, data, actions, key, same, titleOf, agentOf, dotOf, statusText, shortModel, money, live, stopLabel, accountMenu, type Card } from '../state.svelte';
   import { dnd } from '../dnd.svelte';
   import { menu } from '../menu.svelte';
+  import { notify } from '../notify.svelte';
   import { t } from '../i18n';
   import Icon from '../Icon.svelte';
   import SessionPane from '../SessionPane.svelte';
@@ -24,6 +25,7 @@
     menu.show(el, [
       { icon: 'max', label: t('sess.menu.expand'), on: () => ui.expand(card) },
       ...(card.kind === 'session' ? [{ icon: 'edit', label: t('sess.menu.rename'), on: () => actions.rename(card) }] : []),
+      ...(card.kind === 'session' ? [{ icon: 'bell', label: t('ntf.menuSession'), checked: notify.forSession(card.project, card.id).length > 0, on: () => notify.open({ scope: 'session', project: card.project, session: card.id, title: titleOf(card) }) }] : []),
       { icon: 'globe', label: t('browser.menuPreview'), checked: !!data.browserOf(card.project).preview, on: () => actions.togglePreview(card.project) },
       { icon: 'monitor', label: t('abrowser.menu'), checked: !!data.browserOf(card.project).agent, on: () => actions.toggleAgentBrowser(card.project) },
       { icon: 'wide', label: t('card.wider'), checked: card.w >= 2, on: () => ui.resize(card, card.w >= 2 ? 1 : 2) },
@@ -57,7 +59,7 @@
   function gripUp() { grip = null; sizing = null; }
 </script>
 
-<div class="card" class:sized={(card.w > 1 || card.h !== H_DEF) && !folded} class:sizing={!!sizing} style:grid-column={folded ? undefined : `span ${card.w}`} style:grid-row={folded ? undefined : `span ${card.h}`} class:collapsed={folded} class:active={ui.sel && same(ui.sel, card)} class:drop-before={over} data-card={key(card)} role="listitem"
+<div class="card" class:sized={(card.w > 1 || card.h !== H_DEF) && !folded} class:w3={card.w >= 3 && !folded} class:sizing={!!sizing} style:grid-column={folded ? undefined : `span ${card.w}`} style:grid-row={folded ? undefined : `span ${card.h}`} class:collapsed={folded} class:active={ui.sel && same(ui.sel, card)} class:drop-before={over} data-card={key(card)} role="listitem"
   onfocusin={() => (ui.sel = card)} ondragover={(e) => { if (dnd.ref) { e.preventDefault(); e.stopPropagation(); over = true; } }} ondragleave={() => (over = false)} ondrop={drop}>
   <div class="c-head" draggable="true" ondragstart={(e) => { dnd.ref = card; e.dataTransfer?.setData('text/plain', key(card)); (e.currentTarget as HTMLElement).closest('.card')?.classList.add('dragging'); }} ondragend={(e) => { dnd.ref = null; (e.currentTarget as HTMLElement).closest('.card')?.classList.remove('dragging'); }} role="presentation">
     <button class="fold" aria-label={folded ? t('card.unfold') : t('card.fold')} aria-expanded={!folded} data-tip={folded ? t('card.unfold') : t('card.fold')} onclick={(e) => { e.stopPropagation(); ui.toggleFold(card); }}><Icon name={folded ? 'chevronRight' : 'chevronDown'} size="s" /></button>

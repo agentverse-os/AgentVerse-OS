@@ -1,7 +1,7 @@
 # Hermes Agent (Nous Research) — the official image of the latest version with the official Web Dashboard: a chat terminal in the
 # browser, sessions, config, API keys, skills/MCP, cron, logs, messenger channels. A manual Cloud OS manifest (the
 # Runtipi/Coolify/Umbrel catalogs have only the third-party hermes-webui web chat on top of a three-month-old agent). Versions: agent
-# v2026.8.31.
+# v2026.9.24.
 schema: 1
 origin: manual
 name: hermes-agent
@@ -56,6 +56,6 @@ tags: [ai, agent, llm, hermes, nous, telegram, discord, dashboard]
 upstream:
   source: https://github.com/NousResearch/hermes-agent
   author: Nous Research
-  version: v2026.8.31
+  version: v2026.9.24
   categories: [ai]
   website: https://hermes-agent.nousresearch.com/docs/user-guide/docker

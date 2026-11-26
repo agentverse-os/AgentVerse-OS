@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   server:
-    image: homeassistant/home-assistant:2026.9.0@sha256:372d991e58882a1d8c68c07e9aa3f3b509276e695355f73ccdb03baa70407293
+    image: homeassistant/home-assistant:2026.11.2@sha256:493a07e8f6530fc640223f4a0a5248f20a61ca2f718bb1d31efbf08a2c5ea28f
     network_mode: host
     privileged: true
     restart: unless-stopped

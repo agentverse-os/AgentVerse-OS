@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   nodered:
-    image: nodered/node-red:5.0.4
+    image: nodered/node-red:5.0.9
     networks:
       appnet:
         aliases:

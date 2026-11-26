@@ -1,0 +1,67 @@
+# Imported from the runtipi catalog by `cloudd store import runtipi`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wiki-js
+description: A modern and powerful wiki app built on Node.js
+endpoint:
+  port: 3000
+  service: wiki-js
+env:
+  WIKI_JS_ADMIN_EMAIL: ''
+  WIKI_JS_ADMIN_PASSWORD:
+    generate: password
+  WIKI_JS_DB_PASS:
+    generate: token
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.jpg
+login:
+  mode: generated
+  note: null
+  password: WIKI_JS_ADMIN_PASSWORD
+  path: null
+  user: WIKI_JS_ADMIN_EMAIL
+name: wiki-js
+notes: []
+origin: runtipi
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: WIKI_JS_ADMIN_EMAIL
+  hint: null
+  label: Admin email
+  options: null
+  required: true
+  type: email
+- env: WIKI_JS_ADMIN_PASSWORD
+  hint: null
+  label: Admin password
+  options: null
+  required: true
+  type: password
+- env: WIKI_JS_DB_PASS
+  hint: null
+  label: WIKI_JS_DB_PASS
+  options: null
+  required: false
+  type: random
+tags: []
+title: Wiki.js
+type: app
+upstream:
+  author: https://github.com/requarks
+  categories:
+  - media
+  source: https://github.com/requarks/wiki
+  tipi_version: 4
+  version: 3.4.0
+website: https://github.com/requarks/wiki

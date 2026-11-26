@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   app:
-    image: ghcr.io/hargata/lubelogger:v1.7.1@sha256:678a5c4af387e525f06ef954b454efe536745f517f2078dc646ccce9332adb9d
+    image: ghcr.io/hargata/lubelogger:v1.7.4@sha256:483a9d7582c4e6258615fd822b3de4193b4fcc4230d0a92432c6d407faf75af2
     networks:
       appnet:
         aliases:

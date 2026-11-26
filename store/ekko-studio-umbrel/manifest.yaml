@@ -1,0 +1,58 @@
+# Imported from the umbrel catalog by `cloudd store import umbrel`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/ekko-studio-umbrel
+description: Manage your AI agent from your browser
+endpoint:
+  port: 6060
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/ekko-studio/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ekko-studio/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ekko-studio/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ekko-studio/4.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/ekko-studio/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: '123456'
+  path: null
+  user: admin
+name: ekko-studio-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Ekko Studio
+type: app
+upstream:
+  author: EKKOLearnAI
+  categories:
+  - ai
+  release_notes: |-
+    ⚠️ Providers are now shared across all Profiles within a Studio account. Providers with the same name are merged, preferring the default Profile even if endpoints or credentials differ. Before updating, give providers distinct names if you need to keep different endpoints. Existing conversations with merged providers will use the retained endpoint.
+
+    ⚠️ Trusted plugin pages can now access the host page and browser-stored login credentials. Only install plugins you trust.
+
+    This update improves workspace file handling, provider compatibility, and scheduled tasks:
+
+    - File creation and renaming now warn about conflicts, and editor saves stay tied to the original Profile or workspace. - Downloads stream from disk, broken links no longer hide neighboring files, and concurrent uploads keep their own contents. - Workflow and Bot schedules respect the selected timezone, leap days, and daylight saving changes; invalid schedules pause without stopping other tasks. - Providers with Chinese or special-character names work correctly with the model gateway, and model discovery supports more compatible catalogs. - Hermes and Bot clarification replies are confirmed reliably after reconnecting, and expired questions are cleared. - Fixes saving Bot agents when an existing Hermes preset uses a different model protocol.
+
+    Full release notes can be found at https://github.com/EKKOLearnAI/ekko-studio/releases/tag/v0.8.28
+  source: https://github.com/EKKOLearnAI/ekko-studio
+  version: 0.8.28
+  website: https://github.com/EKKOLearnAI/ekko-studio
+website: https://github.com/EKKOLearnAI/ekko-studio

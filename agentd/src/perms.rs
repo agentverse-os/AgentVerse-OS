@@ -46,6 +46,25 @@ fn view(path: &PathBuf, scope: &str) -> Value {
     json!({ "scope": scope, "path": path.to_string_lossy(), "exists": path.is_file(), "allow": list(&v, "allow"), "deny": list(&v, "deny"), "ask": list(&v, "ask"), "default_mode": v.pointer("/permissions/defaultMode") })
 }
 
+/// Rule lists of a scope for other modules (the agy adapter): (allow, deny); a missing file is empty lists.
+pub fn rules_of(scope: &str, cwd: &str) -> (Vec<String>, Vec<String>) {
+    match path_for(scope, cwd) { Ok(p) => { let v = read(&p); (list(&v, "allow"), list(&v, "deny")) } Err(_) => (Vec::new(), Vec::new()) }
+}
+
+/// Add one rule to a scope's list (`allow` | `deny` | `ask`) unless it is already there; the file is created on demand.
+pub fn add_rule(scope: &str, cwd: &str, kind: &str, rule: &str) -> anyhow::Result<bool> {
+    let path = path_for(scope, cwd).map_err(|e| anyhow::anyhow!("{e:?}"))?;
+    let mut v = read(&path);
+    if !v.get("permissions").map(|p| p.is_object()).unwrap_or(false) { v["permissions"] = json!({}); }
+    let mut cur = list(&v, kind);
+    if cur.iter().any(|r| r == rule) { return Ok(false) }
+    cur.push(rule.to_string());
+    v["permissions"][kind] = json!(cur);
+    if let Some(parent) = path.parent() { std::fs::create_dir_all(parent).map_err(|e| anyhow::anyhow!("каталог {}: {e}", parent.display()))?; }
+    std::fs::write(&path, serde_json::to_vec_pretty(&v).unwrap_or_default()).map_err(|e| anyhow::anyhow!("запись {}: {e}", path.display()))?;
+    Ok(true)
+}
+
 pub async fn get(Query(q): Query<PermQ>) -> Result<Json<Value>, ApiError> {
     let path = path_for(&q.scope, &q.cwd)?;
     Ok(Json(view(&path, &q.scope)))

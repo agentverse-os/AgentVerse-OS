@@ -1,0 +1,74 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/obsidian-coolify
+description: Note-taking app with linking, organizing, and hundreds of plugins - runs in your browser via remote desktop
+endpoint:
+  port: 3000
+  service: obsidian
+env:
+  PGID: '1000'
+  PUID: '1000'
+  SERVICE_PASSWORD_OBSIDIAN:
+    generate: password
+  SERVICE_URL_OBSIDIAN_3000: https://${APP_DOMAIN}
+  SERVICE_USER_OBSIDIAN:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_OBSIDIAN
+  path: null
+  user: SERVICE_USER_OBSIDIAN
+name: obsidian-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: PUID
+  hint: 'по умолчанию: 1000'
+  label: puid
+  options: null
+  required: false
+  type: text
+- env: PGID
+  hint: 'по умолчанию: 1000'
+  label: pgid
+  options: null
+  required: false
+  type: text
+tags:
+- notes
+- obsidian
+- markdown
+- desktop
+- gui
+- productivity
+title: Obsidian
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.linuxserver.io/images/docker-obsidian
+  tags:
+  - notes
+  - obsidian
+  - markdown
+  - desktop
+  - gui
+  - productivity
+  template: obsidian.yaml
+website: https://docs.linuxserver.io/images/docker-obsidian

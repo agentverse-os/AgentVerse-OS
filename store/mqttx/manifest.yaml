@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/emqx/MQTTX/
-  tipi_version: 11
-  version: v1.13.0
+  tipi_version: 17
+  version: v1.13.3
 website: https://github.com/emqx/MQTTX/

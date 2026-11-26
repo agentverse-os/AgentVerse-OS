@@ -28,6 +28,7 @@ env:
   RAILS_ENV: production
   RAILS_MAX_THREADS: '5'
   REDIS_OPENSSL_VERIFY_MODE: none
+  REDIS_PASSWORD: ''
   SAFE_FETCH_ALLOW_PRIVATE_NETWORK: 'false'
   SERVICE_PASSWORD_CHATWOOT:
     generate: password
@@ -181,6 +182,12 @@ settings:
   options: null
   required: false
   type: text
+- env: REDIS_PASSWORD
+  hint: null
+  label: redis password
+  options: null
+  required: false
+  type: password
 tags:
 - chatwoot
 - chat

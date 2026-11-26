@@ -17,7 +17,7 @@ services:
     restart: on-failure
   web:
     hostname: nginx-proxy-manager_web_1
-    image: jc21/nginx-proxy-manager:2.15.1@sha256:52b2c59994f3d36acfcf70a1626f29734df0ed8c71bacc0269f78b6f939858bb
+    image: jc21/nginx-proxy-manager:2.17.0@sha256:91277490a919c792aa73b8d291af1ca84d32be74df988e543137976515763534
     networks:
       appnet:
         aliases:

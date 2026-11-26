@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/tautulli/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/tautulli/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/tautulli/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/tautulli/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/tautulli/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/tautulli/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,12 +42,14 @@ upstream:
   categories:
   - media
   release_notes: |-
-    This update fixes activity and history issues, including empty session rows and detailed history expansion when Current Activity in History Tables is enabled.
+    ⚠️ Tautulli now requires its own login, in addition to Umbrel authentication. New installs and existing installs without a password generate temporary login credentials in the Tautulli logs. Use these to sign in, then change the password in Tautulli settings. API clients should send their key in the X-Api-Key header rather than the URL.
 
-    It also fixes notification settings bugs, including email passwords being overwritten on save, repeated new-device notifications for local users, and sentinel values appearing in notification text.
+    This update adds user and library archiving while retaining watch history, restores deleted users and libraries, and improves database performance.
 
-    API and security fixes include preventing guest users from retrieving another user's history through the API, restoring the get_plex_logs response shape, and adding X-Frame-Options support to the config.
+    It also improves notifications and newsletters, fixes history filtering and Plex mobile links, and addresses security issues involving request forgery, image URLs, command injection, and displayed media information. OneSignal notifications for the Tautulli Remote App are no longer supported.
+
+    Full release notes: https://github.com/Tautulli/Tautulli/releases/tag/v2.19.0
   source: https://github.com/Tautulli/Tautulli
-  version: 2.18.1
+  version: 2.19.1
   website: https://tautulli.com/
 website: https://tautulli.com/

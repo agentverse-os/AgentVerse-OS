@@ -35,6 +35,11 @@ networks:
     name: ${APP_NET}
 services:
   garage:
+    command:
+    - /garage
+    - server
+    - --single-node
+    - --default-bucket
     configs:
     - source: garage-inline-1
       target: /etc/garage.toml
@@ -46,6 +51,9 @@ services:
     - GARAGE_ADMIN_TOKEN=$SERVICE_PASSWORD_GARAGE
     - GARAGE_METRICS_TOKEN=$SERVICE_PASSWORD_GARAGEMETRICS
     - GARAGE_ALLOW_WORLD_READABLE_SECRETS=true
+    - GARAGE_DEFAULT_ACCESS_KEY=${SERVICE_USER_GARAGE}
+    - GARAGE_DEFAULT_SECRET_KEY=${SERVICE_PASSWORD_64_GARAGE}
+    - GARAGE_DEFAULT_BUCKET=${GARAGE_DEFAULT_BUCKET:-default}
     - RUST_LOG=${RUST_LOG:-garage=info}
     healthcheck:
       interval: 10s
@@ -56,7 +64,7 @@ services:
       - stats
       - -a
       timeout: 5s
-    image: dxflrs/garage:v2.1.0
+    image: dxflrs/garage:v2.5.0
     networks:
       appnet:
         aliases:

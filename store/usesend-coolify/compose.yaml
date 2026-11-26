@@ -74,7 +74,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://usesend:3000 || exit 1
       timeout: 2s
-    image: usesend/usesend:latest
+    image: usesend/usesend:v1.10.3
     networks:
       appnet:
         aliases:

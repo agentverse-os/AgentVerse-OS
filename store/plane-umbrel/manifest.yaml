@@ -10,11 +10,11 @@ endpoint:
   service: nginx
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/plane/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/plane/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/plane/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/plane/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/plane/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plane/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/plane/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/plane/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/plane/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/plane/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -56,10 +56,18 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This update fixes stale frontend chunk loading during navigation, so the web app can automatically reload instead of failing when an updated asset is requested.
+    This update includes security fixes for the built-in web server (nginx) that Plane uses. There are no changes to Plane itself.
 
-    Full release notes can be found at https://github.com/makeplane/plane/releases/tag/v1.4.2
+    This update includes important security fixes for workspace and project access, published boards, file uploads, and sign-in sessions. Self-hosted users are encouraged to update.
+
+    - Refreshed the interface across Plane, published boards, and the admin panel.
+    - Added Bulgarian, Georgian, and Dutch translations.
+    - Fixed attachment upload and download errors, work item history, and module counts in the API.
+    - Fixed disappearing sub-work items and reload loops when a session expires.
+    - Improved editor collaboration, timeline scrolling, and profile settings.
+
+    Full release notes can be found at https://github.com/makeplane/plane/releases/tag/v1.5.0
   source: https://github.com/makeplane/plane
-  version: 1.4.2
+  version: 1.5.0-patch.1
   website: http://plane.so/
 website: http://plane.so/

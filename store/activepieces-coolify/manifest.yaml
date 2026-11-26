@@ -12,7 +12,7 @@ env:
   AP_ENGINE_EXECUTABLE_PATH: dist/packages/engine/main.js
   AP_ENVIRONMENT: prod
   AP_EXECUTION_MODE: UNSANDBOXED
-  AP_SANDBOX_RUN_TIME_SECONDS: '600'
+  AP_FLOW_TIMEOUT_SECONDS: '600'
   AP_SIGN_UP_ENABLED: 'true'
   AP_TELEMETRY_ENABLED: 'false'
   AP_TEMPLATES_SOURCE_URL: https://cloud.activepieces.com/api/v1/flow-templates
@@ -105,9 +105,9 @@ settings:
   options: null
   required: false
   type: text
-- env: AP_SANDBOX_RUN_TIME_SECONDS
+- env: AP_FLOW_TIMEOUT_SECONDS
   hint: 'по умолчанию: 600'
-  label: ap sandbox run time seconds
+  label: ap flow timeout seconds
   options: null
   required: false
   type: text

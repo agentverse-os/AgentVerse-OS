@@ -46,10 +46,16 @@ upstream:
   release_notes: |-
     ⚠️ Reitti 5 is a recent major update. If you're updating from a pre-5.0 version, back up your app data first, let the first-start migration finish, and then verify your devices, API tokens, and map style selection in Settings.
 
-    This release improves GPX import performance on lower-power hardware by reducing database recalculation load, fixes Workbench point editing when Spatial Coverage is disabled, and restores complete French translations.
+    After updating, review the automatically generated speed ranges in Settings > Transportation Modes. Use "Reclassify All Trips" if you want to apply the new rules to historical trips.
 
-    Full release notes can be found at https://github.com/dedicatedcode/reitti/releases/tag/v5.3.1.
+    Key highlights:
+      - Added a Discovery view for exploring visited continents, countries, regions, cities, and districts when coverage tracking is enabled
+      - Added an option to share only your latest location without exposing your location history, trips, visits, or photos
+      - Fixed Immich photo loading for libraries with more than 1,000 photos across long date ranges
+
+
+    Full release notes can be found at https://github.com/dedicatedcode/reitti/releases/tag/v5.11.0.
   source: https://github.com/dedicatedcode/reitti
-  version: 5.3.1
+  version: 5.11.0
   website: https://www.dedicatedcode.com/projects/reitti/overview/
 website: https://www.dedicatedcode.com/projects/reitti/overview/

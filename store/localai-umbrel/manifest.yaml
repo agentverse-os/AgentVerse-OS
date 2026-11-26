@@ -8,12 +8,13 @@ description: Drop-in OpenAI replacement
 endpoint:
   port: 8080
   service: api
-env: {}
+env:
+  GATEWAY_IP: ''
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/localai/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/localai/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/localai/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/localai/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/localai/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/localai/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/localai/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/localai/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,8 +43,18 @@ upstream:
   author: Ettore Di Giacinto
   categories:
   - ai
-  release_notes: Adds GPU support. LocalAI now detects NVIDIA, AMD, and Intel GPUs and offers the matching CUDA, ROCm, and SYCL backends in its Backends gallery. Install a GPU backend there to accelerate your models. Using an AMD or NVIDIA GPU requires umbrelOS 2.0 Beta or later.
+  release_notes: |-
+    LocalAI 5.0 adds server-side chats, projects, file management, and a refreshed interface.
+
+    Chats are now stored on the server. Without separate LocalAI accounts, people with access to this app share the same chat history. To keep older browser-only chats, follow the upgrade guide to export and import them from the browser that holds them.
+
+    New chats turn on agent tools by default, which need more context than small models have. If a chat fails with a context window error, turn tools off in the chat or use a model with a larger context size.
+
+    Studio and Talk are now available as separate add-ons. Models configured with the removed liquid-audio backend need a compatible replacement.
+
+    Upgrade guide: https://localai.io/docs/features/chats-migration/
+    Full release notes: https://github.com/mudler/LocalAI/releases/tag/v5.0.0
   source: https://github.com/mudler/LocalAI
-  version: v4.9.0-patch.1
+  version: v5.0.0
   website: https://localai.io/
 website: https://localai.io/

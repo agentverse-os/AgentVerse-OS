@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   web:
-    image: ghcr.io/autobrr/autobrr:v1.85.0@sha256:f7594d15dfe9a59e7bbc4bce8aee437a1d440d60b350e2ee74331c0d4ec01928
+    image: ghcr.io/autobrr/autobrr:v1.90.0@sha256:72bb5fe5e8c73f85660f92502d9015b21b07156495f039b55864633b9f8b7a89
     networks:
       appnet:
         aliases:

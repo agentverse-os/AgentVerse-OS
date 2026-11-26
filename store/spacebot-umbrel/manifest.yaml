@@ -10,11 +10,11 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/spacebot/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,8 +43,8 @@ upstream:
   author: Spacedrive Technology Inc.
   categories:
   - ai
-  release_notes: null
+  release_notes: This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
   source: https://github.com/spacedriveapp/spacebot
-  version: 0.5.0
+  version: 0.5.0-patch.1
   website: https://spacebot.sh
 website: https://spacebot.sh

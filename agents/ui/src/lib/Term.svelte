@@ -155,7 +155,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="term" class:dim={conn !== 'live'} class:drag={dragOver} onpastecapture={onPaste} ondragovercapture={onDragOver} ondragleave={() => (dragOver = false)} ondropcapture={onDrop}>
   <div class="host" bind:this={host}></div>
-  {#if uploading}<div class="state up" role="status">📎 {t('cli.uploading')}</div>{:else if conn !== 'live'}<div class="state" role="status">{conn === 'exited' ? t('agents.exited', { code: exitCode ?? 0 }) : conn === 'lost' ? t('agents.reconnecting') : t('agents.connecting')}{#if conn !== 'exited'} · {t('wsux.offlineInput')}{/if}</div>{/if}
+  {#if uploading}<div class="state up" role="status">📎 {t('cli.uploading')}</div>{:else if conn !== 'live'}<div class="state" role="status">{conn === 'exited' ? t('agents.exited', { code: exitCode ?? 0 }) : conn === 'lost' ? t('agents.reconnecting') : t('agents.connecting')}{#if conn !== 'exited'}{' '}· {t('wsux.offlineInput')}{/if}</div>{/if}
   {#if pendingPaths.length}<div class="pending" role="status"><span>{t('wsux.pendingPaths')}</span><code>{pendingPaths.join(' · ')}</code><button disabled={conn !== 'live' || inserting} onclick={insertPending}>{t('wsux.insertPaths')} ({pendingPaths.length})</button></div>{/if}
   {#if dragOver}<div class="dropzone">{t('cli.dropHint')}</div>{/if}
 </div>

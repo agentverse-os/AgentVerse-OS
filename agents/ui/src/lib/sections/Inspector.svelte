@@ -7,10 +7,13 @@
   import Icon from '../Icon.svelte';
   import Md from '../Md.svelte';
   import type { SessionInfo, PtyInfo } from '../api';
+  import { notify } from '../notify.svelte';
   const r = $derived(ui.sel);
   const info = $derived(data.infoOf(r));
   const s = $derived(r?.kind === 'session' ? (info as SessionInfo | null) : null);
   const p = $derived(r?.kind === 'pty' ? (info as PtyInfo | null) : null);
+  // where the conversation reports to (notification channels, §9.12.2)
+  const told = $derived(r?.kind === 'session' ? notify.forSession(r.project, r.id).map(b => notify.words(b)).join('; ') : '');
   const accountLabel = $derived(s?.account ? (data.accounts.find(a => a.id === s.account)?.label ?? s.account) : t('insp.gate'));
 </script>
 
@@ -28,8 +31,9 @@
         <span>{t('insp.model')}</span><select class="sm" aria-label={t('insp.model')} value={s.model ?? ''} onchange={(e) => actions.setModel(r!, (e.target as HTMLSelectElement).value || null)}><option value="">{t('agents.modelDefault')}</option>{#each Array.from(new Set([...(MODELS_FOR[s.agent] ?? []), ...(s.model ? [s.model] : [])])) as m (m)}<option value={m}>{m}</option>{/each}</select>
         <span>{t('insp.account')}</span><select class="sm" aria-label={t('insp.account')} value={s.account ?? ''} onchange={(e) => actions.setAccount(r!, (e.target as HTMLSelectElement).value || null)}><option value="">{t('insp.gate')}</option>{#each data.accounts as a (a.id)}<option value={a.id}>{a.label}</option>{/each}</select>
         <span>{t('insp.route')}</span><span class="ell">{accountLabel}</span>
-        <span>{t('insp.source')}</span><span class="ell">{s.imported ? t('insp.srcDisk') : t('insp.srcOwn')}{#if s.updated_at} · {t('insp.updated')} {ago(s.updated_at)}{/if}</span>
+        <span>{t('insp.source')}</span><span class="ell">{s.imported ? t('insp.srcDisk') : t('insp.srcOwn')}{#if s.updated_at}{' '}· {t('insp.updated')} {ago(s.updated_at)}{/if}</span>
         <span>{t('insp.mode')}</span><select class="sm" aria-label={t('insp.mode')} value={s.permission_mode ?? (s.agent === 'codex' ? 'on-request' : 'default')} onchange={(e) => actions.setMode(r!, (e.target as HTMLSelectElement).value)}>{#each MODES_FOR[s.agent] ?? MODES_FOR.claude as m (m)}<option value={m}>{modeLabel(m)}</option>{/each}</select>
+        <span>{t('ntf.inspLabel')}</span><button class="sm ghost insp-notify" title={told || t('ntf.menuSession')} onclick={() => notify.open({ scope: 'session', project: r!.project, session: r!.id, title: titleOf(r!) })}><Icon name="bell" size="s" /> <span class="ell">{told || t('ntf.whenOff')}</span></button>
       </div>
     </section>
     <section>
@@ -55,4 +59,5 @@
 
 <style>
   .snippet { max-height: 160px; overflow: auto; }
+  .insp-notify { justify-content: flex-start; min-width: 0; max-width: 100%; }
 </style>

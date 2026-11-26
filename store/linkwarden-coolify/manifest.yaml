@@ -1,0 +1,76 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/linkwarden-coolify
+description: A self-hostable collaborative bookmark manager to collect, organize, and preserve web pages.
+endpoint:
+  port: 3000
+  service: linkwarden
+env:
+  POSTGRES_DB: linkwarden
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_LINKWARDENNEXTAUTH:
+    generate: password
+  SERVICE_PASSWORD_MEILI:
+    generate: password
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_LINKWARDEN_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: linkwarden-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: linkwarden'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- bookmarks
+- collaboration
+- archive
+- links
+- self-hosted
+title: Linkwarden
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://docs.linkwarden.app/self-hosting/setup
+  tags:
+  - bookmarks
+  - collaboration
+  - archive
+  - links
+  - self-hosted
+  template: linkwarden.yaml
+website: https://docs.linkwarden.app/self-hosting/setup

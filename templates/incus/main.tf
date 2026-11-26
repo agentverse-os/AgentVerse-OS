@@ -91,7 +91,10 @@ data "coder_parameter" "home_gb" {
   display_name = "Home, GiB"
   type         = "number"
   default      = 50
-  mutable      = false
+  # Mutable since 2026-10-26: the home volume grows in place (Incus resizes the block volume and its ext4 online); the
+  # core refuses a smaller value, because Incus cannot shrink a block volume — an immutable parameter made every build
+  # after a manual resize fail ("Immutable parameter changed").
+  mutable      = true
   validation {
     min = 0
     max = 2000

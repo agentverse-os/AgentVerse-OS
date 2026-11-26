@@ -11,7 +11,7 @@ services:
       DATA_INDENT: '2'
       LOGOUT_AFTER_DAYS: '60'
       SECRET_KEY: ${DAILYTXT_SECRET_KEY}
-    image: phitux/dailytxt:2.6.3
+    image: phitux/dailytxt:2.6.4
     networks:
       appnet:
         aliases:

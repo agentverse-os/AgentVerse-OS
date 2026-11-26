@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/element/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/element/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/element/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/element/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/element/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/element/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,12 +42,19 @@ upstream:
   categories:
   - social
   release_notes: |-
-    This release adds room timeline improvements, reworked URL previews, notification support for knock membership events, and more room-list controls for sections, unread activity, and selection.
+    This update includes two security fixes from Element and clearer recovery key prompts. New sign-ins now need to be verified from another signed-in device or with your recovery key.
 
-    It also fixes custom status persistence, chat exports, room permission editing, screen-share picker hangs, unread state updates, notification churn, shortcuts, audio playback, and several layout and accessibility issues.
+    ⚠️ Element no longer upgrades very old browser sessions. If you last used Element in a browser before August 2024, that browser may show "Missing saved data" and offer to remove the device. Only continue if you have your recovery key or Element is still signed in on another device, so you can restore your encrypted messages after signing in again. Browsers that have opened Element since August 2024 aren't affected.
 
-    Full release notes can be found at https://github.com/element-hq/element-web/releases/tag/v1.12.27
+    Other improvements include:
+      - Clearer recovery key setup and sign-out prompts
+      - A softer reset warning if you have no encrypted chats
+      - Your room filter selection is now remembered
+      - Fixes for calls, picture-in-picture, spoiler formatting and timeline scrolling
+
+
+    Full release notes can be found at https://github.com/element-hq/element-web/releases
   source: https://github.com/vector-im/element-web
-  version: 1.12.27
+  version: 1.12.35
   website: https://element.io
 website: https://element.io

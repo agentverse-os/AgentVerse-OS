@@ -63,10 +63,35 @@ pub fn candidates(id: &str) -> Vec<String> {
         // gpt-oss-120b-medium → gpt-oss-120b (the effort is not
         // the model)
         for suf in ["-minimal", "-low", "-medium", "-high", "-xhigh"] { if let Some(k) = s.strip_suffix(suf) { out.push(format!("openai/{k}")); } }
-    } else if s.starts_with("gemini-") {
-        out.push(format!("google/{s}"));
+    } else if s.starts_with("gemini-") || s.starts_with("gemma-") {
+        // gemini-3.8-flash-high → google/gemini-3.8-flash (the thinking level is not the model); 3-5 → 3.5 as OpenRouter spells it
+        let mut base = s.clone();
+        for suf in ["-minimal", "-low", "-medium", "-high", "-xhigh"] { if let Some(k) = s.strip_suffix(suf) { base = k.to_string(); } }
+        out.push(format!("google/{base}"));
+        let dotted = dot_version(&base);
+        if dotted != base { out.push(format!("google/{dotted}")); }
+    } else if s.starts_with("grok-") {
+        out.push(format!("x-ai/{s}"));
+    } else if s.starts_with("kimi-") {
+        out.push(format!("moonshotai/{s}"));
+    } else if let Some(rest) = s.strip_prefix("devin/") {
+        // the Devin channel relays other vendors' models under its own prefix: look the real model up
+        out.extend(candidates(rest));
     }
     out
+}
+
+/// `gemini-3-5-flash` → `gemini-3.5-flash`: a major and a one-digit minor joined by a dash become a dotted version.
+fn dot_version(id: &str) -> String {
+    let parts: Vec<&str> = id.split('-').collect();
+    let mut out: Vec<String> = Vec::new();
+    let mut i = 0;
+    while i < parts.len() {
+        let p = parts[i];
+        if p.chars().all(|c| c.is_ascii_digit()) && !p.is_empty() && p.len() <= 2 { if let Some(n) = parts.get(i + 1) { if n.len() == 1 && n.chars().all(|c| c.is_ascii_digit()) { out.push(format!("{p}.{n}")); i += 2; continue; } } }
+        out.push(p.to_string()); i += 1;
+    }
+    out.join("-")
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -153,6 +178,16 @@ pub async fn sync(State(app): State<Arc<App>>) -> Result<Json<Value>, ApiError> 
             for m in r.get("models").and_then(|m| m.as_array()).cloned().unwrap_or_default() { if let Some(id) = m.get("id").and_then(|i| i.as_str()).or_else(|| m.as_str()) { used.push(id.to_string()); } }
         }
     }
+    // the gate catalog (2026-10-26): every chat model of every channel gets a row — with the source price when the source knows the
+    // model, otherwise "no price"; speech, image and special-purpose models stay out of the table
+    if let Ok(g) = app.core_get("/gate/models").await {
+        for tg in g.get("targets").and_then(|t| t.as_array()).cloned().unwrap_or_default() {
+            for m in tg.get("models").and_then(|m| m.as_array()).cloned().unwrap_or_default() {
+                if m.get("kind").and_then(|k| k.as_str()).unwrap_or("chat") != "chat" { continue }
+                if let Some(id) = m.get("id").and_then(|i| i.as_str()) { used.push(id.to_string()); }
+            }
+        }
+    }
     let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
     let mut settings = crate::api::settings_value(&app);
     let (table, report) = merge(settings.get("prices").unwrap_or(&json!({})), &used, &src, now);
@@ -173,6 +208,11 @@ mod tests {
         assert_eq!(candidates("claude-opus-5-5[1m]")[0], "anthropic/claude-opus-5.5");
         assert_eq!(candidates("claude-haiku-4-5-20251001")[0], "anthropic/claude-haiku-4.5");
         assert_eq!(candidates("claude-3-5-haiku-20241022")[0], "anthropic/claude-3.5-haiku");
+        assert_eq!(candidates("gemini-3.8-flash-high"), vec!["google/gemini-3.8-flash".to_string()]);
+        assert_eq!(candidates("devin/gemini-3-5-flash"), vec!["devin/gemini-3-5-flash".to_string(), "google/gemini-3-5-flash".into(), "google/gemini-3.5-flash".into()]);
+        assert_eq!(candidates("devin/gpt-5-4")[1], "openai/gpt-5-4");
+        assert_eq!(candidates("grok-4-fast")[0], "x-ai/grok-4-fast"); assert_eq!(candidates("kimi-k2.5")[0], "moonshotai/kimi-k2.5");
+        assert_eq!(dot_version("gemini-3-5-flash"), "gemini-3.5-flash"); assert_eq!(dot_version("gemini-2.5-pro"), "gemini-2.5-pro"); assert_eq!(dot_version("gemini-4-argon"), "gemini-4-argon");
         assert_eq!(candidates("claude-opus-5")[0], "anthropic/claude-opus-5");
         assert_eq!(candidates("claude-fable-5-1")[0], "anthropic/claude-fable-5.1");
         assert_eq!(candidates("gpt-6.1-sol"), vec!["openai/gpt-6.1-sol"]);

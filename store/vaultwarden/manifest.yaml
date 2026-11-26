@@ -47,6 +47,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/dani-garcia/vaultwarden
-  tipi_version: 54
-  version: 1.37.2
+  tipi_version: 60
+  version: 1.37.5
 website: https://github.com/dani-garcia/vaultwarden

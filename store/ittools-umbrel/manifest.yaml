@@ -10,12 +10,12 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/ittools/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/ittools/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/ittools/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/ittools/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/ittools/5.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/ittools/6.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/5.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/ittools/6.webp
 health: null
 hooks: {}
 host_docker_socket: false

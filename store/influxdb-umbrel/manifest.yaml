@@ -10,9 +10,9 @@ endpoint:
   service: chronograf
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/influxdb/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/influxdb/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/influxdb/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/influxdb/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/influxdb/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/influxdb/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,12 +42,10 @@ upstream:
   categories:
   - developer
   release_notes: |-
-    This release brings InfluxDB to version 1.12.4 and Chronograf to version 1.11.2.
+    This update fixes shard compaction with the influx_tools command-line utility.
 
-    InfluxDB fixes a regression introduced in v1.12.3 that could crash the TSI index during concurrent read and write operations.
-
-    Chronograf includes updated Go and JavaScript dependencies.
+    Full release notes can be found at https://github.com/influxdata/influxdb/releases/tag/v1.13.2
   source: https://github.com/influxdata/influxdb
-  version: 1.12.4
+  version: 1.13.2
   website: https://www.influxdata.com/
 website: https://www.influxdata.com/

@@ -22,7 +22,7 @@ services:
     - TIMEOUT=${ARCHIVEBOX_TIMEOUT-60}
     - CHECK_SSL_VALIDITY=${ARCHIVEBOX_CHECK_SSL_VALIDITY-true}
     - SAVE_ARCHIVE_DOT_ORG=${ARCHIVEBOX_SAVE_ARCHIVE_DOT_ORGE-true}
-    image: archivebox/archivebox:0.7.4
+    image: archivebox/archivebox:0.9.77
     networks:
       appnet:
         aliases:

@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   glance:
-    image: glanceapp/glance:v0.8.5
+    image: glanceapp/glance:v0.8.8
     networks:
       appnet:
         aliases:

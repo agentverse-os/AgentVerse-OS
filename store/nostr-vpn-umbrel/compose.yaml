@@ -19,12 +19,13 @@ services:
       HOME: /data/home
       RUST_LOG: info
       XDG_CONFIG_HOME: /data/config
-    image: ghcr.io/mmalmi/nostr-vpn-umbrel:v4.1.9@sha256:252323ba2bfb853e749dba7da703abd138f0a51511a3114807a9c579f64d8995
+    image: ghcr.io/mmalmi/nostr-vpn-umbrel:v4.1.22@sha256:d8c9afc99395e09cefd76ad161a8e6906d12ea3b00b3c17bcb44cbd1d0dc332f
     network_mode: host
     restart: on-failure
     stop_grace_period: 1m
     volumes:
     - ${APP_DATA_DIR}/data:/data
+    - ${APP_DATA_DIR}/data/egress-state:/var/lib/nvpn/egress
   web:
     command:
     - --listen
@@ -41,7 +42,7 @@ services:
       NVPN_EXTERNAL_DAEMON: 'true'
       RUST_LOG: info
       XDG_CONFIG_HOME: /data/config
-    image: ghcr.io/mmalmi/nostr-vpn-umbrel:v4.1.9@sha256:252323ba2bfb853e749dba7da703abd138f0a51511a3114807a9c579f64d8995
+    image: ghcr.io/mmalmi/nostr-vpn-umbrel:v4.1.22@sha256:d8c9afc99395e09cefd76ad161a8e6906d12ea3b00b3c17bcb44cbd1d0dc332f
     networks:
       appnet:
         aliases:

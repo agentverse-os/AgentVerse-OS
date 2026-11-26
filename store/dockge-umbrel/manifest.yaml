@@ -10,9 +10,9 @@ endpoint:
   service: dockge
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/dockge/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/dockge/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/dockge/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/dockge/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dockge/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dockge/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

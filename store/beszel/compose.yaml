@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   beszel:
-    image: henrygd/beszel:0.18.8
+    image: henrygd/beszel:0.21.2
     networks:
       appnet:
         aliases:

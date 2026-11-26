@@ -49,6 +49,6 @@ upstream:
   - data
   - utilities
   source: https://github.com/syncthing
-  tipi_version: 36
-  version: 2.1.3
+  tipi_version: 42
+  version: 2.1.7
 website: https://github.com/syncthing

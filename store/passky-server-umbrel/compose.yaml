@@ -35,25 +35,11 @@ services:
       LIMITER_SAVE_PASSWORD: 2
       LIMITER_UPGRADE_ACCOUNT: 10
       MAIL_ENABLED: 'false'
-      MYSQL_CACHE_MODE: 0
-      MYSQL_DATABASE: passky
-      MYSQL_HOST: ''
-      MYSQL_PASSWORD: ''
-      MYSQL_PORT: 3306
-      MYSQL_SSL: 'false'
-      MYSQL_SSL_CA: /etc/ssl/certs/ca-certificates.crt
-      MYSQL_USER: passky
-      REDIS_HOST: 127.0.0.1
-      REDIS_LOCAL_HOST: 127.0.0.1
-      REDIS_LOCAL_PASSWORD: ''
-      REDIS_LOCAL_PORT: 6379
-      REDIS_PASSWORD: ''
-      REDIS_PORT: 6379
       SERVER_CORES: 1
       SERVER_LOCATION: US
       YUBI_CLOUD: https://api.yubico.com/wsapi/2.0/verify
       YUBI_ID: 67857
-    image: rabbitcompany/passky-server:8.1.8@sha256:e9bf7b9ecdf4904f1e3893b5968e98cbb61d4984bca1482081df2f59df05fca6
+    image: rabbitcompany/passky-server:9.0.0@sha256:c5229f4b88a47aaddd4e25eadea8a47331af3a8cae6b7a0bb176ef906849afd6
     networks:
       appnet:
         aliases:
@@ -61,4 +47,4 @@ services:
     restart: on-failure
     stop_grace_period: 1m
     volumes:
-    - ${APP_DATA_DIR}/data/passky:/var/www/html/databases
+    - ${APP_DATA_DIR}/data/passky:/app/databases

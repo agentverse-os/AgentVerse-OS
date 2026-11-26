@@ -31,6 +31,8 @@ export default defineConfig({
           // old UI
           { urlPattern: ({ request, url }) => request.mode === 'navigate' && !url.pathname.startsWith('/agents'), handler: 'NetworkFirst', options: { cacheName: 'cloudos-shell', networkTimeoutSeconds: 4 } },
           { urlPattern: ({ url }) => /\/wallpaper-[\w-]+\.webp$/.test(url.pathname), handler: 'StaleWhileRevalidate', options: { cacheName: 'cloudos-wallpapers', expiration: { maxEntries: 24, maxAgeSeconds: 30 * 24 * 3600 } } },
+          // self-hosted fonts (public/fonts): not in the precache, cached on first use — the names never change
+          { urlPattern: ({ url }) => /\/fonts\/[\w-]+\.woff2$/.test(url.pathname), handler: 'CacheFirst', options: { cacheName: 'cloudos-fonts', expiration: { maxEntries: 16, maxAgeSeconds: 365 * 24 * 3600 } } },
         ],
         cleanupOutdatedCaches: true,
       },

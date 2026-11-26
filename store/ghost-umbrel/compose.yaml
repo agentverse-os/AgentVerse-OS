@@ -25,7 +25,7 @@ services:
       database__connection__user: root
       security__staffDeviceVerification: 'false'
       url: http://${DEVICE_DOMAIN_NAME}:3368
-    image: ghost:6.62.0@sha256:a7a268bbfb7fa5596aac95ed05a2b782a0792643211ed3fb9d441f2ccb06cec3
+    image: ghost:6.78.0@sha256:985ef9f30fb897a29050a9ef956bff1737ff1f2cd955aa5b759b88251f9c8735
     networks:
       appnet:
         aliases:

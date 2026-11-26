@@ -25,7 +25,7 @@ services:
       - -f
       - http://127.0.0.1:80/health
       timeout: 20s
-    image: gotify/server:2.7.3
+    image: gotify/server:3.1.1
     networks:
       appnet:
         aliases:

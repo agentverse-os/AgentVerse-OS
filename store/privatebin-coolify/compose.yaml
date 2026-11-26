@@ -14,7 +14,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:8080/
       timeout: 20s
-    image: privatebin/nginx-fpm-alpine
+    image: privatebin/nginx-fpm-alpine:2.1.1
     networks:
       appnet:
         aliases:

@@ -13,7 +13,7 @@ services:
       MM_PASSWORD: admin
       MM_SQLSETTINGS_DATASOURCE: postgres://admin:admin@mattermost_db_1:5432/mattermost?sslmode=disable&connect_timeout=10
       MM_USERNAME: admin
-    image: alexlack/mattermost-app:v11.10.1@sha256:b4cd4d2ffb53c9eed622ea1c29482fce9340b70bd75497f7d510507ac6559ac3
+    image: alexlack/mattermost-app:v12.1.0@sha256:55477faf6324769984a71b3547618584ed1666f1ac191a7bfce59a90ae18a352
     networks:
       appnet:
         aliases:
@@ -40,7 +40,7 @@ services:
       - CMD-SHELL
       - pg_isready -U admin -d mattermost
       timeout: 5s
-    image: alexlack/mattermost-db:v11.10.1@sha256:2b178fd070bda0f62c5a71b807d6ff788cae7b5bbf4935bb16ac8cc82d178f74
+    image: alexlack/mattermost-db:v11.11.1@sha256:ed7ade51d12815e65eff05ded2b4264b5bca06cbf523f4c9573759a9688b2259
     networks:
       appnet:
         aliases:

@@ -19,7 +19,7 @@ services:
       - CMD-SHELL
       - curl --user elastic:${SERVICE_PASSWORD_ELASTICSEARCH} --silent --fail http://localhost:9200/_cluster/health
       timeout: 10s
-    image: elastic/elasticsearch:9.1.2
+    image: elastic/elasticsearch:9.5.5
     networks:
       appnet:
         aliases:
@@ -51,7 +51,7 @@ services:
       - CMD-SHELL
       - curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'
       timeout: 10s
-    image: kibana:9.1.2
+    image: kibana:9.5.5
     networks:
       appnet:
         aliases:
@@ -92,7 +92,7 @@ services:
       fi
     environment:
     - ELASTIC_PASSWORD=${SERVICE_PASSWORD_ELASTICSEARCH}
-    image: alpine:latest
+    image: alpine:3.24.4
     networks:
       appnet:
         aliases:

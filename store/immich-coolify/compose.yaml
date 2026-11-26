@@ -18,7 +18,7 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
     networks:
       appnet:
         aliases:
@@ -42,7 +42,7 @@ services:
     - TZ=${TZ:-Etc/UTC}
     healthcheck:
       disable: false
-    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-v3.4.1}
     networks:
       appnet:
         aliases:
@@ -61,7 +61,7 @@ services:
     - TZ=${TZ:-Etc/UTC}
     healthcheck:
       disable: false
-    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-v3.4.1}
     networks:
       appnet:
         aliases:
@@ -78,7 +78,7 @@ services:
       - redis-cli
       - PING
       timeout: 10s
-    image: redis:7.4-alpine
+    image: valkey/valkey:9-alpine
     networks:
       appnet:
         aliases:

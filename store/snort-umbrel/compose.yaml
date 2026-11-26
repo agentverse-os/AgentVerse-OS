@@ -5,10 +5,11 @@ networks:
     name: ${APP_NET}
 services:
   web:
-    image: voidic/snort:v0.5.3@sha256:410778efd4d74f001bb20e91e9f752bda8bb2e5d5f796a2020b253be8b9ca099
+    image: voidic/snort:v0.5.6@sha256:b680ecc8ccf7a76a59b61a403204dc2c796c8b7a013afd754e9e4df2bfa4c6ef
     init: true
     networks:
       appnet:
         aliases:
         - snort_web_1
-    restart: unless-stopped
+    restart: on-failure
+    user: 101:101

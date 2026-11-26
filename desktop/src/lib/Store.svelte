@@ -157,7 +157,7 @@
   .picks { margin: 0 0 14px; }
   .ptitle { margin: 0; font-size: 1rem; }
   .shelf { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 8px; scroll-snap-type: x proximity; }
-  .pick { position: relative; flex: 0 0 250px; scroll-snap-align: start; background: var(--panel); border: 1px solid color-mix(in srgb, #F2B84B 45%, var(--line)); border-radius: var(--r); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .pick { position: relative; flex: 0 0 250px; scroll-snap-align: start; background: var(--card); border: 1px solid color-mix(in srgb, #F2B84B 45%, var(--line)); border-radius: var(--r); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
   .pick .hit { border-radius: var(--r); }
   .pick { min-width: 0; overflow: hidden; }
   .pick .ptop { display: flex; gap: 10px; align-items: flex-start; position: relative; pointer-events: none; min-width: 0; }
@@ -169,11 +169,11 @@
   .ptit .psrc { font-size: .7rem; padding: 0 6px; line-height: 1.4; flex: none; }
   .pick .actions { flex-wrap: nowrap; }
   .preason { font-size: .78rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .head { position: sticky; top: calc(-14px * var(--sp)); z-index: 2; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); margin: calc(-14px * var(--sp)) calc(-14px * var(--sp)) 10px; padding: calc(10px * var(--sp)) calc(14px * var(--sp)); border-bottom: 1px solid var(--line); }
-  .filters { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .head { position: sticky; top: calc(var(--bpt, 16px) * -1); z-index: 2; background: var(--sticky-bg); backdrop-filter: var(--sticky-blur); -webkit-backdrop-filter: var(--sticky-blur); margin: calc(var(--bpt, 16px) * -1) calc(var(--bpx, 16px) * -1) 12px; padding: calc(12px * var(--sp)) var(--bpx, 16px); border-bottom: 1px solid var(--line); }
+  .filters { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
   .filters .search { min-width: 0; }
   .check { display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: calc(12px * var(--sp)); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: calc(12px * var(--sp)); }
   .app { position: relative; display: flex; flex-direction: column; gap: 8px; }
   .app.installed { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); }
   .hit { position: absolute; inset: 0; background: transparent; border: 0; border-radius: var(--r); cursor: pointer; }
@@ -191,10 +191,14 @@
   .actions > button { flex: 0 0 auto; }
   .actions > .danger { margin-left: auto; }
   .chips { align-items: center; }
-  @media (max-width: 700px) {
-    .filters { grid-template-columns: 1fr 1fr; }
+  /* the layout follows the window, not the screen: a narrow window on a big monitor gets the same compact form as a phone */
+  @container win (max-width: 760px) {
+    .filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .filters .search { grid-column: 1 / -1; }
-    .grid { grid-template-columns: 1fr; }
+  }
+  @container win (max-width: 520px) {
+    .filters { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .grid { grid-template-columns: minmax(0, 1fr); }
     .actions button { min-height: 40px; flex: 1 1 auto; }
   }
 </style>

@@ -13,9 +13,9 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/invidious/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/invidious/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/invidious/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/invidious/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/invidious/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/invidious/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -51,25 +51,23 @@ upstream:
   categories:
   - social
   release_notes: |-
-    This release hardens the companion pipeline and fixes a wide range of user-facing issues.
+    This release improves channel navigation, playback, subscription exports, and companion proxying.
 
     Key highlights:
-      - Livestreams are back on the Trending page and gaming feeds remain accessible
-      - "Watch on YouTube" links no longer carry stale timestamps for livestreams
-      - Downloads can now flow through the Invidious companion when available
-      - Channel pages now display creator pronouns and topic playlist thumbnails
-      - Related video view counts are accurate again
-      - Playlist importer and playlist API handle missing or empty data without crashing
-      - Community posts with unavailable videos and DMCA content toggles work again
-      - Channel name and button overflow issues are fixed
-      - Invalid CAPTCHAs now show a clear "Erroneous CAPTCHA" message
-      - A footer link to the current release has been added
-      - Proxy responses now strip unwanted headers for images and video playback
-      - Companion CSP headers and check identifiers are generated once and reused correctly
+      - Custom channel handle URLs now support tab paths, including streams
+      - Clicking a timestamp starts playback and scrolls to the video
+      - Channel pages now support the shows tab
+      - A minute badge has been added to the watch page
+      - Subscriptions can now be exported as JSON for NewPipe
+      - Published dates and view counts for collaborative videos are parsed correctly
+      - FreeTube OPML subscription exports have been fixed
+      - Companion proxying has been improved
 
+
+    Breaking changes: Reddit integration and the hd720 quality option have been removed.
 
     For full release notes, visit https://github.com/iv-org/invidious/releases
   source: https://github.com/iv-org/invidious
-  version: 2.20260207.0
+  version: 2.20261103.0
   website: https://invidious.io/
 website: https://invidious.io/

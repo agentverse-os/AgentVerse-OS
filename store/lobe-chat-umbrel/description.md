@@ -1,3 +1,5 @@
+🌐 Open Lobe Hub over HTTP. If your Umbrel dashboard uses HTTPS, change https:// to http:// in Lobe Hub's address bar. HTTPS access is not supported by this Umbrel package yet.
+
 💬 Lobe Hub is a self-hosted AI workspace for conversations, agent teams, knowledge bases, and multimodal workflows.
 
 🗣️ It supports speech, multimodal chat, files, knowledge retrieval, and a rich provider ecosystem including OpenAI-compatible APIs, Anthropic, Google, Groq, Ollama, and more.

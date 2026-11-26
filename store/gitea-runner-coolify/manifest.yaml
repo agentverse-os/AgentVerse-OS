@@ -9,10 +9,8 @@ endpoint:
   port: 80
   service: runner
 env:
-  GITEA_INSTANCE_URL: ''
   GITEA_RUNNER_LABELS: ubuntu-latest:docker://node:22
   GITEA_RUNNER_NAME: gitea-runner
-  GITEA_RUNNER_REGISTRATION_TOKEN: ''
   GITEA_TOKEN: ''
 gallery: []
 health: null
@@ -37,18 +35,6 @@ route:
   open: iframe
 schema: 1
 settings:
-- env: GITEA_INSTANCE_URL
-  hint: null
-  label: gitea instance url
-  options: null
-  required: false
-  type: text
-- env: GITEA_RUNNER_REGISTRATION_TOKEN
-  hint: null
-  label: gitea runner registration token
-  options: null
-  required: false
-  type: password
 - env: GITEA_RUNNER_NAME
   hint: 'по умолчанию: gitea-runner'
   label: gitea runner name

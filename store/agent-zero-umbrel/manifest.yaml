@@ -15,9 +15,9 @@ env:
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
   DEVICE_HOSTNAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/agent-zero/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/agent-zero/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/agent-zero/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/agent-zero/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/agent-zero/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/agent-zero/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -47,19 +47,12 @@ upstream:
   categories:
   - ai
   release_notes: |-
-    Agent Zero v2.11 is a follow-up to the recent v2.0 major update. If you're updating from a pre-v2.0 version, Agent Zero recommends creating a backup from Settings > Check for Updates > Backup & Restore before upgrading, then checking chats, projects, memory, settings, and plugins after the update.
+    ⚠️ Time Travel now expires older snapshots by default, keeping up to 500 recent snapshots within 30 days plus checkpoints. Existing explicit opt-outs are preserved. Custom clients calling local OAuth model proxies must now authenticate, and A2A connections must supply credentials explicitly.
 
-    Important changes in this release:
-      - Adds new bundled plugins for context window usage, Context Doctor JSON repair, vision sidecar model presets, result extension handling, and WebUI plugin slots
-      - Improves live streaming and real-time WebUI synchronization with safe Markdown/LaTeX rendering, progressive tool output, stable message actions, and faster chat/sidebar updates
-      - Improves memory, embeddings, and context handling, including provider-prefixed embedding model IDs, JSON-safe relevance scores, cached local embedding models, and preserved compacted context summaries
-      - Adds configurable keyboard layouts for the interactive browser and improves browser input and legacy CDP endpoint handling
-      - Changes the default LiteLLM transport to Chat Completions; providers that depended on implicit Responses transport now need explicit Responses mode
-      - Fixes mobile canvas hiding, onboarding model preset flow, empty vision summaries, ACP artwork, launcher links, and Context Doctor dependency installation after self-update
+    - Added automatic cleanup of old caches and temporary files, with per-area controls. - Scheduled tasks missed during downtime now run once when Agent Zero returns. - Improved secret handling, backup restore safety, and Time Travel capture and restore. - Restored scoped Telegram configuration and improved chat loading and startup performance. - Released idle browser resources while preserving saved tabs and sign-in profiles.
 
-
-    Full release notes can be found at https://github.com/agent0ai/agent-zero/releases/tag/v2.11
+    Full release notes can be found at https://github.com/agent0ai/agent-zero/releases/tag/v2.16
   source: https://github.com/agent0ai/agent-zero
-  version: v2.11
+  version: v2.16
   website: https://github.com/agent0ai/agent-zero
 website: https://github.com/agent0ai/agent-zero

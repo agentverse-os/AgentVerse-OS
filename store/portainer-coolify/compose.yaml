@@ -14,7 +14,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:9000/
       timeout: 20s
-    image: portainer/portainer-ce:alpine
+    image: portainer/portainer-ce:2.45.3-alpine
     networks:
       appnet:
         aliases:

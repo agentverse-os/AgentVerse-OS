@@ -15,6 +15,7 @@ env:
   CORS_ENABLED: 'true'
   CORS_METHODS: GET,POST,PATCH,DELETE,OPTIONS
   CORS_ORIGIN: ''
+  IP_TRUST_PROXY: 'true'
   POSTGRESQL_DATABASE: directus
   POSTGRES_DB: ''
   POSTGRES_USER: ''
@@ -60,6 +61,12 @@ settings:
 - env: POSTGRESQL_DATABASE
   hint: 'по умолчанию: directus'
   label: postgresql database
+  options: null
+  required: false
+  type: text
+- env: IP_TRUST_PROXY
+  hint: 'по умолчанию: true'
+  label: ip trust proxy
   options: null
   required: false
   type: text

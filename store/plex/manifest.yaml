@@ -40,6 +40,6 @@ upstream:
   categories:
   - media
   source: https://github.com/plexinc/pms-docker
-  tipi_version: 51
-  version: 1.43.3
+  tipi_version: 55
+  version: 1.43.5
 website: https://github.com/plexinc/pms-docker

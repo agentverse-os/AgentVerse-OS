@@ -7,9 +7,9 @@ services:
   esphome:
     environment:
     - SERVICE_URL_ESPHOME_6052=${SERVICE_URL_ESPHOME_6052}
-    - USERNAME=${SERVICE_USER_ADMIN}
-    - PASSWORD=${SERVICE_PASSWORD_ADMIN}
-    image: ghcr.io/esphome/esphome:2025.12.4
+    - ESPHOME_USERNAME=${SERVICE_USER_ADMIN}
+    - ESPHOME_PASSWORD=${SERVICE_PASSWORD_ADMIN}
+    image: ghcr.io/esphome/esphome:2026.10.2
     network_mode: host
     privileged: true
     restart: unless-stopped

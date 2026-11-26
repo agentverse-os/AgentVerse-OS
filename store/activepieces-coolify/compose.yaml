@@ -26,7 +26,7 @@ services:
     - AP_POSTGRES_USERNAME=$SERVICE_USER_POSTGRES
     - AP_REDIS_HOST=${REDIS_HOST:-redis}
     - AP_REDIS_PORT=${REDIS_PORT:-6379}
-    - AP_SANDBOX_RUN_TIME_SECONDS=${AP_SANDBOX_RUN_TIME_SECONDS:-600}
+    - AP_FLOW_TIMEOUT_SECONDS=${AP_FLOW_TIMEOUT_SECONDS:-600}
     - AP_TELEMETRY_ENABLED=${AP_TELEMETRY_ENABLED:-false}
     - AP_TEMPLATES_SOURCE_URL=${AP_TEMPLATES_SOURCE_URL:-https://cloud.activepieces.com/api/v1/flow-templates}
     - AP_TRIGGER_DEFAULT_POLL_INTERVAL=${AP_TRIGGER_DEFAULT_POLL_INTERVAL:-5}
@@ -41,7 +41,7 @@ services:
       - -f
       - http://127.0.0.1:80
       timeout: 20s
-    image: ghcr.io/activepieces/activepieces:0.75.0
+    image: ghcr.io/activepieces/activepieces:0.93.0
     networks:
       appnet:
         aliases:

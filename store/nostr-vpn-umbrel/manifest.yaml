@@ -42,10 +42,17 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    This release improves paid-exit reliability across platforms:
-      - Strengthens Selling Internet settings and release coverage across supported paid-exit platforms.
-      - Improves paid-route activation, health checks, DNS safety, and recovery from interrupted or rotated Cashu channels.
+    ⚠️ Before updating, open Nostr VPN and turn VPN off using its VPN switch. Wait until it shows "VPN off", then install this update. After updating, open Nostr VPN and turn VPN back on. Your VPN settings are kept, but VPN routing and connection protection are paused while VPN is off. Use a local connection to Umbrel, since turning VPN off disconnects access through Nostr VPN. Stopping the app from Umbrel does not release connection protection.
+
+    This release adds peer-to-peer file transfers and improves connection recovery.
+
+    - Send files to network peers, resume interrupted transfers, and access received files from the inbox.
+    - Adapt paid Internet renewals to recent traffic and recover unused credit after reconnecting.
+    - Improve peer reconnection over secure WebSockets when UDP is unavailable.
+    - Fix pausing Linux VPN sessions that did not change system routes or forwarding.
+
+    Full release notes can be found at https://github.com/mmalmi/nostr-vpn/releases/tag/v4.1.22
   source: https://github.com/mmalmi/nostr-vpn
-  version: v4.1.9
+  version: v4.1.22
   website: https://github.com/mmalmi/nostr-vpn
 website: https://github.com/mmalmi/nostr-vpn

@@ -13,11 +13,11 @@ env:
     generate: password
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/stalwart/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -56,16 +56,25 @@ upstream:
   categories:
   - files
   release_notes: |-
-    If updating from Stalwart v0.15.x or earlier, Umbrel runs the v0.16 migration automatically as part of the update. Make sure you have a backup and leave Stalwart running until it comes back online. Upgrading guide: https://github.com/stalwartlabs/stalwart/blob/main/UPGRADING/v0_16.md
+    ⚠️ Expect a longer update. This release migrates your mail and settings to Stalwart v1, and Stalwart is unavailable until it finishes. Umbrel may remain at 99% while the migration is running. Larger mailboxes take longer. Keep Umbrel powered on and do not restart it during the update.
 
-    Changes since v0.16.19 include:
-      - Adds SCIM v2 support for Enterprise, JMAP calendar event update/delete support, conference links in calendar invites and email alarms, and additional calendar translations
-      - Updates the calendar HTTP RSVP page
-      - Fixes DANE/TLS delivery handling, S3 region configuration, setup-wizard SQL directory validation, CardDAV default address book cleanup, Redis Sentinel TLS, generated Message-ID hostnames, DMARC/inbound report handling, recovery-admin impersonation, WebUI failed-login behavior, and stale cluster node leases
+    Back up your app before updating, and make sure there is free space for a second copy of your mail store plus 512 MiB. The migration uses Stalwart's official migration tool and verifies every account. Your v0.16 data is kept untouched. If the migration cannot complete, Stalwart stays stopped with your data intact, and restarting the app retries it.
+
+    After updating, apps signed in with OAuth must sign in again and may need to be registered again. Calendar and contact clients resynchronise, and searches may be incomplete while indexes rebuild. On a fresh installation, restart the app after completing setup to enable the admin login.
+
+    If you are upgrading from v0.15.x or earlier, your data is first migrated to v0.16. Custom mail routing, listeners, spam rules and other unsupported configuration must be recreated, and custom administrator roles reassigned. See https://github.com/stalwartlabs/stalwart/blob/v0.16.27/UPGRADING/v0_16.md
+
+    Changes in v1.1.1 include:
+      - Masked email addresses are now available without an Enterprise license
+      - Security fixes for IMAP memory exhaustion, downloaded files, and tenant access controls
+      - More reliable mail synchronization, delivery, and S3 storage retries
+      - Fixes for calendar invitations, recurring events, and contact/file updates
 
 
-    Full release notes can be found at https://github.com/stalwartlabs/stalwart/releases/tag/v0.16.20
+    If you use Netcup for DNS, update your provider settings with a CloudDNS API key in the new apiKey field. The provider now supports CloudDNS domains only.
+
+    Full release notes: https://github.com/stalwartlabs/stalwart/releases/tag/v1.1.1
   source: https://github.com/stalwartlabs/stalwart
-  version: v0.16.20
+  version: v1.1.1
   website: https://stalw.art/
 website: https://stalw.art/

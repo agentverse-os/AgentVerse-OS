@@ -40,6 +40,6 @@ upstream:
   - utilities
   - media
   source: https://github.com/ssddanbrown/rss
-  tipi_version: 28
-  version: v2.2.2
+  tipi_version: 32
+  version: v2.2.4
 website: https://github.com/ssddanbrown/rss

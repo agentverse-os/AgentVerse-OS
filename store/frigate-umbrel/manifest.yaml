@@ -12,9 +12,9 @@ env:
   APP_PASSWORD:
     generate: password
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/frigate/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/frigate/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/frigate/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/frigate/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/frigate/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/frigate/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -47,12 +47,14 @@ upstream:
   categories:
   - automation
   release_notes: |-
-    This maintenance release includes important security fixes, especially for publicly exposed instances and viewer-role camera access.
+    Frigate 0.18 is a major upgrade. Back up your Frigate config and database before upgrading; Frigate will attempt to migrate existing configs automatically, but some setups may need manual changes.
 
-    It also adds optional recording segment chapters to MP4 export metadata and improves live preview performance.
+    - Fixes security issues that could allow authenticated users to execute commands through camera stream configuration or live-stream WebSocket endpoints.
 
-    Full release notes can be found at https://github.com/blakeblackshear/frigate/releases/tag/v0.17.2
+    - Fixes media access checks for specially formatted request paths.
+
+    Full release notes can be found at https://github.com/blakeblackshear/frigate/releases/tag/v0.18.2
   source: https://github.com/blakeblackshear/frigate
-  version: 0.17.2
+  version: 0.18.2
   website: https://frigate.video/
 website: https://frigate.video/

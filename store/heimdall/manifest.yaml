@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/linuxserver/Heimdall
-  tipi_version: 17
-  version: 2.8.2
+  tipi_version: 21
+  version: 2.8.4
 website: https://github.com/linuxserver/Heimdall

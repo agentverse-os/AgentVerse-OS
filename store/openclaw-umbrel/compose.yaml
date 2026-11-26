@@ -7,7 +7,7 @@ services:
   gateway:
     environment:
       APP_SEED: ${APP_SEED}
-    image: ghcr.io/getumbrel/openclaw-umbrel:2026.7.1-2@sha256:fc6febfba3ac82318aa9b02377edeee935f7cb2c359160befc9d54b098e3b701
+    image: ghcr.io/getumbrel/openclaw-umbrel:2026.11.4@sha256:f96670e4c6bd7e02b3e71e15ad3a4cf801c09d42823c03aa37f42cbf28699488
     init: true
     networks:
       appnet:

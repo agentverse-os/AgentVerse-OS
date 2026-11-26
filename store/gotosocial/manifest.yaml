@@ -93,7 +93,7 @@ upstream:
   author: superseriousbusiness
   categories:
   - social
-  source: https://github.com/superseriousbusiness/gotosocial
-  tipi_version: 47
-  version: 0.22.1
-website: https://github.com/superseriousbusiness/gotosocial
+  source: https://codeberg.org/superseriousbusiness/gotosocial
+  tipi_version: 51
+  version: 0.22.3
+website: https://codeberg.org/superseriousbusiness/gotosocial

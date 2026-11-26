@@ -37,7 +37,7 @@ export interface Appearance {
 
 export const DEFAULTS: Appearance = {
   mode: 'dark', accent: '#5BBFCB', background: 'nebula', backgroundUrl: '', backgroundBlur: 0, textScale: 1, density: 'normal',
-  radius: 'normal', font: 'system', contrast: 'normal', reduceMotion: false, transparency: true, iconSize: 'medium', showWorkspaceIps: true, taskbarPinned: false, screensaver: 10, surface: 'flat', language: 'auto', look: 'default',
+  radius: 'normal', font: 'grotesk', contrast: 'normal', reduceMotion: false, transparency: true, iconSize: 'medium', showWorkspaceIps: true, taskbarPinned: false, screensaver: 10, surface: 'flat', language: 'auto', look: 'default',
 };
 
 export const ACCENTS = ['#5BBFCB', '#4F8EF7', '#7C6CF6', '#D65DB1', '#EB5757', '#F2994A', '#F2C94C', '#6FCF97', '#2FB39B', '#9AA3A8'];
@@ -73,7 +73,7 @@ export const BACKGROUNDS: ({ id: string; label: string; portrait?: Layers; brand
 const FONTS: Record<Appearance['font'], string> = {
   system: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
   humanist: '"Segoe UI", "Trebuchet MS", Verdana, system-ui, sans-serif',
-  grotesk: 'Inter, "Helvetica Neue", Arial, system-ui, sans-serif',
+  grotesk: 'Inter, "Helvetica Neue", Arial, system-ui, sans-serif',  // self-hosted (public/fonts, app.css @font-face)
   mono: 'ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace',
 };
 const KEY = 'cloudos.appearance.v1';
@@ -152,12 +152,12 @@ export function watchSystem(get: () => Appearance) {
 /** Ready-made themes: a set of settings over the current appearance. After choosing, everything below can be tweaked further. label and
  *  hint are dictionary keys. */
 export const THEMES: { id: string; label: string; hint: string; set: Partial<Appearance> }[] = [
-  { id: 'monolith', label: 'theme.t.monolith', hint: 'theme.t.monolith.hint', set: { look: 'default', mode: 'dark', accent: '#5B8CFF', background: 'monolith', backgroundBlur: 12, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
+  { id: 'monolith', label: 'theme.t.monolith', hint: 'theme.t.monolith.hint', set: { look: 'default', mode: 'dark', accent: '#5B8CFF', background: 'monolith', backgroundBlur: 12, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' , font: 'grotesk' } },
   // like umbrelOS 2: a dark material over a landscape, the accent from the wallpaper, Inter, a dock and an app grid
   // instead of the taskbar
   { id: 'umbrel', label: 'theme.t.umbrel', hint: 'theme.t.umbrel.hint', set: { look: 'umbrel', mode: 'dark', accent: '#F2690D', background: 'umbrel-sunset', backgroundBlur: 0, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal', font: 'grotesk' } },
-  { id: 'glass-dark', label: 'theme.t.glassDark', hint: 'theme.t.glassDark.hint', set: { look: 'default', mode: 'dark', accent: '#7C6CF6', background: 'monolith-quiet', backgroundBlur: 8, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
-  { id: 'glass-light', label: 'theme.t.glassLight', hint: 'theme.t.glassLight.hint', set: { look: 'default', mode: 'light', accent: '#4F8EF7', background: 'monolith', backgroundBlur: 10, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' } },
+  { id: 'glass-dark', label: 'theme.t.glassDark', hint: 'theme.t.glassDark.hint', set: { look: 'default', mode: 'dark', accent: '#7C6CF6', background: 'monolith-quiet', backgroundBlur: 8, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' , font: 'grotesk' } },
+  { id: 'glass-light', label: 'theme.t.glassLight', hint: 'theme.t.glassLight.hint', set: { look: 'default', mode: 'light', accent: '#4F8EF7', background: 'monolith', backgroundBlur: 10, surface: 'glass', transparency: true, radius: 'round', contrast: 'normal' , font: 'grotesk' } },
   { id: 'classic', label: 'theme.t.classic', hint: 'theme.t.classic.hint', set: { look: 'default', mode: 'dark', accent: '#5BBFCB', background: 'nebula', backgroundBlur: 0, surface: 'flat', transparency: true, radius: 'normal', contrast: 'normal' } },
   { id: 'oled', label: 'theme.t.oled', hint: 'theme.t.oled.hint', set: { look: 'default', mode: 'dark', accent: '#A2B4FF', background: 'black', backgroundBlur: 0, surface: 'oled', transparency: false, radius: 'normal', contrast: 'normal' } },
   { id: 'contrast-dark', label: 'theme.t.contrastDark', hint: 'theme.t.contrastDark.hint', set: { look: 'default', mode: 'dark', accent: '#F2C94C', background: 'black', backgroundBlur: 0, surface: 'flat', transparency: false, radius: 'sharp', contrast: 'high', textScale: 1.1 } },

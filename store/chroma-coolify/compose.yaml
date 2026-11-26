@@ -18,7 +18,7 @@ services:
       - -c
       - cat < /dev/null > /dev/tcp/localhost/8000
       timeout: 10s
-    image: chromadb/chroma:1.0.15
+    image: chromadb/chroma:1.5.9
     networks:
       appnet:
         aliases:

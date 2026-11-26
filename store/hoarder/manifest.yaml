@@ -55,14 +55,14 @@ settings:
   required: false
   type: text
 tags: []
-title: Hoarder
+title: Hoarder (karakeep)
 type: app
 upstream:
-  author: hoarder-app
+  author: https://github.com/MohamedBassem
   categories:
   - utilities
   - ai
   source: https://github.com/hoarder-app/hoarder
-  tipi_version: 88
-  version: 0.33.2
+  tipi_version: 101
+  version: 0.35.0
 website: https://github.com/hoarder-app/hoarder

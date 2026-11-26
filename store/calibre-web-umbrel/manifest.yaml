@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,6 +42,10 @@ upstream:
   categories:
   - files
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Calibre Web 0.6.27 release notes:
+
     This update includes new features, bug fixes, and security improvements:
 
 
@@ -53,6 +57,6 @@ upstream:
 
     Full release notes can be found here: https://github.com/janeczku/calibre-web/releases/tag/0.6.27
   source: https://github.com/janeczku/calibre-web
-  version: 0.6.27
+  version: 0.6.27-patch.1
   website: https://github.com/janeczku/calibre-web
 website: https://github.com/janeczku/calibre-web

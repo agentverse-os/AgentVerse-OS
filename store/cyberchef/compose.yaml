@@ -7,7 +7,7 @@ services:
   cyberchef:
     environment:
       TZ: ${TZ}
-    image: ghcr.io/gchq/cyberchef:11.4.0
+    image: ghcr.io/gchq/cyberchef:11.5.0
     networks:
       appnet:
         aliases:

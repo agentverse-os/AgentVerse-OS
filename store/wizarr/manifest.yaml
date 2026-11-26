@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/Wizarrrr/wizarr
-  tipi_version: 23
-  version: v2026.7.1
+  tipi_version: 29
+  version: v2026.10.1
 website: https://github.com/Wizarrrr/wizarr

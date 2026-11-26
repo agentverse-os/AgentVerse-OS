@@ -10,12 +10,13 @@ services:
       DO_NOT_TRACK: '1'
       HOST: 0.0.0.0
       PAPERCLIP_ALLOWED_HOSTNAMES: ${DEVICE_DOMAIN_NAME},${DEVICE_DOMAIN_NAME}:8860,${DEVICE_HOSTNAME},${DEVICE_HOSTNAME}:8860,${APP_DOMAIN},${APP_DOMAIN}:8860,${APP_HIDDEN_SERVICE},${APP_PAPERCLIP_LOCAL_IPS},paperclip_server_1
+      PAPERCLIP_API_URL: http://127.0.0.1:3100
       PAPERCLIP_DEPLOYMENT_EXPOSURE: private
       PAPERCLIP_DEPLOYMENT_MODE: authenticated
       PAPERCLIP_HOME: /paperclip
-      PAPERCLIP_PUBLIC_URL: http://${DEVICE_DOMAIN_NAME}:8860
+      PAPERCLIP_PUBLIC_URL: https://${DEVICE_DOMAIN_NAME}:8860
       PAPERCLIP_TELEMETRY_DISABLED: '1'
-    image: ghcr.io/paperclipai/paperclip:sha-65ec059@sha256:f58ff8e28757eaaf1f58b7ae608e56f2a473fd0688aaab2dbade8c392fad0758
+    image: ghcr.io/paperclipai/paperclip:2026.1106.0@sha256:d6584f05cf57a4b26c117eb083725f18c1fe69ddafa7d16c9f8cce83f6fa17da
     networks:
       appnet:
         aliases:

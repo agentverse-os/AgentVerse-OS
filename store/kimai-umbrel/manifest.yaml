@@ -12,9 +12,9 @@ env:
   APP_PASSWORD:
     generate: password
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/kimai/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kimai/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kimai/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kimai/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kimai/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kimai/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,17 +44,14 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This update includes security hardening for activity/team permissions in timesheet listings and team management API routes.
+    ⚠️ Legacy API passwords are no longer supported. Update integrations to use API access tokens before upgrading.
 
-    Other improvements include:
-      - Improved timesheet list performance by pre-fetching team information
-      - Improved the default team creation flow
-      - Added Serbian translations and updated other translations
-      - Dependency and maintenance updates
+    This update improves invoice searches, highlights unpaid invoices, and fixes monetary rounding and timezone formatting. It also preserves the selected calendar month after reloading and improves export previews.
 
+    Security improvements include stronger login and API validation, safer templates, and corrected password-reset link expiration.
 
-    For full release notes, visit https://github.com/kimai/kimai/releases/tag/2.65.0
+    For full release notes, visit https://github.com/kimai/kimai/releases/tag/2.72.0
   source: https://github.com/kimai/kimai
-  version: 2.65.0
+  version: 2.72.0
   website: https://www.kimai.org/
 website: https://www.kimai.org/

@@ -8,6 +8,9 @@ fn main() {
         println!("cargo:rerun-if-changed={e}");
     }
     embed("../agentd/target/release/cloudos-agentd", "cloudos-agentd", "agentd не собран: cloudd не сможет выкладывать cloudos-agentd в workspace");
+    // the same adapter linked statically (musl, ADR-008): goes to owner's servers, whose glibc may be older than the build
+    // machine's; without it the servers get the workspace build
+    embed("../agentd/target/x86_64-unknown-linux-musl/release/cloudos-agentd", "cloudos-agentd-musl", "agentd под musl не собран: серверы владельца получат сборку под glibc хоста сборки");
     // the "Agents" service (the ../agents crate): the core installs it on the host as a systemd unit — one
     // update package for everything
     embed("../agents/target/release/cloudos-agents", "cloudos-agents", "сервис «Агенты» не собран: cloudd не поставит cloudos-agents на хост");

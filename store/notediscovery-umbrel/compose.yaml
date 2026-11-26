@@ -15,7 +15,7 @@ services:
       - -c
       - import urllib.request; urllib.request.urlopen('http://localhost:8000/health')
       timeout: 3s
-    image: ghcr.io/gamosoft/notediscovery:0.31.4@sha256:e3484e5ecfcdad58313048badce322d090e03269d70301b3c2b3892055dcc021
+    image: ghcr.io/gamosoft/notediscovery:0.35.0@sha256:23961ea1d33d55ecf05d38bde1a9de63c82c7e86438199d66939f725b7693b41
     networks:
       appnet:
         aliases:

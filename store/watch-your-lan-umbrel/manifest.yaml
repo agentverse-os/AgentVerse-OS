@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/watch-your-lan/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/watch-your-lan/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/watch-your-lan/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/watch-your-lan/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/watch-your-lan/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/watch-your-lan/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,18 +42,10 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    Key highlights in this release include:
-      - Added Swagger API docs
-      - Ability to add hosts from API
-      - Trigger rescan from API or Config/Scan settings
-      - Delete selected hosts
-      - Wake-on-LAN functionality
+    Network interfaces saved in Config → Scan settings now stay selected after restarting or updating the app. This lets you use WatchYourLAN on virtual machines and other systems with different network interface names, and scan multiple networks.
 
-
-    ⚠️ The HIST_IN_DB config option is now deprecated. History is always stored in the database.
-
-    Full release notes can be found at https://github.com/aceberg/WatchYourLAN/releases
+    Existing saved settings are preserved. If your devices don't appear, check the Interfaces field in Scan settings.
   source: https://github.com/aceberg/WatchYourLAN
-  version: 2.1.4
+  version: 2.1.4-patch.2
   website: https://github.com/aceberg/WatchYourLAN
 website: https://github.com/aceberg/WatchYourLAN

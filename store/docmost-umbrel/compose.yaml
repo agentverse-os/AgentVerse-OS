@@ -38,7 +38,7 @@ services:
       DATABASE_URL: postgresql://docmostuser:docmostpass@docmost_db_1:5432/docmost?sslmode=disable
       DISABLE_TELEMETRY: 'true'
       REDIS_URL: redis://docmost_redis_1:6379
-    image: docmost/docmost:0.95.0@sha256:3f05c20808ebd680f74bae4686bb123e4a21c166d4fb1b5a653b02ffa9ba2cff
+    image: docmost/docmost:0.97.0@sha256:40c454d74ffdd9ecb15833e4d96f3a630d59aad862a1869381ae6ee086454419
     networks:
       appnet:
         aliases:

@@ -87,10 +87,10 @@
     <section class="card step {tsState.kind}">
       <div class="head"><span class="ico">{tsState.icon}</span><div><b>{t('setup.step1')}</b><div class="muted">{tsState.title}</div></div></div>
       {#if st.tailscale.state === 'Running'}
-        <div class="muted">{t('setup.ips')} <code>{fmtIps(st.tailscale.ips) || '—'}</code>{#if st.tailscale.tailnet} · tailnet <code>{st.tailscale.tailnet}</code>{/if}{#if st.tailscale.version} · Tailscale {st.tailscale.version}{/if}</div>
+        <div class="muted">{t('setup.ips')} <code>{fmtIps(st.tailscale.ips) || '—'}</code>{#if st.tailscale.tailnet}{' '}· tailnet <code>{st.tailscale.tailnet}</code>{/if}{#if st.tailscale.version}{' '}· Tailscale {st.tailscale.version}{/if}</div>
         <ul class="checks">
-          <li>{st.tailscale.magic_dns ? '✅' : '⚠️'} MagicDNS {st.tailscale.magic_dns ? t('setup.magicDnsOn') : t('setup.magicDnsOff')}{#if !st.tailscale.magic_dns} — <a href={st.tailscale_admin_url} target="_blank" rel="noopener">{t('setup.magicDnsEnable')}</a>{/if}</li>
-          <li>{st.tailscale.https_certs ? '✅' : '⚠️'} HTTPS Certificates {st.tailscale.https_certs ? t('setup.httpsOn', { domains: st.tailscale.cert_domains.join(', ') }) : t('setup.httpsOff')}{#if !st.tailscale.https_certs} — <a href={st.tailscale_admin_url} target="_blank" rel="noopener">{t('setup.httpsEnable')}</a>{/if}</li>
+          <li>{st.tailscale.magic_dns ? '✅' : '⚠️'} MagicDNS {st.tailscale.magic_dns ? t('setup.magicDnsOn') : t('setup.magicDnsOff')}{#if !st.tailscale.magic_dns}{' '}— <a href={st.tailscale_admin_url} target="_blank" rel="noopener">{t('setup.magicDnsEnable')}</a>{/if}</li>
+          <li>{st.tailscale.https_certs ? '✅' : '⚠️'} HTTPS Certificates {st.tailscale.https_certs ? t('setup.httpsOn', { domains: st.tailscale.cert_domains.join(', ') }) : t('setup.httpsOff')}{#if !st.tailscale.https_certs}{' '}— <a href={st.tailscale_admin_url} target="_blank" rel="noopener">{t('setup.httpsEnable')}</a>{/if}</li>
           {#each st.tailscale.health as h}<li>⚠️ {h}</li>{/each}
         </ul>
       {:else if st.tailscale.state === 'NeedsLogin'}
@@ -111,7 +111,7 @@
     <!-- 2. Address and DNS -->
     <section class="card step {st.edge.matches_tailscale && st.edge.reachable ? 'ok' : st.suggested_host ? 'warn' : st.edge.reachable ? 'ok' : 'warn'}">
       <div class="head"><span class="ico">{st.edge.matches_tailscale && st.edge.reachable ? '✅' : st.suggested_host || !st.edge.reachable ? '⚠️' : '✅'}</span>
-        <div><b>{t('setup.step2')}</b><div class="muted">{t('setup.edgeAnswers')} <code>https://{st.edge.host}</code>{#if st.edge.alt_hosts.length} · {t('setup.altHosts')} {#each st.edge.alt_hosts as h, i}{i ? ', ' : ''}<a href="https://{h}/">{h}</a>{/each}{/if}</div></div></div>
+        <div><b>{t('setup.step2')}</b><div class="muted">{t('setup.edgeAnswers')} <code>https://{st.edge.host}</code>{#if st.edge.alt_hosts.length}{' '}· {t('setup.altHosts')} {#each st.edge.alt_hosts as h, i}{i ? ', ' : ''}<a href="https://{h}/">{h}</a>{/each}{/if}</div></div></div>
       <ul class="checks">
         <li>{st.edge.matches_tailscale ? '✅ ' + t('setup.hostMatches') : st.suggested_host ? '⚠️ ' + t('setup.hostMismatch', { suggested: st.suggested_host, host: st.edge.host }) : st.tailscale.state === 'Running' ? '⏳ ' + t('setup.hostPending') : '⏳ ' + t('setup.hostAfterTs')}</li>
         <li>{st.edge.dns_ok === true ? '✅' : st.edge.dns_ok === false ? '❌' : '⏳'} {t('setup.dnsFromServer')} {st.edge.dns_ok === true ? t('setup.dnsOk', { host: st.edge.host }) : st.edge.dns_ok === false ? t('setup.dnsFail', { host: st.edge.host }) : t('setup.notChecked')}</li>

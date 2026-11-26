@@ -48,7 +48,7 @@ services:
       - --spider
       - http://127.0.0.1:8080
       timeout: 20s
-    image: tolgee/tolgee
+    image: tolgee/tolgee:v3.243.1
     networks:
       appnet:
         aliases:

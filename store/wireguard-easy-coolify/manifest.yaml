@@ -6,14 +6,17 @@ data:
 - tank/apps/wireguard-easy-coolify
 description: The easiest way to run WireGuard VPN + Web-based Admin UI.
 endpoint:
-  port: 8000
+  port: 51821
   service: wg-easy
 env:
-  LANG: en
+  DISABLE_IPV6: 'true'
+  INSECURE: 'false'
   SERVICE_FQDN_WIREGUARDEASY: ${APP_DOMAIN}
   SERVICE_PASSWORD_ADMIN:
     generate: password
   SERVICE_URL_WIREGUARDEASY_51821: https://${APP_DOMAIN}
+  SERVICE_USER_ADMIN:
+    generate: password
 gallery: []
 health: null
 hooks: {}
@@ -24,7 +27,7 @@ login:
   note: null
   password: SERVICE_PASSWORD_ADMIN
   path: null
-  user: null
+  user: SERVICE_USER_ADMIN
 name: wireguard-easy-coolify
 notes:
 - 'порт 51820:51820/udp (wg-easy) не публикуется: доступ только через edge/gate'
@@ -37,9 +40,15 @@ route:
   open: iframe
 schema: 1
 settings:
-- env: LANG
-  hint: 'по умолчанию: en'
-  label: lang
+- env: INSECURE
+  hint: 'по умолчанию: false'
+  label: insecure
+  options: null
+  required: false
+  type: text
+- env: DISABLE_IPV6
+  hint: 'по умолчанию: true'
+  label: disable ipv6
   options: null
   required: false
   type: text
@@ -53,11 +62,11 @@ type: app
 upstream:
   categories:
   - vpn
-  source: https://github.com/wg-easy/wg-easy
+  source: https://wg-easy.github.io/wg-easy/latest/
   tags:
   - wireguard
   - vpn
   - web
   - admin
   template: wireguard-easy.yaml
-website: https://github.com/wg-easy/wg-easy
+website: https://wg-easy.github.io/wg-easy/latest/

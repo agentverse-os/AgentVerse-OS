@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/obsidian/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/obsidian/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/obsidian/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/obsidian/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/obsidian/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/obsidian/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,11 +42,14 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This release of Obsidian brings a bug fix:
-      - Fixed numbering issues in lists with leading spaces or within block quotes
+    This update improves search, performance, and reliability.
 
-    Full release notes are available at https://obsidian.md/changelog/
+    - Sort search results by relevance, with faster results and improved matching across accents and languages. - Open vaults, render notes, and navigate large canvases faster. - Fix links and backlinks becoming stale, settings not persisting on exit, and vaults failing to load when a folder cannot be read. - Improve handling of links to unfamiliar file types with a confirmation before opening them.
+
+    If you use URI callbacks, re-enable Allow URI callbacks in Settings → Files and links on each device. This setting is now device-specific.
+
+    Full release notes are available at https://obsidian.md/changelog/2026-11-12-desktop-v1.15.1/
   source: https://github.com/linuxserver/docker-obsidian
-  version: 1.8.10
+  version: 1.15.1
   website: https://obsidian.md/
 website: https://obsidian.md/

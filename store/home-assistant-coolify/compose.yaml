@@ -26,7 +26,6 @@ services:
     environment:
     - SERVICE_URL_HOMEASSISTANT_8123=${SERVICE_URL_HOMEASSISTANT_8123}
     - TZ=${TZ:-UTC}
-    - DISABLE_JEMALLOC=${DISABLE_JEMALLOC:-false}
     healthcheck:
       interval: 30s
       retries: 3
@@ -37,13 +36,14 @@ services:
       - -f
       - http://localhost:8123
       timeout: 10s
-    image: ghcr.io/home-assistant/home-assistant:2025.10.2
+    image: ghcr.io/home-assistant/home-assistant:2026.11.1
     networks:
       appnet:
         aliases:
         - home-assistant-coolify_homeassistant_1
     privileged: true
     restart: unless-stopped
+    stop_grace_period: 60s
     volumes:
     - homeassistant-config:/config
     - /run/dbus:/run/dbus:ro

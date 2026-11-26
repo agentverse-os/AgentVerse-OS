@@ -29,7 +29,7 @@ services:
       DB_PASSWORD: moneyprintergobrrr
       DB_PORT: 3306
       DB_USERNAME: fireflyiii
-    image: fireflyiii/core:version-6.6.6@sha256:ae69fdd95cdef9038cd7a460a5aec731f14813973e4f096511d5a4ea9ff0e972
+    image: fireflyiii/core:version-6.7.9@sha256:4409f9f0f87378ba95d40811352f4f49338d276bb638c1e6d18a5579f332fbe8
     networks:
       appnet:
         aliases:

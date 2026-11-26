@@ -12,11 +12,12 @@ services:
     - PORT=${PORT:-5672}
     healthcheck:
       interval: 5s
-      retries: 10
-      test: rabbitmq-diagnostics -q ping
+      retries: 20
+      start_period: 60s
+      test: rabbitmq-diagnostics -q check_port_connectivity
       timeout: 30s
     hostname: rabbitmq
-    image: rabbitmq:3-management
+    image: rabbitmq:4-management
     networks:
       appnet:
         aliases:

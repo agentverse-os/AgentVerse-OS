@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/gethomepage/homepage
-  tipi_version: 60
-  version: v2.1.2
+  tipi_version: 74
+  version: v2.8.0
 website: https://github.com/gethomepage/homepage

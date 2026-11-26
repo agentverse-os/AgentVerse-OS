@@ -9,7 +9,7 @@ services:
       PUB_ENV: production
       PUB_HOSTNAME: http://${DEVICE_DOMAIN_NAME}:3884
       PUB_VERTD_URL: http://${DEVICE_DOMAIN_NAME}:3884
-    image: ghcr.io/vert-sh/vert:sha-e1c83ba@sha256:6492f2a88e977e7ce82fd26f49028a17575fee8cac38604f585bc5773298cbc8
+    image: ghcr.io/vert-sh/vert:sha-35ebeb1@sha256:df3a22efeccf0e37adc3b4d01ecc1bd4ad2bc00ec44dc4672f74b23ba8f3ede9
     networks:
       appnet:
         aliases:

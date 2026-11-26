@@ -10,11 +10,11 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/meshchatx/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,12 +44,14 @@ upstream:
   categories:
   - social
   release_notes: |-
-    This update improves Docker/WebSocket resource handling for long-running sessions by raising file descriptor limits and cleaning up stale WebSocket connections and RNS ratchet writes.
+    This update improves Traffic tools with high-traffic warnings, active transfer progress, and clearer upload/download chart hover details.
 
-    It also fixes conversation and thread loading while announces arrive, database connection recovery that could return HTTP 500, WebSocket ready-status broadcasts, and CSP/Permissions-Policy headers.
+    It also fixes Relay Chat delivery status after restarts/reconnects, room receipt handling, reconnect path-request backoff, and related send-budget logging.
 
-    Full release notes can be found at https://github.com/Quad4-Software/MeshChatX/releases/tag/v4.8.5
+    Additional fixes include safer minimum intervals for auto announce/file-sync settings, profile display-name clearing, multi-line NomadNet form submission, and remote-execute listener address handling.
+
+    Full release notes can be found at https://github.com/Quad4-Software/MeshChatX/releases/tag/v4.10.7
   source: https://github.com/Quad4-Software/MeshChatX
-  version: 4.8.5
+  version: 4.10.7
   website: https://quad4.io
 website: https://quad4.io

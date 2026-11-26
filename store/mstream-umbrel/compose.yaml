@@ -8,7 +8,7 @@ services:
     environment:
     - PUID=1000
     - PGID=1000
-    image: linuxserver/mstream:6.25.0@sha256:14d211939d650ae78675a232c645884399cec35153d50bdf04897cdd5b85316c
+    image: linuxserver/mstream:6.33.1@sha256:28aa5fac4d604fd8a696f30ecdbe6d637f39f84599e84868a7de2dabaadc89cb
     networks:
       appnet:
         aliases:

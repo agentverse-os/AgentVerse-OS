@@ -21,7 +21,7 @@ pub struct ApiError(anyhow::Error);
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let msg = format!("{:#}", self.0);
-        let code = if msg.contains("дневной лимит") && msg.contains("исчерпан") { StatusCode::PAYMENT_REQUIRED } else if msg.contains("не найден") || msg.contains("не установлено") { StatusCode::NOT_FOUND } else if msg.contains("имя ") || msg.contains("требует") || msg.contains("зависят") || msg.contains("не объявлена") || msg.contains("недопустимый путь") || msg.contains("за пределы корня") || msg.contains("описание проекта") || msg.contains("раскладка") || msg.contains("политика — объект") || msg.contains("каталог входа") || msg.contains("вход: claude") || msg.contains("вход по ссылке") || msg.contains("state не найден") || msg.contains("пустой код") || msg.contains("обмен кода") || msg.contains("agentd: 400") { StatusCode::BAD_REQUEST } else if msg.contains("agentd не отвечает") { StatusCode::BAD_GATEWAY } else if msg.contains("agentd: 404") { StatusCode::NOT_FOUND } else { StatusCode::INTERNAL_SERVER_ERROR };
+        let code = if msg.contains("дневной лимит") && msg.contains("исчерпан") { StatusCode::PAYMENT_REQUIRED } else if msg.contains("не найден") || msg.contains("не установлено") { StatusCode::NOT_FOUND } else if msg.contains("имя ") || msg.contains("требует") || msg.contains("зависят") || msg.contains("не объявлена") || msg.contains("недопустимый путь") || msg.contains("за пределы корня") || msg.contains("описание проекта") || msg.contains("раскладка") || msg.contains("политика — объект") || msg.contains("каталог входа") || msg.contains("вход: claude") || msg.contains("вход по ссылке") || msg.contains("state не найден") || msg.contains("пустой код") || msg.contains("обмен кода") || msg.contains("agentd: 400") || msg.contains("недопустимое значение") || msg.contains("завершать нечего") || msg.contains("нет процесса, который можно завершить") || msg.contains("токен сервера") || msg.contains("код установки") { StatusCode::BAD_REQUEST } else if msg.contains("agentd не отвечает") { StatusCode::BAD_GATEWAY } else if msg.contains("agentd: 404") { StatusCode::NOT_FOUND } else { StatusCode::INTERNAL_SERVER_ERROR };
         tracing::warn!("api error {}: {msg}", code.as_u16());
         (code, Json(serde_json::json!({ "error": msg }))).into_response()
     }
@@ -43,6 +43,89 @@ type R<T> = Result<Json<T>, ApiError>;
 )]
 struct ApiDoc;
 
+/// Routes for the services on this host only (the "Agents" service). They are added to the loopback listeners and to
+/// nothing else: the edge comes through a unix socket and the docker bridge, so a browser cannot reach them. Secrets
+/// of the notification channels (docs/agents-ux.md §9.12) live in the encrypted store under the `notify:` scopes; no
+/// other scope can be read or written here.
+///
+/// Being on loopback is not enough: the "Agents" service itself relays a browser's requests to this very port, and an
+/// app of the Store on the host network can reach it too. So a caller shows a key — a file in the core's state
+/// directory that only root reads. No key file — no internal routes at all.
+pub fn internal_router(svc: Service) -> Router {
+    let token = match internal_token(&svc.cfg.internal_token_path()) {
+        Ok(t) => std::sync::Arc::new(t),
+        Err(e) => { tracing::error!("внутренние маршруты выключены: ключ {} недоступен: {e:#}", svc.cfg.internal_token_path().display()); return Router::new(); }
+    };
+    Router::new()
+        .route("/api/internal/secrets/{scope}", delete(internal_secrets_drop))
+        .route("/api/internal/secrets/{scope}/{key}", get(internal_secret_get).put(internal_secret_put))
+        .layer(axum::middleware::from_fn_with_state(token, local_service_only))
+        .with_state(svc)
+}
+
+/// The header a local service shows its key in. The proxy of the "Agents" service never passes it on.
+pub const INTERNAL_KEY_HEADER: &str = "x-cloudos-internal";
+
+/// The key of the internal routes: read from its file, made at the first start (64 hex characters, mode 0600).
+pub fn internal_token(path: &std::path::Path) -> anyhow::Result<String> {
+    if let Ok(t) = std::fs::read_to_string(path) { let t = t.trim().to_string(); if t.len() >= 32 { return Ok(t); } }
+    use rand::RngCore;
+    let mut b = [0u8; 32]; rand::rng().fill_bytes(&mut b);
+    let t: String = b.iter().map(|x| format!("{x:02x}")).collect();
+    if let Some(dir) = path.parent() { std::fs::create_dir_all(dir)?; }
+    let tmp = path.with_extension("token.new");
+    {
+        use std::io::Write;
+        let mut f = std::fs::OpenOptions::new().create(true).truncate(true).write(true).open(&tmp)?;
+        #[cfg(unix)]
+        { use std::os::unix::fs::PermissionsExt; f.set_permissions(std::fs::Permissions::from_mode(0o600))?; }
+        f.write_all(t.as_bytes())?;
+    }
+    std::fs::rename(&tmp, path)?;
+    Ok(t)
+}
+/// Comparison that takes the same time whatever the place of the first difference.
+fn same_key(a: &str, b: &str) -> bool { a.len() == b.len() && a.bytes().zip(b.bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0 }
+
+/// Whether a request looks like one of this host's services and not like a page in a browser. A page that got to the
+/// loopback port (a browser running on the stand itself, a name rebound to 127.0.0.1) carries the marks of its site — an
+/// origin, a referrer, cookies, the fetch metadata — or asks for a foreign host name; a service asks for the loopback
+/// address and carries none of them.
+fn from_local_service(headers: &axum::http::HeaderMap) -> bool {
+    let host = headers.get(header::HOST).and_then(|v| v.to_str().ok()).unwrap_or("");
+    let name = match host.rsplit_once(':') { Some((n, port)) if !port.is_empty() && port.chars().all(|c| c.is_ascii_digit()) => n, _ => host };
+    let local = matches!(name, "127.0.0.1" | "localhost" | "[::1]");
+    let browser = ["origin", "referer", "cookie", "sec-fetch-site", "sec-fetch-mode", "sec-fetch-dest"].iter().any(|k| headers.contains_key(*k));
+    local && !browser
+}
+async fn local_service_only(State(token): State<std::sync::Arc<String>>, req: axum::extract::Request, next: axum::middleware::Next) -> axum::response::Response {
+    let shown = req.headers().get(INTERNAL_KEY_HEADER).and_then(|v| v.to_str().ok()).unwrap_or("");
+    if !from_local_service(req.headers()) || !same_key(shown, &token) { return StatusCode::NOT_FOUND.into_response(); }
+    next.run(req).await
+}
+
+fn notify_scope(scope: &str) -> Result<(), ApiError> {
+    let ok = scope.strip_prefix("notify:").map(|id| !id.is_empty() && id.len() <= 64 && id.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')).unwrap_or(false);
+    if ok { Ok(()) } else { Err(anyhow::anyhow!("область секретов не найдена: {scope}").into()) }
+}
+#[derive(serde::Deserialize)]
+struct SecretBody { value: String }
+async fn internal_secret_get(State(s): State<Service>, Path((scope, key)): Path<(String, String)>) -> Result<axum::response::Response, ApiError> {
+    notify_scope(&scope)?;
+    Ok(match s.store.get_secret(&scope, &key)? { Some(v) => Json(serde_json::json!({ "value": v })).into_response(), None => StatusCode::NOT_FOUND.into_response() })
+}
+async fn internal_secret_put(State(s): State<Service>, Path((scope, key)): Path<(String, String)>, Json(b): Json<SecretBody>) -> Result<StatusCode, ApiError> {
+    notify_scope(&scope)?;
+    if key.is_empty() || key.len() > 64 || b.value.len() > 8192 { return Err(anyhow::anyhow!("секрет: ключ до 64 знаков, значение до 8 КБ").into()); }
+    s.store.put_secret(&scope, &key, &b.value)?;
+    Ok(StatusCode::NO_CONTENT)
+}
+async fn internal_secrets_drop(State(s): State<Service>, Path(scope): Path<String>) -> Result<StatusCode, ApiError> {
+    notify_scope(&scope)?;
+    s.store.delete_secrets(&scope)?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
 pub fn router(svc: Service) -> Router {
     let api = Router::new()
         .route("/status", get(status))
@@ -57,6 +140,15 @@ pub fn router(svc: Service) -> Router {
         // proxy
         .route("/projects/{name}/agentd", get(agentd_health))
         .route("/projects/{name}/agentd/restart", post(agentd_restart))
+        // owner's servers (ADR-008)
+        .route("/hosts", get(hosts_list).post(hosts_add))
+        .route("/hosts/register", post(hosts_register))
+        .route("/hosts/install/{code}", get(hosts_install_script))
+        .route("/hosts/install/{code}/agentd", get(hosts_install_binary))
+        .route("/hosts/{name}", get(hosts_get).patch(hosts_edit).delete(hosts_remove))
+        .route("/hosts/{name}/code", post(hosts_code))
+        .route("/hosts/{name}/probe", post(hosts_probe))
+        .route("/hosts/{name}/update", post(hosts_update))
         .route("/projects/{name}/ptys", get(pty_list).post(pty_create))
         .route("/projects/{name}/ptys/{id}", get(pty_get).delete(pty_delete))
         .route("/projects/{name}/ptys/{id}/resize", post(pty_resize))
@@ -82,7 +174,9 @@ pub fn router(svc: Service) -> Router {
         .route("/projects/{name}/sessions/{id}/mode", post(session_mode))
         .route("/projects/{name}/sessions/{id}/model", post(session_model))
         .route("/projects/{name}/sessions/{id}/label", post(session_label))
+        .route("/projects/{name}/sessions/{id}/allow_retry", post(session_allow_retry))
         .route("/projects/{name}/sessions/{id}/limit_hit", post(session_limit_hit))
+        .route("/projects/{name}/sessions/{id}/note", post(session_note))
         .route("/projects/{name}/sessions/{id}/tui", post(session_tui).delete(session_tui_stop))
         .route("/projects/{name}/sessions/{id}/effort", post(session_effort))
         .route("/projects/{name}/sessions/{id}/control", post(session_control))
@@ -168,6 +262,11 @@ pub fn router(svc: Service) -> Router {
         .route("/backups/run", post(backups_run))
         .route("/apps/{name}/overrides", get(app_overrides_get).put(app_overrides_put))
         .route("/monitor", get(monitor_snapshot))
+        .route("/system/pressure", get(pressure_get).put(pressure_put))
+        .route("/system/pressure/state", get(pressure_state))
+        .route("/system/perimeter", get(perimeter_state))
+        .route("/projects/{name}/memory", get(project_memory))
+        .route("/projects/{name}/memory/kill", post(project_memory_kill))
         .route("/widgets/feed", get(widget_feed))
         .route("/widgets/weather", get(widget_weather))
         .route("/widgets/geocode", get(widget_geocode))
@@ -275,9 +374,10 @@ async fn events(State(s): State<Service>) -> R<Vec<Event>> { Ok(Json(s.store.rec
 
 #[utoipa::path(get, path = "/api/projects", responses((status = 200, body = Vec<ProjectView>)))]
 async fn list_projects(State(s): State<Service>, Query(q): Q) -> R<Vec<ProjectView>> {
-    // service projects (`hidden`, e.g. the scratch of quick chats) — only with ?all=1
+    // service projects (`hidden`, e.g. the scratch of quick chats) and owner's servers (kind host, ADR-008) — only with
+    // ?all=1: Desktop lists workspaces here, the "Agents" service asks for everything
     let all = matches!(q.get("all").map(String::as_str), Some("1") | Some("true"));
-    Ok(Json(s.projects().await?.into_iter().filter(|p| all || !p.spec.hidden).collect()))
+    Ok(Json(s.projects().await?.into_iter().filter(|p| all || (!p.spec.hidden && p.kind != "host")).collect()))
 }
 
 #[utoipa::path(get, path = "/api/projects/{name}", responses((status = 200, body = ProjectView)))]
@@ -342,6 +442,48 @@ async fn agentd_restart(State(s): State<Service>, Path(name): Path<String>) -> R
     Ok(Json(serde_json::json!({ "restarted": true })))
 }
 async fn agentd_health(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.health().await?)) }
+
+// ---- owner's servers (ADR-008): records, the install script, registration, probes, agentd update ----
+async fn hosts_list(State(s): State<Service>) -> R<Vec<HostView>> { Ok(Json(s.hosts()?)) }
+#[derive(Deserialize)]
+struct HostAddBody { name: String, #[serde(default)] note: String }
+async fn hosts_add(State(s): State<Service>, Json(b): Json<HostAddBody>) -> R<HostView> { Ok(Json(s.host_add(&b.name, &b.note)?)) }
+async fn hosts_get(State(s): State<Service>, Path(name): Path<String>) -> R<HostView> { Ok(Json(s.host(&name)?)) }
+#[derive(Deserialize)]
+struct HostEditBody { #[serde(default)] note: Option<String>, #[serde(default)] llm_url: Option<String>, #[serde(default)] enabled: Option<bool> }
+async fn hosts_edit(State(s): State<Service>, Path(name): Path<String>, Json(b): Json<HostEditBody>) -> R<HostView> { Ok(Json(s.host_edit(&name, b.note, b.llm_url, b.enabled).await?)) }
+async fn hosts_remove(State(s): State<Service>, Path(name): Path<String>) -> Result<StatusCode, ApiError> { s.host_remove(&name).await?; Ok(StatusCode::NO_CONTENT) }
+/// A new one-time code and the install command (the old codes of the server stop working).
+async fn hosts_code(State(s): State<Service>, Path(name): Path<String>) -> R<HostView> {
+    let install = s.host_issue_code(&name)?;
+    let h = s.store.get_host(&name)?.ok_or_else(|| anyhow::anyhow!("сервер {name} не найден"))?;
+    Ok(Json(s.host_view(&h, Some(install))))
+}
+async fn hosts_probe(State(s): State<Service>, Path(name): Path<String>) -> R<HostView> {
+    let h = s.store.get_host(&name)?.ok_or_else(|| anyhow::anyhow!("сервер {name} не найден"))?;
+    let h = s.host_probe(&h).await;
+    if h.online() { let _ = s.host_push_env(&h).await; }
+    Ok(Json(s.host_view(&h, None)))
+}
+async fn hosts_update(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> { Ok(Json(detached(async move { s.host_update_agentd(&name).await }).await?)) }
+/// The install script by a one-time code: plain text for `curl | bash`.
+async fn hosts_install_script(State(s): State<Service>, Path(code): Path<String>) -> Result<Response, ApiError> {
+    let script = s.host_install_script(&code)?;
+    Ok(([(axum::http::header::CONTENT_TYPE, "text/plain; charset=utf-8")], script).into_response())
+}
+/// The agentd binary embedded in the core (by the same code; only the core's own architecture is built).
+async fn hosts_install_binary(State(s): State<Service>, Path(code): Path<String>, Query(q): Q) -> Result<Response, ApiError> {
+    s.host_by_code(&code)?;
+    let arch = q.get("arch").map(String::as_str).unwrap_or(std::env::consts::ARCH);
+    if arch != std::env::consts::ARCH { return Err(anyhow::anyhow!("нет сборки agentd под {arch}: ядро собрано под {}", std::env::consts::ARCH).into()); }
+    let bin = crate::agentd::host_binary().ok_or_else(|| anyhow::anyhow!("cloudos-agentd не встроен в ядро"))?;
+    Ok(([(axum::http::header::CONTENT_TYPE, "application/octet-stream"), (axum::http::header::CONTENT_DISPOSITION, "attachment; filename=\"cloudos-agentd\"")], bin.into_owned()).into_response())
+}
+/// The installer registers the server: the bearer is the server's token, the body carries the address and facts.
+async fn hosts_register(State(s): State<Service>, headers: axum::http::HeaderMap, Json(b): Json<crate::hosts::RegisterBody>) -> R<HostView> {
+    let bearer = headers.get(axum::http::header::AUTHORIZATION).and_then(|v| v.to_str().ok()).and_then(|v| v.strip_prefix("Bearer ")).unwrap_or("").trim().to_string();
+    Ok(Json(s.host_register(&bearer, b).await?))
+}
 async fn pty_list(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.ptys().await?)) }
 async fn pty_create(State(s): State<Service>, Path(name): Path<String>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.pty_create(&body).await?)) }
 async fn pty_get(State(s): State<Service>, Path((name, id)): Path<(String, String)>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.pty(&id).await?)) }
@@ -559,6 +701,9 @@ async fn session_account(State(s): State<Service>, Path((name, id)): Path<(Strin
 }
 /// Simulated limit hit (§9.7, e2e and a manual check) — relayed to agentd; the poller switches the account on the next round
 async fn session_limit_hit(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/limit_hit"), &body).await?)) }
+/// A grey line in the conversation from a service of this host ("the report was sent to Telegram"): the session's own
+/// journal keeps it, the model does not see it.
+async fn session_note(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/note"), &body).await?)) }
 async fn session_get(State(s): State<Service>, Path((name, id)): Path<(String, String)>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.get(&format!("/v1/sessions/{id}")).await?)) }
 /// Workspace MCP servers (slice 36) — the list and the rollout to the
 /// engines at agentd.
@@ -590,6 +735,8 @@ async fn session_mode(State(s): State<Service>, Path((name, id)): Path<(String, 
 async fn session_model(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/model"), &body).await?)) }
 /// Own session name (§4.8) — relayed to agentd
 async fn session_label(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/label"), &body).await?)) }
+// "allow and retry" for a declined Antigravity tool call: relayed one-to-one to agentd
+async fn session_allow_retry(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/allow_retry"), &body).await?)) }
 // Terminal mode (as in CloudCLI): the agent's native TUI on the same conversation in the session PTY; POST attaches (the
 // headless process is stopped), DELETE detaches. The terminal stream is the regular /ptys/{id}/ws.
 async fn session_tui(State(s): State<Service>, Path((name, id)): Path<(String, String)>, Json(body): Json<serde_json::Value>) -> R<serde_json::Value> { Ok(Json(s.agentd_client(&name).await?.post(&format!("/v1/sessions/{id}/tui"), &body).await?)) }
@@ -796,6 +943,23 @@ async fn app_overrides_put(State(s): State<Service>, Path(name): Path<String>, J
 
 #[utoipa::path(get, path = "/api/monitor", responses((status = 200, body = crate::monitor::Snapshot)))]
 async fn monitor_snapshot(State(s): State<Service>) -> Json<crate::monitor::Snapshot> { Json(s.monitor.snapshot()) }
+
+/// Memory pressure watch (ADR-009): the settings — stand-wide values and per-project overrides.
+async fn pressure_get(State(s): State<Service>) -> R<crate::pressure::PressureConfig> { Ok(Json(s.pressure_config())) }
+/// A partial update: the given top-level keys replace the current ones, `projects` entries are upserted, `null` removes one.
+async fn pressure_put(State(s): State<Service>, Json(v): Json<serde_json::Value>) -> R<crate::pressure::PressureConfig> { Ok(Json(s.pressure_config_put(&v)?)) }
+/// State of every running workspace in one cheap answer (no Coder, no Incus): `{ project: { state, action, last_at } }` — the
+/// "Agents" service polls it to refresh the tree at once when a workspace gets tight or the watch acts.
+async fn pressure_state(State(s): State<Service>) -> Json<std::collections::BTreeMap<String, serde_json::Value>> { Json(s.pressure.states()) }
+/// Perimeter (ADR-010): how the edge container reaches the core and what the control-plane guard refuses.
+async fn perimeter_state(State(s): State<Service>) -> Json<serde_json::Value> { Json(s.perimeter_view().await) }
+/// Memory of one workspace: the view from the project card plus its processes, largest first (pids as the workspace sees them).
+async fn project_memory(State(s): State<Service>, Path(name): Path<String>) -> R<serde_json::Value> {
+    s.store.get_project(&name)?.ok_or_else(|| anyhow::anyhow!("проект {name} не найден"))?;
+    Ok(Json(serde_json::json!({ "memory": s.memory_view(&name), "procs": s.pressure.rows(&name) })))
+}
+/// The owner's button on the "only report" card: end the largest ordinary process of a workspace that is not calm.
+async fn project_memory_kill(State(s): State<Service>, Path(name): Path<String>) -> R<crate::pressure::MemoryAction> { Ok(Json(s.pressure_kill_now(&name).await?)) }
 
 #[derive(Deserialize, ToSchema)]
 pub struct FeedQuery { pub url: String, pub max_age: Option<u64> }
@@ -1026,7 +1190,9 @@ async fn updates_check(State(s): State<Service>) -> R<crate::updates::SystemUpda
 async fn updates_channel(State(s): State<Service>, Json(b): Json<crate::updates::ChannelBody>) -> R<crate::updates::SystemUpdateInfo> { Ok(Json(s.set_channel(&b.url).await?)) }
 async fn updates_download(State(s): State<Service>) -> R<crate::updates::PackageInfo> { Ok(Json(s.download_update().await?)) }
 async fn updates_upload(State(s): State<Service>, Query(q): Query<NameQuery>, body: axum::body::Bytes) -> R<crate::updates::PackageInfo> {
-    Ok(Json(s.upload_update(q.name.as_deref().unwrap_or("package.tar.gz"), &body)?))
+    // saving and inspecting the archive is blocking work: off the async workers (see `system_update_info_bg`)
+    let name = q.name.unwrap_or_else(|| "package.tar.gz".into());
+    Ok(Json(tokio::task::spawn_blocking(move || s.upload_update(&name, &body)).await.map_err(|e| anyhow::anyhow!("upload_update: {e}"))??))
 }
 async fn updates_apply(State(s): State<Service>, Json(b): Json<crate::updates::ApplyBody>) -> R<crate::updates::ApplyResult> { Ok(Json(s.apply_update(&b.file).await?)) }
 async fn updates_rollback(State(s): State<Service>) -> R<serde_json::Value> { s.rollback_update().await?; Ok(Json(serde_json::json!({ "ok": true }))) }
@@ -1037,3 +1203,37 @@ async fn updates_catalog(State(s): State<Service>, Json(b): Json<crate::updates:
 }
 async fn update_app(State(s): State<Service>, Path(name): Path<String>) -> R<AppView> { Ok(Json(s.app_update(&name).await?)) }
 async fn update_component(State(s): State<Service>, Path(project): Path<String>) -> R<crate::updates::ComponentUpdateResult> { Ok(Json(s.component_update(&project).await?)) }
+
+#[cfg(test)]
+mod internal_tests {
+    /// Only the notification channels' scopes are served by the routes for local services: no app secret can be read
+    /// or replaced through them.
+    #[test]
+    fn only_notify_scopes() {
+        assert!(super::notify_scope("notify:ch_0a1b2c3d4e5f").is_ok());
+        for bad in ["app:ntfy", "notify:", "notify:../x", "notify:a b", "agents", ""] { assert!(super::notify_scope(bad).is_err(), "{bad}"); }
+    }
+
+    /// The routes for local services answer a service on the loopback address and nothing that looks like a browser.
+    #[test]
+    fn internal_routes_refuse_what_looks_like_a_browser() {
+        let h = |pairs: &[(&str, &str)]| { let mut m = axum::http::HeaderMap::new(); for (k, v) in pairs { m.insert(axum::http::HeaderName::from_bytes(k.as_bytes()).unwrap(), v.parse().unwrap()); } m };
+        for host in ["127.0.0.1:7100", "localhost:7100", "127.0.0.1", "[::1]:7100"] { assert!(super::from_local_service(&h(&[("host", host)])), "{host}"); }
+        // a name rebound to the loopback address, an address of another interface, no host at all
+        for host in ["evil.example:7100", "stand.tail.ts.net", "172.17.0.1:7100", "127.0.0.1.evil.example:7100", ""] { assert!(!super::from_local_service(&h(&[("host", host)])), "{host}"); }
+        for mark in ["origin", "referer", "cookie", "sec-fetch-site", "sec-fetch-mode"] { assert!(!super::from_local_service(&h(&[("host", "127.0.0.1:7100"), (mark, "x")])), "{mark}"); }
+    }
+
+    /// The key of the internal routes is made once, kept in a file only its owner reads, and compared whole.
+    #[test]
+    fn the_internal_key_is_made_once_and_kept_private() {
+        let dir = std::env::temp_dir().join(format!("cloudd-key-{}-{}", std::process::id(), uuid::Uuid::new_v4()));
+        let path = dir.join("internal.token");
+        let a = super::internal_token(&path).unwrap(); let b = super::internal_token(&path).unwrap();
+        assert_eq!(a, b); assert_eq!(a.len(), 64); assert!(a.chars().all(|c| c.is_ascii_hexdigit()));
+        #[cfg(unix)]
+        { use std::os::unix::fs::PermissionsExt; assert_eq!(std::fs::metadata(&path).unwrap().permissions().mode() & 0o777, 0o600); }
+        assert!(super::same_key(&a, &b) && !super::same_key(&a, "") && !super::same_key(&a, &a[..63]) && !super::same_key(&a, &format!("{}x", &a[..63])));
+        let _ = std::fs::remove_dir_all(dir);
+    }
+}

@@ -13,9 +13,9 @@ env:
   APP_TDEX_PORT: '9092'
   TOR_DATA_DIR: ''
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/tdex/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/tdex/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/tdex/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/tdex/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/tdex/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/tdex/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

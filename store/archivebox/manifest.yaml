@@ -54,6 +54,6 @@ upstream:
   categories:
   - media
   source: https://github.com/ArchiveBox/ArchiveBox
-  tipi_version: 11
-  version: 0.7.4
+  tipi_version: 16
+  version: 0.9.77
 website: https://github.com/ArchiveBox/ArchiveBox

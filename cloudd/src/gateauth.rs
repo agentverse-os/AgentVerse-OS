@@ -96,11 +96,55 @@ pub fn channel_title(key: &str) -> String {
 /// subscriptions first.
 pub fn channel_rank(key: &str) -> usize { ["claude", "codex", "antigravity", "gemini", "gemini-cli", "kimi", "xai", "grok", "devin"].iter().position(|k| *k == key).unwrap_or(50) }
 
-/// Model kind: images and video are not needed in the
-/// chat menu.
+/// Model kind: only `chat` goes into the chat menus; images, video, speech (TTS / transcription), embeddings and
+/// special-purpose previews (robotics, computer use, custom tools) are listed in the catalog but hidden by default.
 pub fn model_kind(real: &str) -> &'static str {
     let l = real.to_ascii_lowercase();
-    if l.contains("video") { "video" } else if l.contains("image") || l.contains("imagine") { "image" } else { "chat" }
+    if l.contains("video") { "video" }
+    else if l.contains("image") || l.contains("imagine") || l.contains("nano-banana") { "image" }
+    else if l.contains("-tts") || l.ends_with("tts") { "tts" }
+    else if l.contains("transcribe") || l.contains("-audio") || l.contains("whisper") || l.contains("speech") { "audio" }
+    else if l.contains("embed") { "embedding" }
+    else if l.contains("robotics") || l.contains("computer-use") || l.contains("customtools") || l.contains("-live") || l.contains("realtime") { "special" }
+    else { "chat" }
+}
+
+/// Model family for grouping inside a channel: the vendor word and the first version number of the id
+/// (`gemini-3.8-flash-high` → "Gemini 3.8", `devin/gemini-3-5-flash` → "Gemini 3.5", `claude-fable-5-1` → "Claude Fable 5",
+/// `gpt-6-astra` → "GPT 6", `gemini-flash-latest` → "Gemini latest"); `family_rank` orders families newest first.
+pub fn model_family(real: &str) -> String {
+    let id = real.rsplit('/').next().unwrap_or(real).to_ascii_lowercase();
+    let segs: Vec<&str> = id.split(|c| c == '-' || c == '_').filter(|s| !s.is_empty()).collect();
+    let mut words: Vec<String> = Vec::new();
+    let mut version: Option<String> = None;
+    let mut i = 0;
+    while i < segs.len() {
+        let seg = segs[i];
+        // a version is digits with an optional dot ("3.8", "5"); sizes like "120b" and dated suffixes (4+ digits) are not
+        let is_num = !seg.is_empty() && seg.chars().all(|c| c.is_ascii_digit() || c == '.') && seg.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false);
+        if is_num {
+            if seg.chars().all(|c| c.is_ascii_digit()) && seg.len() >= 4 { break }
+            let mut v = seg.to_string();
+            if !seg.contains('.') { if let Some(next) = segs.get(i + 1) { if next.len() <= 2 && next.chars().all(|c| c.is_ascii_digit()) { v = format!("{seg}.{next}"); } } }
+            version = Some(v);
+            break;
+        }
+        if seg == "latest" || seg == "preview" { break }
+        if words.len() < 2 { words.push(seg.to_string()); }
+        i += 1;
+    }
+    if words.is_empty() { return "Other".into() }
+    let cap = |w: &str| -> String { match w { "gpt" => "GPT".into(), "o" => "o".into(), "glm" => "GLM".into(), _ => { let mut c = w.chars(); c.next().map(|f| f.to_uppercase().collect::<String>() + c.as_str()).unwrap_or_default() } } };
+    // "claude-fable-5" → Claude Fable 5; "gemini-flash-latest" → Gemini latest; "gpt-6-astra" → GPT 6
+    let known_vendor = matches!(words[0].as_str(), "gemini" | "gpt" | "grok" | "kimi" | "qwen" | "glm" | "deepseek" | "mistral" | "llama" | "o");
+    let name = if known_vendor || words.len() == 1 { cap(&words[0]) } else { format!("{} {}", cap(&words[0]), cap(&words[1])) };
+    match version { Some(v) => format!("{name} {v}"), None => if id.contains("latest") { format!("{name} latest") } else { name } }
+}
+
+/// Newest family first inside a channel: by the version number in the family name, then by name.
+pub fn family_rank(family: &str) -> (std::cmp::Reverse<u64>, String) {
+    let ver: f64 = family.rsplit(' ').next().and_then(|v| v.parse::<f64>().ok()).unwrap_or(0.0);
+    (std::cmp::Reverse((ver * 100.0) as u64), family.to_string())
 }
 
 impl Service {
@@ -386,7 +430,7 @@ impl Service {
             for ch in chans {
                 out.push(json!({ "id": real, "listed": listed, "owned_by": owned, "type": m.get("type"), "name": m.get("display_name").or_else(|| m.get("name")),
                     "context": m.get("max_input_tokens").and_then(|c| c.as_u64()), "max_output": m.get("max_tokens").and_then(|c| c.as_u64()),
-                    "provider": ch, "provider_title": channel_title(&ch), "kind": model_kind(&real) }));
+                    "provider": ch, "provider_title": channel_title(&ch), "kind": model_kind(&real), "family": model_family(&real) }));
             }
         }
         out.sort_by_key(|v| { let p = v.get("provider").and_then(|p| p.as_str()).unwrap_or("").to_string(); (channel_rank(&p), p) });
@@ -428,6 +472,23 @@ impl Service {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn families_and_kinds() {
+        use super::{model_family, model_kind};
+        assert_eq!(model_family("gemini-3.8-flash-high"), "Gemini 3.8");
+        assert_eq!(model_family("devin/gemini-3-5-flash"), "Gemini 3.5");
+        assert_eq!(model_family("gemini-4-argon"), "Gemini 4");
+        assert_eq!(model_family("gemini-2.5-computer-use-preview-10-2025"), "Gemini 2.5");
+        assert_eq!(model_family("gemini-flash-latest"), "Gemini latest");
+        assert_eq!(model_family("claude-fable-5-1"), "Claude Fable 5.1");
+        assert_eq!(model_family("claude-sonnet-4-6"), "Claude Sonnet 4.6");
+        assert_eq!(model_family("gpt-6-astra"), "GPT 6");
+        assert_eq!(model_family("gpt-oss-120b-medium"), "GPT");
+        assert_eq!(model_family("grok-4-fast"), "Grok 4");
+        assert_eq!(model_kind("gemini-3.8-flash-tts"), "tts"); assert_eq!(model_kind("gemini-3.5-transcribe"), "audio");
+        assert_eq!(model_kind("gemini-robotics-er-2-preview"), "special"); assert_eq!(model_kind("gemini-3.1-pro-preview-customtools"), "special");
+        assert_eq!(model_kind("gemini-3-pro-image"), "image"); assert_eq!(model_kind("gemini-nano-banana-2.1"), "image"); assert_eq!(model_kind("gemini-3.8-flash"), "chat");
+    }
     #[test]
     fn cloaked_ids_and_channels() {
         use super::*;

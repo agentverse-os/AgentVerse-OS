@@ -9,7 +9,7 @@ services:
       APP_FEED_UPDATE_FREQUENCY: '35'
       APP_LOAD_POST_THUMBNAILS: 'true'
       APP_NAME: Tipi-RSS
-    image: codeberg.org/danb/rss:v2.2.2
+    image: codeberg.org/danb/rss:v2.2.4
     networks:
       appnet:
         aliases:

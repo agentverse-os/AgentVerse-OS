@@ -14,7 +14,7 @@ services:
         nginx['listen_https'] = false
       PGID: 1000
       PUID: 1000
-    image: gitlab/gitlab-ce:19.3.1-ce.0@sha256:f63df4c43029fe91db370609c0b40a1e3585cebd06e3e9637d93a9a3030eb86e
+    image: gitlab/gitlab-ce:19.5.6-ce.0@sha256:0f93f5fdb28a5ae0f2713ef5d40d9438615b8b21a42841a2fe7bd56813934e0b
     networks:
       appnet:
         aliases:

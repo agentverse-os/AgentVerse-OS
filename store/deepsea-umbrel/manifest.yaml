@@ -10,10 +10,10 @@ endpoint:
   service: deepsea
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/deepsea/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/deepsea/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/deepsea/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/deepsea/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/deepsea/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/deepsea/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/deepsea/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/deepsea/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,6 +43,10 @@ upstream:
   categories:
   - bitcoin
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous DeepSea Dashboard 2.0.4 release notes:
+
     This release comes with new features and various improvements and fixes.
 
     Key Highlights:
@@ -62,6 +66,6 @@ upstream:
 
     Full release notes are available at https://github.com/Djobleezy/DeepSea-Dashboard/releases
   source: https://github.com/Djobleezy/DeepSea-Dashboard
-  version: 2.0.4
+  version: 2.0.4-patch.1
   website: https://github.com/Djobleezy/DeepSea-Dashboard
 website: https://github.com/Djobleezy/DeepSea-Dashboard

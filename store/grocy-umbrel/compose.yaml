@@ -10,7 +10,7 @@ services:
     - PGID=1000
     - TZ=Etc/UTC
     - GROCY_BASE_URL=/
-    image: linuxserver/grocy:4.7.0@sha256:f20d27df7b7056797c2eefd13647c2feb462e32519ad84280381b18fb4ef5f08
+    image: linuxserver/grocy:4.7.1@sha256:d63bffe9afb2ef1a23fa7ce0749cdaeba9c169fb644b16eed270884a1b2f4ac9
     networks:
       appnet:
         aliases:

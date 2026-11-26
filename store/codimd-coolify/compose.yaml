@@ -24,7 +24,7 @@ services:
       - CMD-SHELL
       - curl -f http://localhost:3000/ || exit 1
       timeout: 20s
-    image: nabo.codimd.dev/hackmdio/hackmd:latest
+    image: nabo.codimd.dev/hackmdio/hackmd:2.6.1
     networks:
       appnet:
         aliases:

@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   dashy:
-    image: ghcr.io/lissy93/dashy:4.6.6
+    image: ghcr.io/lissy93/dashy:4.9.18
     networks:
       appnet:
         aliases:

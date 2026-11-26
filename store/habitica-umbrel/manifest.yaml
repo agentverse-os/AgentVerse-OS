@@ -11,12 +11,12 @@ endpoint:
 env:
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/habitica/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/habitica/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/habitica/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/habitica/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/habitica/5.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/habitica/6.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/5.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/habitica/6.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,10 +46,10 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This update fixes scheduled sales and promotions so they no longer automatically repeat from year to year.
+    This update includes design touchups for the equipment stat grid and purchase modal, adds Health Potion support to the purchase modal, and updates locale files.
 
-    Full release notes can be found at https://github.com/HabitRPG/habitica/releases/tag/v5.50.1
+    Full release notes can be found at https://github.com/HabitRPG/habitica/releases/tag/v5.50.6
   source: https://github.com/HabitRPG/habitica
-  version: 5.50.1
+  version: 5.50.6
   website: https://habitica.com/
 website: https://habitica.com/

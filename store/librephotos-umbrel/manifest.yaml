@@ -14,11 +14,11 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/librephotos/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -48,6 +48,10 @@ upstream:
   categories:
   - files
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous LibrePhotos 2026w14 release notes:
+
     Some of the key highlights in this release include:
       - Face recognition results can now be written back to XMP sidecar files, making face tagging data portable and compatible with other photo tools
       - New services health monitoring panel in the admin page showing real-time status of all background services with start and stop controls
@@ -63,6 +67,6 @@ upstream:
 
     Full release notes can be found at https://github.com/LibrePhotos/librephotos-docker/releases
   source: https://github.com/LibrePhotos/librephotos-docker
-  version: 2026w14
+  version: 2026w14-patch.1
   website: https://docs.librephotos.com/
 website: https://docs.librephotos.com/

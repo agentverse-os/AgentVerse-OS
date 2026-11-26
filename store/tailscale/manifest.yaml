@@ -96,6 +96,6 @@ upstream:
   - network
   - security
   source: https://github.com/tailscale/tailscale
-  tipi_version: 75
-  version: v1.102.3
+  tipi_version: 87
+  version: v1.104.7
 website: https://github.com/tailscale/tailscale

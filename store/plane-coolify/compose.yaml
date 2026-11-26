@@ -16,7 +16,7 @@ services:
       - echo
       - hey whats up
       timeout: 10s
-    image: makeplane/plane-admin:${APP_RELEASE:-v1.3.0}
+    image: makeplane/plane-admin:${APP_RELEASE:-v1.4.3}
     networks:
       appnet:
         aliases:
@@ -71,7 +71,7 @@ services:
       - echo
       - hey whats up
       timeout: 10s
-    image: makeplane/plane-backend:${APP_RELEASE:-v1.3.0}
+    image: makeplane/plane-backend:${APP_RELEASE:-v1.4.3}
     networks:
       appnet:
         aliases:
@@ -129,7 +129,7 @@ services:
       - echo
       - hey whats up
       timeout: 10s
-    image: makeplane/plane-backend:${APP_RELEASE:-v1.3.0}
+    image: makeplane/plane-backend:${APP_RELEASE:-v1.4.3}
     networks:
       appnet:
         aliases:
@@ -156,7 +156,7 @@ services:
       - echo
       - hey whats up
       timeout: 10s
-    image: makeplane/plane-live:${APP_RELEASE:-v1.3.0}
+    image: makeplane/plane-live:${APP_RELEASE:-v1.4.3}
     networks:
       appnet:
         aliases:
@@ -202,7 +202,7 @@ services:
         BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-uploads}
         FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT:-5242880}
         SITE_ADDRESS: ${SITE_ADDRESS:-:80}
-    image: makeplane/plane-backend:${APP_RELEASE:-v1.3.0}
+    image: makeplane/plane-backend:${APP_RELEASE:-v1.4.3}
     networks:
       appnet:
         aliases:
@@ -251,7 +251,7 @@ services:
       - ready
       - local
       timeout: 20s
-    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    image: pgsty/silo:RELEASE.2026-10-15T00-00-00Z
     networks:
       appnet:
         aliases:
@@ -271,7 +271,8 @@ services:
     healthcheck:
       interval: 30s
       retries: 3
-      test: rabbitmq-diagnostics -q ping
+      start_period: 60s
+      test: rabbitmq-diagnostics -q check_port_connectivity
       timeout: 30s
     image: rabbitmq:3.13.6-management-alpine
     networks:
@@ -320,7 +321,7 @@ services:
       - -f
       - http://127.0.0.1:80
       timeout: 10s
-    image: makeplane/plane-proxy:${APP_RELEASE:-v1.3.0}
+    image: makeplane/plane-proxy:${APP_RELEASE:-v1.4.3}
     networks:
       appnet:
         aliases:
@@ -342,7 +343,7 @@ services:
       - echo
       - hey whats up
       timeout: 10s
-    image: makeplane/plane-space:${APP_RELEASE:-v1.3.0}
+    image: makeplane/plane-space:${APP_RELEASE:-v1.4.3}
     networks:
       appnet:
         aliases:
@@ -357,7 +358,7 @@ services:
       retries: 15
       test: wget -qO- http://`hostname`:3000
       timeout: 10s
-    image: makeplane/plane-frontend:${APP_RELEASE:-v1.3.0}
+    image: makeplane/plane-frontend:${APP_RELEASE:-v1.4.3}
     networks:
       appnet:
         aliases:
@@ -413,7 +414,7 @@ services:
       - echo
       - hey whats up
       timeout: 10s
-    image: makeplane/plane-backend:${APP_RELEASE:-v1.3.0}
+    image: makeplane/plane-backend:${APP_RELEASE:-v1.4.3}
     networks:
       appnet:
         aliases:

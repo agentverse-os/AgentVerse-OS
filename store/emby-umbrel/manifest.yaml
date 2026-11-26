@@ -11,13 +11,13 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/emby/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/emby/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/emby/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/emby/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/emby/5.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/emby/6.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/emby/7.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/emby/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/emby/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/emby/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/emby/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/emby/5.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/emby/6.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/emby/7.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -47,10 +47,12 @@ upstream:
   categories:
   - media
   release_notes: |-
-    Fixes a port conflict that could prevent Emby from running alongside Blockstream Blind Oracle.
+    This update improves search performance and fixes playback from the albums tab, subtitle preferences not being remembered, and temporary subtitles when skipping back.
 
-    Opening Emby from Umbrel will use the new address automatically. If you use a saved bookmark or configured Emby clients with your Umbrel's old Emby address, update them to use port 8103.
+    It also adds an option to disable folder outlines in folder view, fixes Spotlight on older devices, and improves the live TV tuner detection dialog.
+
+    Full release notes can be found at https://github.com/MediaBrowser/Emby.Releases/releases/tag/4.10.2.0
   source: https://github.com/MediaBrowser/Emby
-  version: 4.9.5.0-1
+  version: 4.10.2.0
   website: https://emby.media/
 website: https://emby.media/

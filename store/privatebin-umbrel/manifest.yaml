@@ -10,10 +10,10 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/privatebin/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,15 +43,14 @@ upstream:
   categories:
   - files
   release_notes: |-
-    Key improvements in this release:
-      - Fixed a security issue where unsafe attachments could be rendered as HTML in browser previews
-      - Added stricter MIME type validation for PDF and sanitized SVG attachment previews
-      - Improved handling of malformed v2 JSON payloads and YOURLS replies without short URLs
-      - Updated DOMPurify to 3.4.12
+    This security update fixes vulnerabilities in SVG attachment previews, Markdown rendering, and paste size limits. Updating is strongly recommended.
 
+    It also improves comment integrity, fixes passwords containing non-Latin characters while preserving access to existing pastes, and resolves issues with paste creation, password visibility, and e-mail sharing.
 
-    Full release notes can be found at https://github.com/PrivateBin/PrivateBin/releases/tag/2.0.6
+    The legacy Bootstrap 3 template has been removed. If you manually configured the template as "bootstrap", change it to "bootstrap5".
+
+    Full release notes can be found at https://github.com/PrivateBin/PrivateBin/releases/tag/2.1.1
   source: https://github.com/PrivateBin/PrivateBin
-  version: 2.0.6
+  version: 2.1.1
   website: https://privatebin.info/
 website: https://privatebin.info/

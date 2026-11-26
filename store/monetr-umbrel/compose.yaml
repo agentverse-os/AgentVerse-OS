@@ -21,7 +21,7 @@ services:
       appnet:
         aliases:
         - monetr_db_1
-    restart: unless-stopped
+    restart: on-failure
     user: 1000:1000
     volumes:
     - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
@@ -48,12 +48,12 @@ services:
       MONETR_REDIS_PORT: 6379
       MONETR_STORAGE_ENABLED: ${MONETR_STORAGE_ENABLED:-true}
       MONETR_STORAGE_PROVIDER: ${MONETR_STORAGE_PROVIDER:-filesystem}
-    image: ghcr.io/monetr/monetr:1.15.3@sha256:3769ef9f6de429a7c46ac915cf3288c3f5f5f1ccf2ad47095d89bf422fa63275
+    image: ghcr.io/monetr/monetr:1.22.2@sha256:1fa52987204233385ff6227710514474075bf94358f57563979a3c0d0f9addb3
     networks:
       appnet:
         aliases:
         - monetr_monetr_1
-    restart: unless-stopped
+    restart: on-failure
     user: 1000:1000
     volumes:
     - ${APP_DATA_DIR}/data/app:/etc/monetr
@@ -71,7 +71,7 @@ services:
       appnet:
         aliases:
         - monetr_valkey_1
-    restart: unless-stopped
+    restart: on-failure
     user: 1000:1000
     volumes:
     - ${APP_DATA_DIR}/data/valkey:/data

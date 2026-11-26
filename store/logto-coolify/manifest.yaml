@@ -15,7 +15,7 @@ env:
   SERVICE_URL_LOGTO: https://${APP_DOMAIN}
   SERVICE_USER_POSTGRES:
     generate: password
-  TAG: latest
+  TAG: 1.46.0
 gallery: []
 health: null
 hooks: {}
@@ -39,7 +39,7 @@ route:
 schema: 1
 settings:
 - env: TAG
-  hint: 'по умолчанию: latest'
+  hint: 'по умолчанию: 1.46.0'
   label: tag
   options: null
   required: false

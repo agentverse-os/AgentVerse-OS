@@ -28,7 +28,7 @@ services:
     configs:
     - source: soju-inline-1
       target: /soju-config
-    image: codeberg.org/emersion/soju:latest
+    image: codeberg.org/emersion/soju:v0.11.1
     networks:
       appnet:
         aliases:

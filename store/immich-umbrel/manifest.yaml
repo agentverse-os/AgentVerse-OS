@@ -12,9 +12,9 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/immich/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/immich/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/immich/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/immich/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/immich/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/immich/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,14 +44,19 @@ upstream:
   categories:
   - files
   release_notes: |-
-    ⚠️ Immich v3 includes breaking API changes, mostly affecting third-party tools that integrate with Immich. If you're updating from a pre-v3 version, check that your mobile app and any Immich integrations are compatible with this release.
+    This update keeps the new umbrelOS storage-management options introduced in recent packages, including optional read-only access to an existing photo or video library.
 
-    This release adds web upload wakelock support, undo for archive actions, workflow filters for server file paths and EXIF metadata, and quicker navigation to the maintenance page. It also improves OIDC role-claim syncing, adds an option to invalidate sessions when resetting the admin password, and fixes many web, mobile, upload, and media-viewer issues.
+    ⚠️ If you're updating from a pre-v3 version, Immich v3 includes breaking API changes mostly affecting third-party tools. Check that your mobile app and any Immich integrations are compatible with this release; the Immich mobile app no longer supports iOS 14.
 
-    Note: the new web upload wakelock feature requires HTTPS, and the Immich mobile app no longer supports iOS 14.
+    This patch fixes several photo-management and video-playback issues:
 
-    Full release notes can be found at https://github.com/immich-app/immich/releases/tag/v3.1.0
+    - Fixes camera filters when a photo has an unknown camera make
+    - Improves filename alignment in the photo information panel
+    - Hides slideshow play/pause controls when autoplay is disabled
+    - Fixes integrity report downloads and VAAPI video transcoding
+
+    Full release notes can be found at https://github.com/immich-app/immich/releases/tag/v3.4.2
   source: https://github.com/immich-app/immich
-  version: v3.1.0
+  version: v3.4.2
   website: https://www.immich.app
 website: https://www.immich.app

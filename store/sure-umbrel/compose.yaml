@@ -53,12 +53,13 @@ services:
       POSTGRES_DB: sure_production
       POSTGRES_PASSWORD: sure_password
       POSTGRES_USER: sure_user
+      POSTHOG_FEEDBACK_ENABLED: 'false'
       RAILS_ASSUME_SSL: 'false'
       RAILS_FORCE_SSL: 'false'
       REDIS_URL: redis://sure_redis_1:6379/1
       SECRET_KEY_BASE: $APP_SEED
       SELF_HOSTED: 'true'
-    image: ghcr.io/we-promise/sure:0.7.4@sha256:391b2c52acfe538065a41cdd1c9755f90d95ba17a2c06e9b6438b12098df3f3a
+    image: ghcr.io/we-promise/sure:0.7.6@sha256:61cd4c1fa9917200f8db4434b45d968235f375c52cdbdc81bf4a4df555a2f090
     networks:
       appnet:
         aliases:
@@ -80,12 +81,13 @@ services:
       POSTGRES_DB: sure_production
       POSTGRES_PASSWORD: sure_password
       POSTGRES_USER: sure_user
+      POSTHOG_FEEDBACK_ENABLED: 'false'
       RAILS_ASSUME_SSL: 'false'
       RAILS_FORCE_SSL: 'false'
       REDIS_URL: redis://sure_redis_1:6379/1
       SECRET_KEY_BASE: $APP_SEED
       SELF_HOSTED: 'true'
-    image: ghcr.io/we-promise/sure:0.7.4@sha256:391b2c52acfe538065a41cdd1c9755f90d95ba17a2c06e9b6438b12098df3f3a
+    image: ghcr.io/we-promise/sure:0.7.6@sha256:61cd4c1fa9917200f8db4434b45d968235f375c52cdbdc81bf4a4df555a2f090
     networks:
       appnet:
         aliases:

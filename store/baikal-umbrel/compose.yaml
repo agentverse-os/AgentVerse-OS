@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   web:
-    image: ghcr.io/aalmenar/baikal:0.11.1-nginx@sha256:f83c70831ebe2ca9ba84ba7b60927f25941f0fba88bdea6bbebe1d0464bb2aa7
+    image: ghcr.io/aalmenar/baikal:0.13.0-nginx@sha256:45f70865d30a2c86d9591e78ac0441bf2153bb94022d6ccbe07cfb856c08a39b
     networks:
       appnet:
         aliases:

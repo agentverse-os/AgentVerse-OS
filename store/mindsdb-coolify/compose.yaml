@@ -32,7 +32,7 @@ services:
       - -f
       - http://localhost:47334/api/util/ping
       timeout: 5s
-    image: mindsdb/mindsdb:latest
+    image: mindsdb/mindsdb:v26.1.0
     networks:
       appnet:
         aliases:

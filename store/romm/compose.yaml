@@ -17,7 +17,7 @@ services:
       MOBYGAMES_API_KEY: ${ROMM_MOBYGAMES_API_KEY}
       ROMM_AUTH_SECRET_KEY: ${ROMM_AUTH_SECRET_KEY}
       STEAMGRIDDB_API_KEY: ${ROMM_STEAMGRIDDB_API_KEY}
-    image: ghcr.io/rommapp/romm:5.2.0
+    image: ghcr.io/rommapp/romm:5.4.1
     networks:
       appnet:
         aliases:

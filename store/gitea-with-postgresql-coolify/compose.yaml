@@ -26,7 +26,7 @@ services:
       - -f
       - http://127.0.0.1:3000
       timeout: 10s
-    image: gitea/gitea:latest
+    image: gitea/gitea:28.4.0
     networks:
       appnet:
         aliases:
@@ -48,14 +48,14 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     networks:
       appnet:
         aliases:
         - gitea-with-postgresql-coolify_postgresql_1
     restart: unless-stopped
     volumes:
-    - gitea-postgresql-data:/var/lib/postgresql/data
+    - gitea-postgresql-data:/var/lib/postgresql
 volumes:
   gitea-data:
     driver: local

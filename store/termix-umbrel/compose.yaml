@@ -22,7 +22,7 @@ services:
       GUACD_RECORDING_PATH: /termix-data/session_recordings/guacamole
       GUACD_TUNNEL_HOST: web
       POSTHOG_API_KEY: ''
-    image: ghcr.io/lukegus/termix:release-2.7.1@sha256:931e4ce466f4d29b157eb8d6dcd4d36ee5114495c6edddbb19d4e360e2a60f8d
+    image: ghcr.io/lukegus/termix:release-2.9.2@sha256:d64c841a560c54aa7c27b0e6bbd2fbf8b51073565040d2a6bfbc127f0a72cf1e
     networks:
       appnet:
         aliases:

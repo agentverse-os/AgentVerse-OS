@@ -62,7 +62,7 @@ upstream:
   categories:
   - gaming
   - media
-  source: https://github.com/ShaneIsrael/fireshare
-  tipi_version: 79
-  version: 1.7.7
-website: https://github.com/ShaneIsrael/fireshare
+  source: https://github.com/fireshare-app/fireshare
+  tipi_version: 93
+  version: 1.9.0
+website: https://github.com/fireshare-app/fireshare

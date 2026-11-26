@@ -152,7 +152,7 @@ services:
       - CMD-SHELL
       - wget -q -O - http://documenso:3000/ | grep -q 'Sign in to your account'
       timeout: 10s
-    image: documenso/documenso:v1.12.10
+    image: documenso/documenso:v2.22.0
     networks:
       appnet:
         aliases:

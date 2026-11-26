@@ -9,7 +9,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: ${TZ}
-    image: nephatrine/write-freely:0.16
+    image: nephatrine/write-freely:0.17
     networks:
       appnet:
         aliases:

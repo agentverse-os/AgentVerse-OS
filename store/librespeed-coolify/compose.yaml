@@ -16,7 +16,7 @@ services:
       retries: 1
       test: curl 127.0.0.1:82 || exit 1
       timeout: 1s
-    image: ghcr.io/librespeed/speedtest:latest
+    image: ghcr.io/librespeed/speedtest:6.3.1
     networks:
       appnet:
         aliases:

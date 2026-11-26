@@ -9,6 +9,7 @@ endpoint:
   port: 3000
   service: homepage
 env:
+  SERVICE_FQDN_HOMEPAGE: ${APP_DOMAIN}
   SERVICE_URL_HOMEPAGE: https://${APP_DOMAIN}
   SERVICE_URL_HOMEPAGE_3000: https://${APP_DOMAIN}
 gallery: []

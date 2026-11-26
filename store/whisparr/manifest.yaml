@@ -61,6 +61,6 @@ upstream:
   - media
   - utilities
   source: https://github.com/Whisparr/Whisparr
-  tipi_version: 7
-  version: nightly-2.0.0.548
+  tipi_version: 8
+  version: latest
 website: https://github.com/Whisparr/Whisparr

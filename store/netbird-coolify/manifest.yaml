@@ -1,0 +1,129 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/netbird-coolify
+description: 'Self-hosted NetBird control plane: management, signal, relay, STUN and the web dashboard for your WireGuard®-based overlay network.'
+endpoint:
+  port: 80
+  service: netbird-dashboard
+env:
+  AUTH_CLIENT_SECRET: ''
+  AUTH_SUPPORTED_SCOPES: openid profile email groups
+  LETSENCRYPT_DOMAIN: none
+  NETBIRD_AUTH_SECRET: ''
+  NETBIRD_COOKIE_KEY: ''
+  NETBIRD_LOG_LEVEL: info
+  NETBIRD_PORT: ''
+  NETBIRD_STORE_KEY: ''
+  NETBIRD_URL: ''
+  SERVICE_REALBASE64_32:
+    generate: hex64
+  SERVICE_URL_NETBIRD: https://${APP_DOMAIN}
+  USE_AUTH0: 'false'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: netbird-coolify
+notes:
+- 'порт 3478:3478/udp (netbird-server) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: AUTH_CLIENT_SECRET
+  hint: null
+  label: auth client secret
+  options: null
+  required: false
+  type: password
+- env: USE_AUTH0
+  hint: 'по умолчанию: false'
+  label: use auth0
+  options: null
+  required: false
+  type: text
+- env: AUTH_SUPPORTED_SCOPES
+  hint: 'по умолчанию: openid profile email groups'
+  label: auth supported scopes
+  options: null
+  required: false
+  type: text
+- env: LETSENCRYPT_DOMAIN
+  hint: 'по умолчанию: none'
+  label: letsencrypt domain
+  options: null
+  required: false
+  type: text
+- env: NETBIRD_LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: netbird log level
+  options: null
+  required: false
+  type: text
+- env: NETBIRD_URL
+  hint: null
+  label: netbird url
+  options: null
+  required: false
+  type: text
+- env: NETBIRD_PORT
+  hint: null
+  label: netbird port
+  options: null
+  required: false
+  type: text
+- env: NETBIRD_AUTH_SECRET
+  hint: null
+  label: netbird auth secret
+  options: null
+  required: false
+  type: password
+- env: NETBIRD_COOKIE_KEY
+  hint: null
+  label: netbird cookie key
+  options: null
+  required: false
+  type: password
+- env: NETBIRD_STORE_KEY
+  hint: null
+  label: netbird store key
+  options: null
+  required: false
+  type: password
+tags:
+- wireguard
+- mesh-networks
+- vpn
+- zero-trust-network-access
+- sso
+- open source
+title: Netbird
+type: app
+upstream:
+  categories:
+  - vpn
+  source: https://docs.netbird.io/selfhosted/selfhosted-quickstart
+  tags:
+  - wireguard
+  - mesh-networks
+  - vpn
+  - zero-trust-network-access
+  - sso
+  - open source
+  template: netbird.yaml
+website: https://docs.netbird.io/selfhosted/selfhosted-quickstart

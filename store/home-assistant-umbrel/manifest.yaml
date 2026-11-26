@@ -11,9 +11,9 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/home-assistant/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/home-assistant/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/home-assistant/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/home-assistant/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/home-assistant/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/home-assistant/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,19 +43,18 @@ upstream:
   categories:
   - automation
   release_notes: |-
-    This release modernizes Modbus, adds smarter security and activity views, and improves dashboards, Matter visibility, chart accessibility, and Home Assistant Cloud setup.
+    ⚠️ If updating from a version before 2026.11, review the backward-incompatible changes at https://www.home-assistant.io/blog/2026/11/04/release-202611/. Entity display names may change; update custom dashboard cards first. Z-Wave users need zwave-js-server 3.11.0 or newer. Some deprecated integration actions and entities have been removed.
 
-    Key highlights:
-      - Added shared Modbus connections for integrations such as Fronius, Sofar Inverter Modbus, and Flexit
-      - Added active alerts and favorites to the Security dashboard
-      - Added a shared Sources pane for History and Activity, plus Activity details that explain why something changed
-      - Added a Matter network map and new tile card controls for light effects, vacuum fan speed, and climate humidity
-      - Improved chart accessibility, serial/MQTT panels, network storage usage reporting, and Home Assistant Cloud signup and voice processing
-      - Added 13 new integrations and expanded UI-based setup for more existing integrations
+    This patch release includes bug fixes and improvements across multiple integrations:
+      - Fix Hue migration for multi-channel Zigbee devices and improve LG webOS TV connectivity
+      - Fix Reolink playback, Axis camera authentication, and ONVIF stream recovery
+      - Prevent MQTT reload loops and Alexa Devices from replaying the last voice command after reload
+      - Improve privacy by redacting sensitive diagnostics and avoiding configuration values in logs
+      - Enforce text helper validation patterns and restore Jellyfin artist album listings
 
 
-    Full release notes: https://www.home-assistant.io/blog/2026/09/02/release-20269/
+    Full release notes are available at https://github.com/home-assistant/core/releases/
   source: https://github.com/home-assistant/core
-  version: 2026.9.0
+  version: 2026.11.2
   website: https://home-assistant.io
 website: https://home-assistant.io

@@ -126,7 +126,7 @@ services:
       - -f
       - http://localhost:8008/health
       timeout: 5s
-    image: matrixdotorg/synapse:latest
+    image: matrixdotorg/synapse:v1.165.0
     networks:
       appnet:
         aliases:

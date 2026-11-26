@@ -7,7 +7,7 @@ services:
   memos:
     environment:
     - SERVICE_URL_MEMOS_5230=${SERVICE_URL_MEMOS_5230}
-    image: neosmemo/memos:stable
+    image: neosmemo/memos:26.11.0
     networks:
       appnet:
         aliases:

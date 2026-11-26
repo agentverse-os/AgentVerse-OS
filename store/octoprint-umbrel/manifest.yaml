@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/octoprint/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/octoprint/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/octoprint/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/octoprint/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/octoprint/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/octoprint/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,6 +42,10 @@ upstream:
   categories:
   - files
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous OctoPrint 1.11.8 release notes:
+
     This release fixes two security issues affecting OctoPrint 1.11.7 and earlier:
       - Fixed an XSS vulnerability in suppressed command notifications
       - Fixed a file exfiltration issue in upload endpoints
@@ -51,6 +55,6 @@ upstream:
 
     Full release notes can be found at https://github.com/OctoPrint/OctoPrint/releases/tag/1.11.8
   source: https://github.com/OctoPrint/OctoPrint
-  version: 1.11.8
+  version: 1.11.8-patch.1
   website: https://octoprint.org/
 website: https://octoprint.org/

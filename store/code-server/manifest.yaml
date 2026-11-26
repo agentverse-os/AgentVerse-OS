@@ -55,6 +55,6 @@ upstream:
   categories:
   - development
   source: https://github.com/coder/code-server
-  tipi_version: 123
-  version: 4.134.0
+  tipi_version: 141
+  version: 4.145.2
 website: https://github.com/coder/code-server

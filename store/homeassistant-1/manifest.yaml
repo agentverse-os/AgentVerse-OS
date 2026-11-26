@@ -39,6 +39,6 @@ upstream:
   categories:
   - automation
   source: https://github.com/home-assistant/core
-  tipi_version: 155
-  version: 2026.8.3
+  tipi_version: 181
+  version: 2026.11.2
 website: https://github.com/home-assistant/core

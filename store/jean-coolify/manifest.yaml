@@ -16,7 +16,7 @@ env:
   JEAN_HOST: 0.0.0.0
   JEAN_NO_TOKEN: '0'
   JEAN_PORT: '3456'
-  JEAN_VERSION: latest
+  JEAN_VERSION: v1.0.16
   SERVICE_PASSWORD_64_JEAN:
     generate: hex64
   SERVICE_URL_JEAN_3456: https://${APP_DOMAIN}
@@ -43,7 +43,7 @@ route:
 schema: 1
 settings:
 - env: JEAN_VERSION
-  hint: 'по умолчанию: latest'
+  hint: 'по умолчанию: v1.0.16'
   label: jean version
   options: null
   required: false

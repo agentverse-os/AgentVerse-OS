@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   server:
-    image: homebridge/homebridge:2026-05-10@sha256:0783bf37e5b7681e515f95998f7084505596e176ca8ddacce4a7d034bf2c71cd
+    image: homebridge/homebridge:2026-11-15@sha256:5a76d945dd24250b1886f13f14fd65bb3ccc8489eaf57a23dd336cff1cf436ba
     network_mode: host
     restart: on-failure
     volumes:

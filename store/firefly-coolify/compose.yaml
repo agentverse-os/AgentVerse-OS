@@ -30,7 +30,7 @@ services:
       - CMD-SHELL
       - ls /entrypoint.sh || exit 1
       timeout: 10s
-    image: alpine
+    image: alpine:3.24.4
     networks:
       appnet:
         aliases:
@@ -61,7 +61,7 @@ services:
       - -f
       - http://127.0.0.1:8080/health
       timeout: 20s
-    image: fireflyiii/core:latest
+    image: fireflyiii/core:version-6.7.9
     networks:
       appnet:
         aliases:
@@ -87,7 +87,7 @@ services:
       - -uroot
       - -p${SERVICE_PASSWORD_MYSQLROOT}
       timeout: 20s
-    image: mariadb:11
+    image: mariadb:12
     networks:
       appnet:
         aliases:

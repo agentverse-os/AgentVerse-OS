@@ -14,7 +14,7 @@ services:
       SERVER_PORT: '8270'
       SQLITE_FILE_PATH: /var/lib/gladysassistant/gladys-production.db
       TZ: ${TZ}
-    image: gladysassistant/gladys:v4.86.1
+    image: gladysassistant/gladys:v5.3.3
     network_mode: host
     privileged: true
     restart: unless-stopped

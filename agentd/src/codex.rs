@@ -31,6 +31,17 @@ pub struct CodexState {
     pub tools: std::collections::HashMap<String, String>,
     /// app-server notifications without a handler — one log record per name (to notice new methods, e.g. deltas)
     pub seen: std::collections::HashSet<String>,
+    /// The last subscription window report (`account/rateLimits/updated`, normalized): a turn cut by the limit takes its
+    /// window and reset time from here
+    pub last_rate: Option<Value>,
+}
+
+/// The limit mark for a turn that Codex ended with a usage-limit error. Codex reports the hit as a turn error while the
+/// last window report usually still says 99 % ("allowed_warning"), so the window and the reset time come from that report;
+/// a reset time that has already passed is not taken (the report is from an earlier window).
+pub fn limit_mark_from_rate(rate: Option<&Value>, text: &str, now: u64) -> Value {
+    let resets = rate.and_then(|r| r.get("resetsAt")).and_then(|r| r.as_u64()).filter(|t| *t > now).map(crate::session::rfc3339);
+    json!({ "window": rate.and_then(|r| r.get("rateLimitType")), "resets_at": resets, "utilization": rate.and_then(|r| r.get("utilization")), "source": "result", "text": text.chars().take(200).collect::<String>() })
 }
 
 pub fn args() -> Vec<String> {
@@ -77,11 +88,17 @@ pub fn parse_env_sh(text: &str) -> HashMap<String, String> {
 /// Workspace environment without an account: the gate's env.sh (the login shell reads the
 /// same one).
 pub fn workspace_env() -> HashMap<String, String> {
-    std::fs::read_to_string("/etc/cloudos/env.sh").map(|t| parse_env_sh(&t)).unwrap_or_default()
+    std::fs::read_to_string(env_file()).map(|t| parse_env_sh(&t)).unwrap_or_default()
 }
 
+/// Path of the gate env file: `--env-file` at startup (`/etc/cloudos/env.sh` in a workspace, `~/.cloudos/env.sh` on an
+/// owner's server, ADR-008).
+static ENV_FILE: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
+pub fn set_env_file(p: std::path::PathBuf) { let _ = ENV_FILE.set(p); }
+pub fn env_file() -> &'static std::path::Path { ENV_FILE.get().map(|p| p.as_path()).unwrap_or(std::path::Path::new("/etc/cloudos/env.sh")) }
+
 pub fn effective_env(meta: &crate::session::Meta) -> HashMap<String, String> {
-    let mut env = std::fs::read_to_string("/etc/cloudos/env.sh").map(|t| parse_env_sh(&t)).unwrap_or_default();
+    let mut env = std::fs::read_to_string(env_file()).map(|t| parse_env_sh(&t)).unwrap_or_default();
     for (k, v) in &meta.env { env.insert(k.clone(), v.clone()); }
     for k in &meta.unset { env.remove(k); }
     env
@@ -501,7 +518,10 @@ impl Session {
                     }
                     _ => {}
                 }
-                if self.status() == Status::Idle { self.set_status(Status::Working); }
+                // an item of a running turn shows the conversation as working. A command that outlived its turn (the turn was
+                // cut by a limit error while the command was still running) completes later: with no turn there is nothing to
+                // bring the status back, the conversation would stay "working" for hours and queue everything typed into it
+                if self.status() == Status::Idle && self.codex.lock().unwrap().turn_id.is_some() { self.set_status(Status::Working); }
             }
             // live answer text (slice 39): agent message deltas as the turn
             // goes
@@ -530,6 +550,10 @@ impl Session {
                     "text": if let Some(e) = &error { e.get("message").and_then(|m| m.as_str()).unwrap_or("ошибка").to_string() } else { text },
                     "session_id": self.codex.lock().unwrap().thread_id,
                 });
+                if let Some(msg) = error.as_ref().and_then(|e| e.get("message")).and_then(|m| m.as_str()).filter(|m| crate::session::is_limit_text(m)) {
+                    let rate = self.codex.lock().unwrap().last_rate.clone();
+                    self.set_limit_hit(limit_mark_from_rate(rate.as_ref(), msg, crate::session::now_ms() / 1000));
+                }
                 self.record_result(ev);
                 self.codex.lock().unwrap().turn_id = None;
                 self.set_status(Status::Idle);
@@ -545,6 +569,7 @@ impl Session {
             // Claude, so the composer chip and auto-switching work the same for both engines
             "account/rateLimits/updated" => {
                 if let Some(info) = codex_rate_limit_info(&params) {
+                    self.codex.lock().unwrap().last_rate = Some(info.clone());
                     let rejected = info.get("status").and_then(|s| s.as_str()) == Some("rejected");
                     if rejected {
                         let resets = info.get("resetsAt").and_then(|r| r.as_u64()).map(crate::session::rfc3339);
@@ -634,6 +659,21 @@ pub fn codex_rate_limit_info(params: &Value) -> Option<Value> {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn limit_mark_takes_window_and_reset_from_the_last_report() {
+        let rate = serde_json::json!({ "status": "allowed_warning", "utilization": 0.99, "rateLimitType": "five_hour", "resetsAt": 1_793_013_548u64 });
+        let m = super::limit_mark_from_rate(Some(&rate), "You’ve hit your usage limit. Try again at 11:19 AM.", 1_793_003_122);
+        assert_eq!(m["window"], "five_hour");
+        assert_eq!(m["resets_at"], "2026-10-26T11:19:08Z");
+        assert_eq!(m["source"], "result");
+        // a report from an earlier window: its reset time is in the past and is not taken
+        let late = super::limit_mark_from_rate(Some(&rate), "usage limit", 1_793_100_000);
+        assert!(late["resets_at"].is_null() && late["window"] == "five_hour");
+        // no report at all (the limit hit on the first turn)
+        let none = super::limit_mark_from_rate(None, "usage limit", 1_793_003_122);
+        assert!(none["window"].is_null() && none["resets_at"].is_null() && none["text"] == "usage limit");
+    }
+
+    #[test]
     fn codex_rate_limits_normalize_to_claude_shape() {
         let p = serde_json::json!({ "rateLimits": { "primary": { "usedPercent": 83, "windowDurationMins": 300, "resetsAt": 1792070000 }, "secondary": { "usedPercent": 12, "windowDurationMins": 10080, "resetsAt": 1792500000 }, "planType": "plus" } });
         let i = super::codex_rate_limit_info(&p).unwrap();
@@ -672,7 +712,7 @@ mod tests {
 
     #[test]
     fn tui_args_resume_gate_and_bypass() {
-        let mut m = crate::session::Meta { id: "s1".into(), agent: "codex".into(), cwd: "/w".into(), title: "t".into(), label: None, limit_hit: None, created_at: 0, provider_session_id: Some("thread-1".into()), model: None, permission_mode: Some("plan".into()), account: None, env: Default::default(), unset: vec![], imported: false, transcript: None, synced_lines: None, usage_base: None, effort: None, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None };
+        let mut m = crate::session::Meta { id: "s1".into(), agent: "codex".into(), cwd: "/w".into(), title: "t".into(), label: None, limit_hit: None, created_at: 0, provider_session_id: Some("thread-1".into()), model: None, permission_mode: Some("plan".into()), account: None, env: Default::default(), unset: vec![], imported: false, transcript: None, synced_lines: None, usage_base: None, effort: None, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None, own_run: None, journal_rev: 0 };
         let env = parse_env_sh("export OPENAI_BASE_URL='http://llm.gate/v1'\n");
         let a = tui_args(&m, gate_config(&env).as_ref(), Some("gpt-5-codex"), false).join(" ");
         assert!(a.starts_with("codex -c model_provider=\"cloudos\" -c model_providers.cloudos.base_url=\"http://llm.gate/v1\""), "{a}");

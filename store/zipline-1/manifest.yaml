@@ -55,6 +55,6 @@ upstream:
   categories:
   - media
   source: https://github.com/diced/zipline
-  tipi_version: 9
-  version: 4.7.0
+  tipi_version: 17
+  version: 4.8.3
 website: https://github.com/diced/zipline

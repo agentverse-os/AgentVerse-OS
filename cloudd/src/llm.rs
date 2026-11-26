@@ -70,7 +70,7 @@ impl Service {
             let t = self.gate_targets().await?.into_iter().map(|(t, _)| t).find(|t| t.app == app).ok_or_else(|| anyhow!("gate {app} не найден"))?;
             let list: Vec<Value> = self.gate_model_list(&t).await.into_iter().map(|m| json!({ "id": m.get("id"), "name": m.get("name").and_then(|n| n.as_str()).or_else(|| m.get("id").and_then(|i| i.as_str())),
                 "context": m.get("context"), "price_in": Value::Null, "price_out": Value::Null, "vision": Value::Null, "tools": Value::Null,
-                "provider": m.get("provider"), "provider_title": m.get("provider_title"), "vendor": m.get("owned_by"), "kind": m.get("kind") })).collect();
+                "provider": m.get("provider"), "provider_title": m.get("provider_title"), "vendor": m.get("owned_by"), "kind": m.get("kind"), "family": m.get("family") })).collect();
             return Ok(json!({ "route": r.id, "title": r.title, "models": list }));
         }
         let http = reqwest::Client::builder().timeout(std::time::Duration::from_secs(15)).build()?;
@@ -91,7 +91,7 @@ impl Service {
                 "price_in": per_m(pricing.and_then(|p| p.get("prompt"))), "price_out": per_m(pricing.and_then(|p| p.get("completion"))),
                 "vision": m.pointer("/architecture/input_modalities").and_then(|a| a.as_array()).map(|a| a.iter().any(|x| x.as_str() == Some("image"))),
                 "tools": m.get("supported_parameters").and_then(|a| a.as_array()).map(|a| a.iter().any(|x| x.as_str() == Some("tools"))),
-                "provider": vendor.to_ascii_lowercase(), "provider_title": crate::gateauth::channel_title(&vendor.to_ascii_lowercase()), "vendor": vendor, "kind": crate::gateauth::model_kind(mid) }))
+                "provider": vendor.to_ascii_lowercase(), "provider_title": crate::gateauth::channel_title(&vendor.to_ascii_lowercase()), "vendor": vendor, "kind": crate::gateauth::model_kind(mid), "family": crate::gateauth::model_family(mid) }))
         }).collect();
         list.sort_by_key(|m| m.get("provider").and_then(|p| p.as_str()).unwrap_or("").to_string());
         Ok(json!({ "route": r.id, "title": r.title, "models": list }))

@@ -13,9 +13,9 @@ env:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/vikunja/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/vikunja/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/vikunja/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/vikunja/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/vikunja/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/vikunja/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,17 +45,25 @@ upstream:
   categories:
   - files
   release_notes: |-
-    🚨 This release includes eighteen security fixes. Upgrading is highly recommended.
+    This update lets you connect an SMTP email provider in Vikunja's app settings on umbrelOS 2.0, for reminders, notifications and password resets.
+
+    Previous Vikunja 2.8.0 release notes:
+
+    🚨 This release fixes 19 security issues affecting file access, private data, login, imports, and more. Upgrading is highly recommended.
 
     Key highlights in this release:
-      - Import tasks and projects from Planka
-      - Preview image, audio, and video attachments directly in Vikunja
-      - Safer email changes that keep the old address active until the new one is confirmed
-      - Fixes and performance improvements for CalDAV, imports, notifications, task permissions, and project/task queries
+      - Adds a trash bin for tasks and projects, with undo and restore; trashed items are permanently deleted after 30 days
+      - Speeds up task creation with natural-language due dates, quick add in table view, and Android sharing
+      - Shows who logged time and lets you stop running timers directly from tasks
+      - Improves Kanban dragging, reminder subscriptions, and colorblind accessibility
 
 
-    Full release notes are available at https://vikunja.io/changelog/vikunja-2.6.0-was-released/
+    Note: After 10 failed password attempts, accounts are locked until recovered. This Umbrel package does not configure email delivery, so recovery requires server command-line access unless you have configured SMTP. Existing task creators and assignees are resubscribed during the upgrade; unsubscribe again if you no longer want reminders. If you configured OpenID Connect, review the new explicit account linking and groups-claim behavior before updating.
+
+    Existing API token permissions are migrated automatically when upgrading from before 2.7.1. Integrations that create tokens must use the renamed permission keys. Views allow up to 100 manual buckets and 50 filter buckets, and imports default to a 100,000-item limit. The v2 API uses a dedicated attachment preview route instead of preview_size on downloads.
+
+    Full release notes are available at https://vikunja.io/changelog/vikunja-2.8.0-was-released/
   source: https://github.com/go-vikunja/vikunja
-  version: 2.6.0
+  version: 2.8.0-patch.1
   website: https://vikunja.io/
 website: https://vikunja.io/

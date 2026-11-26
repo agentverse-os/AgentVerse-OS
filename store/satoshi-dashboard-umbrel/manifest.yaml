@@ -43,8 +43,8 @@ upstream:
   author: Satoshi-Dashboard
   categories:
   - bitcoin
-  release_notes: null
+  release_notes: This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
   source: https://github.com/Satoshi-Dashboard/main
-  version: 1.1.0
+  version: 1.1.0-patch.1
   website: https://www.satoshidashboard.com
 website: https://www.satoshidashboard.com

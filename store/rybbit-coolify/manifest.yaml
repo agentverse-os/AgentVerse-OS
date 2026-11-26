@@ -15,13 +15,17 @@ env:
   DISABLE_TELEMETRY: 'true'
   POSTGRES_DB: analytics
   POSTGRES_USER: frog
+  REDIS_PASSWORD: ''
   SERVICE_BASE64_64_BACKEND:
     generate: hex64
   SERVICE_PASSWORD_CLICKHOUSE:
     generate: password
   SERVICE_PASSWORD_POSTGRES:
     generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
   SERVICE_URL_RYBBIT: https://${APP_DOMAIN}
+  SERVICE_URL_RYBBIT_3001: https://${APP_DOMAIN}
   SERVICE_URL_RYBBIT_3002: https://${APP_DOMAIN}
 gallery: []
 health: null
@@ -81,6 +85,12 @@ settings:
   options: null
   required: false
   type: text
+- env: REDIS_PASSWORD
+  hint: null
+  label: redis password
+  options: null
+  required: false
+  type: password
 tags:
 - analytics
 - web

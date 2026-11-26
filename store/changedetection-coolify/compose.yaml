@@ -21,7 +21,7 @@ services:
       - ok
       timeout: 20s
     hostname: browser-sockpuppet-chrome
-    image: dgtlmoon/sockpuppetbrowser:latest
+    image: dgtlmoon/sockpuppetbrowser:0.0.5
     networks:
       appnet:
         aliases:
@@ -52,7 +52,7 @@ services:
       - echo
       - ok
       timeout: 20s
-    image: ghcr.io/dgtlmoon/changedetection.io
+    image: ghcr.io/dgtlmoon/changedetection.io:0.70.3
     networks:
       appnet:
         aliases:

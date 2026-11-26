@@ -10,10 +10,10 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/jotty/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/jotty/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/jotty/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/jotty/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jotty/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/jotty/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/jotty/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/jotty/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,12 +43,21 @@ upstream:
   categories:
   - files
   release_notes: |-
-    Jotty 1.26.1 is a follow-up to the recent 1.26.0 update. If you are updating from a pre-1.26 version, back up your Jotty data before updating because 1.26 introduced a data migration for categories and sharing.
+    ⚠️ Back up your Jotty data before updating. This release migrates attachments so they are accessible only to users who own or have access to the associated notes. Complete the migration when prompted in Jotty.
 
-    This release fixes third-party dependency CVEs, preserves non-Jotty frontmatter in notes, and fixes a read-only shared-category UI issue where users could select a category they did not have permission to write to.
+    Highlights:
+      - Redesigned public notes, checklists, and Kanban boards, with the owner's theme, a table of contents, and links between public pages.
+      - Faster saving, category creation, and admin pages.
+      - Improved recurring tasks, including API support and fixes for completed and in-progress items.
+      - Fixed checklist text containing vertical bars, bulk item insertion order, and missing recent items.
+      - Fixed data exports missing folder sharing settings, note headers after folder renames, and hashtag handling.
+      - Security updates and improved iPad sidebar layout.
 
-    Full release notes can be found at https://github.com/fccview/jotty/releases/tag/1.26.1
+
+    API integrations should note that export downloads now require authentication and admin whole-data exports using an API key are denied.
+
+    Full release notes can be found at https://github.com/fccview/jotty/releases/tag/1.30.0
   source: https://github.com/fccview/jotty
-  version: 1.26.1
+  version: 1.30.0
   website: https://jotty.page
 website: https://jotty.page

@@ -76,6 +76,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/slskd/slskd
-  tipi_version: 27
-  version: 0.26.0
+  tipi_version: 31
+  version: 0.26.2
 website: https://github.com/slskd/slskd

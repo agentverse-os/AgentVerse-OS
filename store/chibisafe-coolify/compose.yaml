@@ -55,7 +55,7 @@ services:
         - chibisafe-coolify_caddy_1
     restart: unless-stopped
     volumes:
-    - uploads:/app/uploads:ro
+    - chibisafe-uploads:/app/uploads:ro
   chibisafe:
     environment:
     - BASE_API_URL=http://chibisafe-server:8000
@@ -70,7 +70,7 @@ services:
       - --quiet
       - http://127.0.0.1:8001
       timeout: 10s
-    image: chibisafe/chibisafe:v6.5.5
+    image: chibisafe/chibisafe:v6.7.0
     networks:
       appnet:
         aliases:
@@ -88,7 +88,7 @@ services:
       - --quiet
       - http://127.0.0.1:8000/api/health
       timeout: 10s
-    image: chibisafe/chibisafe-server:v6.5.5
+    image: chibisafe/chibisafe-server:v6.7.0
     networks:
       appnet:
         aliases:
@@ -115,11 +115,5 @@ volumes:
     driver: local
     driver_opts:
       device: ${APP_DATA_DIR}/chibisafe-uploads
-      o: bind
-      type: none
-  uploads:
-    driver: local
-    driver_opts:
-      device: ${APP_DATA_DIR}/uploads
       o: bind
       type: none

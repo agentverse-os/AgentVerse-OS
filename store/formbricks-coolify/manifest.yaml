@@ -10,14 +10,21 @@ endpoint:
   service: formbricks
 env:
   AIRTABLE_CLIENT_ID: ''
+  ANSWER_FILTER_ALIAS_COUNT: ''
   ASSET_PREFIX_URL: ''
+  AUTHZED_DATABASE_NAME: spicedb
+  AUTHZED_DATABASE_PASSWORD: ''
+  AUTHZED_DATABASE_USERNAME: spicedb
   AZUREAD_CLIENT_ID: ''
   AZUREAD_CLIENT_SECRET: ''
   AZUREAD_TENANT_ID: ''
-  DEFAULT_ORGANIZATION_ID: ''
-  DEFAULT_ORGANIZATION_ROLE: owner
+  CUBE: ''
+  CUBEJS_DB_QUERY_TIMEOUT: 60s
   EMAIL_AUTH_DISABLED: '0'
   EMAIL_VERIFICATION_DISABLED: '1'
+  EMBEDDED_EQUALS_MEMBER_PREFIX: ''
+  EMBEDDED_MEMBER_PREFIX: ''
+  EMBEDDED_NUMBER_MEMBER_PREFIX: ''
   ENTERPRISE_LICENSE_KEY: ''
   GITHUB_ID: ''
   GITHUB_SECRET: ''
@@ -29,16 +36,20 @@ env:
   IMPRINT_URL: ''
   INVITE_DISABLED: '0'
   MAIL_FROM: test@example.com
+  MAIL_FROM_NAME: Formbricks
+  MINIO_SERVER_URL: ''
   NOTION_OAUTH_CLIENT_ID: ''
   NOTION_OAUTH_CLIENT_SECRET: ''
+  NUMERIC_TEXT_PATTERN: ''
   OIDC_CLIENT_ID: ''
   OIDC_CLIENT_SECRET: ''
   OIDC_DISPLAY_NAME: ''
   OIDC_ISSUER: ''
   OIDC_SIGNING_ALGORITHM: ''
-  OPENTELEMETRY_LISTENER_URL: ''
+  OTEL_EXPORTER_OTLP_ENDPOINT: ''
   PASSWORD_RESET_DISABLED: '1'
   POSTGRESQL_DATABASE: formbricks
+  POSTGRES_ADMIN_URL: ''
   POSTGRES_DB: ''
   POSTGRES_USER: ''
   PRIVACY_URL: ''
@@ -49,9 +60,17 @@ env:
     generate: hex64
   SERVICE_BASE64_NEXTAUTH:
     generate: hex64
+  SERVICE_PASSWORD_64_AUTHZEDTOKEN:
+    generate: hex64
+  SERVICE_PASSWORD_64_CUBEJS:
+    generate: hex64
+  SERVICE_PASSWORD_64_HUBAPIKEY:
+    generate: hex64
   SERVICE_PASSWORD_MINIO:
     generate: password
   SERVICE_PASSWORD_POSTGRESQL:
+    generate: password
+  SERVICE_PASSWORD_SPICEDB:
     generate: password
   SERVICE_URL_FORMBRICKS: https://${APP_DOMAIN}
   SERVICE_URL_FORMBRICKS_3000: https://${APP_DOMAIN}
@@ -59,7 +78,6 @@ env:
     generate: password
   SERVICE_USER_POSTGRESQL:
     generate: password
-  SHORT_URL_BASE: ''
   SLACK_CLIENT_ID: ''
   SLACK_CLIENT_SECRET: ''
   SMTP_HOST: test.example.com
@@ -68,6 +86,7 @@ env:
   SMTP_REJECT_UNAUTHORIZED_TLS: '1'
   SMTP_SECURE_ENABLED: '0'
   SMTP_USER: test
+  TELEMETRY_DISABLED: '0'
   TERMS_URL: ''
   UNSPLASH_ACCESS_KEY: ''
 gallery: []
@@ -110,6 +129,12 @@ settings:
   options: null
   required: false
   type: text
+- env: MAIL_FROM_NAME
+  hint: 'по умолчанию: Formbricks'
+  label: mail from name
+  options: null
+  required: false
+  type: text
 - env: SMTP_HOST
   hint: 'по умолчанию: test.example.com'
   label: smtp host
@@ -143,12 +168,6 @@ settings:
 - env: SMTP_REJECT_UNAUTHORIZED_TLS
   hint: 'по умолчанию: 1'
   label: smtp reject unauthorized tls
-  options: null
-  required: false
-  type: text
-- env: SHORT_URL_BASE
-  hint: null
-  label: short url base
   options: null
   required: false
   type: text
@@ -332,21 +351,63 @@ settings:
   options: null
   required: false
   type: text
-- env: OPENTELEMETRY_LISTENER_URL
-  hint: null
-  label: opentelemetry listener url
+- env: TELEMETRY_DISABLED
+  hint: 'по умолчанию: 0'
+  label: telemetry disabled
   options: null
   required: false
   type: text
-- env: DEFAULT_ORGANIZATION_ID
+- env: OTEL_EXPORTER_OTLP_ENDPOINT
   hint: null
-  label: default organization id
+  label: otel exporter otlp endpoint
   options: null
   required: false
   type: text
-- env: DEFAULT_ORGANIZATION_ROLE
-  hint: 'по умолчанию: owner'
-  label: default organization role
+- env: MINIO_SERVER_URL
+  hint: null
+  label: minio server url
+  options: null
+  required: false
+  type: text
+- env: CUBEJS_DB_QUERY_TIMEOUT
+  hint: 'по умолчанию: 60s'
+  label: cubejs db query timeout
+  options: null
+  required: false
+  type: text
+- env: NUMERIC_TEXT_PATTERN
+  hint: null
+  label: numeric text pattern
+  options: null
+  required: false
+  type: text
+- env: EMBEDDED_MEMBER_PREFIX
+  hint: null
+  label: embedded member prefix
+  options: null
+  required: false
+  type: text
+- env: EMBEDDED_EQUALS_MEMBER_PREFIX
+  hint: null
+  label: embedded equals member prefix
+  options: null
+  required: false
+  type: text
+- env: EMBEDDED_NUMBER_MEMBER_PREFIX
+  hint: null
+  label: embedded number member prefix
+  options: null
+  required: false
+  type: text
+- env: ANSWER_FILTER_ALIAS_COUNT
+  hint: null
+  label: answer filter alias count
+  options: null
+  required: false
+  type: text
+- env: CUBE
+  hint: null
+  label: cube
   options: null
   required: false
   type: text
@@ -362,6 +423,30 @@ settings:
   options: null
   required: false
   type: text
+- env: AUTHZED_DATABASE_NAME
+  hint: 'по умолчанию: spicedb'
+  label: authzed database name
+  options: null
+  required: false
+  type: text
+- env: AUTHZED_DATABASE_USERNAME
+  hint: 'по умолчанию: spicedb'
+  label: authzed database username
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_ADMIN_URL
+  hint: null
+  label: postgres admin url
+  options: null
+  required: false
+  type: text
+- env: AUTHZED_DATABASE_PASSWORD
+  hint: null
+  label: authzed database password
+  options: null
+  required: false
+  type: password
 tags:
 - form
 - builder

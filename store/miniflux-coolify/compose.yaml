@@ -24,7 +24,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:8080/
       timeout: 20s
-    image: ghcr.io/miniflux/miniflux:latest
+    image: ghcr.io/miniflux/miniflux:2.3.5
     networks:
       appnet:
         aliases:
@@ -42,14 +42,14 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     networks:
       appnet:
         aliases:
         - miniflux-coolify_postgres_1
     restart: unless-stopped
     volumes:
-    - miniflux-postgres-data:/var/lib/postgresql/data
+    - miniflux-postgres-data:/var/lib/postgresql
 volumes:
   miniflux-postgres-data:
     driver: local

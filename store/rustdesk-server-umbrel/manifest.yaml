@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/rustdesk-server/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/rustdesk-server/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/rustdesk-server/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/rustdesk-server/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/rustdesk-server/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/rustdesk-server/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -48,6 +48,8 @@ upstream:
   categories:
   - networking
   release_notes: |-
+    This update includes security fixes for the built-in web server (nginx) that RustDesk Server uses. There are no changes to RustDesk Server itself.
+
     This update includes several fixes and security improvements:
       - Fixed a peer status issue where devices could be reported online after being offline for several weeks
       - Updated a UI networking dependency to address a critical issue
@@ -56,6 +58,6 @@ upstream:
 
     Full release notes can be found at https://github.com/rustdesk/rustdesk-server/releases/tag/1.1.16
   source: https://github.com/rustdesk/rustdesk-server
-  version: 1.1.16
+  version: 1.1.16-patch.1
   website: https://rustdesk.com
 website: https://rustdesk.com

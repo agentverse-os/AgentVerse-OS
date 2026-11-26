@@ -9,8 +9,8 @@ networks:
 services:
   runner:
     environment:
-    - GITEA_INSTANCE_URL=${GITEA_INSTANCE_URL}
-    - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN}
+    - GITEA_INSTANCE_URL=
+    - GITEA_RUNNER_REGISTRATION_TOKEN=
     - GITEA_RUNNER_NAME=${GITEA_RUNNER_NAME:-gitea-runner}
     - GITEA_RUNNER_LABELS=${GITEA_RUNNER_LABELS:-ubuntu-latest:docker://node:22}
     - GITEA_TOKEN=${GITEA_TOKEN}
@@ -20,9 +20,9 @@ services:
       retries: 15
       test:
       - CMD-SHELL
-      - ps aux | grep '[R]unner' > /dev/null || exit 1
+      - pgrep -f 'gitea-runner daemon' > /dev/null || exit 1
       timeout: 10s
-    image: docker.io/gitea/runner:1.0.8
+    image: docker.io/gitea/runner:6.0.0
     networks:
       appnet:
         aliases:

@@ -22,7 +22,7 @@ services:
       - CMD-SHELL
       - bash -c ':> /dev/tcp/127.0.0.1/80' || exit 1
       timeout: 20s
-    image: freshrss/freshrss:latest
+    image: freshrss/freshrss:1.30.4
     networks:
       appnet:
         aliases:
@@ -43,14 +43,14 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16
+    image: postgres:18
     networks:
       appnet:
         aliases:
         - freshrss-with-postgresql-coolify_freshrss-db_1
     restart: unless-stopped
     volumes:
-    - freshrss-postgresql-data:/var/lib/postgresql/data
+    - freshrss-postgresql-data:/var/lib/postgresql
 volumes:
   freshrss-data:
     driver: local

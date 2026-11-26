@@ -18,7 +18,7 @@ services:
       POSTGIS_HOST: reitti_postgis_1
       POSTGIS_PASSWORD: reitti
       POSTGIS_USER: reitti
-    image: dedicatedcode/reitti:5.3.1@sha256:e4fee662cd571e3a0763d2c46ed2421cad8258e266ec63d7637e9dc4e7079bac
+    image: dedicatedcode/reitti:5.11.0@sha256:6993861087706ac5e02906c2acfadc92f772e8d989354f926d39af3b23986ce5
     networks:
       appnet:
         aliases:
@@ -74,7 +74,7 @@ services:
       - CMD-SHELL
       - 'curl -f -s -o /dev/null -H "X-Reitti-Upstream-Url: https://tiles.dedicatedcode.com" http://localhost/custom/planet/latest/0/0/0.pbf || exit 1'
       timeout: 5s
-    image: dedicatedcode/reitti-tile-cache:5.3.1@sha256:0fe2d0c7420b249b408182f3a13cd01a71dd56cc4578ea784ffb847e445d1236
+    image: dedicatedcode/reitti-tile-cache:5.11.0@sha256:5616ac60e39aa381d6fad1f785483302c78b79efa5cf4412fc9cedb05dfab622
     networks:
       appnet:
         aliases:

@@ -17,7 +17,7 @@ services:
     - DB_DATABASE=${POSTGRES_DB:-nocobase-db}
     - DB_USER=$SERVICE_USER_POSTGRES
     - DB_PASSWORD=$SERVICE_PASSWORD_POSTGRES
-    image: nocobase/nocobase:1.9.33
+    image: nocobase/nocobase:2.2.46
     networks:
       appnet:
         aliases:
@@ -26,6 +26,7 @@ services:
     volumes:
     - nocobase-storage:/app/nocobase/storage
   postgres:
+    command: postgres -c wal_level=logical
     environment:
     - POSTGRES_USER=${SERVICE_USER_POSTGRES}
     - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}

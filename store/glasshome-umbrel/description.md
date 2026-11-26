@@ -3,7 +3,7 @@ GlassHome is a local-first dashboard for Home Assistant that you design by dragg
 Highlights:
 - Drag-and-drop dashboard editor
 - Area-based dashboards that mirror the rooms in your home
-- Seven theme presets, each with light and dark modes
+- Nine theme presets, each with light and dark modes
 - Community widgets from the GlassHome Hub, gated by a per-widget permission prompt (requires the one-time GlassHome Pro purchase)
 - All data stays on your device in a local SQLite database
 

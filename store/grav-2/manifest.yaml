@@ -41,6 +41,6 @@ upstream:
   - social
   - media
   source: https://github.com/getgrav/grav
-  tipi_version: 3
-  version: 2.0.21
+  tipi_version: 27
+  version: 2.2.29
 website: https://github.com/getgrav/grav

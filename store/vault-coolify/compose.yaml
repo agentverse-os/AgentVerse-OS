@@ -19,7 +19,7 @@ services:
       - CMD-SHELL
       - wget -qO- "http://127.0.0.1:8200/v1/sys/health?standbyok=true&sealedcode=200&uninitcode=200" >/dev/null || exit 1
       timeout: 5s
-    image: hashicorp/vault:${VAULT_VERSION:-latest}
+    image: hashicorp/vault:${VAULT_VERSION:-2.2.2}
     networks:
       appnet:
         aliases:

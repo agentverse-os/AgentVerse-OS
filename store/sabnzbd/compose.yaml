@@ -9,7 +9,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: ${TZ}
-    image: lscr.io/linuxserver/sabnzbd:5.1.2
+    image: lscr.io/linuxserver/sabnzbd:5.1.3
     networks:
       appnet:
         aliases:

@@ -70,12 +70,21 @@ create_datasets() {
   echo "options zfs zfs_arc_max=${bytes}" > /etc/modprobe.d/zfs-arc.conf
   echo "$bytes" > /sys/module/zfs/parameters/zfs_arc_max || true
   echo "zfs_arc_max=${ARC_MAX_GB}G"
+  # Dirty-data limit: the ZFS default is 10% of RAM, which on a 20 GB host is above a 2 GB ARC — under heavy writes the
+  # whole cache fills with data waiting to be written and the txg pipeline stalls (the stand hung on 2026-11-04). A
+  # quarter of the ARC, but not less than 256 MiB; applied at once and after a reboot.
+  local dirty=$(( bytes / 4 )); (( dirty < 268435456 )) && dirty=268435456
+  echo "options zfs zfs_dirty_data_max=${dirty}" >> /etc/modprobe.d/zfs-arc.conf
+  echo "$dirty" > /sys/module/zfs/parameters/zfs_dirty_data_max || true
+  echo "zfs_dirty_data_max=$(( dirty / 1024 / 1024 ))M"
 }
 
 verify() {
   echo "== пул"; zpool status "$POOL" | sed -n '1,20p'
   echo "== datasets"; zfs list -o name,used,avail,mountpoint,recordsize,compression -r "$POOL"
   echo "== ARC max: $(( $(cat /sys/module/zfs/parameters/zfs_arc_max) / 1024 / 1024 / 1024 )) G"
+  local arc dirty; arc="$(cat /sys/module/zfs/parameters/zfs_arc_max)"; dirty="$(cat /sys/module/zfs/parameters/zfs_dirty_data_max)"
+  (( dirty * 2 <= arc )) && echo "PASS dirty data max $(( dirty / 1024 / 1024 )) M (не больше половины ARC)" || echo "FAIL dirty data max $(( dirty / 1024 / 1024 )) M больше половины ARC — риск остановки записи ZFS"
   for d in core postgres apps workspaces docker backups; do
     zfs list "$POOL/$d" >/dev/null 2>&1 && echo "PASS dataset $POOL/$d" || echo "FAIL dataset $POOL/$d"
   done

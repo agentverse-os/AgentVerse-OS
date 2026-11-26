@@ -10,12 +10,12 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/booklore/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/booklore/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/booklore/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/booklore/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/booklore/5.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/booklore/6.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/5.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/booklore/6.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,12 +45,18 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This packaging update enables BookLore's BookDrop watched folder, which the app description advertises but the package previously did not wire up.
+    This update adds support for new storage management and configuration options introduced with umbrelOS 2.0.
 
-    A "bookdrop" folder is now available in the Files app at Apps/booklore/data/bookdrop. Drop book files there and BookLore detects them within seconds; review and import them from the Bookdrop page in the app. After a successful import BookLore moves the file out of the folder and into your library, so the folder emptying itself is expected behavior, not data loss.
+    Previous BookLore 2.4.0 release notes:
 
-    There are no changes to the BookLore application itself in this update.
+    This update moves BookLore into maintenance mode while adding a built-in BookOrbit transition announcement for administrators. Migration to BookOrbit is optional and can be done later with BookLore's guided migration path.
+
+    BookLore now supports drag-and-drop ordering for dashboard scrollers, includes audiobooks in reading statistics and Reading DNA progress, and fixes password-change protection, token refresh deadlocks, duplicate read navigation, sorting/filtering edge cases, Reading DNA calculations, and publication-date handling across time zones.
+
+    This release also updates the PDF viewer dependency to address CVE-2026-16633.
+
+    Full release notes can be found at https://github.com/booklore-app/booklore/releases/tag/v2.4.0
   source: https://github.com/booklore-app/booklore
-  version: 2.3.1-2
+  version: 2.4.0-patch.1
   website: https://demo.booklore.dev/login
 website: https://demo.booklore.dev/login

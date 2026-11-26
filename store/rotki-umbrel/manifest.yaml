@@ -10,10 +10,10 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/rotki/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/rotki/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/rotki/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/rotki/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/rotki/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/rotki/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/rotki/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/rotki/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,19 +43,18 @@ upstream:
   categories:
   - finance
   release_notes: |-
-    This major release adds new portfolio analysis workflows, expanded exchange/protocol support, and a Docker runtime overhaul.
+    ⚠️ If you use premium sync, update every device to rotki 1.44.2 or later. Older versions cannot restore backups created by this release. Existing old-format backups can still be restored.
 
-    Key highlights include:
-      - Added a local MCP server for premium users to analyze rotki data with compatible AI assistants
-      - Redesigned filters, saved views, and history-event actions across the app
-      - Added cross-chain bridge matching, a rebuilt balance snapshot editor, and support for Gate, CoinEx, and Bit2Me
-      - Added new decoders and support for Project X, Frankencoin Savings, Kinetiq, Yearn vesting escrows, Solana staking, Jupiter Lend Earn, Across, LI.FI, and more
-      - History events may need to be redecoded after upgrade; edited events are left untouched
-      - The Docker image now uses a distroless runtime, stops more cleanly, and keeps existing ports, volumes, and environment variables working
+    This release fixes balance snapshots and strengthens local API security:
+      - Restored fiat exchange rates and balance snapshots, with European Central Bank rates as a fallback
+      - Added Solana v1 transactions to history and automatic recovery of previously missed transactions
+      - Blocked other websites from changing data in unlocked accounts
+      - Improved Morpho Blue balances, Lido rewards, and transaction decoding
+      - Fixed interrupted premium restores, partial accounting-rule imports, and overlapping profit and loss reports
 
 
-    Full release notes are found at https://github.com/rotki/rotki/releases/tag/v1.44.0
+    Full release notes are found at https://github.com/rotki/rotki/releases/tag/v1.44.3
   source: https://github.com/rotki/rotki
-  version: 1.44.0
+  version: 1.44.3
   website: https://rotki.com
 website: https://rotki.com

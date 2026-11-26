@@ -10,10 +10,10 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/zeronote/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/zeronote/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/zeronote/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/zeronote/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/zeronote/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/zeronote/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/zeronote/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/zeronote/4.webp
 health: null
 hooks: {}
 host_docker_socket: false

@@ -29,10 +29,7 @@ login:
   path: null
   user: null
 name: windmill-coolify
-notes:
-- 'windmill-worker-1: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
-- 'windmill-worker-2: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
-- 'windmill-worker-3: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+notes: []
 origin: coolify
 provides: []
 readme: null

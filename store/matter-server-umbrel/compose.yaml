@@ -5,11 +5,18 @@ networks:
     name: ${APP_NET}
 services:
   server:
-    image: ghcr.io/matter-js/python-matter-server:8.1.2@sha256:6827e352011e2d8c2bde771e446fcf72acc49150ef66bad978816bac1762aad3
+    environment:
+      FABRIC_ID: '1'
+      NOBLE_BINDINGS: dbus
+      PORT: '5580'
+      STORAGE_PATH: /data
+      VENDOR_ID: '65521'
+    image: ghcr.io/matter-js/matterjs-server:1.6.0@sha256:9eb98c839d0b4b07f9230b96ad52de570f7f2a7c286c5992b4c04b6b26c08a3f
     network_mode: host
     restart: on-failure
     security_opt:
     - apparmor:unconfined
+    user: 1000:1000
     volumes:
     - ${APP_DATA_DIR}/data:/data/
     - /run/dbus:/run/dbus:ro

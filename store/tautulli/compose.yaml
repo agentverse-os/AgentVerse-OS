@@ -9,7 +9,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: ${TZ}
-    image: lscr.io/linuxserver/tautulli:2.18.0
+    image: lscr.io/linuxserver/tautulli:2.19.1
     networks:
       appnet:
         aliases:

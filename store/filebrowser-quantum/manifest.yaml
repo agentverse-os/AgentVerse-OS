@@ -32,13 +32,13 @@ route:
 schema: 1
 settings: []
 tags: []
-title: File Browser Quantum
+title: FileBrowser Quantum
 type: app
 upstream:
   author: filebrowser.org
   categories:
   - utilities
   source: https://github.com/gtsteffaniak/filebrowser
-  tipi_version: 1
-  version: 2-beta
+  tipi_version: 2
+  version: 2.0-stable
 website: https://github.com/gtsteffaniak/filebrowser

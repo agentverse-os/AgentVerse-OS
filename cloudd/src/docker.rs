@@ -20,6 +20,17 @@ pub struct DockerRt {
     pub docker: Docker,
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct ContainerFacts {
+    pub pid: Option<i64>,
+    pub running: bool,
+    /// (source on the host, destination in the container)
+    pub mounts: Vec<(String, String)>,
+    /// (network, the container's address in it, prefix length), sorted by network name
+    pub networks: Vec<(String, String, u8)>,
+    pub labels: HashMap<String, String>,
+}
+
 impl DockerRt {
     pub fn new(socket: &Path) -> Result<Self> {
         let docker = Docker::connect_with_unix(socket.to_str().unwrap_or("/var/run/docker.sock"), 60, bollard::API_DEFAULT_VERSION)?;
@@ -103,6 +114,57 @@ impl DockerRt {
         }
     }
 
+    /// Id of the image a container was created from (`sha256:…`); None — no such container.
+    pub async fn container_image_id(&self, name: &str) -> Result<Option<String>> {
+        match self.docker.inspect_container(name, None::<bollard::query_parameters::InspectContainerOptions>).await {
+            Ok(c) => Ok(c.image),
+            Err(bollard::errors::Error::DockerResponseServerError { status_code: 404, .. }) => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Id of the image a tag points to on this host right now; None — the image is not pulled.
+    pub async fn image_id(&self, image: &str) -> Result<Option<String>> {
+        match self.docker.inspect_image(image).await {
+            Ok(i) => Ok(i.id),
+            Err(bollard::errors::Error::DockerResponseServerError { status_code: 404, .. }) => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Host pid of the main process of a running container (`/proc/<pid>/root` is the container's view of the filesystem)
+    pub async fn container_pid(&self, name: &str) -> Result<Option<i64>> {
+        match self.docker.inspect_container(name, None::<bollard::query_parameters::InspectContainerOptions>).await {
+            Ok(c) => Ok(c.state.and_then(|s| s.pid).filter(|p| *p > 0)),
+            Err(bollard::errors::Error::DockerResponseServerError { status_code: 404, .. }) => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// One inspect of a container for what the edge logic needs (ADR-010): its mounts, its addresses in the docker networks,
+    /// the compose labels and the pid. None — there is no such container.
+    pub async fn container_facts(&self, name: &str) -> Result<Option<ContainerFacts>> {
+        let c = match self.docker.inspect_container(name, None::<bollard::query_parameters::InspectContainerOptions>).await {
+            Ok(c) => c,
+            Err(bollard::errors::Error::DockerResponseServerError { status_code: 404, .. }) => return Ok(None),
+            Err(e) => return Err(e.into()),
+        };
+        let mounts = c.mounts.unwrap_or_default().into_iter().filter_map(|m| Some((m.source?, m.destination?))).collect();
+        let mut networks: Vec<(String, String, u8)> = c.network_settings.and_then(|n| n.networks).unwrap_or_default().into_iter()
+            .filter_map(|(name, e)| { let ip = e.ip_address.filter(|s| !s.is_empty())?; Some((name, ip, e.ip_prefix_len.and_then(|l| u8::try_from(l).ok()).unwrap_or(24))) }).collect();
+        networks.sort();
+        Ok(Some(ContainerFacts {
+            pid: c.state.as_ref().and_then(|s| s.pid).filter(|p| *p > 0),
+            running: c.state.and_then(|s| s.running).unwrap_or(false),
+            mounts, networks,
+            labels: c.config.and_then(|c| c.labels).unwrap_or_default(),
+        }))
+    }
+
+    pub async fn restart_container(&self, name: &str) -> Result<()> {
+        self.docker.restart_container(name, None::<bollard::query_parameters::RestartContainerOptions>).await.map_err(Into::into)
+    }
+
     pub async fn ensure_image(&self, image: &str) -> Result<()> {
         if self.docker.inspect_image(image).await.is_ok() {
             return Ok(());
@@ -155,8 +217,9 @@ impl DockerRt {
     /// unless-stopped.
     pub async fn ensure_gate(&self, name: &str, macvlan: &str, ip: &str, caddyfile_dir: &Path) -> Result<()> {
         if self.container_exists(name).await? {
-            self.docker.start_container(name, None::<StartContainerOptions<String>>).await.ok();
-            return Ok(());
+            // an existing gate is only started here; a start that Docker refuses is the caller's business
+            // (Service::ensure_gate_running recreates the network and the container)
+            return self.start_container(name).await;
         }
         self.ensure_image(GATE_IMAGE).await?;
         let mut endpoints = HashMap::new();
@@ -180,6 +243,15 @@ impl DockerRt {
         self.docker.create_container(Some(CreateContainerOptions { name, platform: None }), cfg).await?;
         self.docker.start_container(name, None::<StartContainerOptions<String>>).await?;
         Ok(())
+    }
+
+    /// Start an existing container; "already started" (304) is not an error, anything else is returned to the caller.
+    pub async fn start_container(&self, name: &str) -> Result<()> {
+        match self.docker.start_container(name, None::<StartContainerOptions<String>>).await {
+            Ok(()) => Ok(()),
+            Err(bollard::errors::Error::DockerResponseServerError { status_code: 304, .. }) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
     }
 
     pub async fn remove_container(&self, name: &str) -> Result<()> {

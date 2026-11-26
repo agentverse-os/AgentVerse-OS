@@ -24,7 +24,7 @@ services:
       - -f
       - http://localhost:5656/server/status/alive
       timeout: 20s
-    image: edgedb/edgedb
+    image: edgedb/edgedb:6.2
     networks:
       appnet:
         aliases:

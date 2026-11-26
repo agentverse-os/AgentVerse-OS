@@ -8,13 +8,15 @@ description: An intelligent way to organize tasks and chores
 endpoint:
   port: 2021
   service: app
-env: {}
+env:
+  APP_SEED:
+    generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/donetick/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/donetick/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/donetick/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/donetick/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/donetick/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/donetick/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/donetick/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/donetick/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/donetick/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/donetick/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,16 +46,17 @@ upstream:
   categories:
   - files
   release_notes: |-
-    Donetick 0.1.79 improves offline use, storage handling, and chore sync behavior:
-      - Added offline synchronization and versioning support
-      - Improved storage handling, including S3 path-style support and signed URL fixes
-      - Improved API input validation and warning handling
-      - Fixed reminders and assignment behavior for chores assigned to Anyone
-      - Fixed label and notification migrations for existing databases
+    This update improves account security. You may need to sign in to Donetick again after updating.
 
+    This update improves task creation and account security.
 
-    Full release notes can be found at https://github.com/donetick/donetick/releases/tag/v0.1.79
+    - Create multiple tasks in a single API request, with validation for each task.
+    - Improve protection for uploaded files and profile photos.
+    - Prevent circle administrators from removing users outside their circle.
+    - Save your timezone during signup for correctly timed notifications.
+
+    Full release notes can be found at https://github.com/donetick/donetick/releases/tag/v0.1.86
   source: https://github.com/donetick/donetick
-  version: 0.1.79
+  version: 0.1.86
   website: https://donetick.com/
 website: https://donetick.com/

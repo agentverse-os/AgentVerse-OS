@@ -22,7 +22,7 @@ services:
       GTS_SMTP_PASSWORD: ${GTS_SMTP_PASSWORD}
       GTS_SMTP_PORT: ${GTS_SMTP_PORT}
       GTS_SMTP_USERNAME: ${GTS_SMTP_USERNAME}
-    image: superseriousbusiness/gotosocial:0.22.1
+    image: superseriousbusiness/gotosocial:0.22.3
     networks:
       appnet:
         aliases:

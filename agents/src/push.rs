@@ -50,9 +50,11 @@ pub struct Prefs {
     #[serde(default = "yes")] pub done: bool,
     #[serde(default = "yes")] pub error: bool,
     #[serde(default = "yes")] pub limit: bool,
+    /// Workspace memory (a process ended, a workspace standing at its limit) and commands running for hours (ADR-009)
+    #[serde(default = "yes")] pub memory: bool,
 }
 fn yes() -> bool { true }
-impl Default for Prefs { fn default() -> Self { Self { permission: true, done: true, error: true, limit: true } } }
+impl Default for Prefs { fn default() -> Self { Self { permission: true, done: true, error: true, limit: true, memory: true } } }
 
 /// Memory of transitions between hub snapshots: what we have already seen, to
 /// send only the new
@@ -60,6 +62,8 @@ impl Default for Prefs { fn default() -> Self { Self { permission: true, done: t
 pub struct PushState {
     seen: Mutex<Option<Seen>>,
     limits_blocked: Mutex<Option<HashSet<String>>>,
+    /// Keys of the memory and long-command cards of the previous "Inbox" (watch.rs)
+    watch_seen: Mutex<Option<HashSet<String>>>,
 }
 #[derive(Default, Clone)]
 struct Seen { requests: HashSet<String>, status: HashMap<String, String> }
@@ -124,10 +128,10 @@ pub async fn unsubscribe(State(app): State<Arc<App>>, Json(b): Json<EndpointBody
     Ok(Json(json!({ "ok": true, "count": n })))
 }
 #[derive(Deserialize)]
-pub struct PrefsPatch { pub permission: Option<bool>, pub done: Option<bool>, pub error: Option<bool>, pub limit: Option<bool> }
+pub struct PrefsPatch { pub permission: Option<bool>, pub done: Option<bool>, pub error: Option<bool>, pub limit: Option<bool>, pub memory: Option<bool> }
 pub async fn put_prefs(State(app): State<Arc<App>>, Json(b): Json<PrefsPatch>) -> Result<Json<Value>, ApiError> {
     let mut p = prefs(&app.store);
-    if let Some(v) = b.permission { p.permission = v; } if let Some(v) = b.done { p.done = v; } if let Some(v) = b.error { p.error = v; } if let Some(v) = b.limit { p.limit = v; }
+    if let Some(v) = b.permission { p.permission = v; } if let Some(v) = b.done { p.done = v; } if let Some(v) = b.error { p.error = v; } if let Some(v) = b.limit { p.limit = v; } if let Some(v) = b.memory { p.memory = v; }
     app.store.put_kv(KV_PREFS, &serde_json::to_value(&p)?)?;
     Ok(Json(serde_json::to_value(&p)?))
 }
@@ -218,7 +222,10 @@ pub fn blocked_scopes(limits: &[Value], projects: &[Value], today: &Value) -> Ve
 }
 
 /// Events by transitions between hub snapshots (called after the "Inbox" recompute)
-pub async fn on_snapshot(app: &App, projects: &[Value], today: &Value, inbox: &Value) {
+pub async fn on_snapshot(app: &std::sync::Arc<App>, projects: &[Value], today: &Value, inbox: &Value) {
+    // what the notification channels are told about the stand goes in a task of its own: this one is cancelled by the
+    // next snapshot, and nothing may stand between "the new state is remembered" and "the notice is on its way"
+    let to_channels = |title: String, body: String| { let a = app.clone(); tokio::spawn(async move { crate::channels::system_event(&a, &title, &body).await; }); };
     let prefs = prefs(&app.store);
     // limits: a scope's transition to "stopped" → one
     // notification
@@ -229,9 +236,22 @@ pub async fn on_snapshot(app: &App, projects: &[Value], today: &Value, inbox: &V
     let mut limit_payloads: Vec<Value> = vec![];
     if let Some(prev_blocked) = prev_blocked {
         for (scope, spent, per_day) in &blocked_now {
-            if prev_blocked.contains(scope) || !prefs.limit { continue }
+            if prev_blocked.contains(scope) { continue }
             let who = if scope == "total" { "всего".to_string() } else { format!("для {scope}") };
-            limit_payloads.push(json!({ "kind": "limit", "title": "Дневной лимит исчерпан", "body": format!("{who}: ${spent:.2} за 24 ч из ${per_day:.2} — новые ходы остановлены"), "tag": format!("limit-{scope}"), "url": "/agents/?section=models" }));
+            let body = format!("{who}: ${spent:.2} за 24 ч из ${per_day:.2} — новые ходы остановлены");
+            // the notification channels hear about the stand as a whole by their own binding, not by the push switches
+            to_channels("Дневной лимит исчерпан".into(), body.clone());
+            if prefs.limit { limit_payloads.push(json!({ "kind": "limit", "title": "Дневной лимит исчерпан", "body": body, "tag": format!("limit-{scope}"), "url": "/agents/?section=models" })); }
+        }
+    }
+    // memory and long commands (ADR-009): a card that was not in the previous "Inbox"; the first snapshot only remembers
+    {
+        let cur = crate::watch::keys(inbox);
+        let prev = app.push.watch_seen.lock().unwrap().replace(cur);
+        if let Some(prev) = prev {
+            let cards = crate::watch::push_payloads(inbox, &prev, crate::watch::now_secs());
+            for c in &cards { to_channels(c.get("title").and_then(|t| t.as_str()).unwrap_or("Память").to_string(), c.get("body").and_then(|t| t.as_str()).unwrap_or("").to_string()); }
+            if prefs.memory { limit_payloads.extend(cards); }
         }
     }
     let mut requests: HashSet<String> = HashSet::new();

@@ -12,9 +12,9 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/openclaw/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/openclaw/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/openclaw/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/openclaw/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/openclaw/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/openclaw/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,10 +44,14 @@ upstream:
   categories:
   - ai
   release_notes: |-
-    Fixed npm plugin updates so OpenClaw can install and update tracked official plugins correctly with newer npm clients.
+    This update moves OpenClaw back to its latest release. It includes the upstream fixes we were waiting for: the upgrade and startup issue that kept us on the extended-stable branch, and scheduled tasks that failed when using Claude CLI with a saved account.
 
-    Full release notes can be found at https://github.com/openclaw/openclaw/releases/tag/v2026.7.1-2
+    Since the previous version, OpenClaw has added a Chat Details panel and many privacy, security and reliability fixes. Large conversations use less memory, replies are kept across restarts, upgrades are safer, and credentials and private conversation data stay out of logs and shared views.
+
+    Back up your OpenClaw app data before updating. Very old installations or retained legacy data may need intermediate upgrades; see https://docs.openclaw.ai/install/updating#upgrading-very-old-versions. Reverting the app version alone does not reverse database migrations.
+
+    Full release notes can be found at https://docs.openclaw.ai/releases
   source: https://github.com/openclaw/openclaw
-  version: 2026.7.1-2
+  version: 2026.11.4
   website: https://openclaw.ai
 website: https://openclaw.ai

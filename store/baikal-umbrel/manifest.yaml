@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/baikal/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/baikal/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/baikal/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/baikal/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/baikal/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/baikal/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,10 +42,20 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    This release fixes upgrades for Baikal installations using MySQL and ships with sabre/dav 4.7.0.
+    This update brings Baikal from 0.11.1 to 0.13.0 and includes a security fix.
+
+    ⚠️ After updating, open Baikal, go to its admin page, and click "Start upgrade". Calendar and contact sync stays paused until you do. Upstream recommends backing up your Baikal data before updating.
+
+    Highlights:
+      - Fixed an XSS vulnerability where an authenticated user could take over the admin interface by renaming their calendar (0.12.1)
+      - Fixed calendar sharing on old SQLite installs (0.13.0)
+      - Fixed emoji encoding on MySQL (0.13.0)
+      - Fixed deprecation notices on PHP 8.4 and 8.5, and updated dependencies (0.12.0)
+      - Ships with sabre/dav 4.7.1
+
 
     Full release notes can be found at https://github.com/sabre-io/Baikal/releases
   source: https://github.com/sabre-io/Baikal
-  version: 0.11.1
+  version: 0.13.0
   website: https://sabre.io/baikal/
 website: https://sabre.io/baikal/

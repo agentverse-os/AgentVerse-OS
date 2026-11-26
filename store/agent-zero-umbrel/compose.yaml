@@ -6,10 +6,10 @@ networks:
 services:
   web:
     environment:
-    - ALLOWED_ORIGINS=http://${DEVICE_DOMAIN_NAME}:${APP_AGENTZERO_PORT},http://${DEVICE_HOSTNAME}:${APP_AGENTZERO_PORT},${APP_AGENTZERO_LOCAL_URLS}
+    - ALLOWED_ORIGINS=http://${DEVICE_DOMAIN_NAME}:${APP_AGENTZERO_PORT},https://${DEVICE_DOMAIN_NAME}:${APP_AGENTZERO_PORT},http://${DEVICE_HOSTNAME}:${APP_AGENTZERO_PORT},https://${DEVICE_HOSTNAME}:${APP_AGENTZERO_PORT},${APP_AGENTZERO_LOCAL_URLS}
     extra_hosts:
     - host.docker.internal:host-gateway
-    image: agent0ai/agent-zero:v2.11@sha256:a38802ee1ddb83747836521931a99b8f6af000c586e1176478c533dcb08de8c4
+    image: agent0ai/agent-zero:v2.16@sha256:0490714bf25bf481ea50d59ead21acec04344cee410a86b4e159908cb92ed8a2
     networks:
       appnet:
         aliases:

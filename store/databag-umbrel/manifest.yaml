@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/databag/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/databag/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/databag/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/databag/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/databag/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/databag/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,10 +42,14 @@ upstream:
   categories:
   - social
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Databag 0.1.18 release notes:
+
     This update of Databag brings the following changes:
     - Rebuilt with the latest Go toolchain and security updates
     - Includes server stability fixes for contact handling and hostname validation
   source: https://github.com/balzack/databag
-  version: 0.1.18
+  version: 0.1.18-patch.1
   website: https://github.com/balzack/databag
 website: https://github.com/balzack/databag

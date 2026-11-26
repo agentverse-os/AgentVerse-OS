@@ -108,6 +108,16 @@ pub struct Meta {
     /// the `[1m]` tag works
     #[serde(default)]
     pub context_window: Option<u64>,
+    /// Our own process has been writing the provider journal since the last mark (`synced_lines`): what it wrote is already
+    /// in our journal, from its stream. Set at start, cleared at exit. If agentd dies in between (an update, a stopped
+    /// workspace, a reboot) the flag stays, and the next reconciliation marks those lines as known instead of importing
+    /// them a second time. None — a record from before the flag: the journal itself tells (`Session::ran_to_the_end`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub own_run: Option<bool>,
+    /// How many times the journal was rewritten without duplicates (`Journal::dedupe`); clients drop their cached copy of
+    /// the feed when it changes.
+    #[serde(default)]
+    pub journal_rev: u32,
 }
 
 impl Meta {
@@ -229,6 +239,244 @@ struct Journal {
     file: std::fs::File,
 }
 
+/// The journal as it was before the second copies were dropped from it (`Journal::dedupe`), kept for two weeks.
+const DEDUPE_BACKUP: &str = "events.jsonl.pre-dedupe";
+
+fn seq_of(ev: &Value) -> Option<u64> { ev.get("seq").and_then(|s| s.as_u64()) }
+
+/// The tool calls an event carries results for.
+fn result_ids(ev: &Value) -> Vec<&str> {
+    ev.get("content").and_then(|c| c.as_array()).map(|a| a.iter().filter(|b| b.get("type").and_then(|t| t.as_str()) == Some("tool_result")).filter_map(|b| b.get("tool_use_id").and_then(|i| i.as_str())).collect()).unwrap_or_default()
+}
+
+/// What a journal already holds — to tell a second copy of an event from a new one.
+///
+/// A second copy appears when the provider journal is read for lines our own process had written (agentd went away while the
+/// process was running, so nothing marked those lines as known): the stream had already put them into our journal, and the
+/// file brings them again. Assistant messages carry the provider's uuid in both; tool results carry no uuid but name their
+/// call; the owner's messages are recorded from our own send without a uuid, and their copy from the file has one — it is
+/// recognised by the same text sent at the same time. What the file holds of such a run besides copies is told by `Runs`.
+#[derive(Default)]
+pub(crate) struct Known {
+    uuids: std::collections::HashSet<String>,
+    results: std::collections::HashSet<String>,
+    /// the owner's messages recorded without a uuid: text → the times (ms) not yet matched by a copy
+    prompts: HashMap<String, Vec<u64>>,
+}
+
+impl Known {
+    /// A copy of a message from the file is stamped by the CLI when it takes the message, we stamp ours when we send it.
+    const PROMPT_SLACK_MS: u64 = 5 * 60 * 1000;
+
+    pub(crate) fn of(events: &[Value]) -> Self { let mut k = Self::default(); for e in events { k.note(e); } k }
+
+    /// Is `ev` a second copy of what is already noted? A matched message of the owner is used up: the same words sent
+    /// twice are two messages and take two copies.
+    pub(crate) fn has(&mut self, ev: &Value) -> bool {
+        let uuid = ev.get("uuid").and_then(|u| u.as_str());
+        if uuid.map(|u| self.uuids.contains(u)).unwrap_or(false) { return true }
+        match ev.get("kind").and_then(|k| k.as_str()) {
+            Some("tool_result") => { let ids = result_ids(ev); !ids.is_empty() && ids.iter().all(|i| self.results.contains(*i)) }
+            Some("user") if uuid.is_some() => {
+                let (text, ts) = (event_text(ev).trim().to_string(), ev.get("ts").and_then(|t| t.as_u64()).unwrap_or(0));
+                let Some(times) = self.prompts.get_mut(&text).filter(|_| !text.is_empty()) else { return false };
+                // the copy's uuid is known from here on: the same line read once more is a copy by the uuid alone
+                match times.iter().position(|t| t.abs_diff(ts) <= Self::PROMPT_SLACK_MS) { Some(i) => { times.remove(i); if let Some(u) = uuid { self.uuids.insert(u.to_string()); } true } None => false }
+            }
+            _ => false,
+        }
+    }
+
+    pub(crate) fn note(&mut self, ev: &Value) {
+        let uuid = ev.get("uuid").and_then(|u| u.as_str());
+        if let Some(u) = uuid { self.uuids.insert(u.to_string()); }
+        for id in result_ids(ev) { self.results.insert(id.to_string()); }
+        if uuid.is_none() && ev.get("kind").and_then(|k| k.as_str()) == Some("user") && ev.get("parent_tool_use_id").map(|p| p.is_null()).unwrap_or(true) {
+            let text = event_text(ev).trim().to_string();
+            if !text.is_empty() { self.prompts.entry(text).or_default().push(ev.get("ts").and_then(|t| t.as_u64()).unwrap_or(0)); }
+        }
+    }
+}
+
+/// Events read from the provider journal that our journal does not hold yet: lines our own process wrote come back from the
+/// file as second copies and are left out.
+pub(crate) fn not_yet_known(journal: &[Value], parsed: Vec<Value>) -> Vec<Value> {
+    let mut known = Known::of(journal);
+    parsed.into_iter().filter(|e| { let copy = known.has(e); if !copy { known.note(e); } !copy }).collect()
+}
+
+/// The owner's side of the provider journal as the parser gives it: a message, or the output card of a slash command
+/// (both are made from the CLI's `user` lines).
+fn owner_side(ev: &Value) -> bool {
+    match ev.get("kind").and_then(|k| k.as_str()) {
+        Some("user") => true,
+        Some("assistant") => ev.get("local").and_then(|l| l.as_bool()) == Some(true),
+        _ => false,
+    }
+}
+
+/// Events read from the provider journal after agentd went away with our own process running: only what the stream had not
+/// delivered yet — the answers and tool results after the last line our journal knows.
+///
+/// The owner's side of the file is left out whole. Every message of the owner reached the process through us; the rest of
+/// that side is the CLI talking to the model — the summary after a compaction, the note about an interruption or a finished
+/// background task, a slash command and its output. The stream gave us all of that in its own form (`history_truncated`,
+/// `interrupt`, `task`, `model`…), and read from the file it turned into messages "from the owner" in the wrong place.
+pub(crate) fn news_of_own_run(journal: &[Value], parsed: Vec<Value>) -> Vec<Value> {
+    let mut known = Known::of(journal);
+    let lines: Vec<Value> = parsed.into_iter().filter(|e| !owner_side(e)).collect();
+    // the stream is a pipe: once a line is known, everything before it has been delivered too, whatever it looks like
+    let after = lines.iter().rposition(|e| known.has(e)).map(|i| i + 1).unwrap_or(0);
+    lines.into_iter().skip(after).filter(|e| { let copy = known.has(e); if !copy { known.note(e); } !copy }).collect()
+}
+
+/// Does only a running process put this event into the journal — never the provider journal read back, never agentd on its
+/// own?
+fn from_stream(ev: &Value) -> bool {
+    match ev.get("kind").and_then(|k| k.as_str()).unwrap_or("") {
+        "init" | "result" | "task" | "permission_request" => true,
+        "system" => matches!(ev.get("subtype").and_then(|s| s.as_str()).unwrap_or(""), "status" | "compact_boundary" | "permission_denied" | "notification" | "api_retry"),
+        // an answer from the stream carries the usage of its API call, one read back from the file does not
+        "assistant" => ev.get("usage").is_some(),
+        _ => false,
+    }
+}
+
+/// When our own process was running, as the journal shows it: from each `spawn` to the last thing the stream of that
+/// process delivered. Nobody else writes the provider journal meanwhile, so a line stamped inside such a span is the
+/// process's own — and the stream had already told us about it.
+#[derive(Default)]
+pub(crate) struct Runs {
+    ended: Vec<(u64, u64)>,
+    open: Option<(u64, u64)>,
+}
+
+impl Runs {
+    pub(crate) fn note(&mut self, ev: &Value) {
+        let ts = ev.get("ts").and_then(|t| t.as_u64()).unwrap_or(0);
+        match ev.get("kind").and_then(|k| k.as_str()).unwrap_or("") {
+            "spawn" => { self.end(); self.open = Some((ts, ts)); }
+            "exit" => self.end(),
+            "system" if ev.get("subtype").and_then(|s| s.as_str()) == Some("agentd_restart") => self.end(),
+            _ => if let Some(run) = self.open.as_mut() { if from_stream(ev) { run.1 = run.1.max(ts); } },
+        }
+    }
+
+    fn end(&mut self) { if let Some(run) = self.open.take() { self.ended.push(run); } }
+
+    fn ended_over(&self, ts: u64) -> bool { self.ended.iter().any(|(from, to)| *from <= ts && ts <= *to) }
+
+    /// Is `ev` a line of our own process read back from the provider journal in another form than the stream gave it (see
+    /// `news_of_own_run`)? A message with a uuid never comes from the stream, so its time alone tells; a command card may
+    /// come from either, and counts only when the run it belongs to is over — a card of the stream sits inside its run.
+    pub(crate) fn echo(&self, ev: &Value) -> bool {
+        if ev.get("uuid").and_then(|u| u.as_str()).is_none() { return false }
+        let ts = ev.get("ts").and_then(|t| t.as_u64()).unwrap_or(0);
+        match ev.get("kind").and_then(|k| k.as_str()) {
+            Some("user") => ev.get("parent_tool_use_id").map(|p| p.is_null()).unwrap_or(true) && (self.ended_over(ts) || self.open.map(|(from, to)| from <= ts && ts <= to).unwrap_or(false)),
+            Some("assistant") => owner_side(ev) && ev.get("usage").is_none() && self.ended_over(ts),
+            _ => false,
+        }
+    }
+}
+
+/// What kind of line of the CLI an echo (`Runs::echo`) is — by the wrapper the CLI gives it, for the `--journal-check` report.
+fn echo_class(ev: &Value) -> &'static str {
+    if ev.get("kind").and_then(|k| k.as_str()) == Some("assistant") { return "вывод команды" }
+    let text = event_text(ev);
+    let t = text.trim_start();
+    if t.starts_with("This session is being continued") { "сводка сжатия" }
+    else if t.starts_with("<task-notification>") { "уведомление о фоновой задаче" }
+    else if t.starts_with("[Request interrupted") { "пометка о прерывании" }
+    else if t.starts_with('/') { "команда" }
+    else { "прочее" }
+}
+
+/// `--journal-check`: what a start would drop from the Claude journals under `dir`, and how sure that is — for every dropped
+/// tool result, whether the result kept for the same call says the same; for every dropped message, how far in time it is
+/// from the one kept; for the process's own lines read back in another form, what they are. Reads only.
+pub fn journal_check(dir: &std::path::Path) -> Result<()> {
+    let (mut sessions, mut copies_total, mut echoes_total) = (0, 0, 0);
+    for entry in std::fs::read_dir(dir).with_context(|| format!("каталог {}", dir.display()))? {
+        let d = entry?.path();
+        let Ok(meta) = std::fs::read_to_string(d.join("meta.json")).map_err(anyhow::Error::from).and_then(|t| serde_json::from_str::<Value>(&t).map_err(Into::into)) else { continue };
+        let Ok(text) = std::fs::read_to_string(d.join("events.jsonl")) else { continue };
+        let events: Vec<Value> = text.lines().filter_map(|l| serde_json::from_str(l).ok()).collect();
+        let agent = meta.get("agent").and_then(|a| a.as_str()).unwrap_or("?");
+        let id: String = meta.get("id").and_then(|i| i.as_str()).unwrap_or("?").chars().take(8).collect();
+        if agent != "claude" { continue }
+        let drop = surplus(&events);
+        if drop.is_empty() { continue }
+        sessions += 1; copies_total += drop.copies.len(); echoes_total += drop.echoes.len();
+        // the first result recorded for each call and the first message recorded for each text: what the copies are compared with
+        let mut first_result: HashMap<&str, String> = HashMap::new();
+        let mut kept_prompts: HashMap<String, Vec<u64>> = HashMap::new();
+        let (mut results, mut same, mut users, mut max_gap, mut other, mut other_same) = (0usize, 0usize, 0usize, 0u64, 0usize, 0usize);
+        // the first event recorded under each uuid: kind and content, for the copies told by the uuid alone
+        let mut first_uuid: HashMap<&str, String> = HashMap::new();
+        let mut other_kinds: HashMap<String, usize> = HashMap::new();
+        let mut echoes: std::collections::BTreeMap<&str, (usize, usize)> = Default::default();
+        for e in &events {
+            let seq = seq_of(e).unwrap_or(0);
+            if drop.echoes.contains(&seq) { let c = echoes.entry(echo_class(e)).or_default(); c.0 += 1; c.1 += event_text(e).chars().count(); continue }
+            let dropped = drop.copies.contains(&seq);
+            let face = || format!("{}|{}", e.get("kind").and_then(|k| k.as_str()).unwrap_or(""), e.get("content").map(|c| c.to_string()).unwrap_or_default());
+            if let Some(u) = e.get("uuid").and_then(|u| u.as_str()) {
+                if !dropped { first_uuid.entry(u).or_insert_with(face); }
+                else if e.get("kind").and_then(|k| k.as_str()) != Some("user") && e.get("kind").and_then(|k| k.as_str()) != Some("tool_result") {
+                    if first_uuid.get(u).map(|f| *f == face()).unwrap_or(false) { other_same += 1; }
+                    *other_kinds.entry(e.get("kind").and_then(|k| k.as_str()).unwrap_or("?").to_string()).or_default() += 1;
+                }
+            }
+            match e.get("kind").and_then(|k| k.as_str()) {
+                Some("tool_result") => {
+                    let body = |id: &str| e.get("content").and_then(|c| c.as_array()).and_then(|a| a.iter().find(|b| b.get("tool_use_id").and_then(|i| i.as_str()) == Some(id))).and_then(|b| b.get("content")).map(|c| c.to_string()).unwrap_or_default();
+                    if dropped { results += 1; if result_ids(e).iter().all(|i| first_result.get(i).map(|b| *b == body(i)).unwrap_or(false)) { same += 1; } }
+                    else { for i in result_ids(e) { first_result.entry(i).or_insert_with(|| body(i)); } }
+                }
+                Some("user") => {
+                    let (t, ts) = (event_text(e).trim().to_string(), e.get("ts").and_then(|t| t.as_u64()).unwrap_or(0));
+                    if dropped { users += 1; if let Some(g) = kept_prompts.get(&t).and_then(|v| v.iter().map(|k| k.abs_diff(ts)).min()) { max_gap = max_gap.max(g); } }
+                    else { kept_prompts.entry(t).or_default().push(ts); }
+                }
+                _ => { if dropped { other += 1; } }
+            }
+        }
+        let echo_list = echoes.iter().map(|(k, (n, chars))| format!("{k} {n} ({chars} зн.)")).collect::<Vec<_>>().join(", ");
+        println!("{id} claude: {} событий; вторых копий {} — результатов инструментов {results} (совпадают с оставленными дословно: {same}), сообщений владельца {users} (дальше всего от оставленного: {} с), прочих по uuid {other} {other_kinds:?} (совпадают дословно: {other_same}); строк своего процесса в другом виде {}{}{}; последнее событие {}",
+            events.len(), drop.copies.len(), max_gap / 1000, drop.echoes.len(), if echo_list.is_empty() { "" } else { " — " }, echo_list,
+            if events.last().and_then(seq_of).map(|s| drop.has(s)).unwrap_or(false) { "заменяется пустым (нумерация сохраняется)" } else { "остаётся" });
+    }
+    println!("бесед с лишними событиями: {sessions}, вторых копий: {copies_total}, строк своего процесса в другом виде: {echoes_total}");
+    Ok(())
+}
+
+/// What a journal holds that it should not, by seq: second copies of earlier events (`Known`) and lines of our own process
+/// read back from the provider journal in another form (`Runs::echo`).
+#[derive(Default)]
+pub(crate) struct Surplus {
+    pub copies: std::collections::HashSet<u64>,
+    pub echoes: std::collections::HashSet<u64>,
+}
+
+impl Surplus {
+    pub(crate) fn has(&self, seq: u64) -> bool { self.copies.contains(&seq) || self.echoes.contains(&seq) }
+    pub(crate) fn len(&self) -> usize { self.copies.len() + self.echoes.len() }
+    pub(crate) fn is_empty(&self) -> bool { self.len() == 0 }
+}
+
+pub(crate) fn surplus(events: &[Value]) -> Surplus {
+    let (mut known, mut runs, mut out) = (Known::default(), Runs::default(), Surplus::default());
+    for ev in events {
+        runs.note(ev);
+        let Some(seq) = seq_of(ev) else { continue };
+        if known.has(ev) { out.copies.insert(seq); continue }
+        if runs.echo(ev) { out.echoes.insert(seq); continue }
+        known.note(ev);
+    }
+    out
+}
+
 impl Journal {
     fn open(dir: &PathBuf) -> Result<Self> {
         std::fs::create_dir_all(dir)?;
@@ -259,6 +507,40 @@ impl Journal {
         std::fs::write(&path, body)?;
         self.file = std::fs::OpenOptions::new().create(true).append(true).open(&path)?;
         Ok(())
+    }
+
+    /// Drop what the journal should not hold (`surplus`) and rewrite the file; the numbering of what stays does not change.
+    /// The numbering continues from the last event and must not go back, so when the last event is to go, its place stays —
+    /// as a `blank`, which nothing shows. Returns how many were dropped.
+    fn dedupe(&mut self, dir: &PathBuf) -> Result<usize> {
+        let drop = surplus(&self.events);
+        if drop.is_empty() { return Ok(0) }
+        let last = self.events.len().saturating_sub(1);
+        self.events = std::mem::take(&mut self.events).into_iter().enumerate().filter_map(|(i, e)| {
+            if !seq_of(&e).map(|s| drop.has(s)).unwrap_or(false) { return Some(e) }
+            (i == last).then(|| json!({ "seq": e.get("seq"), "ts": e.get("ts"), "kind": "blank" }))
+        }).collect();
+        // next to the file and then a rename: a stop in the middle must not leave half a journal
+        let (path, tmp) = (dir.join("events.jsonl"), dir.join("events.jsonl.tmp"));
+        {
+            let mut out = std::io::BufWriter::new(std::fs::File::create(&tmp)?);
+            for e in &self.events { writeln!(out, "{e}")?; }
+            out.flush()?;
+        }
+        // the journal as it was stays next to the new one for two weeks (a hard link: no copy, no extra space until then)
+        let bak = dir.join(DEDUPE_BACKUP);
+        if !bak.exists() { let _ = std::fs::hard_link(&path, &bak); }
+        std::fs::rename(&tmp, &path)?;
+        self.file = std::fs::OpenOptions::new().create(true).append(true).open(&path)?;
+        Ok(drop.len())
+    }
+
+    /// Remove the pre-cleanup copy of the journal once it is two weeks old (by the time the link was made).
+    fn drop_old_backup(dir: &PathBuf) {
+        use std::os::unix::fs::MetadataExt;
+        let bak = dir.join(DEDUPE_BACKUP);
+        let Ok(md) = std::fs::metadata(&bak) else { return };
+        if (now_ms() / 1000).saturating_sub(md.ctime().max(0) as u64) > 14 * 24 * 3600 { let _ = std::fs::remove_file(&bak); }
     }
 
     fn append(&mut self, mut ev: Value) -> Value {
@@ -344,7 +626,16 @@ impl Session {
         // import.rs
         if meta.model.as_deref().map(|m| m.starts_with('<')).unwrap_or(false) { meta.model = None; }
         let usage_log = dir.parent().map(|p| p.join("usage.jsonl")).unwrap_or_else(|| dir.join("usage.jsonl"));
-        let journal = Journal::open(&dir)?;
+        let mut journal = Journal::open(&dir)?;
+        Journal::drop_old_backup(&dir);
+        // what earlier reconciliations with the provider journal left behind — second copies (`Known`) and the process's
+        // own lines in another form (`Runs`): out of the journal, once. Claude only: its events carry what these are told by;
+        // the other engines' journals are left as they are
+        let cleaned = match if meta.agent == "claude" { journal.dedupe(&dir) } else { Ok(0) } {
+            Ok(0) => false,
+            Ok(n) => { meta.journal_rev += 1; tracing::info!("session {}: из журнала убрано {n} лишних событий (вторые копии и служебные строки CLI из журнала провайдера)", meta.id.chars().take(8).collect::<String>()); true }
+            Err(e) => { tracing::warn!("session {}: журнал не очищен от повторов: {e:#}", meta.id.chars().take(8).collect::<String>()); false }
+        };
         let (events, _) = broadcast::channel(EVENTS_CAPACITY);
         let mut usage = meta.usage_base.clone().unwrap_or_default();
         let mut last_total = meta.usage_base.as_ref().map(|b| b.cost_usd).unwrap_or(0.0);
@@ -358,7 +649,7 @@ impl Session {
                 }
             }
         }
-        Ok(Arc::new(Self {
+        let me = Arc::new(Self {
             meta: Mutex::new(meta),
             dir,
             status: watch::channel(Status::Exited).0,
@@ -382,7 +673,9 @@ impl Session {
             last_total_cost: Mutex::new(last_total),
             live: Mutex::new(LiveBuf::default()),
             queue: Mutex::new(Vec::new()),
-        }))
+        });
+        if cleaned { me.save_meta(); }
+        Ok(me)
     }
 
     pub fn id(&self) -> String {
@@ -466,6 +759,10 @@ impl Session {
     }
 
     pub fn info(&self) -> Info {
+        // a limit mark does not outlive its window: once the reset time has passed (or a week, when the provider gave none)
+        // it is dropped, so neither the core nor the interface takes an old hit for a current one
+        let stale = self.meta.lock().unwrap().limit_hit.as_ref().map(|v| limit_hit_expired(v, now_ms() / 1000)).unwrap_or(false);
+        if stale { { self.meta.lock().unwrap().limit_hit = None; } self.save_meta(); }
         // updated_at — as separate expressions: a second lock() of the same Mutex inside the Info literal would
         // deadlock
         let created = self.meta.lock().unwrap().created_at;
@@ -657,7 +954,7 @@ impl Session {
 
     /// Start the provider process. Claude: an interactive login shell (PATH to the CLI and the gate env from profile.d and
     /// bash.bashrc), inside it `claude -p` with stream-json both ways and permissions over stdio.
-    async fn spawn(self: &Arc<Self>, resume: bool) -> Result<()> {
+    pub(crate) async fn spawn(self: &Arc<Self>, resume: bool) -> Result<()> {
         // a turn from the TUI or terminal between our processes — into the journal before start, otherwise
         // the mark would cover it
         if resume { let n = self.sync_transcript(); if n > 0 { tracing::info!("session {}: из журнала провайдера подхвачено {n} событий", &self.id()[..8]); } }
@@ -727,6 +1024,8 @@ impl Session {
             // native mode (Google account, §9.11): the account's HOME in the session environment, the models are its own (`agy
             // models` under that HOME)
             let native_models = if gate { Vec::new() } else { crate::agy::native_models(meta.env.get("HOME").map(String::as_str)).await };
+            // our tool rules → agy's permissions.allow/deny (read by agy at start only)
+            self.agy_sync_rules();
             { let mut st = self.agy.lock().unwrap(); st.spawned_args = acp_args.clone(); st.in_turn = false; st.text.clear(); st.tools.clear(); st.native = !gate; if !native_models.is_empty() { st.native_models = native_models; } }
         }
         let mut args = if is_acp || is_agy { acp_args.clone() } else if is_codex { crate::codex::args() } else { vec![
@@ -782,6 +1081,12 @@ impl Session {
         let mut cmd = Command::new("bash");
         cmd.args(["-lic", &cmdline]).current_dir(&meta.cwd).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).process_group(0).kill_on_drop(false);
         cmd.env("CLOUDOS_SESSION", &meta.id);
+        // ADR-008: on an owner's server the login shell does not source ~/.cloudos/env.sh (a workspace sources it via
+        // /etc/profile.d), so agentd itself puts the gate keys into the process environment; the `env …`/`env -u` in the
+        // command line still layers meta.env and unset on top.
+        if crate::codex::env_file() != std::path::Path::new("/etc/cloudos/env.sh") {
+            for (k, v) in crate::codex::workspace_env() { cmd.env(k, v); }
+        }
         let mut child = cmd.spawn().with_context(|| format!("запуск {cmdline}"))?;
         let stdin = child.stdin.take().context("stdin")?;
         let stdout = child.stdout.take().context("stdout")?;
@@ -790,7 +1095,7 @@ impl Session {
         *self.stdin.lock().await = Some(stdin);
         *self.child.lock().unwrap() = Some(child);
         self.set_status(Status::Starting);
-        self.mark_synced();
+        self.mark_run(true);
         // the resume point after an edit is one-shot
         if self.meta.lock().unwrap().resume_at.take().is_some() { self.save_meta(); }
         self.emit(json!({ "kind": "spawn", "cmd": args, "resume": resume, "account": meta.account, "env": meta.env.keys().collect::<Vec<_>>(), "unset": meta.unset }));
@@ -817,7 +1122,7 @@ impl Session {
             me.emit(json!({ "kind": "exit", "code": code }));
             me.tasks.lock().unwrap().clear();
             me.set_status(Status::Exited);
-            me.mark_synced();
+            me.mark_run(false);
         });
         if is_acp {
             let me = self.clone();
@@ -1630,11 +1935,37 @@ impl Session {
         self.save_meta();
     }
 
+    /// The mark at the start (`running`) and at the exit of our own process, together with the note of who writes the
+    /// provider journal from here on (`Meta::own_run`).
+    fn mark_run(&self, running: bool) {
+        self.meta.lock().unwrap().own_run = Some(running);
+        self.mark_synced();
+    }
+
+    /// Was our own process the writer of the provider journal when agentd last went away? Clears the note. A record from
+    /// before the note is judged by the journal: a `spawn` with no `exit` after it.
+    fn take_own_run(&self) -> bool {
+        let noted = self.meta.lock().unwrap().own_run.replace(false);
+        let ours = noted.unwrap_or_else(|| self.journal.lock().unwrap().events.iter().rev().find_map(|e| match e.get("kind").and_then(|k| k.as_str()) { Some("spawn") => Some(true), Some("exit") => Some(false), _ => None }).unwrap_or(false));
+        if noted != Some(false) { self.save_meta(); }
+        ours
+    }
+
     /// Pull in lines appended to the provider journal outside our process (the native TUI from the CLI tab, a
     /// terminal, code-server). A record without a mark (old sessions) simply gets a mark at the current size —
     /// without re-importing what is already in the journal. Returns the number of events added.
     pub(crate) fn sync_transcript(&self) -> usize {
         if self.alive() { return 0 }
+        // agentd went away while our own process was running (an update, a stopped workspace, a reboot): nothing marked what
+        // the process wrote, though all of it reached our journal from its stream. Claude's lines are told apart below
+        // (`news_of_own_run`) — what the stream had not delivered yet is picked up, the rest is skipped. The other engines'
+        // lines carry nothing to tell a copy by, so they are marked as known wholesale.
+        let own = self.take_own_run();
+        if own && self.meta.lock().unwrap().agent != "claude" {
+            self.mark_synced();
+            tracing::info!("session {}: журнал провайдера писал наш процесс до остановки agentd — отмечен как учтённый", &self.id()[..8]);
+            return 0;
+        }
         let Some(path) = self.transcript_path() else { return 0 };
         // picked up by the old parser and never had turns under agentd — rebuild the journal
         // entirely
@@ -1674,8 +2005,7 @@ impl Session {
         let Some(skip) = synced else { self.meta.lock().unwrap().synced_lines = Some(total); self.save_meta(); return 0 };
         if total <= skip { return 0 }
         let parsed = if agent == "codex" { crate::import::parse_codex(&text, skip) } else { crate::import::parse_claude(&text, skip) };
-        let known: std::collections::HashSet<String> = self.journal.lock().unwrap().events.iter().filter_map(|e| e.get("uuid").and_then(|u| u.as_str()).map(str::to_string)).collect();
-        let events: Vec<Value> = parsed.events.into_iter().filter(|e| e.get("uuid").and_then(|u| u.as_str()).map(|u| !known.contains(u)).unwrap_or(true)).collect();
+        let events = { let j = self.journal.lock().unwrap(); if own { news_of_own_run(&j.events, parsed.events) } else { not_yet_known(&j.events, parsed.events) } };
         let n = events.len();
         self.import_events(events);
         {
@@ -1839,7 +2169,7 @@ impl Manager {
         let meta = Meta {
             id: id.clone(), title: crate::import::title_of(&parsed, f.agent), label: None, limit_hit: None, agent: f.agent.to_string(), cwd: f.cwd.clone(), created_at: f.created_at,
             provider_session_id: Some(f.id.clone()), model: parsed.model.clone(), permission_mode: None, account: None, env: HashMap::new(), unset: Vec::new(),
-            imported: true, transcript: Some(f.path.to_string_lossy().into_owned()), synced_lines: Some(parsed.lines), usage_base: parsed.usage, effort: None, import_v: Some(crate::import::VERSION), max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None
+            imported: true, transcript: Some(f.path.to_string_lossy().into_owned()), synced_lines: Some(parsed.lines), usage_base: parsed.usage, effort: None, import_v: Some(crate::import::VERSION), max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None, own_run: None, journal_rev: 0
         };
         let s = Session::load(self.dir.join(&id), meta)?;
         s.import_events(parsed.events);
@@ -1900,7 +2230,7 @@ impl Manager {
         let meta = Meta {
             id: id.clone(), title: opts.title.unwrap_or_else(|| crate::engines::title(&agent).to_string()), label: None, limit_hit: None, agent, cwd, created_at: now_ms() / 1000,
             provider_session_id: opts.resume.clone(), model: opts.model, permission_mode: opts.permission_mode,
-            account: opts.account, env: opts.env, unset: opts.unset, imported: false, transcript: None, synced_lines: None, usage_base: None, effort: opts.effort, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: opts.cache_ttl, allowed_tools: opts.allowed_tools, disallowed_tools: opts.disallowed_tools, resume_at: None, context_window: ctx_win
+            account: opts.account, env: opts.env, unset: opts.unset, imported: false, transcript: None, synced_lines: None, usage_base: None, effort: opts.effort, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: opts.cache_ttl, allowed_tools: opts.allowed_tools, disallowed_tools: opts.disallowed_tools, resume_at: None, context_window: ctx_win, own_run: None, journal_rev: 0
         };
         let s = Session::load(self.dir.join(&id), meta)?;
         s.save_meta();
@@ -2120,6 +2450,15 @@ pub fn lite(ev: &Value) -> Value {
 
 /// Does the turn error text speak of an exhausted limit (Claude: "Switch to another model … to continue", rate_limit_error, 429; gate: cooling
 /// down)
+/// Has a limit mark (`limit_hit` in the session meta) outlived its window? With a reset time — once it has passed; without
+/// one — a week after the hit (the longest subscription window). Until a successful turn clears the mark, nothing else
+/// does: a conversation that was never continued kept a three-week-old hit.
+pub fn limit_hit_expired(hit: &Value, now: u64) -> bool {
+    let resets = match hit.get("resets_at") { Some(Value::String(s)) => epoch_of_rfc3339(s), Some(Value::Number(n)) => n.as_u64().map(|t| if t > 10_000_000_000 { t / 1000 } else { t }), _ => None };
+    if let Some(t) = resets { return now >= t }
+    now.saturating_sub(hit.get("at").and_then(|a| a.as_u64()).unwrap_or(now)) >= 7 * 86_400
+}
+
 pub fn is_limit_text(t: &str) -> bool {
     let l = t.to_ascii_lowercase();
     ["rate_limit", "rate limit", "usage limit", "hit your limit", "switch to another model", "cooling down", "(429)", "too many requests", "quota exceeded", "resource_exhausted"].iter().any(|k| l.contains(k))
@@ -2157,6 +2496,25 @@ pub fn rfc3339(secs: u64) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn limit_mark_expires_with_its_window() {
+        use serde_json::json;
+        let at = 1_793_003_122u64;  // 2026-10-26 08:25 UTC
+        // with a reset time: live before it, expired after
+        let hit = json!({ "at": at, "window": "five_hour", "resets_at": "2026-10-26T11:19:08Z" });
+        assert!(!super::limit_hit_expired(&hit, at + 600));
+        assert!(super::limit_hit_expired(&hit, 1_793_013_548));
+        // a numeric reset time (seconds or milliseconds) is understood too
+        assert!(super::limit_hit_expired(&json!({ "at": at, "resets_at": 1_793_013_548u64 }), 1_793_013_549));
+        assert!(!super::limit_hit_expired(&json!({ "at": at, "resets_at": 1_793_013_548_000u64 }), 1_793_013_000));
+        // without a reset time (a turn error with limit text): a week after the hit
+        let bare = json!({ "at": at, "source": "result", "text": "usage limit" });
+        assert!(!super::limit_hit_expired(&bare, at + 6 * 86_400));
+        assert!(super::limit_hit_expired(&bare, at + 7 * 86_400));
+        // a mark without `at` is not thrown away blindly
+        assert!(!super::limit_hit_expired(&json!({ "source": "result" }), at));
+    }
+
     #[test]
     fn lite_trims_tool_results_and_inputs_only() {
         let big = "x".repeat(20_000);
@@ -2254,7 +2612,7 @@ mod tests {
 
     #[test]
     fn meta_public_hides_env_values() {
-        let m = Meta { id: "x".into(), agent: "claude".into(), cwd: "/".into(), title: "t".into(), label: None, limit_hit: None, created_at: 0, provider_session_id: None, model: None, permission_mode: None, account: Some("acc".into()), env: HashMap::from([("ANTHROPIC_API_KEY".to_string(), "sk-secret".to_string())]), unset: vec!["ANTHROPIC_BASE_URL".into()], imported: false, transcript: None, synced_lines: None, usage_base: None, effort: None, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None };
+        let m = Meta { id: "x".into(), agent: "claude".into(), cwd: "/".into(), title: "t".into(), label: None, limit_hit: None, created_at: 0, provider_session_id: None, model: None, permission_mode: None, account: Some("acc".into()), env: HashMap::from([("ANTHROPIC_API_KEY".to_string(), "sk-secret".to_string())]), unset: vec!["ANTHROPIC_BASE_URL".into()], imported: false, transcript: None, synced_lines: None, usage_base: None, effort: None, import_v: None, max_thinking_tokens: None, service_tier: None, cache_ttl: None, allowed_tools: Vec::new(), disallowed_tools: Vec::new(), resume_at: None, context_window: None, own_run: None, journal_rev: 0 };
         let p = m.public();
         assert_eq!(p.env.get("ANTHROPIC_API_KEY").map(String::as_str), Some("•••"));
         assert_eq!(p.unset, vec!["ANTHROPIC_BASE_URL"]);
@@ -2265,6 +2623,212 @@ mod tests {
     fn quoting() {
         assert_eq!(shell_quote("--session-id"), "--session-id");
         assert_eq!(shell_quote("a b'c"), "'a b'\\''c'");
+    }
+
+    // ---- second copies from the provider journal (the feed that "lost" its history after every agentd restart) ----
+
+    fn ev(seq: u64, kind: &str, extra: Value) -> Value {
+        let mut e = json!({ "seq": seq, "kind": kind, "ts": 1_000_000 + seq * 1000 });
+        for (k, v) in extra.as_object().cloned().unwrap_or_default() { e[k] = v; }
+        e
+    }
+    fn text(t: &str) -> Value { json!([{ "type": "text", "text": t }]) }
+    fn result(id: &str) -> Value { json!([{ "type": "tool_result", "tool_use_id": id, "content": "out" }]) }
+
+    /// The journal of a turn as the stream records it, an agentd restart, and the same turn read back from the file.
+    fn journal_after_a_restart() -> Vec<Value> {
+        vec![
+            ev(1, "user", json!({ "content": text("собери проект") })),                                   // our own send: no uuid
+            ev(2, "assistant", json!({ "content": [{ "type": "tool_use", "id": "t1", "name": "Bash" }], "uuid": "a1" })),
+            ev(3, "tool_result", json!({ "content": result("t1") })),
+            ev(4, "assistant", json!({ "content": text("готово"), "uuid": "a2" })),
+            ev(5, "result", json!({ "subtype": "success" })),
+            ev(6, "status", json!({ "status": "idle" })),
+            ev(7, "system", json!({ "subtype": "agentd_restart" })),
+            ev(8, "spawn", json!({})),
+            // read back from the provider journal: the CLI's own time and uuid on the message, the same call id on the result
+            ev(9, "user", json!({ "content": text("собери проект"), "uuid": "u1", "ts": 1_002_500u64 })),
+            ev(10, "tool_result", json!({ "content": result("t1"), "ts": 1_003_100u64 })),
+            ev(11, "initialized", json!({})),
+            ev(12, "status", json!({ "status": "idle" })),
+        ]
+    }
+
+    #[test]
+    fn second_copies_are_told_from_new_events() {
+        let j = journal_after_a_restart();
+        assert_eq!(surplus(&j).copies, [9u64, 10].into_iter().collect(), "повторно прочитанные сообщение и результат инструмента");
+        // the same words sent twice are two messages: each takes one copy, a third one from the terminal stays
+        let twice = vec![
+            ev(1, "user", json!({ "content": text("да") })), ev(2, "user", json!({ "content": text("да"), "ts": 1_900_000u64 })),
+            ev(3, "user", json!({ "content": text("да"), "uuid": "u1", "ts": 1_001_200u64 })), ev(4, "user", json!({ "content": text("да"), "uuid": "u2", "ts": 1_900_300u64 })),
+            ev(5, "user", json!({ "content": text("да"), "uuid": "u3", "ts": 1_900_900u64 })),
+            ev(6, "status", json!({})),
+        ];
+        assert_eq!(surplus(&twice).copies, [3u64, 4].into_iter().collect());
+        // the same words an hour later, typed in the terminal — a message of its own
+        let later = vec![ev(1, "user", json!({ "content": text("продолжай") })), ev(2, "user", json!({ "content": text("продолжай"), "uuid": "u9", "ts": 1_000_000u64 + 3_600_000 })), ev(3, "status", json!({}))];
+        assert!(surplus(&later).is_empty());
+        // a result is a copy only when every call in it was already answered; an event without ids is never one
+        let results = vec![
+            ev(1, "tool_result", json!({ "content": result("t1") })), ev(2, "tool_result", json!({ "content": [result("t1")[0].clone(), result("t2")[0].clone()] })),
+            ev(3, "tool_result", json!({ "content": result("t2") })), ev(4, "tool_result", json!({ "content": [{ "type": "tool_result", "content": "no id" }] })),
+            ev(5, "status", json!({})),
+        ];
+        assert_eq!(surplus(&results).copies, [3u64].into_iter().collect());
+        // the same line of the owner read back twice: the first copy is told by the words, the second by the uuid
+        let reread = vec![
+            ev(1, "user", json!({ "content": text("да") })), ev(2, "user", json!({ "content": text("да"), "uuid": "u1", "ts": 1_001_100u64 })),
+            ev(3, "user", json!({ "content": text("да"), "uuid": "u1", "ts": 1_001_100u64 })), ev(4, "status", json!({})),
+        ];
+        assert_eq!(surplus(&reread).copies, [2u64, 3].into_iter().collect());
+        // a copy at the very end is a copy too (the journal keeps its place — see the rewrite test)
+        let tail = vec![ev(1, "tool_result", json!({ "content": result("t1") })), ev(2, "tool_result", json!({ "content": result("t1") }))];
+        assert_eq!(surplus(&tail).copies, [2u64].into_iter().collect());
+        // nothing to remove in an ordinary journal
+        assert!(surplus(&journal_after_a_restart()[..8]).is_empty());
+    }
+
+    #[test]
+    fn provider_journal_brings_only_what_is_new() {
+        let j: Vec<Value> = journal_after_a_restart()[..8].to_vec();
+        // what the file holds for the lines our own process wrote, plus a message typed in the native TUI afterwards
+        let parsed = vec![
+            json!({ "kind": "user", "content": text("собери проект"), "uuid": "u1", "ts": 1_002_500u64 }),
+            json!({ "kind": "assistant", "content": [{ "type": "tool_use", "id": "t1", "name": "Bash" }], "uuid": "a1" }),
+            json!({ "kind": "tool_result", "content": result("t1"), "parent_tool_use_id": null }),
+            json!({ "kind": "assistant", "content": text("готово"), "uuid": "a2" }),
+            json!({ "kind": "user", "content": text("а теперь тесты"), "uuid": "u2", "ts": 9_000_000u64 }),
+            json!({ "kind": "assistant", "content": [{ "type": "tool_use", "id": "t2", "name": "Bash" }], "uuid": "a3" }),
+            json!({ "kind": "tool_result", "content": result("t2"), "parent_tool_use_id": null }),
+        ];
+        let fresh = not_yet_known(&j, parsed.clone());
+        assert_eq!(fresh.iter().map(|e| e.get("uuid").and_then(|u| u.as_str()).unwrap_or("result").to_string()).collect::<Vec<_>>(), vec!["u2", "a3", "result"], "только ход из терминала");
+        // read a second time (the mark was lost again): nothing
+        let mut j2 = j.clone(); j2.extend(fresh);
+        assert!(not_yet_known(&j2, parsed).is_empty());
+    }
+
+    /// A run with a compaction, a background task, a model switch and an interruption; agentd restarts while the process is
+    /// alive, and the provider journal is read back.
+    fn journal_with_the_clis_own_lines() -> Vec<Value> {
+        vec![
+            ev(1, "spawn", json!({})),
+            ev(2, "user", json!({ "content": text("собери проект") })),
+            ev(3, "init", json!({})),
+            ev(4, "assistant", json!({ "content": text("собираю"), "uuid": "a1", "usage": null, "local": false })),
+            ev(5, "system", json!({ "subtype": "compact_boundary" })),
+            ev(6, "task", json!({ "subtype": "task_notification" })),
+            // the output of a slash command as the stream gives it
+            ev(7, "assistant", json!({ "content": text("Set model to opus"), "uuid": "l1", "usage": null, "local": true, "model": "<synthetic>" })),
+            ev(8, "interrupt", json!({})),
+            ev(9, "result", json!({ "subtype": "success" })),                                             // the last thing the stream delivered
+            ev(10, "status", json!({ "status": "idle" })),
+            ev(11, "system", json!({ "subtype": "agentd_restart" })),
+            ev(12, "spawn", json!({})),
+            // the CLI's own lines of that run, read back from its journal — each with the CLI's time
+            ev(13, "user", json!({ "content": text("This session is being continued from a previous conversation that ran out of context."), "uuid": "s1", "ts": 1_005_000u64 })),
+            ev(14, "user", json!({ "content": text("<task-notification><task-id>b1</task-id><status>completed</status></task-notification>"), "uuid": "n1", "ts": 1_006_000u64 })),
+            ev(15, "user", json!({ "content": text("/model opus"), "uuid": "c1", "ts": 1_006_500u64 })),
+            ev(16, "assistant", json!({ "content": text("Set model to opus"), "uuid": "c2", "local": true, "model": "<synthetic>", "ts": 1_006_600u64 })),
+            ev(17, "user", json!({ "content": text("[Request interrupted by user]"), "uuid": "i1", "ts": 1_008_000u64 })),
+            // typed in the native TUI after our process had gone quiet — not ours
+            ev(18, "user", json!({ "content": text("а теперь тесты"), "uuid": "t1", "ts": 1_010_500u64 })),
+            ev(19, "initialized", json!({})),
+            ev(20, "status", json!({ "status": "idle" })),
+        ]
+    }
+
+    #[test]
+    fn own_lines_read_back_in_another_form_are_told_by_the_time_of_the_run() {
+        let j = journal_with_the_clis_own_lines();
+        let found = surplus(&j);
+        assert_eq!(found.echoes, [13u64, 14, 15, 16, 17].into_iter().collect(), "сводка, уведомление, команда с её выводом, пометка о прерывании");
+        assert!(found.copies.is_empty());
+        // a journal from before the restart note (the run is not closed by anything): the messages are still told by their
+        // time, the command card is left alone — a card of the stream would look the same there
+        let unclosed: Vec<Value> = j.iter().filter(|e| !matches!(seq_of(e), Some(11) | Some(12))).cloned().collect();
+        assert_eq!(surplus(&unclosed).echoes, [13u64, 14, 15, 17].into_iter().collect());
+        // the same lines in a conversation that never ran under agentd (picked up from the disk, continued in the TUI) stay
+        let picked_up: Vec<Value> = j[12..18].to_vec();
+        assert!(surplus(&picked_up).is_empty());
+        // a message typed in the TUI between two of our runs, read when the second run is long over
+        let mut between = j[..10].to_vec();
+        between.extend([ev(11, "exit", json!({})), ev(12, "user", json!({ "content": text("из терминала"), "uuid": "t2", "ts": 1_011_500u64 })), ev(13, "spawn", json!({})), ev(14, "init", json!({})), ev(15, "exit", json!({}))]);
+        assert!(surplus(&between).is_empty());
+    }
+
+    #[test]
+    fn after_a_stop_with_a_live_process_only_what_the_stream_had_not_delivered_is_read() {
+        let j: Vec<Value> = journal_with_the_clis_own_lines()[..10].to_vec();
+        let parsed = vec![
+            json!({ "kind": "user", "content": text("собери проект"), "uuid": "u1", "ts": 1_002_100u64 }),
+            // unknown to our journal, yet before a line it knows: the stream had delivered it (in whatever form)
+            json!({ "kind": "assistant", "content": text("No response requested."), "uuid": "a0", "model": "<synthetic>" }),
+            json!({ "kind": "assistant", "content": text("собираю"), "uuid": "a1" }),
+            json!({ "kind": "user", "content": text("This session is being continued from a previous conversation that ran out of context."), "uuid": "s1", "ts": 1_005_000u64 }),
+            json!({ "kind": "user", "content": text("/model opus"), "uuid": "c1", "ts": 1_006_500u64 }),
+            json!({ "kind": "assistant", "content": text("Set model to opus"), "uuid": "c2", "local": true, "model": "<synthetic>" }),
+            json!({ "kind": "assistant", "content": text("Set model to opus"), "uuid": "l1", "model": "<synthetic>" }),
+            json!({ "kind": "user", "content": text("[Request interrupted by user]"), "uuid": "i1", "ts": 1_008_000u64 }),
+            // written by the process when agentd was already gone
+            json!({ "kind": "assistant", "content": [{ "type": "tool_use", "id": "t9", "name": "Bash" }], "uuid": "a9" }),
+            json!({ "kind": "tool_result", "content": result("t9"), "parent_tool_use_id": null }),
+        ];
+        let fresh = news_of_own_run(&j, parsed.clone());
+        assert_eq!(fresh.iter().map(|e| e.get("uuid").and_then(|u| u.as_str()).unwrap_or("result").to_string()).collect::<Vec<_>>(), vec!["a9", "result"]);
+        // the same file read as if somebody else had written it (the old way) brings the CLI's own lines as messages
+        assert!(not_yet_known(&j, parsed.clone()).iter().any(|e| e.get("uuid").and_then(|u| u.as_str()) == Some("s1")));
+        // read a second time: nothing
+        let mut j2 = j.clone(); j2.extend(fresh);
+        assert!(news_of_own_run(&j2, parsed).is_empty());
+        // nothing of the file is known yet (agentd went away right after the start): the answers come, the owner's side does not
+        let early = news_of_own_run(&j[..2], vec![
+            json!({ "kind": "user", "content": text("собери проект"), "uuid": "u1", "ts": 1_002_100u64 }),
+            json!({ "kind": "assistant", "content": text("собираю"), "uuid": "a1" }),
+        ]);
+        assert_eq!(early.len(), 1);
+        assert_eq!(early[0]["uuid"], "a1");
+    }
+
+    #[test]
+    fn a_dropped_last_event_leaves_its_place_in_the_numbering() {
+        let d = tempfile_dir();
+        let lines = vec![ev(1, "user", json!({ "content": text("да") })), ev(2, "status", json!({})), ev(3, "user", json!({ "content": text("да"), "uuid": "u1", "ts": 1_001_200u64 }))];
+        std::fs::write(d.join("events.jsonl"), lines.iter().map(|e| e.to_string() + "\n").collect::<String>()).unwrap();
+        let mut j = Journal::open(&d).unwrap();
+        assert_eq!(j.dedupe(&d).unwrap(), 1);
+        assert_eq!(j.events.iter().map(|e| (seq_of(e).unwrap(), e["kind"].as_str().unwrap().to_string())).collect::<Vec<_>>(), vec![(1, "user".to_string()), (2, "status".to_string()), (3, "blank".to_string())]);
+        assert_eq!(j.events[2]["ts"], 1_001_200u64);
+        assert!(j.events[2].get("content").is_none() && j.events[2].get("uuid").is_none());
+        assert_eq!(j.dedupe(&d).unwrap(), 0, "пустое место — не копия");
+        assert_eq!(seq_of(&j.append(json!({ "kind": "status" }))), Some(4));
+        drop(j);
+        let again = Journal::open(&d).unwrap();
+        assert_eq!((again.events.len(), again.seq), (4, 4));
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn journal_is_rewritten_without_second_copies_and_keeps_its_numbering() {
+        let d = tempfile_dir();
+        let body: String = journal_after_a_restart().iter().map(|e| e.to_string() + "\n").collect();
+        std::fs::write(d.join("events.jsonl"), body).unwrap();
+        let mut j = Journal::open(&d).unwrap();
+        assert_eq!(j.dedupe(&d).unwrap(), 2);
+        assert_eq!(j.events.iter().filter_map(seq_of).collect::<Vec<_>>(), vec![1, 2, 3, 4, 5, 6, 7, 8, 11, 12]);
+        assert_eq!(j.dedupe(&d).unwrap(), 0, "второй проход ничего не находит");
+        // the file holds the same, a new event continues the numbering
+        let next = j.append(json!({ "kind": "status" }));
+        assert_eq!(seq_of(&next), Some(13));
+        drop(j);
+        let again = Journal::open(&d).unwrap();
+        assert_eq!(again.events.len(), 11);
+        assert_eq!(again.seq, 13);
+        assert!(!d.join("events.jsonl.tmp").exists());
+        // the journal as it was is kept next to it, and a later cleanup does not overwrite that copy
+        assert_eq!(std::fs::read_to_string(d.join(DEDUPE_BACKUP)).unwrap().lines().count(), 12);
+        let _ = std::fs::remove_dir_all(&d);
     }
 
     fn tempfile_dir() -> PathBuf {

@@ -1,0 +1,57 @@
+# Imported from the umbrel catalog by `cloudd store import umbrel`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/guacamole-umbrel
+description: Access your computers from anywhere using just a web browser
+endpoint:
+  port: 8080
+  service: web
+env:
+  APP_GUACAMOLE_DB_PASSWORD: ''
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/guacamole/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/guacamole/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/guacamole/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/guacamole/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: guacadmin
+name: guacamole-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_GUACAMOLE_DB_PASSWORD
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app guacamole db password
+  options: null
+  required: false
+  type: password
+tags: []
+title: Apache Guacamole
+type: app
+upstream:
+  author: The Apache Software Foundation
+  categories:
+  - networking
+  release_notes: null
+  source: https://github.com/apache/guacamole-client
+  version: 1.6.0
+  website: https://guacamole.apache.org/
+website: https://guacamole.apache.org/

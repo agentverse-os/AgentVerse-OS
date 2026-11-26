@@ -264,14 +264,19 @@ do_host() { # do_host [all] — host packages; Docker, Incus and Tailscale are h
   apt-get update -q
   local hold=() pkg
   if [[ "${1:-}" != all ]]; then
-    for pkg in docker-ce docker-ce-cli containerd.io docker-compose-plugin incus incus-client tailscale; do dpkg -s "$pkg" >/dev/null 2>&1 && hold+=("$pkg"); done
+    for pkg in docker-ce docker-ce-cli docker-ce-rootless-extras containerd.io docker-compose-plugin docker-buildx-plugin incus incus-base incus-client tailscale; do dpkg -s "$pkg" >/dev/null 2>&1 && hold+=("$pkg"); done
     (( ${#hold[@]} )) && apt-mark hold "${hold[@]}" >/dev/null
   else
     warn "обновляются и Docker, Incus, Tailscale: перезапуск docker.service перезапустит cloudd и прервёт операции; tailscaled — разорвёт туннель на секунды"
     if [[ "${SSH_CONNECTION:-}" =~ ^100\. ]]; then warn "сессия SSH идёт через Tailscale — при обновлении tailscale она может прерваться, обновление продолжится"; fi
   fi
-  apt-get -y -q -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold upgrade
+  # --with-new-pkgs: an upgrade that needs a new dependency (a new kernel image behind linux-image-generic, the libraries a
+  # new Incus build pulls in) is otherwise silently kept back — and with it the security fix it carries. Nothing is removed.
+  apt-get -y -q -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold --with-new-pkgs upgrade
   (( ${#hold[@]} )) && apt-mark unhold "${hold[@]}" >/dev/null
+  # after the holds are lifted: what is still kept back was not held by us
+  local kept; kept="$(apt-get -s -q --with-new-pkgs upgrade 2>/dev/null | sed -n '/kept back/,/^[0-9]/p' | grep '^ ' | xargs || true)"
+  [[ -n "$kept" ]] && warn "не обновились (нужно удаление других пакетов или идёт поэтапная раскатка): $kept"
   if have restic; then restic self-update >/dev/null 2>&1 || true; fi
   if [[ -f /var/run/reboot-required ]]; then warn "хост просит перезагрузку (ядро Linux обновлено): sudo reboot в удобное время"; else ok "пакеты хоста актуальны"; fi
   (( ${#hold[@]} )) && echo "не обновлялись (удержаны): ${hold[*]} — обновить их: sudo agentverse-update --host-all"

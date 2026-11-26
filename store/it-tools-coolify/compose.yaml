@@ -16,7 +16,7 @@ services:
       - -f
       - http://127.0.0.1:80
       timeout: 10s
-    image: corentinth/it-tools:latest
+    image: corentinth/it-tools:2024.10.22-7ca5933
     networks:
       appnet:
         aliases:

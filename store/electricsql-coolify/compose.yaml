@@ -20,7 +20,7 @@ services:
       - -f
       - http://127.0.0.1:3000/v1/health
       timeout: 5s
-    image: electricsql/electric:1.4.2
+    image: electricsql/electric:1.8.1
     networks:
       appnet:
         aliases:

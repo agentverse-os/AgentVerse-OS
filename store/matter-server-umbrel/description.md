@@ -1,3 +1,3 @@
-🛜 This project implements a Matter Controller Server over WebSockets using the official Matter (formerly CHIP) SDK as a base and provides both a server and client implementation.
+🛜 Matter Server connects Matter devices to Home Assistant and other compatible applications through a WebSocket API. Built on matter.js and maintained by the Open Home Foundation, it supports commissioning, device control, firmware updates, and network diagnostics.
 
-🏠 The goal of this project is primarily to have Matter support in Home Assistant but its universal approach makes it suitable to be used in other projects too.
+🏠 The built-in dashboard lets you manage devices and explore Thread and Wi-Fi networks. Home Assistant can connect to the server at ws://umbrel.local:5580/ws; replace umbrel.local with your Umbrel's hostname or IP address if needed. Only allow trusted clients on your local network to access this port.

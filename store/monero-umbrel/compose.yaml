@@ -6,7 +6,7 @@ networks:
 services:
   monerod:
     command: ${APP_MONERO_COMMAND}
-    image: ghcr.io/sethforprivacy/simple-monerod:v0.18.5.1@sha256:086eeb95174223ed166915d9f93dcfe4a7699efb89a30ca1569153dbf4f65f02
+    image: ghcr.io/sethforprivacy/simple-monerod:v0.18.5.4@sha256:e3daef3c78669a1421f06ee43fbeaf263b67794528aba7a70db1007a13721b33
     networks:
       appnet:
         aliases:

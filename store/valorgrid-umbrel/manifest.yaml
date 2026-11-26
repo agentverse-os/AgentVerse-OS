@@ -42,10 +42,8 @@ upstream:
   author: aivm23
   categories:
   - finance
-  release_notes: |-
-    This release improves portfolio imports, charts, backups, and container security.
-    - Adds MyInvestor CSV as a known broker import adapter - Refreshes the portfolio history chart after editing a transaction - Improves backup filename uniqueness for rapid backup creation - Updates dependencies to address a security issue
+  release_notes: This update fixes backup retention so the newly created backup is not pruned when filesystem timestamps tie.
   source: https://github.com/aivm23/ValorGrid
-  version: 3.34.0
+  version: 3.36.3
   website: https://valorgrid.app
 website: https://valorgrid.app

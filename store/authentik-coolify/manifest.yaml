@@ -18,7 +18,7 @@ env:
   AUTHENTIK_EMAIL__USE_SSL: ''
   AUTHENTIK_EMAIL__USE_TLS: ''
   AUTHENTIK_ERROR_REPORTING__ENABLED: 'true'
-  AUTHENTIK_TAG: 2025.10.3
+  AUTHENTIK_TAG: 2026.8.5
   POSTGRES_DB: authentik
   POSTGRES_HOST: postgresql
   POSTGRES_USER: ''
@@ -53,7 +53,7 @@ route:
 schema: 1
 settings:
 - env: AUTHENTIK_TAG
-  hint: 'по умолчанию: 2025.10.3'
+  hint: 'по умолчанию: 2026.8.5'
   label: authentik tag
   options: null
   required: false

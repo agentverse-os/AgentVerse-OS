@@ -39,6 +39,6 @@ upstream:
   categories:
   - finance
   source: https://github.com/ellite/Wallos
-  tipi_version: 154
-  version: 5.4.5
+  tipi_version: 176
+  version: 5.11.1
 website: https://github.com/ellite/Wallos

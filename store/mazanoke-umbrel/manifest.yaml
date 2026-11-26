@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/mazanoke/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/mazanoke/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/mazanoke/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mazanoke/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/mazanoke/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/mazanoke/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -41,8 +41,8 @@ upstream:
   author: civilblur
   categories:
   - files
-  release_notes: This update improves stability and fixes several image conversion issues in Firefox, including incorrect output extensions and SVG conversion failures. It also includes minor PWA caching improvements and dependency updates.
+  release_notes: This update includes security-focused dependency upgrades for HEIC, TIFF, and ZIP image processing. It also removes an unused dependency and adds OCI metadata labels to the Docker image.
   source: https://github.com/civilblur/mazanoke
-  version: 1.1.6
+  version: 1.1.7
   website: https://mazanoke.com/
 website: https://mazanoke.com/

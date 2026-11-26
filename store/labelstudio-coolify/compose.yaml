@@ -32,7 +32,7 @@ services:
       - CMD-SHELL
       - curl -f http://localhost:8080/health || exit 1
       timeout: 20s
-    image: heartexlabs/label-studio:latest
+    image: heartexlabs/label-studio:1.23.2
     networks:
       appnet:
         aliases:
@@ -52,7 +52,7 @@ services:
       - CMD-SHELL
       - pg_isready -h localhost -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     networks:
       appnet:
         aliases:

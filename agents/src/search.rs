@@ -103,7 +103,13 @@ pub async fn chat_export(State(app): State<Arc<App>>, Path(id): Path<String>, Qu
             if !res.trim().is_empty() { out.push_str(&format!("<details><summary>{}</summary>\n\n```\n{}\n```\n\n</details>\n\n", if tu.ok { "результат" } else { "ошибка" }, res.trim_end())); }
         }
         if !m.text.trim().is_empty() { out.push_str(m.text.trim()); out.push_str("\n\n"); }
-        if let Some(e) = &m.error { out.push_str(&format!("⚠ {e}\n\n")); }
+        // the two states kept in the error field are written in words, as the interface shows them
+        match m.error.as_deref() {
+            Some(crate::simplechat::STOPPED) => out.push_str("_Остановлено._\n\n"),
+            Some(crate::simplechat::INTERRUPTED) => out.push_str("_Ответ прерван перезапуском сервиса._\n\n"),
+            Some(e) => out.push_str(&format!("⚠ {e}\n\n")),
+            None => {}
+        }
     }
     Ok(([(header::CONTENT_TYPE, "text/markdown; charset=utf-8".to_string()), (header::CONTENT_DISPOSITION, format!("attachment; filename=\"{base}.md\""))], out).into_response())
 }

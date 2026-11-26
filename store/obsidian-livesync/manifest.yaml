@@ -61,6 +61,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/vrtmrz/self-hosted-livesync-server
-  tipi_version: 8
-  version: 3.5.2
+  tipi_version: 10
+  version: 3.5.3
 website: https://github.com/vrtmrz/self-hosted-livesync-server

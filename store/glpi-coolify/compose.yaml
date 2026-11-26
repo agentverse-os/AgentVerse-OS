@@ -24,7 +24,7 @@ services:
       - -f
       - http://localhost/
       timeout: 10s
-    image: glpi/glpi:11
+    image: glpi/glpi:12
     networks:
       appnet:
         aliases:

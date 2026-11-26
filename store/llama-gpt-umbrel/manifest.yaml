@@ -10,9 +10,9 @@ endpoint:
   service: llama-gpt-ui
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/llama-gpt/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/llama-gpt/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/llama-gpt/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/llama-gpt/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/llama-gpt/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/llama-gpt/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

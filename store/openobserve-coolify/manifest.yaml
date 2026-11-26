@@ -9,8 +9,6 @@ endpoint:
   port: 5080
   service: openobserve
 env:
-  SERVICE_PASSWORD_OPENOBSERVE:
-    generate: password
   SERVICE_URL_OPENOBSERVE_5080: https://${APP_DOMAIN}
   ZO_COOKIE_SECURE_ONLY: 'true'
   ZO_ROOT_USER_EMAIL: root@example.com
@@ -21,11 +19,11 @@ hooks: {}
 host_docker_socket: false
 icon: ./logo.svg
 login:
-  mode: generated
+  mode: app
   note: null
-  password: SERVICE_PASSWORD_OPENOBSERVE
+  password: null
   path: null
-  user: ZO_ROOT_USER_EMAIL
+  user: null
 name: openobserve-coolify
 notes: []
 origin: coolify

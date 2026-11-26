@@ -22,7 +22,7 @@ services:
       - -f
       - http://127.0.0.1:8443
       timeout: 10s
-    image: lscr.io/linuxserver/code-server:latest
+    image: lscr.io/linuxserver/code-server:4.145.2
     networks:
       appnet:
         aliases:

@@ -8,12 +8,23 @@ services:
     command: gateway run
     environment:
     - HERMES_HOME=/home/hermes/.hermes
+    - WIKI_PATH=/home/hermes/.hermes/wiki
+    - GATEWAY_ALLOW_ALL_USERS=true
+    - HERMES_REDACT_SECRETS=true
     - HERMES_UID=1000
     - HERMES_GID=1000
-    - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-    - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-    - OPENAI_API_KEY=${OPENAI_API_KEY}
-    - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    - HERMES_ENABLE_PROJECT_PLUGINS=${HERMES_ENABLE_PROJECT_PLUGINS:-true}
+    - HERMES_OPTIONAL_SKILLS=${HERMES_OPTIONAL_SKILLS:-}
+    - HERMES_ALLOW_PRIVATE_URLS=${HERMES_ALLOW_PRIVATE_URLS:-false}
+    - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY:-}
+    - FIRECRAWL_API_URL=${FIRECRAWL_API_URL:-https://api.firecrawl.dev}
+    - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+    - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+    - API_SERVER_ENABLED=true
+    - API_SERVER_HOST=0.0.0.0
+    - API_SERVER_KEY=${SERVICE_PASSWORD_64_HERMESAPI}
     healthcheck:
       interval: 10s
       retries: 5
@@ -21,7 +32,7 @@ services:
       - CMD-SHELL
       - test -d /home/hermes/.hermes || exit 1
       timeout: 5s
-    image: nousresearch/hermes-agent@sha256:2f1f2f1725e5dc9a61cf6a2dea5aca52a776ec4d022cb29679e6aa3ff303e77a
+    image: nousresearch/hermes-agent:v2026.9.24
     networks:
       appnet:
         aliases:
@@ -29,18 +40,24 @@ services:
     restart: unless-stopped
     volumes:
     - hermes-home:/home/hermes/.hermes
+    - hermes-skills:/home/hermes/.hermes/skills
     - hermes-agent-src:/opt/hermes
   hermes-webui:
     depends_on:
     - hermes-agent
     environment:
     - SERVICE_URL_HERMESWEBUI_8787=${SERVICE_URL_HERMESWEBUI_8787}
+    - SERVICE_USER_HERMESWEBUI=${SERVICE_USER_HERMESWEBUI}
+    - SERVICE_PASSWORD_HERMESWEBUI=${SERVICE_PASSWORD_HERMESWEBUI}
     - HERMES_WEBUI_HOST=0.0.0.0
     - HERMES_WEBUI_PORT=8787
     - HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui
     - WANTED_UID=1000
     - WANTED_GID=1000
+    - HERMES_WEBUI_USERNAME=${SERVICE_USER_HERMESWEBUI}
     - HERMES_WEBUI_PASSWORD=${SERVICE_PASSWORD_HERMESWEBUI}
+    - HERMES_API_URL=http://hermes-agent:8642
+    - HERMES_WEBUI_GATEWAY_API_KEY=${SERVICE_PASSWORD_64_HERMESAPI}
     healthcheck:
       interval: 30s
       retries: 3
@@ -50,7 +67,7 @@ services:
       - -f
       - http://127.0.0.1:8787/health
       timeout: 5s
-    image: ghcr.io/nesquena/hermes-webui:0.51.92
+    image: ghcr.io/nesquena/hermes-webui:0.52.695
     networks:
       appnet:
         aliases:
@@ -71,6 +88,12 @@ volumes:
     driver: local
     driver_opts:
       device: ${APP_DATA_DIR}/hermes-home
+      o: bind
+      type: none
+  hermes-skills:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/hermes-skills
       o: bind
       type: none
   hermes-workspace:

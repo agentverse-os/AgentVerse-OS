@@ -8,7 +8,8 @@ services:
     environment:
       DATA_DIR: /data
       PORT: 3123
-    image: ghcr.io/glasshome/dash:1.2.0@sha256:0ca541fcd07bfaec96687b73ffb0a41eda83c7d7e33c3cf7652097168c948e20
+      TRUSTED_PROXIES: 127.0.0.0/8,::1,${GATEWAY_IP}/32
+    image: ghcr.io/glasshome/dash:1.4.5@sha256:173777a0d0f575907486448f339e33c8268ff8497d8292c59989bb8294540307
     networks:
       appnet:
         aliases:

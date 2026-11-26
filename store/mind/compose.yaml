@@ -7,7 +7,7 @@ services:
   mind:
     environment:
       TZ: ${TZ}
-    image: mrcas/mind:v1.4.1
+    image: mrcas/mind:v1.5.2
     networks:
       appnet:
         aliases:

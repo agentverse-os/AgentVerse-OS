@@ -40,6 +40,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/portainer/portainer
-  tipi_version: 70
-  version: 2.44.0
+  tipi_version: 78
+  version: 2.45.3
 website: https://github.com/portainer/portainer

@@ -27,7 +27,7 @@ services:
       - '2'
       - http://localhost:8000
       timeout: 10s
-    image: paperlessngx/paperless-ngx:latest
+    image: paperlessngx/paperless-ngx:3.4.2
     networks:
       appnet:
         aliases:
@@ -50,7 +50,7 @@ services:
       - redis-cli
       - ping
       timeout: 10s
-    image: redis:7.4
+    image: valkey/valkey:9-alpine
     networks:
       appnet:
         aliases:

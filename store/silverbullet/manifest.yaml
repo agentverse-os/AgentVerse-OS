@@ -54,6 +54,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/silverbulletmd/silverbullet
-  tipi_version: 42
-  version: 2.10.0
+  tipi_version: 50
+  version: 2.12.1
 website: https://github.com/silverbulletmd/silverbullet

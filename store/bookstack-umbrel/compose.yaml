@@ -37,13 +37,14 @@ services:
     - PGID=1000
     - TZ=Etc/UTC
     - APP_URL=http://bookstack.dev
+    - APP_PROXIES=${GATEWAY_IP}
     - APP_KEY=${APP_BOOKSTACK_APP_KEY}
     - DB_HOST=bookstack_db_1
     - DB_PORT=3306
     - DB_USERNAME=bookstack
     - DB_PASSWORD=${APP_BOOKSTACK_DB_PASSWORD}
     - DB_DATABASE=bookstack
-    image: linuxserver/bookstack:version-v26.05.4@sha256:3e1aea5d8dd3bb3a5cf16fa7e3b847e2889eedd8516b2825ac379d365b07ba6f
+    image: linuxserver/bookstack:version-v26.09.3@sha256:42d8c8a5b74e2fd8613547ce14a1c011293765ceb3cd50ef4e751597b457798b
     networks:
       appnet:
         aliases:

@@ -1,11 +1,11 @@
 SkyBro is a real-time sky tracker for your home. It runs silently in the background 24/7 and alerts you the moment something interesting is overhead.
 
-✈️ Aircraft — Tracks live planes in your vicinity using OpenSky Network's ADS-B data. Get Pushover or Discord alerts (with photo) when a plane enters your configured radius and altitude window. The live map shows per-airframe silhouettes for jets, widebodies, helicopters, light props, and military aircraft. Every alerted plane is saved to history with its full flight path.
+✈️ Aircraft - Tracks live planes in your vicinity using OpenSky Network's ADS-B data. Get an alert (with photo) via Apprise (Pushover, Discord, Telegram, email, and 130+ other services) when a plane enters your configured radius and altitude window, with optional filters to include or exclude specific callsigns, countries, models, or airframe types. The live map shows per-airframe silhouettes for jets, widebodies, helicopters, light props, and military aircraft. Every alerted plane is saved to history with its full flight path.
 
-🛰️ Satellites — Monitors upcoming passes for the ISS, Hubble Space Telescope, and Tiangong CSS. Fires a push alert before each ISS pass so you never miss one.
+🛰️ Satellites - Monitors upcoming passes for the ISS, Hubble Space Telescope, and Tiangong CSS. Fires a push alert before each ISS pass so you never miss one.
 
-🔭 Astronomy — Full night-sky planner powered by ephem. Shows tonight's dark window, Bortle sky quality, and observation highlights. Browse all 110 Messier objects with equipment and horizon filters, track all 7 planets with rise/set times, and follow 11 annual meteor showers.
+🔭 Astronomy - Full night-sky planner powered by ephem. Shows tonight's dark window, Bortle sky quality, and observation highlights. Browse all 110 Messier objects with equipment and horizon filters, track all 7 planets with rise/set times, and follow 11 annual meteor showers.
 
-☁️ Weather — Pulls hyperlocal forecasts from Open-Meteo (no API key needed) including current conditions, 24-hour hourly breakdown, and 7-day forecast. Includes a sky visibility score for tonight.
+☁️ Weather - Pulls hyperlocal forecasts from Open-Meteo (no API key needed) including current conditions, 24-hour hourly breakdown, and 7-day forecast. Includes a sky visibility score for tonight.
 
-All settings — home coordinates, alert radius, altitude threshold, satellite lead time, and notification credentials are configurable through the built-in settings page. No config file editing required. Changes apply within 15 seconds without restarting.
+All settings (home coordinates, alert radius, altitude threshold, satellite lead time, and notification targets) are configurable through the built-in settings page. No config file editing required. Changes apply within 15 seconds without restarting.

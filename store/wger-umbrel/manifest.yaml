@@ -17,12 +17,12 @@ env:
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
   DEVICE_HOSTNAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/wger/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wger/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wger/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wger/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wger/5.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wger/6.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/5.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wger/6.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -56,18 +56,10 @@ upstream:
   categories:
   - files
   release_notes: |-
-    ⚠️ Major update: wger 2.6 adds a new PowerSync service and JWT-based authentication. You may need to log in again after updating, and custom scripts that used the removed legacy token endpoints must switch to the new allauth/JWT flow or a user API key.
+    This update includes security fixes for the built-in web server (nginx) that wger uses. There are no changes to wger itself.
 
-    Key highlights in this release include:
-      - Backend support for offline mode in the mobile app, including PowerSync data synchronization
-      - Social login and two-factor authentication support
-      - Exercise image API responses now include small and medium thumbnails
-      - Ingredient API filtering now supports nutriscore ranges
-      - Username suggestions are shown when a requested username is already taken
-
-
-    Full release notes are available at https://github.com/wger-project/wger/releases/tag/2.6
+    This update fixes signing in and saving changes when you open wger with https:// in the address bar.
   source: https://github.com/wger-project/wger
-  version: '2.6'
+  version: 2.7-patch.2
   website: https://wger.de/
 website: https://wger.de/

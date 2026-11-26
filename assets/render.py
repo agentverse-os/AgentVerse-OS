@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Растеризация SVG бренда в PNG тем же Chromium, что показывает Desktop (маски SVG cairosvg не умеет).
-Запуск внутри контейнера Playwright: python3 render.py <каталог с svg и render-manifest.json>."""
+"""Rasterizes the brand SVGs into PNG with the same Chromium that shows the Desktop (cairosvg cannot do SVG masks).
+Run inside a Playwright container: python3 render.py <directory with the svg files and render-manifest.json>."""
 import base64, json, sys
 from pathlib import Path
 from playwright.sync_api import sync_playwright

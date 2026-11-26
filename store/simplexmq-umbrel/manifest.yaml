@@ -1,0 +1,65 @@
+# Imported from the umbrel catalog by `cloudd store import umbrel`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/simplexmq-umbrel
+description: Run your own private relay servers for SimpleX Chat
+endpoint:
+  port: 8000
+  service: smp-server
+env:
+  APP_PASSWORD:
+    generate: password
+  APP_SIMPLEXMQ_SMP_IP: 10.21.21.151
+  APP_SIMPLEXMQ_TOR_IP: 10.21.22.151
+  APP_SIMPLEXMQ_XFTP_IP: 10.21.21.152
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/simplexmq/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/simplexmq/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/simplexmq/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/simplexmq/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: null
+name: simplexmq-umbrel
+notes:
+- 'порт 5223:5223 (smp-server) не публикуется: доступ только через edge/gate'
+- 'порт 5443:5443 (xftp-server) не публикуется: доступ только через edge/gate'
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: SimpleX Server
+type: app
+upstream:
+  author: SimpleX Chat
+  categories:
+  - social
+  release_notes: |-
+    ⚠️ Update your SimpleX Chat apps to v6.3.3 or later before updating this server. Older clients can no longer connect.
+
+    If you manually enabled journal message storage, export your messages with the old server and switch to memory or database storage before updating. The default Umbrel configuration already uses memory storage and does not need this migration.
+
+    - Improved message delivery and connection reliability.
+    - Stronger validation of relay requests and file paths.
+    - Better cleanup of interrupted file uploads.
+    - Reduced server resource usage and more reliable background tasks.
+
+    Full release notes: https://github.com/simplex-chat/simplexmq/blob/v7.1.0/CHANGELOG.md
+  source: https://github.com/simplex-chat/simplexmq
+  version: 7.1.0
+  website: https://simplex.chat
+website: https://simplex.chat

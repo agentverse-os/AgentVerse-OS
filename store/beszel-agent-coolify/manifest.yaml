@@ -10,7 +10,9 @@ endpoint:
   service: beszel-agent
 env:
   DISABLE_SSH: 'false'
+  HUB_URL: $SERVICE_URL_BESZEL
   KEY: ''
+  LISTEN: /beszel_socket/beszel.sock
   LOG_LEVEL: warn
   SERVICE_URL_BESZEL: https://${APP_DOMAIN}
   SKIP_GPU: 'false'
@@ -39,6 +41,18 @@ route:
   open: iframe
 schema: 1
 settings:
+- env: LISTEN
+  hint: 'по умолчанию: /beszel_socket/beszel.sock'
+  label: listen
+  options: null
+  required: false
+  type: text
+- env: HUB_URL
+  hint: 'по умолчанию: $SERVICE_URL_BESZEL'
+  label: hub url
+  options: null
+  required: false
+  type: text
 - env: TOKEN
   hint: null
   label: token

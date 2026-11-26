@@ -44,8 +44,13 @@ upstream:
   author: dgtlmoon
   categories:
   - automation
-  release_notes: This update improves page title detection for pages with large head sections, fixes watch errors for invalid JSON responses and URLs containing "|" in fragments, fixes password-protected tag RSS feeds, and includes translation and restock notification improvements.
+  release_notes: |-
+    This update adds ChatGPT sign-in support for the optional MCP integration and removes misleading connection warnings for local AI endpoints.
+
+    Restock watches are now marked as viewed when their chart is opened. Plugins also gain per-watch settings and more control over outgoing requests.
+
+    Full release notes can be found at https://github.com/dgtlmoon/changedetection.io/releases/tag/0.70.3
   source: https://github.com/dgtlmoon/changedetection.io
-  version: 0.55.8
+  version: 0.70.3
   website: https://changedetection.io/
 website: https://changedetection.io/

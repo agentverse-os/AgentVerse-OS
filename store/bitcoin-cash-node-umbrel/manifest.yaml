@@ -56,8 +56,13 @@ upstream:
   author: LoneStrike Labs
   categories:
   - crypto
-  release_notes: Follow-up fixes to the onion peers panel from store review. An onion peer that connected and later went offline now rotates out instead of holding its slot forever, the keep-connected option can once again reach its full four peers when some are already connected, and the known count now matches the list exactly (duplicate entries under different ports are merged).
+  release_notes: |-
+    This update adds support for new storage management and configuration options introduced with umbrelOS 2.0.
+
+    Previous Bitcoin Cash Node 29.1.37 release notes:
+
+    Follow-up fixes to the onion peers panel from store review. An onion peer that connected and later went offline now rotates out instead of holding its slot forever, the keep-connected option can once again reach its full four peers when some are already connected, and the known count now matches the list exactly (duplicate entries under different ports are merged).
   source: https://github.com/danhaus93-ops/umbrel-bch-apps
-  version: 29.1.37
+  version: 29.1.37-patch.1
   website: https://bitcoincashnode.org
 website: https://bitcoincashnode.org

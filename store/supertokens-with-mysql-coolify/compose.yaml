@@ -19,7 +19,7 @@ services:
       - -h
       - localhost
       timeout: 20s
-    image: mysql:latest
+    image: mysql:26.10.0
     networks:
       appnet:
         aliases:
@@ -35,13 +35,15 @@ services:
     - SERVICE_URL_SUPERTOKENS_3567=${SERVICE_URL_SUPERTOKENS_3567}
     - API_KEYS=${API_KEYS:-}
     - MYSQL_CONNECTION_URI=mysql://$SERVICE_USER_MYSQL:$SERVICE_PASSWORD_MYSQL@mysql:3306/${MYSQL_DATABASE:-supertokens}
+    - MYSQL_USER=$SERVICE_USER_MYSQL
+    - MYSQL_PASSWORD=$SERVICE_PASSWORD_MYSQL
     healthcheck:
       interval: 10s
       retries: 5
       test: |
         bash -c 'exec 3<>/dev/tcp/127.0.0.1/3567 && echo -e "GET /hello HTTP/1.1\r\nhost: 127.0.0.1:3567\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep "Hello"'
       timeout: 5s
-    image: registry.supertokens.io/supertokens/supertokens-mysql:latest
+    image: registry.supertokens.io/supertokens/supertokens-mysql:10.1.4
     networks:
       appnet:
         aliases:

@@ -55,6 +55,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/umami-software/umami
-  tipi_version: 13
-  version: 3.3.1
+  tipi_version: 19
+  version: 3.5.0
 website: https://github.com/umami-software/umami

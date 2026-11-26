@@ -6,7 +6,7 @@ networks:
 services:
   linkstack:
     hostname: linkstack
-    image: linkstackorg/linkstack:latest@sha256:1c8b05399ee459ac601bac3eede7fbe765d1b6b7be725663b57f3220610958bf
+    image: linkstackorg/linkstack:v4.8.8@sha256:deba986fc1f7391af629c0bbcca67a1508284176bd3accf69d041ecc887dc7dd
     networks:
       appnet:
         aliases:

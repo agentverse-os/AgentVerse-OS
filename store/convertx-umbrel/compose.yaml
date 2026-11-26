@@ -8,7 +8,7 @@ services:
     environment:
     - HTTP_ALLOWED=true
     - ACCOUNT_REGISTRATION=true
-    image: c4illin/convertx:v0.18.0@sha256:b515b04bfd25298a5cdc775b2fcd48b9399bab658ce13e2598b65df1b16098c8
+    image: c4illin/convertx:v0.20.0@sha256:6259e0c1e063120b1ddbc6937372a83be58182b2c9dc82264f58e100907b3e51
     networks:
       appnet:
         aliases:

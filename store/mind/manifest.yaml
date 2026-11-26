@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/Casvt/MIND
-  tipi_version: 12
-  version: 1.4.1
+  tipi_version: 18
+  version: v1.5.2
 website: https://github.com/Casvt/MIND

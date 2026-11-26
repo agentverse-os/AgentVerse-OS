@@ -11,7 +11,7 @@ services:
       ADMINMAIL: umbrel@umbrel.local
       ADMINPASS: changeme
       DATABASE_URL: mysql://kimaiuser:${APP_PASSWORD}@kimai_db_1/kimai?charset=utf8mb4&serverVersion=8.3.0
-    image: kimai/kimai2:2.65.0@sha256:6dfc631996544bb2b7a0a876f5565047c6dc0c2632fa06fe6f3c6c8d0f7350a6
+    image: kimai/kimai2:2.72.0@sha256:ee3838cd6841b716cb0992a995a1d3cc60dbd5332bb21946565b31d02aaa4eec
     networks:
       appnet:
         aliases:

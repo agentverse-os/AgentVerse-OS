@@ -35,9 +35,9 @@ env:
   NETWORK_IP: ''
   TOR_DATA_DIR: ''
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-knots/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-knots/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-knots/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-knots/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-knots/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-knots/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

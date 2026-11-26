@@ -138,7 +138,7 @@
       {#if app.manifest.website}<dt>{t('app.website')}</dt><dd><a href={app.manifest.website} target="_blank" rel="noopener">{app.manifest.website}</a></dd>{/if}
       {#if app.manifest.upstream?.source && app.manifest.upstream.source !== app.manifest.website}<dt>{t('app.source')}</dt><dd><a href={app.manifest.upstream.source} target="_blank" rel="noopener">{app.manifest.upstream.source}</a></dd>{/if}
       {#if app.manifest.tags.length}<dt>{t('app.tags')}</dt><dd>{app.manifest.tags.join(', ')}</dd>{/if}
-      <dt>{t('app.catalog')}</dt><dd>{src.label}{#if app.manifest.upstream?.template} · {app.manifest.upstream.template}{/if}</dd>
+      <dt>{t('app.catalog')}</dt><dd>{src.label}{#if app.manifest.upstream?.template}{' '}· {app.manifest.upstream.template}{/if}</dd>
     </dl>
     {#if app.manifest.upstream?.release_notes}<h3>{t('app.releaseNotes')}</h3><div class="muted" style="white-space: pre-wrap;">{app.manifest.upstream.release_notes}</div>{/if}
   {:else if tab === 'settings'}
@@ -215,7 +215,7 @@
         <button class:primary={app.manifest.route.open === 'iframe'} onclick={() => run(t('app.busySave'), () => api.setOpen(name, 'iframe'))}>{t('app.openIframe')}</button>
         <button class:primary={app.manifest.route.open === 'newtab'} onclick={() => run(t('app.busySave'), () => api.setOpen(name, 'newtab'))}>{t('app.openNewtab')}</button>
         <span class="muted small">{t('app.openHint')}</span></dd>
-      <dt>{t('app.route')}</dt><dd>{app.manifest.route.mode}{#if app.port} · {t('app.port', { port: app.port })}{/if}{#if app.url} · <a href={app.url} target="_blank" rel="noopener">{app.url}</a>{/if}</dd>
+      <dt>{t('app.route')}</dt><dd>{app.manifest.route.mode}{#if app.port}{' '}· {t('app.port', { port: app.port })}{/if}{#if app.url}{' '}· <a href={app.url} target="_blank" rel="noopener">{app.url}</a>{/if}</dd>
       <dt>Endpoint</dt><dd>{app.manifest.endpoint.service}:{app.manifest.endpoint.port} {t('app.inNetwork')} <code>{app.name}-net</code></dd>
       <dt>{t('app.data')}</dt><dd><code>tank/apps/{app.name}</code></dd>
       {#if app.granted_to.length}<dt>{t('app.grantedTo')}</dt><dd>{app.granted_to.join(', ')}</dd>{/if}
@@ -265,6 +265,6 @@
   .cfg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .cfg label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--muted); }
   .cfg textarea { font: .82rem/1.4 ui-monospace, Menlo, Consolas, monospace; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px; resize: vertical; }
-  @media (max-width: 900px) { .cfg { grid-template-columns: 1fr; } }
-  @media (max-width: 700px) { .hero { flex-direction: column; } .facts { grid-template-columns: 1fr; } .actions button { min-height: 40px; flex: 1 1 auto; } .shot img { height: 120px; } }
+  @container win (max-width: 820px) { .cfg { grid-template-columns: 1fr; } }
+  @container win (max-width: 640px) { .hero { flex-direction: column; } .facts { grid-template-columns: 1fr; } .actions button { min-height: 40px; flex: 1 1 auto; } .shot img { height: 120px; } }
 </style>

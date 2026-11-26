@@ -41,8 +41,8 @@ upstream:
   author: egzola
   categories:
   - finance
-  release_notes: null
+  release_notes: Updates bitBoard to version 1.0.2 with the latest upstream maintenance changes.
   source: https://github.com/egzola/bitboard
-  version: 1.0.0
+  version: 1.0.2
   website: https://github.com/egzola/bitboard
 website: https://github.com/egzola/bitboard

@@ -16,7 +16,7 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     networks:
       appnet:
         aliases:
@@ -39,12 +39,11 @@ services:
       retries: 10
       test:
       - CMD
-      - wget
-      - -q
-      - --spider
-      - http://127.0.0.1:9000
+      - curl
+      - -fs
+      - http://127.0.0.1:9000/api/system/status
       timeout: 20s
-    image: sonarqube:community
+    image: sonarqube:26.11.0.134175-community
     networks:
       appnet:
         aliases:

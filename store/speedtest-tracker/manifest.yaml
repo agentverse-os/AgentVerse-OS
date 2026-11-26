@@ -68,6 +68,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/alexjustesen/speedtest-tracker
-  tipi_version: 123
-  version: 1.15.0
+  tipi_version: 125
+  version: 1.15.1
 website: https://github.com/alexjustesen/speedtest-tracker

@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/TriliumNext/Trilium
-  tipi_version: 45
-  version: v0.105.0
+  tipi_version: 51
+  version: v0.107.0
 website: https://github.com/TriliumNext/Trilium

@@ -19,7 +19,7 @@ services:
     - DB_PORT=3306
     - DB_USERNAME=${SERVICE_USER_MYSQL}
     - DB_PASSWORD=${SERVICE_PASSWORD_MYSQL}
-    - DB_DATABASE=${MYSQL_DATABASE:-bookstackapp}
+    - DB_DATABASE=${MYSQL_DATABASE:-bookstack}
     - QUEUE_CONNECTION=${QUEUE_CONNECTION}
     - GITHUB_APP_ID=${GITHUB_APP_ID}
     - GITHUB_APP_SECRET=${GITHUB_APP_SECRET}
@@ -38,7 +38,7 @@ services:
       - CMD-SHELL
       - curl -f http://127.0.0.1:80/
       timeout: 20s
-    image: lscr.io/linuxserver/bookstack:latest
+    image: lscr.io/linuxserver/bookstack:26.09.3
     networks:
       appnet:
         aliases:
@@ -65,7 +65,7 @@ services:
       - -h
       - 127.0.0.1
       timeout: 20s
-    image: lscr.io/linuxserver/mariadb:latest
+    image: lscr.io/linuxserver/mariadb:11.8.9
     networks:
       appnet:
         aliases:

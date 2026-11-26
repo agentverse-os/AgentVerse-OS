@@ -21,7 +21,7 @@ services:
       - -f
       - http://localhost:8080/login
       timeout: 10s
-    image: jenkins/jenkins:latest
+    image: jenkins/jenkins:2.590
     networks:
       appnet:
         aliases:

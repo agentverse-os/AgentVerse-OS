@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/lissy93/dashy
-  tipi_version: 125
-  version: 4.6.6
+  tipi_version: 169
+  version: 4.9.18
 website: https://github.com/lissy93/dashy

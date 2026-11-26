@@ -20,7 +20,7 @@ services:
       TIMEZONE: ${TZ}
       TMDB_API_KEY: ${MOVARY_TMDB_API_KEY}
       TMDB_ENABLE_IMAGE_CACHING: '1'
-    image: leepeuker/movary:0.72.0
+    image: leepeuker/movary:0.83.0
     networks:
       appnet:
         aliases:
@@ -64,7 +64,7 @@ services:
       TIMEZONE: ${TZ}
       TMDB_API_KEY: ${MOVARY_TMDB_API_KEY}
       TMDB_ENABLE_IMAGE_CACHING: '1'
-    image: leepeuker/movary:0.72.0
+    image: leepeuker/movary:0.83.0
     networks:
       appnet:
         aliases:

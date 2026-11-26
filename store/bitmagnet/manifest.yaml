@@ -24,8 +24,8 @@ login:
   user: null
 name: bitmagnet
 notes:
-- 'порт 3334→3334 (bitmagnet) не публикуется: доступ только через edge/gate'
-- 'порт 3334→3334 (bitmagnet) не публикуется: доступ только через edge/gate'
+- 'порт 3334:3334/tcp (bitmagnet) не публикуется: доступ только через edge/gate'
+- 'порт 3334:3334/udp (bitmagnet) не публикуется: доступ только через edge/gate'
 origin: runtipi
 provides: []
 readme: ./description.md
@@ -49,6 +49,6 @@ upstream:
   categories:
   - media
   source: https://github.com/bitmagnet-io/bitmagnet
-  tipi_version: 29
+  tipi_version: 30
   version: v0.10.1
 website: https://github.com/bitmagnet-io/bitmagnet

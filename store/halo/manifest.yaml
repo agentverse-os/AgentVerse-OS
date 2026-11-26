@@ -55,6 +55,6 @@ upstream:
   - social
   - media
   source: https://github.com/halo-dev/halo
-  tipi_version: 96
-  version: 2.26.0
+  tipi_version: 106
+  version: 2.27.3
 website: https://github.com/halo-dev/halo

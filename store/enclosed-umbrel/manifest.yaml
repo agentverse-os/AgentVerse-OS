@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/enclosed/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/enclosed/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/enclosed/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/enclosed/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/enclosed/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/enclosed/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,17 +42,10 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This update includes various improvements and bug fixes.
+    This maintenance release updates Enclosed's underlying runtime and build dependencies, including a security update to Vite.
 
-    Notable changes:
-      - Added Indonesian translations
-      - Updated Vietnamese translation
-      - Improved handling of default settings when resetting state
-      - Added option to create notes without expiration
-
-
-    Full release notes are found at https://github.com/CorentinTh/enclosed/releases
+    Full release notes are found at https://github.com/CorentinTh/enclosed/releases/tag/v1.16.1
   source: https://github.com/CorentinTh/enclosed
-  version: 1.16.0
+  version: 1.16.1
   website: https://enclosed.cc/
 website: https://enclosed.cc/

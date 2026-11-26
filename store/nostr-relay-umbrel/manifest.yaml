@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/nostr-relay/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/nostr-relay/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/nostr-relay/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nostr-relay/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/nostr-relay/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/nostr-relay/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,16 +42,10 @@ upstream:
   categories:
   - social
   release_notes: |-
-    🎉 Widgets are here for umbrelOS 1.0.
+    This update includes important security improvements. We recommend updating as soon as possible.
 
-    This update brings two new widgets for Nostr Relay, allowing you to see your latest notes and latest event kinds at a glance right from your Umbrel's home screen:
-
-    - Latest Notes: A widget that displays the latest notes that are synced to your Nostr Relay.
-
-    - Latest Events: A widget that shows the latest event kinds that are synced to your Nostr Relay, including posts, reactions, profile updates, and more.
-
-    After updating to umbrelOS 1.0, you can add widgets by right-clicking on the home screen and selecting "Edit widgets", or by clicking on Widgets in the Dock.
+    If you're updating from before v1.2.1, the first startup may take longer while your database is upgraded automatically. Newly received events with expiration timestamps are removed after they expire.
   source: https://github.com/getumbrel/umbrel-nostr-relay
-  version: 1.2.0
+  version: 1.2.1-patch.1
   website: https://umbrel.com
 website: https://umbrel.com

@@ -25,7 +25,7 @@ services:
       - CMD-SHELL
       - exit 0
       timeout: 20s
-    image: svhd/logto:${TAG-latest}
+    image: svhd/logto:${TAG-1.46.0}
     networks:
       appnet:
         aliases:
@@ -47,7 +47,7 @@ services:
       - -d
       - $POSTGRES_DB
       timeout: 20s
-    image: postgres:14-alpine
+    image: postgres:17-alpine
     networks:
       appnet:
         aliases:

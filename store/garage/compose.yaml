@@ -3,7 +3,7 @@
 # by the core), they are not in the config.
 services:
   garage:
-    image: dxflrs/garage:v2.3.0
+    image: dxflrs/garage:v2.5.0
     restart: unless-stopped
     command: ["/garage", "server", "--single-node"]
     environment:

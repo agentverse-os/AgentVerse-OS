@@ -21,7 +21,7 @@ services:
       initial_password: ${ONEDEV_PASSWORD}
       initial_server_url: ${APP_DOMAIN}
       initial_user: ${ONEDEV_USERNAME}
-    image: 1dev/server:16.5.11
+    image: 1dev/server:17.2.1
     networks:
       appnet:
         aliases:

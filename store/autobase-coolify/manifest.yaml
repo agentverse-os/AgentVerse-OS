@@ -9,6 +9,7 @@ endpoint:
   port: 80
   service: autobase
 env:
+  CORS_ORIGIN: '*'
   PG_CONSOLE_LOGGER_LEVEL: info
   SERVICE_BASE64_ENCRYPTIONKEY:
     generate: hex64
@@ -43,6 +44,12 @@ settings:
 - env: PG_CONSOLE_LOGGER_LEVEL
   hint: 'по умолчанию: info'
   label: pg console logger level
+  options: null
+  required: false
+  type: text
+- env: CORS_ORIGIN
+  hint: 'по умолчанию: *'
+  label: cors origin
   options: null
   required: false
   type: text

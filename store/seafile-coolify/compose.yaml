@@ -36,12 +36,44 @@ services:
       - CMD-SHELL
       - bash -c "echo version | (exec 3<>/dev/tcp/localhost/11211; cat >&3; timeout 0.5 cat <&3; exec 3<&-)"
       timeout: 20s
-    image: memcached:latest
+    image: memcached:1.6.45
     networks:
       appnet:
         aliases:
         - seafile-coolify_memcached_1
     restart: unless-stopped
+  seadoc:
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+    - SERVICE_URL_SEADOC_80=${SERVICE_URL_SEADOC_80}
+    - DB_HOST=mariadb
+    - DB_PORT=3306
+    - DB_USER=${SERVICE_USER_MYSQL}
+    - DB_PASSWORD=${SERVICE_PASSWORD_MYSQL}
+    - DB_NAME=${SEAFILE_MYSQL_DB_SEAHUB_DB_NAME:-seahub_db}
+    - TIME_ZONE=${TIME_ZONE:-UTC}
+    - JWT_PRIVATE_KEY=${SERVICE_PASSWORD_64_JWT}
+    - NON_ROOT=${NON_ROOT:-false}
+    - SEAHUB_SERVICE_URL=http://seafile
+    healthcheck:
+      interval: 10s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://127.0.0.1:80/ping
+      timeout: 20s
+    image: seafileltd/sdoc-server:1.0-latest
+    networks:
+      appnet:
+        aliases:
+        - seafile-coolify_seadoc_1
+    restart: unless-stopped
+    volumes:
+    - seadoc-data:/shared
   seafile:
     depends_on:
       mariadb:
@@ -68,6 +100,8 @@ services:
     - JWT_PRIVATE_KEY=${SERVICE_PASSWORD_64_JWT}
     - SEAFILE_LOG_TO_STDOUT=${SEAFILE_LOG_TO_STDOUT:-true}
     - FILE_SERVER_ROOT=${SERVICE_URL_SEAFILE}/seafhttp
+    - ENABLE_SEADOC=${ENABLE_SEADOC:-true}
+    - SEADOC_SERVER_URL=${SERVICE_URL_SEADOC}
     healthcheck:
       interval: 10s
       retries: 5
@@ -86,6 +120,12 @@ services:
     volumes:
     - seafile-data:/shared
 volumes:
+  seadoc-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/seadoc-data
+      o: bind
+      type: none
   seafile-data:
     driver: local
     driver_opts:

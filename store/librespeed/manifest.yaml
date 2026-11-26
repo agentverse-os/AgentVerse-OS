@@ -48,6 +48,6 @@ upstream:
   - network
   - utilities
   source: https://github.com/librespeed/speedtest
-  tipi_version: 18
-  version: 6.2.1
+  tipi_version: 22
+  version: 6.3.1
 website: https://github.com/librespeed/speedtest

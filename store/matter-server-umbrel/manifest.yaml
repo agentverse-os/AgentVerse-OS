@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/matter-server/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/matter-server/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/matter-server/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/matter-server/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/matter-server/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/matter-server/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -38,23 +38,20 @@ tags: []
 title: Matter Server
 type: app
 upstream:
-  author: Home Assistant
+  author: Open Home Foundation
   categories:
   - automation
   release_notes: |-
-    This release includes several improvements and bug fixes.
+    If you're updating from the retired Python Matter Server (8.x), your fabric and paired devices migrate automatically on first start, which may take several minutes. Back up your Umbrel before updating; restoring that backup is the safest way to roll back.
 
-    Key updates:
-      - Dashboard now includes fallback for unknown endpoint device types
-      - Fixed motion sensitivity and attribute type handling
-      - Added low power mode support for Heiman devices
-      - Added siren and mute functionality for Heiman smoke alarms
-      - Improved handling of non-string label data
-      - Documentation updates for Docker image references
+    If a previous Python migration failed and the logs report conflicting controller data, restore your backup from before migration and try again.
 
+    This update improves device discovery and reconnection, startup and shutdown reliability, and protection of sensitive information in logs. It adds atomic attribute writes for thermostat presets and new dashboard panels for cameras, occupancy, power sources, zones, and pricing.
 
-    Full release notes are available at https://github.com/home-assistant-libs/python-matter-server/releases
-  source: https://github.com/matter-js/python-matter-server
-  version: 8.1.2
-  website: https://home-assistant.io
-website: https://home-assistant.io
+    Device commissioning now rejects additional invalid certification and security data. Local firmware uploads require the test-net DCL option; the default configuration continues to use production attestation.
+
+    Full release notes are available at https://github.com/matter-js/matterjs-server/blob/v1.6.0/CHANGELOG.md
+  source: https://github.com/matter-js/matterjs-server
+  version: 1.6.0
+  website: https://www.openhomefoundation.org/
+website: https://www.openhomefoundation.org/

@@ -19,7 +19,7 @@ services:
       N8N_EDITOR_BASE_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
       N8N_SECURE_COOKIE: 'false'
       N8N_WEBHOOK_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
-    image: n8nio/n8n:2.37.3
+    image: n8nio/n8n:2.48.4
     networks:
       appnet:
         aliases:

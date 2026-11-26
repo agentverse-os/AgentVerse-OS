@@ -8,7 +8,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    image: ghcr.io/s1t5/mailarchiver:2608.1@sha256:bc785711068469e23a09227c065fb7f62a2ebc37d8755241ab6648b3ba89fe4e
+    image: ghcr.io/s1t5/mailarchiver:2611.2@sha256:4baca9cb9dc6f97f2824f62489ba649ededc1095c4555f4d8b87da71349f7ebc
     networks:
       appnet:
         aliases:

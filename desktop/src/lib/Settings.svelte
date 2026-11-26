@@ -175,10 +175,10 @@
           <label class="muted small"><input type="checkbox" checked={bk.config.restic} onchange={(e) => saveBk({ ...bk!.config, restic: (e.currentTarget as HTMLInputElement).checked })} /> {t('settings.bk.resticNightly')}</label>
           <label class="muted small">{t('settings.bk.remote')} <input placeholder={t('settings.bk.remotePlaceholder')} style="width: 18em" value={bk.config.remote} onchange={(e) => saveBk({ ...bk!.config, remote: (e.currentTarget as HTMLInputElement).value.trim() })} /></label>
         </div>
-        <table class="bktab">
+        <div class="tscroll"><table class="bktab">
           <thead><tr><th>{t('settings.bk.colDataset')}</th><th>{t('settings.bk.colData')}</th><th>{t('settings.bk.colSnapshots')}</th><th>{t('settings.bk.colSnapUsed')}</th><th>{t('settings.bk.colLast')}</th></tr></thead>
           <tbody>{#each bk.datasets as d}<tr><td><code>{d.name}</code> <span class="muted small">{d.mountpoint}</span></td><td>{fmt.bytes(d.used)}</td><td>{d.snapshots}</td><td>{fmt.bytes(d.snapshots_used)}</td><td>{d.last ? fmt.dateTime(d.last * 1000) : '—'}</td></tr>{/each}</tbody>
-        </table>
+        </table></div>
         <div class="muted small" style="margin-top: 6px;">
           restic: {#if !bk.restic_installed}<b>{t('settings.bk.resticMissing')}</b> (apt install restic){:else}{tn('settings.bk.resticCopies', bk.restic_snapshots, { size: fmt.bytes(bk.restic_size) })}{/if}
           {#if bk.last?.restic}· {t('settings.bk.lastRestic', { at: bk.last.restic.at ? fmt.dateTime(bk.last.restic.at) : '' })} {bk.last.restic.ok === false ? t('settings.bk.resticError', { error: bk.last.restic.error ?? '' }) : ''}{/if}
@@ -211,13 +211,13 @@
     {#if status}
       <div class="muted">Entry Point <code>https://{status.edge_host}</code>. {t('settings.dev.caIntro')} <a href="/api/ca.crt">{t('settings.dev.caDownload')}</a> {t('settings.dev.caTrust')}</div>
       <div class="muted" style="margin-top: 8px;"><b>Windows (Chrome, Edge)</b>: {t('settings.dev.win')} <code>certutil -addstore -f Root cloudos-ca.crt</code>. {t('settings.dev.winRestart')} <b>macOS</b>: {t('settings.dev.mac')} <b>iPhone</b>: {t('settings.dev.iphone')} <b>Android</b>: {t('settings.dev.android')}</div>
-      <div class="muted">Coder: <a href={status.coder_url} target="_blank" rel="noopener">{status.coder_url}</a>{#if status.coder_user} · {t('settings.dev.login')} <code>{status.coder_user}</code>{/if}
+      <div class="muted">Coder: <a href={status.coder_url} target="_blank" rel="noopener">{status.coder_url}</a>{#if status.coder_user}{' '}· {t('settings.dev.login')} <code>{status.coder_user}</code>{/if}
         {#if status.coder_password_set}· {t('settings.dev.password')} <code>{coderPw ?? '••••••••'}</code> <button title={coderPw ? t('settings.dev.hide') : t('settings.dev.show')} onclick={async () => { if (coderPw) { coderPw = null; return; } try { coderPw = (await api.coderCredentials()).password; } catch (e) { alert(String(e)); } }}>{coderPw ? '🙈' : '👁'}</button> <button title={t('settings.dev.copyPassword')} onclick={async () => { try { navigator.clipboard?.writeText((await api.coderCredentials()).password); } catch (e) { alert(String(e)); } }}>⧉</button>
         {:else}· <span title={t('settings.dev.pwUnknownTitle')}>{t('settings.dev.pwUnknown')}</span>{/if}
         <span class="muted small"> {t('settings.dev.coderHint')}</span></div>
       <div class="muted" style="margin-top: 8px;"><b>Firefox</b> {t('settings.dev.ff1')} <a href="/api/ca.crt">cloudos-ca.crt</a> {t('settings.dev.ff2')} <code>security.enterprise_roots.enabled</code> {t('settings.dev.ff3')}</div>
       <div class="muted" style="margin-top: 8px;"><b>{t('settings.dev.noOpen')} <code>{status.edge_host}</code></b> {t('settings.dev.noOpenText')}
-        {#if status.edge_alt_hosts?.length}{t('settings.dev.altHosts')} {#each status.edge_alt_hosts as h}<a href="https://{h}/">https://{h}/</a> {/each}{/if}</div>
+        {#if status.edge_alt_hosts?.length}{t('settings.dev.altHosts')} {#each status.edge_alt_hosts as h}<a href="https://{h}/">https://{h}/</a>{' '}{/each}{/if}</div>
     {/if}
     <div class="muted" style="margin-top: 8px;">{t('settings.dev.stored')}</div>
   </section>
@@ -257,25 +257,27 @@
 
 <style>
   .themes { grid-column: 1 / -1; }
-  .thm { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
-  .thm-card { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 8px; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r); }
-  .thm-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .thm { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr)); gap: 10px; }
+  .thm-card { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 8px; text-align: left; background: var(--fill); border: 1px solid var(--line); border-radius: var(--r); min-width: 0; font-weight: 400; }
+  .thm-card:hover { background: var(--fill-2); }
+  .thm-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; background: var(--accent-soft); }
   .thm-prev { display: flex; align-items: flex-end; justify-content: flex-start; height: 72px; border-radius: 8px; padding: 8px; }
   .thm-panel { display: flex; flex-direction: column; gap: 4px; width: 68%; padding: 7px 8px; border: 1px solid; }
   .thm-dot { width: 10px; height: 10px; border-radius: 50%; }
   .thm-line { height: 3px; width: 90%; border-radius: 2px; }
   .thm-name { font-weight: 600; }
 
-  .bktab { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: .9rem; }
+  .bktab { width: 100%; min-width: 470px; border-collapse: collapse; margin-top: 8px; font-size: .9rem; }
   .bktab th, .bktab td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); }
   .bktab th { color: var(--muted); font-weight: 500; }
 
-  .settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: calc(12px * var(--sp)); }
+  .settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: calc(12px * var(--sp)); }
+  .settings-grid > :global(*) { min-width: 0; }
   .seg button { min-width: 6em; }
   .swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; padding: 0; }
   .swatch.active { border-color: var(--ink); box-shadow: 0 0 0 2px var(--bg); }
-  .bgs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .bg { display: flex; flex-direction: column; gap: 4px; padding: 6px; font-size: .8rem; }
+  .bgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+  .bg { display: flex; flex-direction: column; gap: 4px; padding: 6px; font-size: .8rem; min-width: 0; overflow-wrap: anywhere; font-weight: 400; }
   .bg.active { border-color: var(--accent); }
   .bg-preview { display: block; height: 44px; border-radius: var(--r-sm); border: 1px solid var(--line); }
   .range { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: .9rem; }

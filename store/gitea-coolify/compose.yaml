@@ -18,7 +18,7 @@ services:
       - -f
       - http://127.0.0.1:3000
       timeout: 10s
-    image: gitea/gitea:latest
+    image: gitea/gitea:28.4.0
     networks:
       appnet:
         aliases:

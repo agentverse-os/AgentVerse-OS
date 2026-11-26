@@ -15,6 +15,8 @@ const UNIT_PATH: &str = "/etc/systemd/system/cloudos-agentd.service";
 const TOKEN_PATH: &str = "/etc/cloudos/agentd.token";
 pub const TOKEN_KEY: &str = "agentd_token";
 static AGENTD_BIN: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/cloudos-agentd"));
+/// The statically linked build (musl) for owner's servers (ADR-008); empty when it was not built.
+static AGENTD_BIN_MUSL: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/cloudos-agentd-musl"));
 pub static AGENTD_UNIT: &str = include_str!("../../bootstrap/workspace/cloudos-agentd.service");
 
 /// Adapter binary: `CLOUDD_AGENTD_BIN` (development) or the embedded one; `None` — agentd was not built when cloudd
@@ -24,6 +26,16 @@ pub fn binary() -> Option<std::borrow::Cow<'static, [u8]>> {
         return std::fs::read(&p).ok().map(Into::into);
     }
     (!AGENTD_BIN.is_empty()).then_some(AGENTD_BIN.into())
+}
+
+/// Adapter binary for an owner's server: the static musl build when the core has it (runs on any x86_64 Linux whatever its
+/// glibc), otherwise the workspace build; `CLOUDD_AGENTD_BIN_MUSL` overrides in development.
+pub fn host_binary() -> Option<std::borrow::Cow<'static, [u8]>> {
+    if let Some(p) = std::env::var("CLOUDD_AGENTD_BIN_MUSL").ok().filter(|p| !p.is_empty()) {
+        return std::fs::read(&p).ok().map(Into::into);
+    }
+    if !AGENTD_BIN_MUSL.is_empty() { return Some(AGENTD_BIN_MUSL.into()) }
+    binary()
 }
 
 pub fn secret_scope(project: &str) -> String {
@@ -48,7 +60,27 @@ pub struct Deploy {
     pub unit: bool,
     pub token: bool,
     pub restarted: bool,
+    /// The OOM policy drop-in was placed (no restart needed for it)
+    pub oom_policy: bool,
 }
+
+/// With systemd's default `OOMPolicy=stop` a kernel OOM kill of anything that lives in a unit's cgroup — a script started by a
+/// conversation, a command in a terminal — makes systemd stop the whole unit: agentd with every conversation and terminal of the
+/// workspace, or the Coder agent with code-server (seen on the stand 2026-11-14: the OOM killer ended a runaway script, systemd then
+/// restarted agentd). The drop-in turns that off for both units (ADR-009). It is applied with a daemon-reload only — the policy is
+/// read at the moment of the kill, nothing is restarted; a unit that does not exist is skipped.
+const OOM_DROPIN_SH: &str = r#"c=0
+for u in cloudos-agentd.service coder-agent.service; do
+  [ -f "/etc/systemd/system/$u" ] || [ -f "/usr/lib/systemd/system/$u" ] || [ -f "/lib/systemd/system/$u" ] || continue
+  d="/etc/systemd/system/$u.d"; f="$d/10-oom.conf"
+  want='# AgentVerse OS (ADR-009): a kernel OOM kill of one process must not stop the whole unit
+[Service]
+OOMPolicy=continue'
+  [ "$(cat "$f" 2>/dev/null)" = "$want" ] && continue
+  mkdir -p "$d" && printf '%s\n' "$want" > "$f" && chmod 0644 "$f" && c=1
+done
+[ "$c" = 1 ] && systemctl daemon-reload
+echo "dropin=$c""#;
 
 impl Deploy {
     pub fn changed(&self) -> bool {
@@ -103,6 +135,11 @@ pub async fn deploy(incus: &Incus, store: &Store, inst: &str, project: &str) -> 
         incus.file_push(inst, UNIT_PATH, AGENTD_UNIT.as_bytes(), 0o644).await.context("push юнита agentd")?;
         d.unit = true;
     }
+    match incus.exec(inst, &["sh", "-c", OOM_DROPIN_SH]).await {
+        Ok(o) if o.contains("dropin=1") => d.oom_policy = true,
+        Ok(_) => {}
+        Err(e) => tracing::warn!("OOMPolicy юнитов в {inst}: {e:#}"),
+    }
     let scope = secret_scope(project);
     let token = match store.get_secret(&scope, TOKEN_KEY)? {
         Some(t) => t,
@@ -154,6 +191,12 @@ impl AgentdClient {
     pub fn new(ip: &str, token: String) -> Self {
         let http = reqwest::Client::builder().timeout(Duration::from_secs(10)).build().expect("reqwest");
         Self { http, base: format!("http://{ip}:{PORT}"), token }
+    }
+
+    /// A client to an arbitrary `addr:port` (an owner's server, ADR-008).
+    pub fn with_addr(addr_port: &str, token: String) -> Self {
+        let http = reqwest::Client::builder().timeout(Duration::from_secs(10)).build().expect("reqwest");
+        Self { http, base: format!("http://{addr_port}"), token }
     }
 
     pub fn token(&self) -> &str {
@@ -279,6 +322,17 @@ impl AgentdClient {
         Ok(v)
     }
 
+    /// Raw POST of bytes as application/octet-stream (the agentd binary for a server's self-update): the answer is agentd
+    /// JSON, the process exits right after it, so a connection reset after a 200 is not an error.
+    pub async fn raw_post_octets(&self, path: &str, body: axum::body::Bytes) -> Result<Value> {
+        let resp = self.http.post(format!("{}{path}", self.base)).bearer_auth(&self.token).timeout(Duration::from_secs(600)).header("content-type", "application/octet-stream").body(body).send().await.map_err(|e| anyhow!("agentd не отвечает: {e}"))?;
+        let status = resp.status().as_u16();
+        let text = resp.text().await.unwrap_or_default();
+        let v = if text.is_empty() { Value::Null } else { serde_json::from_str(&text).unwrap_or(Value::String(text)) };
+        if status >= 400 { bail!("agentd: {status} — {}", v.get("error").and_then(|e| e.as_str()).unwrap_or("ошибка")); }
+        Ok(v)
+    }
+
     pub fn ws_url_for(&self, path: &str) -> String {
         format!("{}{path}", self.base.replacen("http", "ws", 1))
     }
@@ -292,6 +346,9 @@ mod tests {
     fn unit_and_token_shape() {
         assert!(AGENTD_UNIT.contains("ExecStart=/usr/local/bin/cloudos-agentd"), "юнит должен запускать бинарь из BIN_PATH");
         assert!(AGENTD_UNIT.contains("User=coder"));
+        // the OOM policy goes in as a drop-in, not into the unit text: a changed unit would restart agentd in every workspace
+        assert!(!AGENTD_UNIT.contains("OOMPolicy"));
+        assert!(OOM_DROPIN_SH.contains("OOMPolicy=continue") && OOM_DROPIN_SH.contains("cloudos-agentd.service coder-agent.service") && OOM_DROPIN_SH.contains("daemon-reload") && !OOM_DROPIN_SH.contains("restart"));
         let t = random_token();
         assert_eq!(t.len(), 48);
         assert!(t.bytes().all(|b| b.is_ascii_hexdigit()));
@@ -300,8 +357,8 @@ mod tests {
 
     #[test]
     fn client_urls() {
-        let c = AgentdClient::new("10.77.7.146", "t".into());
-        assert_eq!(c.base, "http://10.77.7.146:7200");
-        assert_eq!(c.ws_url("abc"), "ws://10.77.7.146:7200/v1/ptys/abc/ws");
+        let c = AgentdClient::new("10.77.1.10", "t".into());
+        assert_eq!(c.base, "http://10.77.1.10:7200");
+        assert_eq!(c.ws_url("abc"), "ws://10.77.1.10:7200/v1/ptys/abc/ws");
     }
 }

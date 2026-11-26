@@ -6,7 +6,7 @@ networks:
 services:
   imgproxy:
     environment:
-    - IMGPROXY_ENABLE_WEBP_DETECTION=true
+    - IMGPROXY_AUTO_WEBP=true
     - IMGPROXY_JPEG_PROGRESSIVE=true
     - IMGPROXY_USE_ETAG=true
     healthcheck:
@@ -17,7 +17,7 @@ services:
       - imgproxy
       - health
       timeout: 10s
-    image: darthsim/imgproxy
+    image: darthsim/imgproxy:v3.31.4
     networks:
       appnet:
         aliases:
@@ -34,7 +34,7 @@ services:
       retries: 5
       test: wget -qO- http://127.0.0.1:3000/health || exit 1
       timeout: 10s
-    image: ghcr.io/coollabsio/next-image-transformation:latest
+    image: ghcr.io/coollabsio/next-image-transformation:0.0.3
     networks:
       appnet:
         aliases:

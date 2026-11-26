@@ -21,7 +21,7 @@ services:
       target: /.filebrowser.json
     environment:
     - SERVICE_URL_FILEBROWSER_80=${SERVICE_URL_FILEBROWSER_80}
-    image: filebrowser/filebrowser:latest
+    image: filebrowser/filebrowser:v2.63.23
     networks:
       appnet:
         aliases:

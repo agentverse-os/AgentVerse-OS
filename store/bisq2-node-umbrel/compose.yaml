@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   server:
-    image: ghcr.io/bisq-network/bisq2-api:2.1.12.0@sha256:beba2f2db5aefca0f4b8d49285b105cb0b29d0eb0ed0f8136712aace0e167906
+    image: ghcr.io/bisq-network/bisq2-api:2.1.15.0@sha256:a92a692dc374e2645aba37bdade2d9c8ab042a010f0e0c7147b7ea540337c312
     mem_limit: 2g
     networks:
       appnet:
@@ -16,7 +16,7 @@ services:
     volumes:
     - ${APP_DATA_DIR}/data:/data
   web:
-    image: ghcr.io/bisq-network/bisq2-api-web-ui:2.1.12.0@sha256:d64c335cc21c69dc8d62f360e5d29ab974d0949f320ba1658cab0a4d5cc7f310
+    image: ghcr.io/bisq-network/bisq2-api-web-ui:2.1.15.0@sha256:f2ede0b24183e37f97773da7b1f95c61779cffac11ffebb069b33b5018fe91f3
     network_mode: service:server
     restart: on-failure
     volumes:

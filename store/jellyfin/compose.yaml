@@ -10,7 +10,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: ${TZ}
-    image: lscr.io/linuxserver/jellyfin:10.11.11
+    image: lscr.io/linuxserver/jellyfin:version-12.2ubu2604
     networks:
       appnet:
         aliases:

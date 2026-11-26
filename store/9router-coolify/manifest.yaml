@@ -1,0 +1,64 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/9router-coolify
+description: Free AI coding gateway. Routes Claude Code, Codex, Cursor, Cline, Copilot requests to 40+ LLM providers with auto-fallback and token savings.
+endpoint:
+  port: 20128
+  service: 9router
+env:
+  SERVICE_HEX_64_HMACSALT:
+    generate: hex64
+  SERVICE_PASSWORD_64_JWTSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_KEYSECRET:
+    generate: password
+  SERVICE_PASSWORD_PASSWORD:
+    generate: password
+  SERVICE_URL_9ROUTER_20128: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_PASSWORD
+  path: null
+  user: null
+name: 9router-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- ai
+- gateway
+- routing
+- coding
+- llm
+- providers
+title: 9router
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://github.com/decolua/9router
+  tags:
+  - ai
+  - gateway
+  - routing
+  - coding
+  - llm
+  - providers
+  template: 9router.yaml
+website: https://github.com/decolua/9router

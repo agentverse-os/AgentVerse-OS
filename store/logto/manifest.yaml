@@ -55,6 +55,6 @@ upstream:
   categories:
   - security
   source: https://github.com/logto-io/logto
-  tipi_version: 53
-  version: 1.42.0
+  tipi_version: 61
+  version: 1.46.0
 website: https://github.com/logto-io/logto

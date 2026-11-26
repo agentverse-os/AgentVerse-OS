@@ -16,7 +16,7 @@ env:
   SERVICE_URL_CAMPFIRE_80: https://${APP_DOMAIN}
   SKIP_TELEMETRY: 'true'
   SSL_DOMAIN: 'false'
-  TAG: main
+  TAG: v1.5.10
   VAPID_PRIVATE_KEY: ''
   VAPID_PUBLIC_KEY: ''
 gallery: []
@@ -42,7 +42,7 @@ route:
 schema: 1
 settings:
 - env: TAG
-  hint: 'по умолчанию: main'
+  hint: 'по умолчанию: v1.5.10'
   label: tag
   options: null
   required: false

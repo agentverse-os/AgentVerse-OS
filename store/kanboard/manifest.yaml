@@ -46,6 +46,6 @@ upstream:
   categories:
   - development
   source: https://github.com/kanboard/kanboard
-  tipi_version: 32
-  version: v1.2.53
+  tipi_version: 40
+  version: v1.2.57
 website: https://github.com/kanboard/kanboard

@@ -9,7 +9,7 @@ services:
     - db-nextcloud
     - redis-nextcloud
     entrypoint: /cron.sh
-    image: nextcloud:33-apache
+    image: nextcloud:35
     networks:
       appnet:
         aliases:
@@ -45,7 +45,7 @@ services:
       POSTGRES_USER: tipi
       REDIS_HOST: redis-nextcloud
       TRUSTED_PROXIES: 172.16.0.0/12
-    image: nextcloud:33-apache
+    image: nextcloud:35.0.3
     networks:
       appnet:
         aliases:

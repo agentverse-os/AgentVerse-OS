@@ -39,6 +39,6 @@ upstream:
   categories:
   - social
   source: https://github.com/inspircd/inspircd
-  tipi_version: 15
-  version: 4.11.0
+  tipi_version: 19
+  version: 4.12.1
 website: https://github.com/inspircd/inspircd

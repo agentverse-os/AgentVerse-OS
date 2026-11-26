@@ -17,7 +17,7 @@ tokio-tungstenite = { version = "0.29", features = ["rustls-tls-webpki-roots"] }
 futures-util = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-rusqlite = { version = "0.37", features = ["bundled"] }
+rusqlite = { version = "0.41", features = ["bundled"] }
 clap = { version = "4", features = ["derive", "env"] }
 anyhow = "1"
 tracing = "0.1"
@@ -28,12 +28,20 @@ base64 = "0.22"
 pdf-extract = "0.12"
 bytes = "1"
 chrono = "0.4"
+# the owner's time zone for routine schedules (the server runs in UTC): IANA names, DST rules
+chrono-tz = "0.10"
 uuid = { version = "1", features = ["v4"] }
 # Web Push (docs/agents-ux.md §9.9): aes128gcm encryption and VAPID signing — web-push without its HTTP clients (we send via
 # reqwest); VAPID keys are generated with p256
 web-push = { version = "0.11", default-features = false }
 p256 = { version = "0.13", features = ["ecdsa"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
+# Notification channels (docs/agents-ux.md §9.12): Markdown of answers and reports into the dialect of each service, masks
+# for secret-looking strings, the signature of a webhook body
+pulldown-cmark = { version = "0.13", default-features = false }
+regex = "1"
+hmac = "0.12"
+sha2 = "0.10"
 
 [profile.release]
 strip = true

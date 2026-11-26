@@ -14,9 +14,9 @@ env:
   TOR_PROXY_IP: ''
   TOR_PROXY_PORT: '9050'
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/dcrpulse/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/dcrpulse/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/dcrpulse/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/dcrpulse/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dcrpulse/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/dcrpulse/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,8 +45,8 @@ upstream:
   author: Decred
   categories:
   - crypto
-  release_notes: null
+  release_notes: This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
   source: https://github.com/karamble/dcrpulse
-  version: 1.0.3
+  version: 1.0.3-patch.1
   website: https://decred.org
 website: https://decred.org

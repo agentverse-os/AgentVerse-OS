@@ -11,7 +11,7 @@ endpoint:
 env:
   DB_DATABASE_NAME: immich
   DB_STORAGE_TYPE: SSD
-  IMMICH_VERSION: release
+  IMMICH_VERSION: v3.4.1
   POSTGRES_DB: ''
   POSTGRES_USER: ''
   SERVICE_PASSWORD_POSTGRES:
@@ -42,7 +42,7 @@ route:
 schema: 1
 settings:
 - env: IMMICH_VERSION
-  hint: 'по умолчанию: release'
+  hint: 'по умолчанию: v3.4.1'
   label: immich version
   options: null
   required: false

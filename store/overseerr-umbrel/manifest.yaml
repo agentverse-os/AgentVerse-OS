@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/overseerr/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/overseerr/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/overseerr/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/overseerr/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/overseerr/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/overseerr/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

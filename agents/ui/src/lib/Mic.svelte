@@ -1,7 +1,7 @@
 <!-- Push-to-talk dictation button (docs/agents-ux.md §4.7): hold — recording, release — recognition and onText(text).
      Keyboard: Space/Enter — start, again — stop. Without a provider key it leads to Settings → Voice. -->
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  import { onDestroy, untrack } from 'svelte';
   import { ui, msg } from './state.svelte';
   import { voice, Recorder, StreamRecorder, transcribe, canRecord, canStream, micDenialHint, MAX_MS, MIN_MS, fmtTime } from './voice.svelte';
   import { t } from './i18n';
@@ -104,7 +104,9 @@
     toSettings();
   }
   const vis = () => { if (document.visibilityState === 'hidden' && phase === 'recording') finish(); };
-  $effect(() => { document.addEventListener('visibilitychange', vis); voice.load(); return () => document.removeEventListener('visibilitychange', vis); });
+  // The settings load is outside the effect's dependencies: `load` reads and writes its own `loading` flag, and with a
+  // failing request the effect would start it again the moment the previous one ended — hundreds of requests a second.
+  $effect(() => { document.addEventListener('visibilitychange', vis); untrack(() => { void voice.load(); }); return () => document.removeEventListener('visibilitychange', vis); });
   onDestroy(() => { abort(); if (noteTimer) clearTimeout(noteTimer); });
 </script>
 
@@ -114,7 +116,7 @@
   {:else if phase === 'transcribing'}
     <span class="ptt-pill" role="status"><Icon name="refresh" size="s" /> {t('voice.transcribing')}</span>
   {:else if note}
-    <span class="ptt-pill {note.kind}" role={note.kind === 'bad' ? 'alert' : 'status'}>{note.text}{#if note.setup} · <button type="button" class="link" onclick={toSettings}>{t('voice.setup')}</button>{/if}</span>
+    <span class="ptt-pill {note.kind}" role={note.kind === 'bad' ? 'alert' : 'status'}>{note.text}{#if note.setup}{' '}· <button type="button" class="link" onclick={toSettings}>{t('voice.setup')}</button>{/if}</span>
   {/if}
   <button type="button" class="ptt-btn {cls}" class:on={phase === 'recording'} aria-label={label || t('voice.mic')} title={title || t('voice.mic')} aria-pressed={phase === 'recording'} disabled={phase === 'transcribing'}
     onpointerdown={down} onpointerup={up} onpointercancel={up} onlostpointercapture={up} oncontextmenu={(e) => e.preventDefault()} onkeydown={key} onclick={click}>

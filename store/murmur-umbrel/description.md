@@ -1,0 +1,30 @@
+Murmur is a calm, beautiful home for your Hermes agents. Open it on your phone or computer and just talk. Murmur comes with Hermes built in, so there's nothing else to install.
+
+Already use the Hermes Agent app? Murmur finds it on your Umbrel and offers to use it instead, so your agents, chats and models stay right where they are, and anything you start in Murmur shows up in Hermes too.
+
+Every agent is a little character with its own name, colour and personality. Chat with one, or bring a few together in a group. Replies appear as they're written, you can watch your agents' plan tick itself off as they search the web, read files and run things, and they ask before anything important happens.
+
+Add Murmur to your phone's home screen and it feels like a native app. There's also a desktop app for macOS, Windows and Linux.
+
+## Highlights
+
+  - **Talk to your agents** - Quick, calm chats that look great on any screen, in light or dark.
+
+  - **Run a model on your Umbrel** - Murmur picks a model that fits your Umbrel's memory and sets it up in one tap, so your agents can run privately. Or sign in with ChatGPT, or use an API key.
+
+  - **Make agents in seconds** - Start from a Researcher, Writer, Planner, Coder, Coach or Chef, or make your own, with its own colour and model.
+
+  - **Group chats** - Put several agents in one conversation and let them work together. Mention one with @ to ask just them.
+
+  - **You stay in charge** - Follow each step as your agents work, and say yes before anything changes.
+
+  - **Connect your apps** - Give an agent Notion, Linear, Todoist and more in a tap, or let it manage your Umbrel itself.
+
+  - **WhatsApp and Telegram** - Scan a code to text your agents from WhatsApp, or set up Telegram in a minute.
+
+  - **Routines and memory** - Schedule a morning briefing, and see what each agent remembers.
+
+  - **More than one Hermes** - Add a Hermes running on another computer, and every agent sits in one list, with nothing to switch.
+
+
+Call your agents to talk out loud, with voices on your Umbrel, on your ChatGPT plan, or from OpenAI or ElevenLabs. Calls need a secure connection, so Murmur reopens itself over https when you start. Reading replies aloud works everywhere.

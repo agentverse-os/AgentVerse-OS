@@ -11,7 +11,7 @@ services:
       FTLCONF_webserver_api_password: ${APP_PASSWORD}
       TZ: ${TZ}
     hostname: pihole
-    image: pihole/pihole:2026.07.2
+    image: pihole/pihole:2026.11.0
     networks:
       appnet:
         aliases:

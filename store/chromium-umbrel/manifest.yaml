@@ -10,9 +10,9 @@ endpoint:
   service: chromium
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/chromium/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/chromium/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/chromium/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/chromium/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/chromium/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/chromium/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

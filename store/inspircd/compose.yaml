@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   inspircd:
-    image: inspircd/inspircd-docker:4.11.0
+    image: inspircd/inspircd-docker:4.12.1
     networks:
       appnet:
         aliases:

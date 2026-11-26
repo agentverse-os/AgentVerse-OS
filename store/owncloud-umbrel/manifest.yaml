@@ -15,10 +15,10 @@ env:
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
   DEVICE_HOSTNAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/owncloud/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -48,14 +48,15 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This major update includes ownCloud Server 11.0.0 with 11 security fixes, G2 app/code signing, and a newer PHP 8.3 runtime.
+    This update improves account security and certificate handling:
+    - Temporarily locks local accounts for ten minutes after five repeated failed login attempts. - Verifies signatures when installing or updating ownCloud app packages. - Refreshes trusted certificates and rebuilds certificate bundles during upgrades. - Fixes errors when accessing Google Drive external storage.
 
-    It also includes the 10.16.3 and 10.16.4 security, admin API, WebDAV, and upload-handling fixes since the previous Umbrel package.
+    The updated certificate store removes older trusted roots. External HTTPS services relying only on a removed root may require certificate updates or an administrator-managed certificate import.
 
-    Review the upstream release notes before updating if you rely on group-admin/subadmin behavior or deprecated occ commands, as ownCloud 11 disables group-admin by default and removes several legacy code paths.
+    If you are upgrading from an older 10.x package, review the ownCloud 11 release notes before updating if you rely on group-admin/subadmin behavior or deprecated occ commands.
 
-    Full release notes can be found at https://github.com/owncloud/core/releases/tag/v11.0.0
+    Full release notes: https://github.com/owncloud/core/releases/tag/v11.1.0
   source: https://github.com/owncloud-docker/server
-  version: 11.0.0
+  version: 11.1.0
   website: https://owncloud.com
 website: https://owncloud.com

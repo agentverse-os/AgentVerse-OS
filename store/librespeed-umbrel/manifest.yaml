@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/librespeed/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/librespeed/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/librespeed/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librespeed/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/librespeed/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/librespeed/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,13 +43,14 @@ upstream:
   - networking
   release_notes: |-
     What's new in this release:
-      - Fixed inflated upload-speed results when an upload request receives an HTTP error response
-      - Fixed the modern frontend asset layout so deployments can serve the repository without rearranging files
-      - Improved Docker, installation, and design-switch documentation for the current deployment layout
+      - Keeps the speed-test gauge visible when starting a test on mobile devices
+      - Fixes automatic server selection when mixing HTTP and HTTPS servers
+      - Ensures changes to the selected interface design are reflected without stale browser caches
+      - Disables unused PHP session upload progress as a security precaution
 
 
-    Full release notes are found at: https://github.com/librespeed/speedtest/releases/tag/v6.2.1
+    Full release notes are found at: https://github.com/librespeed/speedtest/releases/tag/v6.3.1
   source: https://github.com/librespeed/speedtest
-  version: 6.2.1
+  version: 6.3.1
   website: https://librespeed.org/
 website: https://librespeed.org/

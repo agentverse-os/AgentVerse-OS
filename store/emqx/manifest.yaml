@@ -44,6 +44,6 @@ upstream:
   - utilities
   - automation
   source: https://github.com/emqx/emqx
-  tipi_version: 40
-  version: 6.2.3
+  tipi_version: 56
+  version: 6.3.3
 website: https://github.com/emqx/emqx

@@ -12,9 +12,9 @@ env:
   APP_PASSWORD:
     generate: password
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/photoprism/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/photoprism/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/photoprism/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/photoprism/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/photoprism/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/photoprism/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

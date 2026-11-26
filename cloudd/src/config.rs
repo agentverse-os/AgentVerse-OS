@@ -12,9 +12,17 @@ pub struct Config {
     pub repo_dir: PathBuf,
     /// Core state (tank/core): SQLite, the age key, rendered gate Caddyfiles.
     pub state_dir: PathBuf,
-    /// API/Desktop address (the edge Caddy proxies `/` and `/api/`
-    /// here).
+    /// API/Desktop TCP addresses. Loopback only by default: host tools use it, the edge comes through the unix socket in
+    /// `edge_run_dir` (ADR-010).
     pub listen: Vec<String>,
+    /// Directory shared with the edge container (bind-mounted at the same path): the core's and the "Agents" service's
+    /// sockets and Caddy's admin socket. Created once and never recreated — a recreated directory leaves the container
+    /// with the old empty one.
+    pub edge_run_dir: PathBuf,
+    /// Addresses on the docker bridge that an edge container WITHOUT the socket directory still needs (containers created
+    /// before ADR-010): the core listens there only while such a container is running.
+    pub edge_bridge_listen: String,
+    pub edge_agents_bridge_listen: String,
     /// Entry Point host name (`box.netbird.cloud` / `<box>.<tailnet>.ts.net`).
     pub edge_host: String,
     /// Admin API edge-Caddy (`http://127.0.0.1:2019`).
@@ -54,12 +62,14 @@ pub struct Config {
     /// server's NetBird IP for devices without MagicDNS); the edge_host IPv4 is added automatically.
     pub edge_alt_hosts: Vec<String>,
     pub edge_container: String,
-    /// Upstreams from inside the edge container: cloudd on the host and Coder
-    /// in coder-net.
+    /// Upstreams from inside the edge container for one without the socket directory: cloudd on the host and Coder
+    /// in coder-net. With the directory mounted the edge dials the sockets instead (`Config::edge_upstreams`).
     pub edge_cloudd_upstream: String,
     /// The "Agents" service (cloudos-agents) on the host — the /agents/*
     /// route on the edge.
     pub edge_agents_upstream: String,
+    /// Set explicitly in the env file: the operator's upstreams are used as given, whatever the edge mounts.
+    pub edge_upstreams_pinned: bool,
     pub edge_coder_upstream: String,
     /// Caddy's internal CA (NetBird) instead of a certificate from
     /// tailscaled/ACME.
@@ -93,7 +103,10 @@ impl Config {
         Ok(Self {
             repo_dir: PathBuf::from(env_or("CLOUDD_REPO_DIR", "/var/lib/cloudos/repo")),
             state_dir: PathBuf::from(env_or("CLOUDD_STATE_DIR", "/var/lib/cloudos")),
-            listen: env_or("CLOUDD_LISTEN", "127.0.0.1:7100,172.17.0.1:7100").split(',').map(|s| s.trim().to_string()).collect(),
+            listen: env_or("CLOUDD_LISTEN", "127.0.0.1:7100").split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect(),
+            edge_run_dir: PathBuf::from(env_or("CLOUDD_EDGE_RUN_DIR", "/run/cloudos-edge")),
+            edge_bridge_listen: env_or("CLOUDD_EDGE_BRIDGE_LISTEN", "172.17.0.1:7100"),
+            edge_agents_bridge_listen: env_or("CLOUDD_EDGE_AGENTS_BRIDGE_LISTEN", "172.17.0.1:7300"),
             edge_host: env("CLOUDD_EDGE_HOST").context("CLOUDD_EDGE_HOST не задан (имя хоста Entry Point)")?,
             caddy_admin: env_or("CLOUDD_CADDY_ADMIN", "http://127.0.0.1:2019"),
             coder_url,
@@ -121,6 +134,7 @@ impl Config {
             edge_container: env_or("CLOUDD_EDGE_CONTAINER", "cloudos-edge"),
             edge_cloudd_upstream: env_or("CLOUDD_EDGE_CLOUDD_UPSTREAM", "host.docker.internal:7100"),
             edge_agents_upstream: env_or("CLOUDD_EDGE_AGENTS_UPSTREAM", "host.docker.internal:7300"),
+            edge_upstreams_pinned: env("CLOUDD_EDGE_CLOUDD_UPSTREAM").is_some() || env("CLOUDD_EDGE_AGENTS_UPSTREAM").is_some(),
             edge_coder_upstream: env_or("CLOUDD_EDGE_CODER_UPSTREAM", "coder:7080"),
             tls_internal: env_or("CLOUDD_TLS_INTERNAL", "true") == "true",
             admin_email: env_or("CLOUDOS_ADMIN_EMAIL", "admin@cloudos.local"),
@@ -128,11 +142,28 @@ impl Config {
         })
     }
 
+    /// Socket paths in the directory shared with the edge.
+    pub fn cloudd_sock(&self) -> PathBuf { self.edge_run_dir.join("cloudd.sock") }
+    pub fn agents_sock(&self) -> PathBuf { self.edge_run_dir.join("agents.sock") }
+    pub fn caddy_admin_sock(&self) -> PathBuf { self.edge_run_dir.join("admin.sock") }
+    /// What the edge dials and where its admin API listens: the sockets when the container mounts the directory, the docker
+    /// bridge and TCP otherwise. Returns (cloudd upstream, agents upstream, admin listen).
+    pub fn edge_upstreams(&self, sockets: bool) -> (String, String, String) {
+        if !sockets { return (self.edge_cloudd_upstream.clone(), self.edge_agents_upstream.clone(), "0.0.0.0:2019".into()) }
+        let unix = |p: PathBuf| format!("unix/{}", p.display());
+        let (c, a) = if self.edge_upstreams_pinned { (self.edge_cloudd_upstream.clone(), self.edge_agents_upstream.clone()) } else { (unix(self.cloudd_sock()), unix(self.agents_sock())) };
+        (c, a, unix(self.caddy_admin_sock()))
+    }
+
     pub fn db_path(&self) -> PathBuf {
         self.state_dir.join("cloudd.db")
     }
     pub fn age_key_path(&self) -> PathBuf {
         self.state_dir.join("age.key")
+    }
+    /// The key the services of this host show to the core's internal routes (a file only root reads).
+    pub fn internal_token_path(&self) -> PathBuf {
+        self.state_dir.join("internal.token")
     }
     pub fn gates_dir(&self) -> PathBuf {
         self.state_dir.join("gates")

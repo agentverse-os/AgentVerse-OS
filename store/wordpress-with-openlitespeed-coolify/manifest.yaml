@@ -1,0 +1,71 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/wordpress-with-openlitespeed-coolify
+description: WordPress served by OpenLiteSpeed, a high-performance web server with built-in LSPHP and HTTP/3.
+endpoint:
+  port: 80
+  service: openlitespeed
+env:
+  SERVICE_PASSWORD_ROOT:
+    generate: password
+  SERVICE_PASSWORD_WORDPRESS:
+    generate: password
+  SERVICE_URL_OPENLITESPEED_80: https://${APP_DOMAIN}
+  SERVICE_USER_WORDPRESS:
+    generate: password
+  WORDPRESS_DB_NAME: wordpress
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: wordpress-with-openlitespeed-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: WORDPRESS_DB_NAME
+  hint: 'по умолчанию: wordpress'
+  label: wordpress db name
+  options: null
+  required: false
+  type: text
+tags:
+- cms
+- blog
+- wordpress
+- openlitespeed
+- litespeed
+- php
+- mariadb
+title: Wordpress With Openlitespeed
+type: app
+upstream:
+  categories:
+  - cms
+  source: https://openlitespeed.org/kb/
+  tags:
+  - cms
+  - blog
+  - wordpress
+  - openlitespeed
+  - litespeed
+  - php
+  - mariadb
+  template: wordpress-with-openlitespeed.yaml
+website: https://openlitespeed.org/kb/

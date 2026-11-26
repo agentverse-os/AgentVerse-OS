@@ -46,16 +46,14 @@ upstream:
   categories:
   - files
   release_notes: |-
-    An invitation now decides what the new member can see, before they first sign in. Until now anyone you invited started with access to every module and you could only take things away afterwards, which is the wrong way round: access can be widened later, but somebody who has already seen something cannot un-see it. The invitation form has a new "starting permissions" field, and it starts on the narrow option, which leaves Health, Budget and Documents locked. Underneath, the form tells you what your choice means right now. Nothing changes for the people already in your household, for invitations you have already sent, or for the permissions you have configured.
+    This update is about the API. If you use it with your own scripts or integrations: the inventory, housekeeping, rewards, waste collection and the shift schedule now check every request against the published API description, like the modules before them. Input that was quietly accepted or reinterpreted before, such as an id like "12abc", a number sent as text or "true" as text for a switch, is now refused with a 400 that names the field. The app itself sends nothing that is refused.
 
-    Each person can now choose what their own new health entries start as, per measurement. The request was to make blood pressure visible to the family by default, so that in an emergency somebody knows the usual values. Changing that for everyone would have shared readings that people expected to stay private, so the choice sits with you instead: under Settings, Personal, Health you set it for blood pressure, blood sugar, weight and the rest separately, plus medications, lab reports and activities. Entries you have already recorded keep their current visibility, and after a change the page offers to move them along. Sharing your blood pressure does not share your mood, and the private/family switch on each individual entry is unchanged.
+    Some requests could change data by accident and are refused now instead. Saving waste reminder settings without the "enabled" field switched the reminder off; it now needs all three fields. Saving a reward participant without "enabled" switched the participation off. Replacing an inventory item with a wrong value for its tracked dates or documents removed them all.
 
-    The changelog opens with what has changed in your app since you last looked. Releases arrive quickly here, and following them meant reading a long list. Now the view starts with a short, scannable summary of the changes between the version you last saw and the one you are running, each line expandable if you want the reasoning. Two things are worth knowing after this update: what you have seen is now remembered on your account rather than in the browser, so a phone and a tablet no longer show you the same news twice, and the summary will be empty the first time you open it, because there is no earlier mark to compare against yet. From your next update onwards it will be filled.
+    This update does not change the database. No action is needed from you.
 
-    Yuvomi also links to a user guide now, written and maintained by a member of the community in their own repository. You will find it in the app under Help, in the README and on yuvomi.cloud, marked as community-maintained so nobody mistakes it for an official reference: it can lag behind a release.
-
-    Full release notes are available at https://github.com/ulsklyc/yuvomi/releases/tag/v2.62.0
+    Full release notes are available at https://github.com/ulsklyc/yuvomi/releases/tag/v2.93.0
   source: https://github.com/ulsklyc/yuvomi
-  version: 2.62.0
+  version: 2.93.0
   website: https://github.com/ulsklyc/yuvomi
 website: https://github.com/ulsklyc/yuvomi

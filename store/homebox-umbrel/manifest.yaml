@@ -12,9 +12,9 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/homebox/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homebox/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/homebox/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/homebox/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homebox/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/homebox/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,14 +44,14 @@ upstream:
   categories:
   - files
   release_notes: |-
-    HomeBox 0.26.2 is a follow-up to the recent 0.26 major update. If you're updating from a pre-0.26 version, back up your HomeBox database and files first because 0.26 introduced a significant database rework for the new entity model.
+    ⚠️ Notifications to internal IP addresses are now blocked by default. If you use local webhook services, review the notifier network security settings at https://homebox.software/en/user-guide/notifiers/#network-security-for-notifiers.
 
-    If you're already on 0.26.1, this update fixes various bugs introduced in the new 0.26 release line.
+    If you're updating from a pre-0.26 version, back up your HomeBox database and files first because 0.26 introduced a significant database rework. Integrations using the old /v1/items* or /v1/locations* API endpoints must migrate to /v1/entities*.
 
-    Developer note: integrations using the old /v1/items* or /v1/locations* API endpoints must migrate to /v1/entities*.
+    This maintenance update fixes connections to optional Meilisearch servers on local networks and in Docker, while continuing to reject insecure HTTP connections to public IP addresses.
 
-    Full release notes can be found at https://github.com/sysadminsmedia/homebox/releases/tag/v0.26.2
+    Full release notes can be found at https://github.com/sysadminsmedia/homebox/releases/tag/v0.27.1
   source: https://github.com/sysadminsmedia/homebox
-  version: 0.26.2
+  version: 0.27.1
   website: https://homebox.software
 website: https://homebox.software

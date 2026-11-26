@@ -18,7 +18,7 @@ services:
       TS_SERVE_CONFIG: ${TAILSCALE_SERVE_CONFIG}
       TS_STATE_DIR: /var/lib/tailscale
       TS_USERSPACE: ${TAILSCALE_USERSPACE-true}
-    image: tailscale/tailscale:v1.102.3
+    image: tailscale/tailscale:v1.104.7
     networks:
       appnet:
         aliases:

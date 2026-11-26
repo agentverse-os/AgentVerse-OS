@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/firefox/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/firefox/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/firefox/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/firefox/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/firefox/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/firefox/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

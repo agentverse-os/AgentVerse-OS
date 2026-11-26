@@ -9,9 +9,12 @@ endpoint:
   port: 80
   service: netbird-client
 env:
-  NB_ENABLE_EXPERIMENTAL_LAZY_CONN: 'false'
+  NB_ALLOW_SERVER_SSH: 'false'
+  NB_DISABLE_DNS: 'false'
   NB_ENABLE_ROSENPASS: 'false'
-  NB_SETUP_KEY: ''
+  NB_LAZY_CONN: off
+  NB_LOG_LEVEL: info
+  NB_MANAGEMENT_URL: https://api.netbird.io:443
 gallery: []
 health: null
 hooks: {}
@@ -34,21 +37,39 @@ route:
   open: iframe
 schema: 1
 settings:
-- env: NB_SETUP_KEY
-  hint: null
-  label: nb setup key
+- env: NB_MANAGEMENT_URL
+  hint: 'по умолчанию: https://api.netbird.io:443'
+  label: nb management url
   options: null
   required: false
-  type: password
+  type: text
 - env: NB_ENABLE_ROSENPASS
   hint: 'по умолчанию: false'
   label: nb enable rosenpass
   options: null
   required: false
   type: text
-- env: NB_ENABLE_EXPERIMENTAL_LAZY_CONN
+- env: NB_LAZY_CONN
+  hint: 'по умолчанию: off'
+  label: nb lazy conn
+  options: null
+  required: false
+  type: text
+- env: NB_LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: nb log level
+  options: null
+  required: false
+  type: text
+- env: NB_DISABLE_DNS
   hint: 'по умолчанию: false'
-  label: nb enable experimental lazy conn
+  label: nb disable dns
+  options: null
+  required: false
+  type: text
+- env: NB_ALLOW_SERVER_SSH
+  hint: 'по умолчанию: false'
+  label: nb allow server ssh
   options: null
   required: false
   type: text

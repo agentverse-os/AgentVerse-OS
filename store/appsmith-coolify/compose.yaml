@@ -21,7 +21,7 @@ services:
       - -f
       - http://127.0.0.1:80
       timeout: 20s
-    image: index.docker.io/appsmith/appsmith-ce:latest
+    image: index.docker.io/appsmith/appsmith-ce:v2.7.0
     networks:
       appnet:
         aliases:

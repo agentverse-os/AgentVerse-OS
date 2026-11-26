@@ -11,7 +11,7 @@ services:
       PUID: '1000'
       TZ: ${TZ}
       USER: ${TRANSMISSION_USERNAME}
-    image: lscr.io/linuxserver/transmission:4.1.3
+    image: lscr.io/linuxserver/transmission:4.1.4
     networks:
       appnet:
         aliases:

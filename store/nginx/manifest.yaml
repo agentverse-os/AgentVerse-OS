@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/nginx/nginx
-  tipi_version: 29
-  version: 1.31.4
+  tipi_version: 37
+  version: 1.31.8
 website: https://github.com/nginx/nginx

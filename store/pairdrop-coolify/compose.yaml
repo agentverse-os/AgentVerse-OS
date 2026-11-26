@@ -20,7 +20,7 @@ services:
       - -f
       - http://127.0.0.1:3000
       timeout: 10s
-    image: lscr.io/linuxserver/pairdrop:latest
+    image: lscr.io/linuxserver/pairdrop:1.11.2
     networks:
       appnet:
         aliases:

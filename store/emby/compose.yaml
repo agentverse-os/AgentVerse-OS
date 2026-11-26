@@ -9,7 +9,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: ${TZ}
-    image: lscr.io/linuxserver/emby:4.9.5
+    image: lscr.io/linuxserver/emby:4.10.2
     networks:
       appnet:
         aliases:

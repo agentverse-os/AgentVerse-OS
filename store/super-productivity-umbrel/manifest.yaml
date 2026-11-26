@@ -10,10 +10,10 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/super-productivity/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/super-productivity/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/super-productivity/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/super-productivity/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/super-productivity/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/super-productivity/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/super-productivity/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/super-productivity/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -39,16 +39,18 @@ tags: []
 title: Super Productivity
 type: app
 upstream:
-  author: Johannes Schickling
+  author: Johannes Millan
   categories:
   - files
   release_notes: |-
-    This update shows the currently tracked task in the browser tab title, adds Android URL-scheme task actions, and updates the Turkish translation.
+    This update adds Smart Lists, multi-tag filtering, and a redesigned view editor with pinned views and improved mobile layouts.
 
-    Fixes include safer legacy data migration for missing model sections, more reliable SuperSync repair and privacy handling, schedule-event touch handling, iOS add-task bar behavior, and overdue repeating-task cleanup.
+    Task duplication now keeps links, files, and deadlines. Recurring tasks, cross-project search, worklog exports, and sync recovery are more reliable, with faster startup and smoother navigation.
 
-    Full release notes can be found at https://github.com/super-productivity/super-productivity/releases/tag/v18.21.2
-  source: https://github.com/johannesjo/super-productivity
-  version: 18.21.2
+    GitLab integration is now provided by a bundled plugin. New optional plugins and focus-session web notifications are also available.
+
+    Full release notes can be found at https://github.com/super-productivity/super-productivity/releases/tag/v20.0.0
+  source: https://github.com/super-productivity/super-productivity
+  version: 20.0.0
   website: https://super-productivity.com/
 website: https://super-productivity.com/

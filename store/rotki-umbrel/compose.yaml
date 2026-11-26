@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   web:
-    image: rotki/rotki:v1.44.0@sha256:918e35cfbcce68633eafc9cdcc206bb2b45a1110f86e544d48d1fded04c280ff
+    image: rotki/rotki:v1.44.3@sha256:4f07e8114b4450665b64a964ffa106dfb3c36a50e3664c93b8aafe1c1e1a0735
     init: true
     networks:
       appnet:

@@ -11,18 +11,17 @@ services:
     environment:
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
       ES_URL: http://tubearchivist-es:9200
-      HOST_GID: '1000'
-      HOST_UID: '1000'
       REDIS_CON: redis://tubearchivist-redis:6379
       TA_HOST: ${APP_DOMAIN}
       TA_PASSWORD: ${TA_PASSWORD}
       TA_USERNAME: ${TA_USER}
-    image: bbilly1/tubearchivist:v0.5.12
+    image: bbilly1/tubearchivist:v0.6.0
     networks:
       appnet:
         aliases:
         - tubearchivist_tubearchivist_1
     restart: unless-stopped
+    user: 1000:1000
     volumes:
     - ${ROOT_FOLDER_HOST}/media/data/youtube:/youtube
     - ${APP_DATA_DIR}/data/cache:/cache
@@ -33,7 +32,7 @@ services:
       discovery.type: single-node
       path.repo: /usr/share/elasticsearch/data/snapshot
       xpack.security.enabled: 'true'
-    image: elasticsearch:8.17.2
+    image: elasticsearch:9.5.5
     networks:
       appnet:
         aliases:

@@ -44,6 +44,11 @@ pub struct AgyState {
     /// process HOME
     pub native: bool,
     pub native_models: Vec<(String, String)>,
+    /// Text of the current prompt and whether it was already re-sent once after a "no capacity" answer (§4.3.17)
+    pub last_text: String,
+    pub retried: bool,
+    /// Retry generation: a pending retry is dropped when the turn was closed (stop, interrupt) meanwhile
+    pub retry_gen: u64,
 }
 
 /// `agy models` under the home directory `home` (Google account): (id, name) pairs; empty without a
@@ -142,6 +147,94 @@ pub fn denied_note(denied: &Value) -> Option<String> {
     Some(format!("Antigravity отклонил: {} — в headless-режиме agy не умеет спрашивать разрешение. Переключите режим беседы на «авто» (все инструменты) или добавьте правило permissions.allow в ~/.gemini/antigravity-cli/settings.json и повторите сообщение.", what.join(", ")))
 }
 
+/// Claude Code tool rule → agy permission rule (docs/agents-ux.md §4.3.17): `Bash(npm test:*)` → `command(npm test)`,
+/// `Bash(git status)` → `command(regex:^git status$)`, `Bash` → `command(*)`, `Read`/`Read(p)` → `read_file(*|p)`,
+/// `Edit`/`Write`/`MultiEdit`/`NotebookEdit` → `write_file(…)`, `WebFetch(domain:x)` → `read_url(x)`, `mcp__s__t` → `mcp(s/t)`,
+/// `mcp__s` → `mcp(s/*)`; anything else (WebSearch, Agent, Glob…) has no agy counterpart.
+pub fn claude_rule_to_agy(rule: &str) -> Option<String> {
+    let rule = rule.trim();
+    let (tool, arg) = match rule.find('(') { Some(i) if rule.ends_with(')') => (&rule[..i], Some(rule[i + 1..rule.len() - 1].trim())), _ => (rule, None) };
+    let path_rule = |kind: &str| Some(match arg { Some(a) if !a.is_empty() => format!("{kind}({a})"), _ => format!("{kind}(*)") });
+    match tool {
+        "Bash" => Some(match arg {
+            None | Some("") | Some("*") => "command(*)".to_string(),
+            Some(a) if a.ends_with(":*") => format!("command({})", a[..a.len() - 2].trim()),
+            Some(a) if a.ends_with('*') => format!("command({})", a[..a.len() - 1].trim()),
+            Some(a) => format!("command(regex:^{}$)", regex_escape(a)),
+        }),
+        "Read" => path_rule("read_file"),
+        "Edit" | "Write" | "MultiEdit" | "NotebookEdit" => path_rule("write_file"),
+        "WebFetch" => Some(match arg { Some(a) if !a.is_empty() && a != "*" => format!("read_url({})", a.trim_start_matches("domain:").trim()), _ => "read_url(*)".to_string() }),
+        t if t.starts_with("mcp__") => {
+            let mut parts = t.trim_start_matches("mcp__").splitn(2, "__");
+            let server = parts.next().unwrap_or("").trim();
+            if server.is_empty() { return None }
+            Some(match parts.next().filter(|x| !x.trim().is_empty()) { Some(tool) => format!("mcp({server}/{tool})"), None => format!("mcp({server}/*)") })
+        }
+        _ => None,
+    }
+}
+fn regex_escape(s: &str) -> String { let mut o = String::new(); for c in s.chars() { if "\\.+*?()[]{}|^$".contains(c) { o.push('\\'); } o.push(c); } o }
+
+/// Our rules into agy's `permissions.allow`/`deny` of `<home>/.gemini/antigravity-cli/settings.json`: the rules written last
+/// time (remembered in `<home>/.cloudos/agy-rules.json`) are removed first, the owner's own rules stay. Returns whether the
+/// file changed.
+pub fn sync_rules(home: &str, allow: &[String], deny: &[String]) -> std::io::Result<bool> {
+    let dir = format!("{home}/.gemini/antigravity-cli");
+    std::fs::create_dir_all(&dir)?;
+    let path = format!("{dir}/settings.json");
+    let marker = format!("{home}/.cloudos/agy-rules.json");
+    let mut st: Value = std::fs::read(&path).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or(json!({}));
+    if !st.is_object() { st = json!({}); }
+    let prev: Value = std::fs::read(&marker).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or(json!({}));
+    let list = |v: &Value, k: &str| -> Vec<String> { v.get(k).and_then(|a| a.as_array()).map(|a| a.iter().filter_map(|x| x.as_str().map(str::to_string)).collect()).unwrap_or_default() };
+    let mut changed = false;
+    for (key, ours) in [("allow", allow), ("deny", deny)] {
+        let before = list(st.get("permissions").unwrap_or(&Value::Null), key);
+        let old_ours = list(&prev, key);
+        let mut cur: Vec<String> = before.iter().filter(|r| !old_ours.contains(r)).cloned().collect();
+        for r in ours { if !cur.contains(r) { cur.push(r.clone()); } }
+        if cur != before {
+            changed = true;
+            if !st.get("permissions").map(|p| p.is_object()).unwrap_or(false) { st["permissions"] = json!({}); }
+            if cur.is_empty() { st["permissions"].as_object_mut().unwrap().remove(key); } else { st["permissions"][key] = json!(cur); }
+        }
+    }
+    if st.get("permissions").map(|p| p.as_object().map(|o| o.is_empty()).unwrap_or(false)).unwrap_or(false) { st.as_object_mut().unwrap().remove("permissions"); }
+    if changed { std::fs::write(&path, serde_json::to_vec_pretty(&st).unwrap_or_default())?; }
+    let _ = std::fs::create_dir_all(format!("{home}/.cloudos"));
+    std::fs::write(&marker, serde_json::to_vec_pretty(&json!({ "allow": allow, "deny": deny })).unwrap_or_default())?;
+    Ok(changed)
+}
+
+/// Google answered that there is no capacity for the model right now (503 / UNAVAILABLE / overloaded) — a temporary
+/// condition worth one retry (§4.3.17).
+pub fn is_capacity_error(e: &str) -> bool {
+    let l = e.to_ascii_lowercase();
+    l.contains("no capacity") || l.contains("503") || l.contains("unavailable") || l.contains("overloaded") || l.contains("try again later")
+}
+
+/// Claude Code rule for a declined agy tool call (card name and input): the "allow and retry" button. Commands get a
+/// one- or two-word prefix (`git`, `npm`, `cargo`… take the subcommand too), files their path, MCP tools `mcp__s__t`.
+pub fn rule_for_tool(card: &str, input: &Value) -> Option<String> {
+    let s = |k: &str| input.get(k).and_then(|v| v.as_str()).map(str::trim).filter(|v| !v.is_empty()).map(str::to_string);
+    match card {
+        "Bash" => {
+            let cmd = s("command")?;
+            let words: Vec<&str> = cmd.split_whitespace().collect();
+            let first = *words.first()?;
+            let two = matches!(first, "git" | "npm" | "npx" | "pnpm" | "yarn" | "cargo" | "docker" | "kubectl" | "go" | "make" | "python" | "python3" | "pip" | "pip3" | "uv" | "gh" | "incus" | "systemctl");
+            let prefix = if two && words.len() > 1 && !words[1].starts_with('-') { format!("{first} {}", words[1]) } else { first.to_string() };
+            Some(format!("Bash({prefix}:*)"))
+        }
+        "Read" => Some(match s("file_path") { Some(p) => format!("Read({p})"), None => "Read".to_string() }),
+        "Edit" | "Write" | "MultiEdit" | "NotebookEdit" => Some(match s("file_path") { Some(p) => format!("Edit({p})"), None => "Edit".to_string() }),
+        "WebFetch" => Some(match s("url").and_then(|u| u.split("//").nth(1).map(|h| h.split('/').next().unwrap_or("").to_string())).filter(|h| !h.is_empty()) { Some(h) => format!("WebFetch(domain:{h})"), None => "WebFetch".to_string() }),
+        t if t.starts_with("mcp__") => Some(t.to_string()),
+        _ => None,
+    }
+}
+
 impl Session {
     /// Does the process need a restart with new arguments (model/effort/mode changed on a live
     /// session).
@@ -157,7 +250,7 @@ impl Session {
     pub(crate) async fn agy_prompt(self: &Arc<Self>, content: &Value) -> Result<()> {
         let text = prompt_text(content);
         if text.trim().is_empty() { bail!("пустое сообщение"); }
-        { let mut st = self.agy.lock().unwrap(); if st.in_turn { bail!("ход ещё идёт — дождитесь ответа или остановите"); } st.in_turn = true; st.turn_started_ms = now_ms(); st.turn_text.clear(); st.text.clear(); st.tools.clear(); st.silent.clear(); }
+        { let mut st = self.agy.lock().unwrap(); if st.in_turn { bail!("ход ещё идёт — дождитесь ответа или остановите"); } st.in_turn = true; st.turn_started_ms = now_ms(); st.turn_text.clear(); st.text.clear(); st.tools.clear(); st.silent.clear(); st.last_text = text.clone(); st.retried = false; }
         self.write(&json!({ "event": "user", "message": { "content": text } })).await
     }
 
@@ -226,6 +319,11 @@ impl Session {
                 let status = r.get("status").and_then(|s| s.as_str()).unwrap_or("");
                 let err = r.get("error").and_then(|e| e.as_str()).map(str::to_string);
                 let stop = match status { "SUCCESS" => "end_turn", "CANCELED" | "INTERRUPTED" => "cancelled", _ => "error" };
+                // Google has no capacity for the model (503 / UNAVAILABLE): one automatic retry after 20 s (§4.3.17)
+                if stop == "error" && err.as_deref().map(is_capacity_error).unwrap_or(false) {
+                    let first = { let mut st = self.agy.lock().unwrap(); if st.retried { false } else { st.retried = true; true } };
+                    if first { self.agy_retry_later(err.unwrap_or_default()); return }
+                }
                 self.agy_finish_turn(stop, err, &r);
             }
             _ => {}
@@ -245,20 +343,40 @@ impl Session {
         self.drain_queue();
     }
 
+    /// "No capacity" from Google: keep the turn open (status stays Working, new messages wait in the queue), explain in the
+    /// journal and re-send the same text once after 20 s. Stop/interrupt meanwhile closes the turn and drops the retry.
+    fn agy_retry_later(self: &Arc<Self>, err: String) {
+        self.agy_flush();
+        let (open, gen) = { let mut st = self.agy.lock().unwrap(); st.retry_gen += 1; (st.tools.drain().map(|(_, v)| v).collect::<Vec<_>>(), st.retry_gen) };
+        for (tid, _) in open { self.emit(json!({ "kind": "tool_result", "content": [{ "type": "tool_result", "tool_use_id": tid, "content": "", "is_error": true }] })); }
+        let short: String = err.chars().take(160).collect();
+        self.note(&format!("Antigravity: у Google сейчас нет мощностей для модели ({short}) — повтор запроса через 20 с"));
+        let me = self.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_secs(20)).await;
+            let (text, live) = { let st = me.agy.lock().unwrap(); (st.last_text.clone(), st.in_turn && st.retry_gen == gen) };
+            if !live || !me.alive() { return }
+            { let mut st = me.agy.lock().unwrap(); st.turn_started_ms = now_ms(); st.text.clear(); st.silent.clear(); }
+            if let Err(e) = me.write(&json!({ "event": "user", "message": { "content": text } })).await {
+                me.agy_finish_turn("error", Some(format!("повтор не удался: {e}")), &json!({}));
+            }
+        });
+    }
+
     /// Turn result into the journal (without the queue — agy_finish_turn releases it; on an interrupt the process is
     /// stopped anyway).
     fn agy_close_turn(&self, stop: &str, err: Option<String>, r: &Value) {
         self.agy_flush();
         // tools left without DONE (interrupted) — close them with an error so the cards stop
         // spinning
-        let open: Vec<(String, String)> = { let mut st = self.agy.lock().unwrap(); st.in_turn = false; st.tools.drain().map(|(_, v)| v).collect() };
+        let open: Vec<(String, String)> = { let mut st = self.agy.lock().unwrap(); st.in_turn = false; st.retry_gen += 1; st.tools.drain().map(|(_, v)| v).collect() };
         for (tid, _) in open { self.emit(json!({ "kind": "tool_result", "content": [{ "type": "tool_result", "tool_use_id": tid, "content": "", "is_error": true }] })); }
         let (started, text, model, conv, used) = { let st = self.agy.lock().unwrap(); (st.turn_started_ms, st.turn_text.clone(), st.model.clone(), st.conversation_id.clone(), st.last_input_tokens) };
         let (meta_model, window) = { let m = self.meta.lock().unwrap(); (m.model.clone(), m.context_window.unwrap_or(DEFAULT_WINDOW)) };
         // declined tools: agy closes their step as DONE without output — mark the cards as "declined" errors and explain with a note
         let silent: Vec<String> = std::mem::take(&mut self.agy.lock().unwrap().silent);
         if let Some(note) = r.get("denied_actions").and_then(denied_note) {
-            for tid in silent { self.emit(json!({ "kind": "tool_result", "content": [{ "type": "tool_result", "tool_use_id": tid, "content": "отклонено: headless agy не умеет спрашивать разрешение", "is_error": true }] })); }
+            for tid in silent { self.emit(json!({ "kind": "tool_result", "content": [{ "type": "tool_result", "tool_use_id": tid, "content": "отклонено: headless agy не умеет спрашивать разрешение", "is_error": true, "declined": true }] })); }
             self.note(&note);
         }
         if let Some(e) = &err { self.emit(json!({ "kind": "error", "message": e })); }
@@ -272,6 +390,50 @@ impl Session {
         self.record_result(ev);
         self.pending.lock().unwrap().clear();
         self.set_status(Status::Idle);
+    }
+
+    /// Our rules → agy's `permissions.allow`/`deny` before the process starts (§4.3.17): the session rules
+    /// (`allowed_tools`/`disallowed_tools`) plus the workspace rules of the user and project scopes (perms.rs), translated.
+    pub(crate) fn agy_sync_rules(&self) {
+        let meta = self.meta.lock().unwrap().clone();
+        let (ua, ud) = crate::perms::rules_of("user", "");
+        let (pa, pd) = crate::perms::rules_of("project", &meta.cwd);
+        let tr = |src: &[&Vec<String>]| -> Vec<String> { let mut out = Vec::new(); for l in src { for r in l.iter() { if let Some(x) = claude_rule_to_agy(r) { if !out.contains(&x) { out.push(x); } } } } out };
+        let allow = tr(&[&meta.allowed_tools, &ua, &pa]);
+        let deny = tr(&[&meta.disallowed_tools, &ud, &pd]);
+        let home = meta.env.get("HOME").cloned().unwrap_or_else(|| std::env::var("HOME").unwrap_or_else(|_| "/home/coder".into()));
+        match sync_rules(&home, &allow, &deny) {
+            Ok(true) => tracing::info!("session {}: agy permissions — allow {} deny {}", &self.id()[..8], allow.len(), deny.len()),
+            Ok(false) => {}
+            Err(e) => tracing::warn!("session {}: agy permissions не записаны: {e}", &self.id()[..8]),
+        }
+    }
+
+    /// "Allow and retry" (§4.3.17): a Claude-style rule for the declined tool call goes into the project scope
+    /// (`<cwd>/.claude/settings.local.json`, perms.rs), agy's settings get its translation, the process restarts on the
+    /// same conversation (agy reads rules at start only — verified) and the conversation gets a short message to go on.
+    pub(crate) async fn agy_allow_retry(self: &Arc<Self>, tool_use_id: &str) -> Result<Value> {
+        let found = self.events_since(0, usize::MAX).iter().rev().find_map(|e| {
+            if e.get("kind").and_then(|k| k.as_str()) != Some("assistant") { return None }
+            e.get("content").and_then(|c| c.as_array()).and_then(|a| a.iter().find(|b| b.get("type").and_then(|t| t.as_str()) == Some("tool_use") && b.get("id").and_then(|i| i.as_str()) == Some(tool_use_id)))
+                .map(|b| (b.get("name").and_then(|n| n.as_str()).unwrap_or("").to_string(), b.get("input").cloned().unwrap_or(json!({}))))
+        });
+        let Some((card, input)) = found else { bail!("вызов инструмента {tool_use_id} не найден в журнале") };
+        let Some(rule) = rule_for_tool(&card, &input) else { bail!("для инструмента {card} правило не выводится") };
+        let cwd = self.meta.lock().unwrap().cwd.clone();
+        let added = crate::perms::add_rule("project", &cwd, "allow", &rule)?;
+        self.agy_sync_rules();
+        self.note(&format!("{}: {rule} (область «проект», {cwd}/.claude/settings.local.json) — перезапускаю agy с этим правилом", if added { "правило добавлено" } else { "правило уже было" }));
+        if self.alive() {
+            let in_turn = self.agy.lock().unwrap().in_turn;
+            if in_turn { self.agy_close_turn("cancelled", None, &json!({})); }
+            let _ = self.stop();
+            self.wait_exit(std::time::Duration::from_secs(6)).await;
+        }
+        self.spawn(true).await?;
+        // the message goes through the usual prompt path (queued if a turn is still running) — the reply only says that it was accepted
+        let ev = self.prompt(json!([{ "type": "text", "text": "Разрешение выдано — выполни команду и продолжи." }])).await?;
+        Ok(json!({ "ok": true, "rule": rule, "added": added, "sent": true, "queued": ev.get("queued").is_some() }))
     }
 
     /// Interrupt the turn: agy has no cancel protocol — stop the process and close the turn as interrupted; the
@@ -341,5 +503,41 @@ mod tests {
         assert_eq!(mode_options().as_array().unwrap().len(), 4);
         assert_eq!(parse_models("Fetching available models...\ngemini-3.1-pro-high\tGemini 3.1 Pro (High)\nbad line\n"), vec![("gemini-3.1-pro-high".to_string(), "Gemini 3.1 Pro (High)".to_string())]);
         assert!(parse_models("Error: Please sign in").is_empty()); assert_eq!(shell_quote("/a b'c"), "'/a b'\\''c'");
+    }
+    #[test]
+    fn rules_translate_and_sync() {
+        assert_eq!(claude_rule_to_agy("Bash(npm test:*)").as_deref(), Some("command(npm test)"));
+        assert_eq!(claude_rule_to_agy("Bash(git status)").as_deref(), Some("command(regex:^git status$)"));
+        assert_eq!(claude_rule_to_agy("Bash(rm -rf *)").as_deref(), Some("command(rm -rf)"));
+        assert_eq!(claude_rule_to_agy("Bash").as_deref(), Some("command(*)"));
+        assert_eq!(claude_rule_to_agy("Read").as_deref(), Some("read_file(*)"));
+        assert_eq!(claude_rule_to_agy("Edit(src/)").as_deref(), Some("write_file(src/)"));
+        assert_eq!(claude_rule_to_agy("WebFetch(domain:example.com)").as_deref(), Some("read_url(example.com)"));
+        assert_eq!(claude_rule_to_agy("mcp__linter__lint").as_deref(), Some("mcp(linter/lint)"));
+        assert_eq!(claude_rule_to_agy("mcp__linter").as_deref(), Some("mcp(linter/*)"));
+        assert!(claude_rule_to_agy("WebSearch").is_none() && claude_rule_to_agy("Agent").is_none() && claude_rule_to_agy("mcp__").is_none());
+        // "allow and retry": a rule from the declined call
+        assert_eq!(rule_for_tool("Bash", &json!({ "command": "npm run docs:build --silent" })).as_deref(), Some("Bash(npm run:*)"));
+        assert_eq!(rule_for_tool("Bash", &json!({ "command": "ls -la" })).as_deref(), Some("Bash(ls:*)"));
+        assert_eq!(rule_for_tool("Bash", &json!({ "command": "git -C /x status" })).as_deref(), Some("Bash(git:*)"));
+        assert_eq!(rule_for_tool("Edit", &json!({ "file_path": "/home/coder/a.txt" })).as_deref(), Some("Edit(/home/coder/a.txt)"));
+        assert_eq!(rule_for_tool("WebFetch", &json!({ "url": "https://docs.example.com/x/y" })).as_deref(), Some("WebFetch(domain:docs.example.com)"));
+        assert_eq!(rule_for_tool("mcp__srv__tool", &json!({})).as_deref(), Some("mcp__srv__tool"));
+        assert!(rule_for_tool("Bash", &json!({})).is_none() && rule_for_tool("Agent", &json!({})).is_none());
+        assert!(is_capacity_error("Error 503, Message: No capacity available for model gemini-3-pro, Status: UNAVAILABLE") && is_capacity_error("The model is overloaded. Please try again later."));
+        assert!(!is_capacity_error("API key not valid. Please pass a valid API key.") && !is_capacity_error("rate limit exceeded (429)"));
+        // sync keeps the owner's rules and replaces only ours
+        let dir = std::env::temp_dir().join(format!("agy-rules-{}", std::process::id())); let _ = std::fs::remove_dir_all(&dir);
+        let home = dir.to_string_lossy().to_string();
+        std::fs::create_dir_all(format!("{home}/.gemini/antigravity-cli")).unwrap();
+        std::fs::write(format!("{home}/.gemini/antigravity-cli/settings.json"), r#"{"modelProvider":"gemini","permissions":{"allow":["command(make)"]}}"#).unwrap();
+        assert!(sync_rules(&home, &["command(npm test)".into()], &["command(rm -rf)".into()]).unwrap());
+        let st: Value = serde_json::from_slice(&std::fs::read(format!("{home}/.gemini/antigravity-cli/settings.json")).unwrap()).unwrap();
+        assert_eq!(st["permissions"]["allow"], json!(["command(make)", "command(npm test)"])); assert_eq!(st["permissions"]["deny"], json!(["command(rm -rf)"])); assert_eq!(st["modelProvider"], "gemini");
+        assert!(!sync_rules(&home, &["command(npm test)".into()], &["command(rm -rf)".into()]).unwrap());
+        assert!(sync_rules(&home, &[], &[]).unwrap());
+        let st: Value = serde_json::from_slice(&std::fs::read(format!("{home}/.gemini/antigravity-cli/settings.json")).unwrap()).unwrap();
+        assert_eq!(st["permissions"]["allow"], json!(["command(make)"])); assert!(st["permissions"].get("deny").is_none());
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

@@ -40,6 +40,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/qbittorrent/qBittorrent
-  tipi_version: 39
-  version: 5.2.3
+  tipi_version: 43
+  version: 5.3.0
 website: https://github.com/qbittorrent/qBittorrent

@@ -193,6 +193,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/hargata/lubelog
-  tipi_version: 54
-  version: v1.7.1
+  tipi_version: 59
+  version: v1.7.4
 website: https://github.com/hargata/lubelog

@@ -18,9 +18,9 @@ services:
       start_period: 180s
       test:
       - CMD-SHELL
-      - wget -q -O /dev/null http://127.0.0.1:8000/public/ || exit 1
+      - wget -q -O /dev/null http://127.0.0.1:5797/public/ || exit 1
       timeout: 10s
-    image: archivebox/archivebox:0.7.4@sha256:1a5a37331091d9df865ead2b9c231aa5a892fc26fe0422ce6140d9e2d9532327
+    image: archivebox/archivebox:0.9.77@sha256:f63170551ec48d7aa087c71e2d093156dbf4b4ed8680e2f97f22483e3bc71e55
     networks:
       appnet:
         aliases:
@@ -30,3 +30,4 @@ services:
     stop_grace_period: 1m
     volumes:
     - ${APP_DATA_DIR}/data:/data
+    - ${APP_DATA_DIR}/tmp:/tmp/archivebox

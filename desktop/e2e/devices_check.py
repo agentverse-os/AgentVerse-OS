@@ -25,7 +25,7 @@ with sync_playwright() as p:
                 errors = []; pg.on("pageerror", lambda e: errors.append(str(e)[:120]))
                 pg.goto(f"https://{H}/", wait_until="domcontentloaded"); pg.wait_for_timeout(4000)
                 ok(f"{tag}: boot screen gone", pg.locator("#boot").count() == 0)
-                ok(f"{tag}: shell rendered", pg.locator(".desktop").count() == 1 and pg.locator(".taskbar .start, .navbar, .status").count() >= 1)
+                ok(f"{tag}: shell rendered", pg.locator(".desktop").count() == 1 and pg.locator(".taskbar .start, .dock .start, .navbar, .status").count() >= 1)   # the dock — in the umbrel look
                 ok(f"{tag}: no horizontal scroll", pg.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"))
                 ok(f"{tag}: wallpaper layers css", "wallpaper-monolith" in pg.evaluate("getComputedStyle(document.body, '::after').backgroundImage") or pg.evaluate("getComputedStyle(document.body, '::after').backgroundImage") == "none")
                 # themes: glass dark/light, OLED, contrast — no JS errors and no scroll
@@ -38,7 +38,7 @@ with sync_playwright() as p:
                         ok(f"{tag}: glass backdrop on phone status bar", "blur" in bf or engine == "firefox", bf[:40])
                 # Settings → the "Themes" section
                 pg.goto(f"https://{H}/#settings", wait_until="domcontentloaded"); pg.wait_for_timeout(3000); theme(pg, "glass", "dark"); pg.wait_for_timeout(400)
-                cards = pg.locator(".thm-card"); ok(f"{tag}: theme cards", cards.count() == 7, str(cards.count()))
+                cards = pg.locator(".thm-card"); ok(f"{tag}: theme cards", cards.count() == 8, str(cards.count()))
                 if cards.count():
                     bb = cards.first.bounding_box(); ok(f"{tag}: theme card visible & within viewport", bool(bb) and bb["x"] >= 0 and bb["x"] + bb["width"] <= opts["viewport"]["width"] + 1)
                 pg.screenshot(path=f"shots/dev-{engine}-{dev}-settings.png")

@@ -40,6 +40,6 @@ upstream:
   - data
   - utilities
   source: https://github.com/aalmenar/baikal-docker
-  tipi_version: 9
-  version: 0.11.1
+  tipi_version: 11
+  version: 0.13.0
 website: https://github.com/aalmenar/baikal-docker

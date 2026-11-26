@@ -15,7 +15,7 @@ services:
       FORGEJO__database__USER: forgejo
       USER_GID: '1000'
       USER_UID: '1000'
-    image: codeberg.org/forgejo/forgejo:16.0.3
+    image: codeberg.org/forgejo/forgejo:17.0.1
     networks:
       appnet:
         aliases:

@@ -46,7 +46,7 @@ type: app
 upstream:
   categories:
   - storage
-  source: https://github.com/coollabsio/minio?tab=readme-ov-file#minio-docker-images
+  source: https://silo.pigsty.io/docs/
   tags:
   - object
   - storage
@@ -54,4 +54,4 @@ upstream:
   - s3
   - api
   template: minio-community-edition.yaml
-website: https://github.com/coollabsio/minio?tab=readme-ov-file#minio-docker-images
+website: https://silo.pigsty.io/docs/

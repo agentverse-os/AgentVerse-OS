@@ -11,9 +11,9 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/swingmusic/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/swingmusic/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/swingmusic/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/swingmusic/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/swingmusic/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/swingmusic/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,6 +43,10 @@ upstream:
   categories:
   - media
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Swing Music 3.0.0 release notes:
+
     Important for existing users:
       - This update does not change your existing Swing Music login.
       - If you have not changed the old default login, you can still sign in with username "admin" and password "admin".
@@ -60,6 +64,6 @@ upstream:
 
     Full release notes can be found at https://github.com/swingmx/swingmusic/releases/tag/v3.0.0
   source: https://github.com/swingmx/swingmusic
-  version: 3.0.0
+  version: 3.0.0-patch.1
   website: https://github.com/swingmx/swingmusic
 website: https://github.com/swingmx/swingmusic

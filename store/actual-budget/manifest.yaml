@@ -32,13 +32,13 @@ route:
 schema: 1
 settings: []
 tags: []
-title: Actual Budget
+title: Actual
 type: app
 upstream:
   author: Shift Reset LLC
   categories:
   - finance
   source: https://github.com/actualbudget/actual
-  tipi_version: 58
-  version: 26.8.1
+  tipi_version: 61
+  version: 26.11.0
 website: https://github.com/actualbudget/actual

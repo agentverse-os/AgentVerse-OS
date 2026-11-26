@@ -20,7 +20,7 @@ services:
       SEMAPHORE_LDAP_ACTIVATED: no
       SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore
       TZ: ${TZ}
-    image: semaphoreui/semaphore:v2.19.11
+    image: semaphoreui/semaphore:v2.20.24
     networks:
       appnet:
         aliases:

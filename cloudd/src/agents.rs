@@ -133,6 +133,9 @@ pub fn summarize(list: &[Value]) -> AgentsSummary {
     }
 }
 
+/// One agentd to poll: a project with a running workspace or an online server.
+struct PollTarget { name: String }
+
 impl Service {
     pub fn start_agents_poller(&self) {
         let me = self.clone();
@@ -151,12 +154,21 @@ impl Service {
     /// transitions.
     pub async fn poll_agents(&self) -> Result<()> {
         let running: HashSet<String> = self.incus.instances().await?.into_iter().filter(|i| i.status == "Running").map(|i| i.name).collect();
+        let mut targets: Vec<String> = Vec::new();
         for st in self.store.list_projects()? {
             let inst = self.workspace_instance(&st.name).await;
             if !running.contains(&inst) {
                 self.agents.cache.write().unwrap().remove(&st.name);
                 continue;
             }
+            targets.push(st.name.clone());
+        }
+        // owner's servers (ADR-008): the ones that answered the last probe
+        for h in self.store.list_hosts()? {
+            if h.online() { targets.push(h.name.clone()); } else { self.agents.cache.write().unwrap().remove(&h.name); }
+        }
+        for name in targets {
+            let st = PollTarget { name };
             let Ok(client) = self.agentd_client(&st.name).await else { continue };
             let since = self.store.usage_last_ts(&st.name)?;
             match client.get(&format!("/v1/usage?since={since}")).await {

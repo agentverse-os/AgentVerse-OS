@@ -9,7 +9,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: ${TZ}
-    image: ghcr.io/linuxserver/radarr:6.3.0
+    image: ghcr.io/linuxserver/radarr:6.4.4
     networks:
       appnet:
         aliases:

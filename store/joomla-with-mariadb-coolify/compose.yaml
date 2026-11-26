@@ -23,7 +23,7 @@ services:
       - -f
       - http://127.0.0.1
       timeout: 10s
-    image: joomla:latest
+    image: joomla:6.2.0
     networks:
       appnet:
         aliases:

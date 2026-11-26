@@ -150,7 +150,10 @@ fn gemini_rank(id: &str) -> f64 {
 /// Gemini models from the gate catalog that the CLI passes as is (no image, lite, foreign prefixes or replaced names),
 /// best to worst.
 pub fn gemini_gate_models(ids: &[String]) -> Vec<String> {
-    let mut v: Vec<String> = ids.iter().filter(|s| s.starts_with("gemini-") && !s.contains("image") && !s.contains("lite") && !s.contains('/') && !GEMINI_REMAPPED.contains(&s.as_str())).cloned().collect();
+    // only the chat lines (flash / pro): the gate catalog also carries speech, transcription, robotics, computer-use, omni
+    // and codename entries (a dead "gemini-4-argon" among them) that must never become the default
+    const NOT_CHAT: &[&str] = &["image", "lite", "tts", "transcribe", "audio", "robotics", "computer-use", "customtools", "omni", "nano-banana", "embed", "live", "realtime"];
+    let mut v: Vec<String> = ids.iter().filter(|s| s.starts_with("gemini-") && (s.contains("flash") || s.contains("pro")) && !NOT_CHAT.iter().any(|w| s.contains(w)) && !s.contains('/') && !GEMINI_REMAPPED.contains(&s.as_str())).cloned().collect();
     v.sort_by(|a, b| gemini_rank(b).partial_cmp(&gemini_rank(a)).unwrap_or(std::cmp::Ordering::Equal).then_with(|| a.cmp(b)));
     v
 }
@@ -982,6 +985,10 @@ mod tests {
         assert_eq!(pick_gemini_model(&ids).as_deref(), Some("gemini-3.8-flash-high"));
         assert_eq!(gemini_gate_models(&ids), vec!["gemini-3.8-flash-high".to_string(), "gemini-3.1-pro-low".into(), "gemini-pro-agent".into()]);
         assert_eq!(pick_gemini_model(&["gemini-3-flash".to_string(), "gemini-3.5-flash-lite".into()]), None);
+        // the new gate channel lists speech, transcription, robotics and a dead codename above the chat lines — none may win
+        let wide: Vec<String> = ["gemini-4-argon", "gemini-3.8-flash-tts", "gemini-3.5-transcribe", "gemini-robotics-er-2-preview", "gemini-2.5-computer-use-preview-10-2025", "gemini-3.1-pro-preview-customtools", "gemini-omni-1.1-flash", "gemini-nano-banana-2.1", "gemini-3.8-flash", "gemini-3.1-pro-preview", "gemini-pro-latest"].iter().map(|s| s.to_string()).collect();
+        assert_eq!(pick_gemini_model(&wide).as_deref(), Some("gemini-3.8-flash"));
+        assert_eq!(gemini_gate_models(&wide), vec!["gemini-3.8-flash".to_string(), "gemini-3.1-pro-preview".into(), "gemini-pro-latest".into()]);
         let pi: Vec<String> = ["claude-sonnet-4-20250514", "claude-opus-5-5", "claude-sonnet-4-6", "claude-sonnet-5-5", "gpt-5.5"].iter().map(|s| s.to_string()).collect();
         assert_eq!(pick_pi_model(&pi).as_deref(), Some("claude-sonnet-5-5"));
         assert_eq!(pick_pi_model(&["gpt-5.5".to_string(), "gpt-5.6-terra".into(), "kimi-k2".into()]).as_deref(), Some("gpt-5.6-terra"));

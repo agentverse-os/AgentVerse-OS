@@ -38,30 +38,30 @@ schema: 1
 settings:
 - env: MINIO_ROOT_USER
   hint: null
-  label: Minio root username
+  label: Root username
   options: null
   required: true
   type: text
 - env: MINIO_ROOT_PASSWORD
   hint: null
-  label: Minio root password
+  label: Root password
   options: null
   required: true
   type: password
 - env: MINIO_API_URL
   hint: null
-  label: Minio S3 API URL (when exposed)
+  label: S3 API URL (when exposed)
   options: null
   required: false
   type: text
 tags: []
-title: Minio
+title: Minio (SILO)
 type: app
 upstream:
-  author: MinIO, Inc
+  author: Pigsty
   categories:
   - development
-  source: https://github.com/minio/minio
-  tipi_version: 8
+  source: https://github.com/pgsty/silo
+  tipi_version: 9
   version: latest
-website: https://github.com/minio/minio
+website: https://github.com/pgsty/silo

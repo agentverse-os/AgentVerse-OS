@@ -47,7 +47,7 @@ services:
       - --host
       - localhost
       timeout: 10s
-    image: itzg/minecraft-server
+    image: itzg/minecraft-server:2026.11.0
     networks:
       appnet:
         aliases:

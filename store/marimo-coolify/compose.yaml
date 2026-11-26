@@ -28,7 +28,7 @@ services:
       - httpx
       - http://localhost:8080/health
       timeout: 5s
-    image: ghcr.io/marimo-team/marimo:latest-sql
+    image: ghcr.io/marimo-team/marimo:0.25.2-sql
     networks:
       appnet:
         aliases:

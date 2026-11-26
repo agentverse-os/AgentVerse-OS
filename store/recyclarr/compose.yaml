@@ -8,7 +8,7 @@ services:
     environment:
       RECYCLARR_CREATE_CONFIG: ${RECYCLARR_CREATE_CONFIG-true}
       TZ: ${TZ}
-    image: ghcr.io/recyclarr/recyclarr:8.7.1
+    image: ghcr.io/recyclarr/recyclarr:8.8.1
     networks:
       appnet:
         aliases:

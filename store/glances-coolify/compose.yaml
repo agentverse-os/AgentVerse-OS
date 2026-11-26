@@ -21,7 +21,7 @@ services:
       - -f
       - http://localhost:61208
       timeout: 10s
-    image: nicolargo/glances:latest
+    image: nicolargo/glances:4.5.9
     networks:
       appnet:
         aliases:

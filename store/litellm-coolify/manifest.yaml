@@ -23,6 +23,8 @@ env:
     generate: password
   SERVICE_PASSWORD_POSTGRES:
     generate: password
+  SERVICE_PASSWORD_SALTKEY:
+    generate: password
   SERVICE_PASSWORD_UI:
     generate: password
   SERVICE_URL_LITELLM_4000: https://${APP_DOMAIN}
@@ -30,7 +32,7 @@ env:
     generate: password
   SERVICE_USER_UI:
     generate: password
-  STORE_MODEL_IN_DB: ''
+  STORE_MODEL_IN_DB: 'True'
   VOYAGE_API_BASE: ''
   VOYAGE_API_KEY: ''
 gallery: []
@@ -122,7 +124,7 @@ settings:
   required: false
   type: text
 - env: STORE_MODEL_IN_DB
-  hint: null
+  hint: 'по умолчанию: True'
   label: store model in db
   options: null
   required: false

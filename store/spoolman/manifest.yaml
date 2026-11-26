@@ -40,6 +40,6 @@ upstream:
   - utilities
   - automation
   source: https://github.com/Donkie/Spoolman
-  tipi_version: 25
-  version: 0.26.1
+  tipi_version: 29
+  version: 0.27.1
 website: https://github.com/Donkie/Spoolman

@@ -8,7 +8,7 @@ services:
     environment:
       ADDR: ${APP_DOMAIN}
       PASS: ${SIMPLEX_SMP_PASSWORD}
-    image: simplexchat/smp-server:v6.5.2
+    image: simplexchat/smp-server:v7.1.0
     networks:
       appnet:
         aliases:

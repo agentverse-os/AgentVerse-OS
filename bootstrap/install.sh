@@ -458,8 +458,18 @@ step_edge() {
   log "edge Caddy (конфигурацию загружает cloudd)"
   docker network inspect coder-net >/dev/null 2>&1 || docker network create coder-net
   mkdir -p /var/run/tailscale   # the tailscaled socket directory is mounted into the edge; without Tailscale it is empty
+  # tailscaled restarts on its own auto-update; by default systemd then recreates /run/tailscale, the edge container keeps the
+  # old empty directory and cannot fetch the certificate — HTTPS by the tailnet name stops answering. Keep the directory.
+  if systemctl cat tailscaled.service >/dev/null 2>&1; then
+    mkdir -p /etc/systemd/system/tailscaled.service.d
+    printf '[Service]\nRuntimeDirectoryPreserve=yes\n' > /etc/systemd/system/tailscaled.service.d/10-keep-runtime-dir.conf
+    systemctl daemon-reload
+  fi
+  # the directory shared with the edge container: Caddy's admin socket, the sockets of cloudd and of the "Agents" service
+  # (ADR-010). Created once and never recreated — the container would be left with the old empty one
+  mkdir -p /run/cloudos-edge
   docker compose -p cloudos-edge -f "$HERE/edge/docker-compose.yml" up -d
-  wait_for 60 "Admin API Caddy" curl -fs -m 2 http://127.0.0.1:2019/config/ || die "edge Caddy не поднялся: docker logs cloudos-edge"
+  wait_for 60 "Admin API Caddy" curl -fs -m 2 --unix-socket /run/cloudos-edge/admin.sock http://edge/config/ || die "edge Caddy не поднялся: docker logs cloudos-edge"
   ok "edge поднят (корень внутреннего CA появится после загрузки конфигурации ядром — шаг cloudd)"
 }
 

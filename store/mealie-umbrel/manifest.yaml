@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/mealie/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/mealie/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/mealie/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mealie/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/mealie/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/mealie/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,14 +42,16 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This release improves the meal planner editor with a better recipe selector, lowers idle memory usage, and speeds up startup.
+    This update adds PDF exports for recipes and cookbooks, a day-by-day meal planner view, and faster browsing of large recipe collections.
 
-    It also adds URL-backed cook mode, optional linked ingredients in print view, support for disabling services, and a cookie-file option for yt-dlp imports.
+    It also fixes security issues involving access between groups and households, private recipe visibility, password reset links, and uploads. Updating is recommended.
 
-    Bug fixes include registration with seed data, SPA fallback responses, and several security-related dependency updates.
+    Existing recipe cookTime values move to performTime (shown as Cook Time). The API no longer returns cookTime, but older clients can still send it. Uploads are now limited to 1024 MB by default, and password reset links expire after one hour.
 
-    Full release notes can be found at https://github.com/mealie-recipes/mealie/releases/tag/v3.24.0
+    Mealie now blocks server-initiated requests to private network addresses by default for URL imports, recipe images, webhooks, and recipe actions. If you use these features with local network targets, configure Mealie's HTTP_ALLOW_LIST setting to explicitly allow those targets.
+
+    Full release notes can be found at https://github.com/mealie-recipes/mealie/releases/tag/v3.31.0
   source: https://github.com/hay-kot/mealie
-  version: 3.24.0
+  version: 3.31.0
   website: https://docs.mealie.io/
 website: https://docs.mealie.io/

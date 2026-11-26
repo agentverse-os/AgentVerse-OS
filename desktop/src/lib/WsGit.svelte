@@ -32,7 +32,7 @@
   {:else if st}
     <div class="bar">
       <b>⎇ {st.head || '—'}</b>
-      {#if st.upstream}<span class="muted sm">→ {st.upstream}{#if st.ahead || st.behind} · ↑{st.ahead} ↓{st.behind}{/if}</span>{/if}
+      {#if st.upstream}<span class="muted sm">→ {st.upstream}{#if st.ahead || st.behind}{' '}· ↑{st.ahead} ↓{st.behind}{/if}</span>{/if}
       <span class="sp"></span>
       <span class="muted sm">{tn('agents.gitChanges', st.entries?.length ?? 0)}</span>
       <button class="mini" title={t('agents.refresh')} onclick={load}>⟳</button>
@@ -86,5 +86,5 @@
   .muted { color: var(--muted); }
   .sm { font-size: 11.5px; }
   .hint { font-size: 12.5px; padding: 8px; }
-  @media (max-width: 700px) { .split.with-diff { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); } }
+  @container win (max-width: 700px) { .split.with-diff { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); } }
 </style>

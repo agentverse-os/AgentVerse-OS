@@ -10,9 +10,9 @@ endpoint:
   service: api
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/librechat/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/librechat/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/librechat/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/librechat/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/librechat/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/librechat/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

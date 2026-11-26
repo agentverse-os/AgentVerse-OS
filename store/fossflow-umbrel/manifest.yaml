@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/fossflow/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/fossflow/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/fossflow/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/fossflow/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/fossflow/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/fossflow/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,6 +42,10 @@ upstream:
   categories:
   - networking
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous FossFLOW b69fc2e release notes:
+
     This release includes:
       - Updated FossFLOW to the latest upstream master build
       - Includes the latest diagram editor fixes and dependency updates from upstream
@@ -50,6 +54,6 @@ upstream:
 
     Full release notes can be found at: https://hub.docker.com/r/stnsmith/fossflow/tags?name=master-b69fc2e
   source: https://github.com/stan-smith/FossFLOW
-  version: b69fc2e
+  version: b69fc2e-patch.1
   website: https://github.com/stan-smith/FossFLOW
 website: https://github.com/stan-smith/FossFLOW

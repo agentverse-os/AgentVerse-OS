@@ -11,11 +11,9 @@ endpoint:
 env:
   API_RATE_LIMITING_LIMIT: '100'
   API_RATE_LIMITING_TTL: '100'
-  CACHE_STORAGE_TYPE: redis
   DEBUG_MODE: 'false'
   EMAIL_DRIVER: logger
   IS_SIGN_UP_DISABLED: 'false'
-  MESSAGE_QUEUE_TYPE: pg-boss
   PASSWORD_RESET_TOKEN_EXPIRES_IN: 5m
   POSTGRES_DB: twenty-db
   POSTGRES_USER: ''
@@ -53,12 +51,6 @@ route:
   open: iframe
 schema: 1
 settings:
-- env: CACHE_STORAGE_TYPE
-  hint: 'по умолчанию: redis'
-  label: cache storage type
-  options: null
-  required: false
-  type: text
 - env: API_RATE_LIMITING_TTL
   hint: 'по умолчанию: 100'
   label: api rate limiting ttl
@@ -104,12 +96,6 @@ settings:
 - env: STORAGE_TYPE
   hint: 'по умолчанию: local'
   label: storage type
-  options: null
-  required: false
-  type: text
-- env: MESSAGE_QUEUE_TYPE
-  hint: 'по умолчанию: pg-boss'
-  label: message queue type
   options: null
   required: false
   type: text

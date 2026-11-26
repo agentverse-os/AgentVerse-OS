@@ -15,9 +15,9 @@ env:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/lobe-chat/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/lobe-chat/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/lobe-chat/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/lobe-chat/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/lobe-chat/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/lobe-chat/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -31,6 +31,9 @@ login:
 name: lobe-chat-umbrel
 notes:
 - 'app: env_file из каталога проигнорирован (значения — через настройки приложения)'
+- 'порт 7459:8787 (gateway) не публикуется: доступ только через edge/gate'
+- 'порт 7460:8788 (gateway) не публикуется: доступ только через edge/gate'
+- 'gateway: env_file из каталога проигнорирован (значения — через настройки приложения)'
 - 'порт 7458:9000 (rustfs) не публикуется: доступ только через edge/gate'
 origin: umbrel
 provides: []
@@ -49,18 +52,25 @@ upstream:
   categories:
   - ai
   release_notes: |-
-    This update runs an automatic Lobe Hub database migration on startup. Leave Lobe Hub running until it finishes.
+    Open Lobe Hub over HTTP. If it opens with https://, change that to http:// in the address bar. HTTPS access is not supported by this Umbrel package yet.
 
-    This weekly patch expands agent, workspace, provider, and artifact workflows. Key changes:
-      - Added more provider-backed heterogeneous Agent options, including Claude Code and Codex deployment-backed models plus Kimi Code and Pi provider paths
-      - Improved Goals, Tasks, Acceptance, and long-running Agent recovery/intervention flows
-      - Added public Artifact, Workbench, and Workspace collaboration improvements, including per-member Resource grants and transfer requests
-      - Improved Home, global font settings, model availability, settings search, desktop, and workspace UI behavior
-      - Tightened security and reliability around scoped Resource checks, operation authorization, context compression, provider retries, and tool-approval settings
+    Back up your Lobe Hub data before updating. This update runs automatic database migrations on startup. Leave Lobe Hub running until they finish. Upstream has not verified downgrading after these migrations.
 
+    Large memory databases may take longer to upgrade while new indexes are created. Review goal and subscription-account visibility after upgrading: upstream adds workspace visibility with public defaults for existing records.
 
-    Full release notes are available at https://github.com/lobehub/lobehub/releases/tag/v2.2.15
+    Bots now participate proactively by default. Turn off Proactive participation in each bot's channel settings if you prefer keyword-only wake-ups.
+
+    - Added richer agent conversations and threads in Channels
+    - Added device-hosted MCP connectors, webhook automations, and multiple OAuth accounts per connector
+    - Improved coding follow-ups, branch selection, and worktree management
+    - Added more voice providers, music generation, and audio previews
+    - Simplified message sending and improved uploads
+    - Improved upload security and server-side MCP request protection
+
+    Review connector sharing after upgrading if you use shared workspaces: existing connectors gain public workspace visibility by default. Personal connectors remain account-scoped.
+
+    Full release notes are available at https://github.com/lobehub/lobehub/releases/tag/v2.3.4
   source: https://github.com/lobehub/lobehub
-  version: 2.2.15
+  version: 2.3.4
   website: https://lobehub.com/
 website: https://lobehub.com/

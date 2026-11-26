@@ -14,9 +14,9 @@ env:
     generate: password
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/activepieces/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/activepieces/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/activepieces/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/activepieces/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/activepieces/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/activepieces/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -52,14 +52,20 @@ upstream:
   categories:
   - automation
   release_notes: |-
-    Activepieces 0.89.0 adds new agent, MCP, and AI-provider features, including agent trial runs, a dedicated MCP client connection page, and support for xAI, DeepSeek, Z.ai, Qwen, MiniMax, and Moonshot providers.
+    This update improves workflow reliability and adds new integrations.
 
-    This release also adds and updates many pieces, and fixes project access, secret-manager visibility, file uploads on older platforms, Jira polling triggers, Tables date filters, large-flow CPU usage, and platform deletion timeouts.
+    Key improvements:
+      - Adds OAuth2 support for MCP clients and new integrations including Apache Kafka.
+      - Fixes lost flow edits and preserves polling state when flows are republished.
+      - Improves code-step execution, worker reconnections, and cache cleanup.
+      - Prevents malformed webhook responses from crashing the server.
+      - Includes security fixes and more reliable integration updates that preserve existing settings.
 
-    Before updating, review Activepieces' breaking changes if you use agent steps, MCP OAuth clients, Microsoft Teams Bot, Brevo contact actions, long-running agent/MCP actions, or workflows that depend on sign-in-code behavior.
 
-    Full release notes can be found at https://github.com/activepieces/activepieces/releases/tag/0.89.0
+    Review Activepieces' breaking changes page before updating production automations or custom integrations on self-hosted instances.
+
+    Full release notes can be found at https://github.com/activepieces/activepieces/releases/tag/0.93.0
   source: https://github.com/activepieces/activepieces/
-  version: 0.89.0
+  version: 0.93.0
   website: https://www.activepieces.com/
 website: https://www.activepieces.com/

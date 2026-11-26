@@ -11,13 +11,15 @@ endpoint:
 env:
   ADDITIONAL_REDIRECT_URLS: ''
   ANON_KEY_ASYMMETRIC: ''
-  API_EXTERNAL_URL: http://supabase-kong:8000
+  API_EXTERNAL_URL: ${SERVICE_URL_SUPABASEKONG
+  COOLIFY_RESOURCE_UUID: COOLIFY_RESOURCE_UUID is required
   DISABLE_SIGNUP: 'false'
   ENABLE_ANONYMOUS_USERS: 'false'
   ENABLE_EMAIL_AUTOCONFIRM: 'false'
   ENABLE_EMAIL_SIGNUP: 'true'
   ENABLE_PHONE_AUTOCONFIRM: 'true'
   ENABLE_PHONE_SIGNUP: 'true'
+  FUNCTIONS_MEMORY_LIMIT: 2g
   FUNCTIONS_VERIFY_JWT: 'false'
   GOOGLE_PROJECT_ID: ''
   GOOGLE_PROJECT_NUMBER: ''
@@ -57,7 +59,7 @@ env:
   OPENAI_API_KEY: ''
   PGRST_DB_EXTRA_SEARCH_PATH: public
   PGRST_DB_MAX_ROWS: '1000'
-  PGRST_DB_SCHEMAS: public,storage,graphql_public
+  PGRST_DB_SCHEMAS: public,graphql_public
   POOLER_DB_POOL_SIZE: '5'
   POOLER_DEFAULT_POOL_SIZE: '20'
   POOLER_MAX_CLIENT_CONN: '100'
@@ -66,7 +68,13 @@ env:
   POSTGRES_HOST: supabase-db
   POSTGRES_HOSTNAME: supabase-db
   POSTGRES_PORT: '5432'
-  SECRET_PASSWORD_REALTIME: ''
+  REALTIME_DB_ENC_KEY: supabaserealtime
+  SERVICE_HEX_32_S3PROTOCOLACCESSKEYID:
+    generate: token
+  SERVICE_HEX_64_S3PROTOCOLACCESSKEYSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_64_REALTIME:
+    generate: hex64
   SERVICE_PASSWORD_ADMIN:
     generate: password
   SERVICE_PASSWORD_JWT:
@@ -192,7 +200,7 @@ settings:
   required: false
   type: text
 - env: PGRST_DB_SCHEMAS
-  hint: 'по умолчанию: public,storage,graphql_public'
+  hint: 'по умолчанию: public,graphql_public'
   label: pgrst db schemas
   options: null
   required: false
@@ -251,6 +259,12 @@ settings:
   options: null
   required: false
   type: text
+- env: COOLIFY_RESOURCE_UUID
+  hint: 'по умолчанию: COOLIFY_RESOURCE_UUID is required'
+  label: coolify resource uuid
+  options: null
+  required: false
+  type: text
 - env: LOGFLARE_PUBLIC_ACCESS_TOKEN
   hint: 'по умолчанию: LOGFLARE_PUBLIC_ACCESS_TOKEN is required'
   label: logflare public access token
@@ -258,7 +272,7 @@ settings:
   required: false
   type: password
 - env: API_EXTERNAL_URL
-  hint: 'по умолчанию: http://supabase-kong:8000'
+  hint: 'по умолчанию: ${SERVICE_URL_SUPABASEKONG'
   label: api external url
   options: null
   required: false
@@ -479,9 +493,9 @@ settings:
   options: null
   required: false
   type: password
-- env: SECRET_PASSWORD_REALTIME
-  hint: null
-  label: secret password realtime
+- env: REALTIME_DB_ENC_KEY
+  hint: 'по умолчанию: supabaserealtime'
+  label: realtime db enc key
   options: null
   required: false
   type: password
@@ -506,6 +520,12 @@ settings:
 - env: IMGPROXY_AUTO_WEBP
   hint: 'по умолчанию: true'
   label: imgproxy auto webp
+  options: null
+  required: false
+  type: text
+- env: FUNCTIONS_MEMORY_LIMIT
+  hint: 'по умолчанию: 2g'
+  label: functions memory limit
   options: null
   required: false
   type: text

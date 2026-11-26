@@ -27,7 +27,7 @@
   {#if item}
     <header>
       <h2>{decode(item.title)}</h2>
-      <div class="muted meta">{shortSource(item.source)}{#if item.author} · {item.author}{/if}{#if item.published} · {agoText(item.published)} · {fmt.dateTime(item.published, { dateStyle: 'medium', timeStyle: 'short' })}{/if}</div>
+      <div class="muted meta">{shortSource(item.source)}{#if item.author}{' '}· {item.author}{/if}{#if item.published}{' '}· {agoText(item.published)} · {fmt.dateTime(item.published, { dateStyle: 'medium', timeStyle: 'short' })}{/if}</div>
     </header>
     {#if item.image && !/<img\s/i.test(html)}<img class="hero" src={item.image} alt="" onerror={(e) => (e.currentTarget as HTMLImageElement).style.display = 'none'} />{/if}
     {#if html}

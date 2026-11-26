@@ -17,7 +17,7 @@ services:
     - AUTHENTIK_POSTGRESQL__NAME=authentik
     - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_DB_PASSWORD}
     - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
-    image: ghcr.io/goauthentik/server:2026.8.1
+    image: ghcr.io/goauthentik/server:2026.8.5
     networks:
       appnet:
         aliases:
@@ -56,7 +56,7 @@ services:
     - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_DB_PASSWORD}
     - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
     - DOCKER_HOST=tcp://cloudos-docker-ro:2375
-    image: ghcr.io/goauthentik/server:2026.8.1
+    image: ghcr.io/goauthentik/server:2026.8.5
     networks:
       appnet:
         aliases:

@@ -48,6 +48,6 @@ upstream:
   categories:
   - development
   source: https://codeberg.org/forgejo/forgejo/
-  tipi_version: 57
-  version: 16.0.3
+  tipi_version: 67
+  version: 17.0.1
 website: https://codeberg.org/forgejo/forgejo/

@@ -43,8 +43,8 @@ upstream:
   author: ownbee
   categories:
   - automation
-  release_notes: null
+  release_notes: This update upgrades OpenThread Border Router to upstream OTBR v2026.09.0, improves custom REST port handling, and includes fixes for firewall/NAT64 rule cleanup and network RCP retry behavior.
   source: https://github.com/ownbee/hass-otbr-docker
-  version: 0.3.0
+  version: 0.4.0
   website: https://github.com/ownbee/hass-otbr-docker
 website: https://github.com/ownbee/hass-otbr-docker

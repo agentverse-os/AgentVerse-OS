@@ -13,7 +13,7 @@ services:
       NEKO_WEBRTC_ICELITE: 0
       PGID: 1000
       PUID: 1000
-    image: ghcr.io/m1k1o/neko/firefox:3.1.5@sha256:5596a0571437a96937426a7060b144912414028293c854412382e8449842a60e
+    image: ghcr.io/m1k1o/neko/firefox:3.2.0@sha256:415730ef9e3c35d850fdbbb95aa150cb9eda0b9c260c61d1974fb3af39cb71c3
     networks:
       appnet:
         aliases:

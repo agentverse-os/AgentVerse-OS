@@ -10,10 +10,10 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/thinkdashboard/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/thinkdashboard/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/thinkdashboard/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/thinkdashboard/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/thinkdashboard/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/thinkdashboard/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/thinkdashboard/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/thinkdashboard/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,8 +42,8 @@ upstream:
   author: MatiasDesuu
   categories:
   - files
-  release_notes: null
+  release_notes: This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
   source: https://github.com/MatiasDesuu/ThinkDashboard
-  version: 0.7.6
+  version: 0.7.6-patch.1
   website: https://github.com/MatiasDesuu/ThinkDashboard
 website: https://github.com/MatiasDesuu/ThinkDashboard

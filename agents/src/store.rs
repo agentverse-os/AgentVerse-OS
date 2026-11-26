@@ -11,6 +11,9 @@ pub struct Store {
     conn: Mutex<Connection>,
 }
 
+/// Columns of a run, in the order `row_run` reads them.
+const RUN_COLS: &str = "id, routine, routine_name, agent, agent_name, project, session, trigger_kind, status, started_at, ended_at, cost_usd, summary, reason, prompt, from_agent, reply_to, hops, attempt, retry_at, retry_of, extra, kind";
+
 impl Store {
     pub fn open(dir: &Path) -> Result<Self> {
         std::fs::create_dir_all(dir).with_context(|| format!("каталог {}", dir.display()))?;
@@ -38,32 +41,67 @@ impl Store {
             CREATE INDEX IF NOT EXISTS chat_messages_chat ON chat_messages(chat, seq);")?;
         // mail between agents (routines.rs): sender, source run, chain length
         for ddl in ["ALTER TABLE runs ADD COLUMN from_agent TEXT", "ALTER TABLE runs ADD COLUMN reply_to TEXT", "ALTER TABLE runs ADD COLUMN hops INTEGER NOT NULL DEFAULT 0"] { let _ = conn.execute(ddl, []); }
+        // notification channels (channels.rs, docs/agents-ux.md §9.12): what waits to be delivered and what became of it
+        conn.execute_batch("CREATE TABLE IF NOT EXISTS notify_outbox (id TEXT PRIMARY KEY, channel TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL, tries INTEGER NOT NULL DEFAULT 0, next_at INTEGER NOT NULL, status TEXT NOT NULL, error TEXT, created_at INTEGER NOT NULL, done_at INTEGER);
+            CREATE INDEX IF NOT EXISTS notify_outbox_due ON notify_outbox(status, next_at);")?;
+        // honest runs (slice 96): the attempt number and the time of the next retry, the first run of a retry chain, the
+        // substitutions a retry needs again, the class of a failure or a skip
+        for ddl in ["ALTER TABLE runs ADD COLUMN attempt INTEGER NOT NULL DEFAULT 0", "ALTER TABLE runs ADD COLUMN retry_at INTEGER", "ALTER TABLE runs ADD COLUMN retry_of TEXT", "ALTER TABLE runs ADD COLUMN extra TEXT", "ALTER TABLE runs ADD COLUMN kind TEXT"] { let _ = conn.execute(ddl, []); }
+        // A scheduled message caught mid-send by a restart stayed "sending" for ever. One that was due within the last hour
+        // goes out with the first tick; an older one is a leftover of some earlier crash — sent now it would surprise the
+        // conversation, so it is closed with the reason.
+        let hour_ago = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0) - 3600;
+        let _ = conn.execute("UPDATE scheduled SET status = 'pending' WHERE status = 'sending' AND at >= ?1", params![hour_ago]);
+        let _ = conn.execute("UPDATE scheduled SET status = 'failed', error = 'отправка прервана перезапуском сервиса' WHERE status = 'sending'", []);
         Ok(Self { conn: Mutex::new(conn) })
     }
     /// Routine runs (routines.rs): insert/update of the whole row, selection by filter, "hanging" ones, usage over a
     /// period.
     pub fn put_run(&self, r: &crate::routines::Run) -> Result<()> {
         self.conn.lock().unwrap().execute(
-            "INSERT INTO runs (id, routine, routine_name, agent, agent_name, project, session, trigger_kind, status, started_at, ended_at, cost_usd, summary, reason, prompt, from_agent, reply_to, hops) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18)
-             ON CONFLICT(id) DO UPDATE SET session = excluded.session, status = excluded.status, ended_at = excluded.ended_at, cost_usd = excluded.cost_usd, summary = excluded.summary, reason = excluded.reason",
-            params![r.id, r.routine, r.routine_name, r.agent, r.agent_name, r.project, r.session, r.trigger, r.status, r.started_at, r.ended_at, r.cost_usd, r.summary, r.reason, r.prompt, r.from_agent, r.reply_to, r.hops])?;
+            &format!("INSERT INTO runs ({RUN_COLS}) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23)
+             ON CONFLICT(id) DO UPDATE SET session = excluded.session, status = excluded.status, ended_at = excluded.ended_at, cost_usd = excluded.cost_usd, summary = excluded.summary, reason = excluded.reason, retry_at = excluded.retry_at, kind = excluded.kind"),
+            params![r.id, r.routine, r.routine_name, r.agent, r.agent_name, r.project, r.session, r.trigger, r.status, r.started_at, r.ended_at, r.cost_usd, r.summary, r.reason, r.prompt, r.from_agent, r.reply_to, r.hops, r.attempt, r.retry_at, r.retry_of, r.extra, r.kind])?;
         Ok(())
+    }
+    /// Tests: a store that refuses writes, as with a full disk.
+    #[cfg(test)]
+    pub fn read_only(&self, on: bool) { let _ = self.conn.lock().unwrap().execute_batch(if on { "PRAGMA query_only = ON" } else { "PRAGMA query_only = OFF" }); }
+    /// Runs of a routine that are still going (the overlap rule): started after `since` — an older row marked running
+    /// is one whose last write was lost, not a run.
+    pub fn running_for_routine(&self, routine: &str, since: i64) -> Result<i64> {
+        Ok(self.conn.lock().unwrap().query_row("SELECT COUNT(*) FROM runs WHERE routine = ?1 AND status = 'running' AND started_at > ?2", params![routine, since], |r| r.get(0))?)
+    }
+    /// Failed runs whose retry is due. The caller clears the retry time (`clear_retry`) once the retry has been attempted.
+    pub fn due_retries(&self, now: i64) -> Result<Vec<crate::routines::Run>> {
+        let c = self.conn.lock().unwrap();
+        let mut st = c.prepare(&format!("SELECT {RUN_COLS} FROM runs WHERE retry_at IS NOT NULL AND retry_at <= ?1 ORDER BY retry_at"))?;
+        let rows = st.query_map(params![now], row_run)?.collect::<rusqlite::Result<Vec<_>>>()?;
+        Ok(rows)
+    }
+    pub fn clear_retry(&self, id: &str) -> Result<()> {
+        self.conn.lock().unwrap().execute("UPDATE runs SET retry_at = NULL WHERE id = ?1", params![id])?;
+        Ok(())
+    }
+    /// Forget finished runs older than `before`, keeping the newest `keep` whatever their age.
+    pub fn prune_runs(&self, before: i64, keep: u32) -> Result<usize> {
+        Ok(self.conn.lock().unwrap().execute("DELETE FROM runs WHERE started_at < ?1 AND status != 'running' AND retry_at IS NULL AND id NOT IN (SELECT id FROM runs ORDER BY started_at DESC LIMIT ?2)", params![before, keep])?)
     }
     pub fn runs(&self, routine: Option<&str>, agent: Option<&str>, limit: u32) -> Result<Vec<crate::routines::Run>> {
         let c = self.conn.lock().unwrap();
-        let mut st = c.prepare("SELECT id, routine, routine_name, agent, agent_name, project, session, trigger_kind, status, started_at, ended_at, cost_usd, summary, reason, prompt, from_agent, reply_to, hops FROM runs WHERE (?1 IS NULL OR routine = ?1) AND (?2 IS NULL OR agent = ?2) ORDER BY started_at DESC LIMIT ?3")?;
+        let mut st = c.prepare(&format!("SELECT {RUN_COLS} FROM runs WHERE (?1 IS NULL OR routine = ?1) AND (?2 IS NULL OR agent = ?2) ORDER BY started_at DESC LIMIT ?3"))?;
         let rows = st.query_map(params![routine, agent, limit], row_run)?.collect::<rusqlite::Result<Vec<_>>>()?;
         Ok(rows)
     }
     pub fn run(&self, id: &str) -> Result<Option<crate::routines::Run>> {
         let c = self.conn.lock().unwrap();
-        let mut st = c.prepare("SELECT id, routine, routine_name, agent, agent_name, project, session, trigger_kind, status, started_at, ended_at, cost_usd, summary, reason, prompt, from_agent, reply_to, hops FROM runs WHERE id = ?1")?;
+        let mut st = c.prepare(&format!("SELECT {RUN_COLS} FROM runs WHERE id = ?1"))?;
         let mut rows = st.query_map(params![id], row_run)?;
         Ok(rows.next().transpose()?)
     }
     pub fn running_runs(&self) -> Result<Vec<crate::routines::Run>> {
         let c = self.conn.lock().unwrap();
-        let mut st = c.prepare("SELECT id, routine, routine_name, agent, agent_name, project, session, trigger_kind, status, started_at, ended_at, cost_usd, summary, reason, prompt, from_agent, reply_to, hops FROM runs WHERE status = 'running' ORDER BY started_at")?;
+        let mut st = c.prepare(&format!("SELECT {RUN_COLS} FROM runs WHERE status = 'running' ORDER BY started_at"))?;
         let rows = st.query_map([], row_run)?.collect::<rusqlite::Result<Vec<_>>>()?;
         Ok(rows)
     }
@@ -91,6 +129,68 @@ impl Store {
     }
 
     pub fn delete_run(&self, id: &str) -> Result<()> { self.conn.lock().unwrap().execute("DELETE FROM runs WHERE id = ?1", params![id])?; Ok(()) }
+    /// The run a session belongs to, if a routine or an agent started it (the newest one).
+    pub fn run_by_session(&self, session: &str) -> Result<Option<crate::routines::Run>> {
+        let c = self.conn.lock().unwrap();
+        let mut st = c.prepare(&format!("SELECT {RUN_COLS} FROM runs WHERE session = ?1 ORDER BY started_at DESC LIMIT 1"))?;
+        let mut rows = st.query_map(params![session], row_run)?;
+        Ok(match rows.next() { Some(r) => Some(r?), None => None })
+    }
+
+    // ---- delivery queue of the notification channels ----
+    pub fn outbox_put(&self, j: &crate::channels::Job) -> Result<()> {
+        self.conn.lock().unwrap().execute(
+            "INSERT INTO notify_outbox (id, channel, kind, payload, tries, next_at, status, error, created_at, done_at) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
+             ON CONFLICT(id) DO UPDATE SET payload = excluded.payload, tries = excluded.tries, next_at = excluded.next_at, status = excluded.status, error = excluded.error, created_at = excluded.created_at, done_at = excluded.done_at",
+            params![j.id, j.channel, j.kind, serde_json::to_string(&j.msg)?, j.tries, j.next_at, j.status, j.error, j.created_at, j.done_at])?;
+        Ok(())
+    }
+    fn outbox_rows(&self, sql: &str, p: &[&dyn rusqlite::ToSql]) -> Result<Vec<crate::channels::Job>> {
+        let c = self.conn.lock().unwrap();
+        let mut st = c.prepare(sql)?;
+        let rows = st.query_map(p, |r| Ok(crate::channels::Job { id: r.get(0)?, channel: r.get(1)?, kind: r.get(2)?, msg: serde_json::from_str(&r.get::<_, String>(3)?).unwrap_or_default(), tries: r.get(4)?, next_at: r.get(5)?, status: r.get(6)?, error: r.get(7)?, created_at: r.get(8)?, done_at: r.get(9)? }))?.collect::<rusqlite::Result<Vec<_>>>()?;
+        Ok(rows)
+    }
+    pub fn outbox_job(&self, id: &str) -> Result<Option<crate::channels::Job>> {
+        Ok(self.outbox_rows("SELECT id, channel, kind, payload, tries, next_at, status, error, created_at, done_at FROM notify_outbox WHERE id = ?1", &[&id])?.into_iter().next())
+    }
+    /// What is due for a channel: its waiting jobs whose time has come, oldest first. Asked channel by channel, so that
+    /// a long queue of one does not stand in front of the others.
+    pub fn outbox_due(&self, channel: &str, now: i64, limit: u32) -> Result<Vec<crate::channels::Job>> {
+        self.outbox_rows("SELECT id, channel, kind, payload, tries, next_at, status, error, created_at, done_at FROM notify_outbox WHERE status = 'pending' AND channel = ?1 AND next_at <= ?2 ORDER BY created_at, rowid LIMIT ?3", &[&channel, &now, &limit])
+    }
+    /// Channels that have something waiting (a channel that is gone or switched off has its queue closed by the pump).
+    pub fn outbox_channels(&self) -> Result<Vec<String>> {
+        let c = self.conn.lock().unwrap();
+        let mut st = c.prepare("SELECT DISTINCT channel FROM notify_outbox WHERE status = 'pending'")?;
+        let rows = st.query_map([], |r| r.get::<_, String>(0))?.collect::<rusqlite::Result<Vec<_>>>()?;
+        Ok(rows)
+    }
+    /// Take a waiting job to send it: from this moment nothing is folded into it, and what was folded a moment ago is in
+    /// the row that comes back. None — somebody else has it, or it is gone.
+    pub fn outbox_claim(&self, id: &str) -> Result<Option<crate::channels::Job>> {
+        let n = self.conn.lock().unwrap().execute("UPDATE notify_outbox SET status = 'sending' WHERE id = ?1 AND status = 'pending'", params![id])?;
+        if n == 0 { return Ok(None) }
+        self.outbox_job(id)
+    }
+    /// Jobs that were being sent when the service stopped go back to waiting (they go on from the count they kept).
+    pub fn outbox_revive(&self) -> Result<usize> { Ok(self.conn.lock().unwrap().execute("UPDATE notify_outbox SET status = 'pending' WHERE status = 'sending'", [])?) }
+    /// Waiting jobs of a channel (the burst rule looks at them).
+    pub fn outbox_pending(&self, channel: &str) -> Result<Vec<crate::channels::Job>> {
+        self.outbox_rows("SELECT id, channel, kind, payload, tries, next_at, status, error, created_at, done_at FROM notify_outbox WHERE status = 'pending' AND channel = ?1 ORDER BY created_at, rowid", &[&channel])
+    }
+    /// The delivery journal of a channel, newest first.
+    pub fn outbox_log(&self, channel: &str, limit: u32) -> Result<Vec<crate::channels::Job>> {
+        self.outbox_rows("SELECT id, channel, kind, payload, tries, next_at, status, error, created_at, done_at FROM notify_outbox WHERE channel = ?1 ORDER BY created_at DESC, rowid DESC LIMIT ?2", &[&channel, &limit])
+    }
+    pub fn outbox_sent_since(&self, channel: &str, since: i64) -> Result<i64> {
+        Ok(self.conn.lock().unwrap().query_row("SELECT COUNT(*) FROM notify_outbox WHERE channel = ?1 AND status = 'sent' AND done_at >= ?2", params![channel, since], |r| r.get(0))?)
+    }
+    /// Finished jobs older than `before` go away; the newest `keep` of a channel stay as its journal.
+    pub fn outbox_prune(&self, before: i64, keep: u32) -> Result<usize> {
+        Ok(self.conn.lock().unwrap().execute("DELETE FROM notify_outbox WHERE status NOT IN ('pending', 'sending') AND created_at < ?1 AND id NOT IN (SELECT id FROM notify_outbox o2 WHERE o2.channel = notify_outbox.channel ORDER BY created_at DESC, rowid DESC LIMIT ?2)", params![before, keep])?)
+    }
+    pub fn outbox_drop_channel(&self, channel: &str) -> Result<()> { self.conn.lock().unwrap().execute("DELETE FROM notify_outbox WHERE channel = ?1", params![channel])?; Ok(()) }
     pub fn runs_cost_since(&self, routine: &str, since: i64) -> Result<f64> {
         let c = self.conn.lock().unwrap();
         Ok(c.query_row("SELECT COALESCE(SUM(cost_usd), 0) FROM runs WHERE routine = ?1 AND started_at >= ?2", params![routine, since], |r| r.get::<_, f64>(0))?)
@@ -123,6 +223,11 @@ impl Store {
         self.conn.lock().unwrap().execute("INSERT INTO chat_messages (id, chat, seq, role, text, attachments, tools, tokens_in, tokens_out, cost_usd, created_at, error) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12) ON CONFLICT(id) DO UPDATE SET text = excluded.text, tools = excluded.tools, tokens_in = excluded.tokens_in, tokens_out = excluded.tokens_out, cost_usd = excluded.cost_usd, error = excluded.error",
             params![m.id, m.chat, m.seq as i64, m.role, m.text, serde_json::to_string(&m.attachments)?, serde_json::to_string(&m.tools)?, m.tokens_in as i64, m.tokens_out as i64, m.cost_usd, m.created_at, m.error])?;
         Ok(())
+    }
+    /// Cut the tail of a chat: the messages from `from_seq` on (an edited message with everything after it, an answer
+    /// being regenerated).
+    pub fn chat_msgs_cut(&self, chat: &str, from_seq: u64) -> Result<usize> {
+        Ok(self.conn.lock().unwrap().execute("DELETE FROM chat_messages WHERE chat = ?1 AND seq >= ?2", params![chat, from_seq as i64])?)
     }
     /// Search across simple chat messages (slice 34): a linear pass over the last `scan` messages, all words
     /// (case-insensitive and ё/е-insensitive — SQLite lower() does not know Cyrillic); one row per chat with the last match
@@ -180,6 +285,7 @@ fn row_run(r: &rusqlite::Row) -> rusqlite::Result<crate::routines::Run> {
         id: r.get(0)?, routine: r.get(1)?, routine_name: r.get(2)?, agent: r.get(3)?, agent_name: r.get(4)?, project: r.get(5)?, session: r.get(6)?, trigger: r.get(7)?, status: r.get(8)?,
         started_at: r.get(9)?, ended_at: r.get(10)?, cost_usd: r.get(11)?, summary: r.get(12)?, reason: r.get(13)?, prompt: r.get(14)?,
         from_agent: r.get(15)?, reply_to: r.get(16)?, hops: r.get::<_, i64>(17).unwrap_or(0).max(0) as u32,
+        attempt: r.get::<_, i64>(18).unwrap_or(0).max(0) as u32, retry_at: r.get(19)?, retry_of: r.get(20)?, extra: r.get(21)?, kind: r.get(22)?,
     })
 }
 

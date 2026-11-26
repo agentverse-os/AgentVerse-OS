@@ -44,15 +44,18 @@ upstream:
   categories:
   - bitcoin
   release_notes: |-
-    Changes:
-      - New guided setup for creating or importing a wallet
-      - Added timeframe selection to the balance chart
-      - Improved validation and fee estimates across send, board, offboard, and emergency exit flows
-      - Improved protection for recovery phrase access
-      - Updated the Bark wallet daemon to version 0.6.2
+    This update brings Bark 0.8.1 and fixes issues with sending, receiving, and wallet creation.
 
-    Full release notes can be found at https://gitlab.com/ark-bitcoin/labs/bark-web/-/releases/v0.8.0
-  source: https://gitlab.com/ark-bitcoin/labs/bark-web
-  version: 0.8.0
+    - Fixed wallet creation getting stuck when the recovery phrase repeats a word
+    - Fixed a fast double click on send confirm sending the payment twice
+    - Send labels and tags now always go to the destination that was paid
+    - Fixed the receive dialog closing on its own when reopened right after a payment
+    - Fixed the emergency exit button staying disabled after a failed exit of all VTXOs
+    - Removed the "Loose privacy" Branta mode, which Branta no longer supports. Wallets that used it switch to "Strict privacy"
+    - Updated the Bark wallet daemon to version 0.8.1
+
+    Full release notes can be found at https://gitlab.com/ark-bitcoin/bark-web/-/releases/v0.11.0
+  source: https://gitlab.com/ark-bitcoin/bark-web
+  version: 0.11.0
   website: https://second.tech
 website: https://second.tech

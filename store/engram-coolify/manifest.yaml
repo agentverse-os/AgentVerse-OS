@@ -1,0 +1,89 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/engram-coolify
+description: Persistent memory sync server for AI coding agents (MCP).
+endpoint:
+  port: 8080
+  service: engram
+env:
+  ENGRAM_CLOUD_ALLOWED_PROJECTS: '*'
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_BASE64_64_JWTSECRET:
+    generate: hex64
+  SERVICE_FQDN_ENGRAM_8080: ${APP_DOMAIN}
+  SERVICE_PASSWORD_64_ADMIN:
+    generate: hex64
+  SERVICE_PASSWORD_64_CLOUDTOKEN:
+    generate: hex64
+  SERVICE_PASSWORD_64_TOKENPEPPER:
+    generate: hex64
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: generated
+  note: null
+  password: SERVICE_PASSWORD_64_ADMIN
+  path: null
+  user: null
+name: engram-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: ENGRAM_CLOUD_ALLOWED_PROJECTS
+  hint: 'по умолчанию: *'
+  label: engram cloud allowed projects
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- memory
+- mcp
+- agents
+- self-hosted
+- postgres
+title: Engram
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://github.com/Gentleman-Programming/engram
+  tags:
+  - ai
+  - memory
+  - mcp
+  - agents
+  - self-hosted
+  - postgres
+  template: engram.yaml
+website: https://github.com/Gentleman-Programming/engram

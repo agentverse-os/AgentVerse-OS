@@ -39,6 +39,6 @@ upstream:
   categories:
   - development
   source: https://github.com/nirui/sshwifty
-  tipi_version: 41
-  version: 0.4.10
+  tipi_version: 43
+  version: 0.4.12
 website: https://github.com/nirui/sshwifty

@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/autobrr/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/autobrr/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/autobrr/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/autobrr/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/autobrr/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/autobrr/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,12 +42,12 @@ upstream:
   categories:
   - media
   release_notes: |-
-    This release refines dashboard statistics customization, adds configurable feed cache TTLs, rolling-window download limits, release RawVars macros, and new or updated indexer definitions for ItaTorrents, Simurg, and deprecated indexers.
+    This release adds pagination for Torznab and Newznab feeds, a choice of feed processing order, and support for Concertos and Sagmire indexers.
 
-    It also fixes retry metadata preservation, Arr download-client error redaction and rejection reporting, filter updates with deprecated indexers, IRC bouncer error logging, per-filter notification mute handling, and copy-to-clipboard in the web UI.
+    It also improves release metadata and torrent size parsing, updates several indexer announce formats, and fixes active download detection in Porla.
 
-    Full release notes are available at https://github.com/autobrr/autobrr/releases/tag/v1.85.0
+    Full release notes are available at https://github.com/autobrr/autobrr/releases/tag/v1.90.0
   source: https://github.com/autobrr/autobrr
-  version: 1.85.0
+  version: 1.90.0
   website: https://autobrr.com/
 website: https://autobrr.com/

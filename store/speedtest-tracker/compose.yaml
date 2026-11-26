@@ -22,7 +22,7 @@ services:
       SPEEDTEST_SCHEDULE: ${SPEEDTEST_SCHEDULE:-'30 * * * *'}
       SPEEDTEST_SERVERS: ${SPEEDTEST_SERVERS:-''}
       TZ: ${TZ}
-    image: lscr.io/linuxserver/speedtest-tracker:1.15.0
+    image: lscr.io/linuxserver/speedtest-tracker:1.15.1
     networks:
       appnet:
         aliases:

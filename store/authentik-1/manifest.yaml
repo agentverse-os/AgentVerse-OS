@@ -57,6 +57,6 @@ upstream:
   categories:
   - development
   source: https://github.com/goauthentik/authentik
-  tipi_version: 39
-  version: 2026.8.1
+  tipi_version: 46
+  version: 2026.8.5
 website: https://github.com/goauthentik/authentik

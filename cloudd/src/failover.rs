@@ -52,6 +52,16 @@ pub fn pick(accounts: &[Account], provider: &str, exclude: Option<&str>, blocked
     cands.into_iter().next().map(|c| c.1)
 }
 
+/// A limit hit that needs no action any more: its window has already reset, or it is older than the memory of handled hits.
+/// `limit_seen` forgets a hit after a week while the mark in the session lives until a successful turn — so an old mark in
+/// a conversation nobody continued was handled anew at every core restart: one more note in the conversation and one more
+/// notification each time.
+pub fn hit_stale(hit: &Value, now: u64) -> bool {
+    let reset_passed = hit.get("resets_at").and_then(|r| r.as_str()).and_then(parse_rfc3339).map(|t| t <= now).unwrap_or(false);
+    let at = hit.get("at").and_then(|a| a.as_u64()).unwrap_or(now);
+    reset_passed || now.saturating_sub(at) >= crate::agents::LIMIT_SEEN_TTL_SECS
+}
+
 impl Service {
     pub fn block_account(&self, id: &str, until: u64) {
         let snapshot = { let mut b = self.agents.blocked.write().unwrap(); b.insert(id.to_string(), until); b.clone() };
@@ -116,10 +126,11 @@ impl Service {
     }
 
     /// Limit hits in a fresh session snapshot: for every new one (by `at`) — a switch in the
-    /// background
+    /// background. A stale hit (`hit_stale`) is left alone.
     pub fn limit_failovers(&self, project: &str, sessions: &[AgentSessionBrief]) {
         for s in sessions {
             let Some(hit) = &s.limit_hit else { continue };
+            if hit_stale(hit, now_secs()) { continue }
             let at = hit.get("at").and_then(|a| a.as_u64()).unwrap_or(0);
             let key = format!("{project}:{}", s.id);
             let snapshot = {
@@ -154,7 +165,7 @@ impl Service {
         };
         // only sessions of pool accounts are switched (a manual account choice outside the pool is
         // the owner's will)
-        if let Some(a) = cur { if !a.pool { let _ = self.agentd_client(project).await?.post(&format!("/v1/sessions/{}/note", s.id), &json!({ "message": "лимит исчерпан; аккаунт не в пуле, автопереключение не применяется" })).await; return Ok(()); } }
+        if let Some(a) = cur { if !a.pool { let _ = self.agentd_client(project).await?.post(&format!("/v1/sessions/{}/note", s.id), &json!({ "message": format!("лимит исчерпан{}; аккаунт не в пуле, автопереключение не применяется", until_text(resets_at.as_deref())) })).await; return Ok(()); } }
         let from = cur.map(|a| a.label.clone()).unwrap_or_else(|| "gate проекта".into());
         let note = format!("аккаунт: {from} → {}, лимит{} исчерпан{}", next.label, window.as_deref().map(|w| format!(" {w}")).unwrap_or_default(), until_text(resets_at.as_deref()));
         tracing::info!("{project}: сессия {short}: {note}");
@@ -180,6 +191,26 @@ impl Service {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn stale_limit_hits_are_left_alone() {
+        use serde_json::json;
+        let at = 1_793_003_122u64;  // 2026-10-26 08:25 UTC
+        let week = crate::agents::LIMIT_SEEN_TTL_SECS;
+        // a fresh hit without a reset time is acted on; the same hit a week later is not (limit_seen has forgotten it by then,
+        // and acting again would repeat the note in the conversation at every core restart)
+        let bare = json!({ "at": at, "source": "result", "text": "usage limit" });
+        assert!(!super::hit_stale(&bare, at + 60));
+        assert!(!super::hit_stale(&bare, at + week - 1));
+        assert!(super::hit_stale(&bare, at + week));
+        assert!(super::hit_stale(&bare, at + 19 * 86_400), "the three-week-old mark from the stand");
+        // with a reset time: stale as soon as the window has reset, however young the hit
+        let timed = json!({ "at": at, "window": "five_hour", "resets_at": "2026-10-26T11:19:08Z" });
+        assert!(!super::hit_stale(&timed, at + 600));
+        assert!(super::hit_stale(&timed, 1_793_013_548));
+        // a mark without `at` (an old agentd) is not dropped blindly
+        assert!(!super::hit_stale(&json!({ "source": "result" }), at));
+    }
+
     use super::*;
 
     fn acc(id: &str, provider: &str, pool: bool, created: &str) -> Account {

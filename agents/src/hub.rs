@@ -1,5 +1,6 @@
 //! Event hub (ADR-007): one subscriber per running workspace (the core's `/api/projects/{p}/events` → agentd's `/v1/events`),
-//! shared by all tabs; the tree snapshot in memory; the base part (project list, today's usage) — from the core every 30 s. For
+//! shared by all tabs; the tree snapshot in memory; the base part (project list, today's usage) — from the core every 30 s (at
+//! once when the memory state of a workspace changes — a cheap poll every 5 s). For
 //! clients — `GET /agents/api/hub`: a full snapshot on connect, then per-project deltas and a full snapshot every 30 s.
 use crate::App;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
@@ -11,6 +12,10 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast;
 use tokio_tungstenite::tungstenite::Message as TMsg;
+
+/// Period of the base snapshot and of the cheap memory poll between two of them
+const BASE_SECS: u64 = 30;
+const MEMORY_POLL_SECS: u64 = 5;
 
 pub struct Hub {
     /// Last snapshot: projects (as in `/workspaces`) and today's usage
@@ -28,10 +33,14 @@ pub struct Hub {
     /// Bodies of pending requests by "project:session" with a fingerprint (pending, updated_at, last_seq) — so we do not go to the
     /// core on every delta
     pending: Mutex<HashMap<String, ((u64, u64, u64), Value)>>,
+    /// The command a long silent turn is running, by the card key (watch.rs): looked up at the core once per silent stretch
+    long_tools: Mutex<HashMap<String, Option<String>>>,
 }
 
+pub struct SessionBrief { pub project: String, pub id: String, pub title: String, pub status: String, pub turns: u64 }
+
 impl Default for Hub {
-    fn default() -> Self { Self { projects: Mutex::new(Vec::new()), today: Mutex::new(json!({ "cost_usd": 0.0, "turns": 0 })), subs: Mutex::new(HashMap::new()), tx: broadcast::channel(256).0, started: Default::default(), inbox: Mutex::new(Value::Null), chat: Mutex::new(Value::Null), derive: Mutex::new(None), pending: Mutex::new(HashMap::new()) } }
+    fn default() -> Self { Self { projects: Mutex::new(Vec::new()), today: Mutex::new(json!({ "cost_usd": 0.0, "turns": 0 })), subs: Mutex::new(HashMap::new()), tx: broadcast::channel(256).0, started: Default::default(), inbox: Mutex::new(Value::Null), chat: Mutex::new(Value::Null), derive: Mutex::new(None), pending: Mutex::new(HashMap::new()), long_tools: Mutex::new(HashMap::new()) } }
 }
 
 impl Hub {
@@ -41,12 +50,31 @@ impl Hub {
         self.projects.lock().unwrap().iter().filter_map(|p| Some((p.get("name")?.as_str()?.to_string(), p.get("engines_v").cloned()?))).collect()
     }
 
+    /// Workspaces that are running right now
+    pub fn running(&self) -> std::collections::HashSet<String> {
+        self.projects.lock().unwrap().iter().filter(|p| p.get("status").and_then(|s| s.as_str()) == Some("running")).filter_map(|p| p.get("name").and_then(|n| n.as_str()).map(str::to_string)).collect()
+    }
+    /// Conversations of the running workspaces, in brief (the report boxes look at who is at work)
+    pub fn sessions(&self) -> Vec<SessionBrief> {
+        let str_of = |v: &Value, k: &str| v.get(k).and_then(|x| x.as_str()).unwrap_or("").to_string();
+        self.projects.lock().unwrap().iter().filter(|p| p.get("status").and_then(|s| s.as_str()) == Some("running")).flat_map(|p| {
+            let project = str_of(p, "name");
+            p.get("sessions").and_then(|s| s.as_array()).cloned().unwrap_or_default().into_iter().map(move |s| SessionBrief { project: project.clone(), id: str_of(&s, "id"), title: str_of(&s, "title"), status: str_of(&s, "status"), turns: s.pointer("/usage/turns").and_then(|t| t.as_u64()).unwrap_or(0) })
+        }).collect()
+    }
+
+    /// Tests: the snapshot as if the workspaces had sent it
+    #[cfg(test)]
+    pub fn set_projects(&self, v: Vec<Value>) { *self.projects.lock().unwrap() = v; }
+
     pub fn snapshot(&self) -> Value { json!({ "kind": "workspaces", "projects": *self.projects.lock().unwrap(), "today": *self.today.lock().unwrap() }) }
     /// How many workspaces are subscribed right now (for "About" and
     /// e2e)
     pub fn subscribed(&self) -> usize { self.subs.lock().unwrap().len() }
     /// Simple chats changed (created, renamed, a new message, deleted): clients with "Chat" open re-read the list
     pub fn chats_changed(&self) { let _ = self.tx.send(json!({ "kind": "chats" })); }
+    /// Notification channels or their bindings changed (§9.12): the apps re-read them (a "once" binding goes away by itself)
+    pub fn notify_changed(&self) { let _ = self.tx.send(json!({ "kind": "notify" })); }
     /// Spending limits changed (slice 67): a frame with the new list — the composer bar is computed from it and
     /// the snapshot
     pub fn limits_changed(&self, limits: Value) { let _ = self.tx.send(json!({ "kind": "limits", "limits": limits })); }
@@ -58,7 +86,16 @@ impl Hub {
         if m.len() > 256 { m.clear(); }
         m.insert(key.to_string(), (stamp, v));
     }
+    pub fn long_tool_cached(&self, key: &str) -> Option<Option<String>> { self.long_tools.lock().unwrap().get(key).cloned() }
+    pub fn long_tool_store(&self, key: &str, tool: Option<String>) {
+        let mut m = self.long_tools.lock().unwrap();
+        if m.len() > 64 { m.clear(); }
+        m.insert(key.to_string(), tool);
+    }
 }
+
+/// Recompute "Inbox" now (a card was dismissed) — the same debounced path as after a snapshot
+pub fn refresh_derived(app: Arc<App>) { schedule_derived(app) }
 
 /// Recompute "Inbox" and the "Chat" status from the snapshot — 300 ms debounce, to clients only on
 /// change
@@ -73,6 +110,9 @@ fn schedule_derived(app: Arc<App>) {
         let inbox = crate::api::inbox_from(&app2, &projects, &today).await;
         // push notifications (§9.9): new pending requests and status transitions — by the
         // snapshot difference
+        // notification channels (§9.12): the same transitions, to the channels the owner bound. It waits for nothing —
+        // this task is cancelled by the next snapshot — and stands first, so that a slow push service does not delay it
+        let _ = crate::channels::on_snapshot(&app2, &projects, &inbox);
         crate::push::on_snapshot(&app2, &projects, &today, &inbox).await;
         let changed = { let mut cur = app2.hub.inbox.lock().unwrap(); if *cur != inbox { *cur = inbox.clone(); true } else { false } };
         if changed { let mut v = inbox; v["kind"] = json!("inbox"); let _ = app2.hub.tx.send(v); }
@@ -87,7 +127,16 @@ fn schedule_derived(app: Arc<App>) {
 pub fn start(app: Arc<App>) {
     if app.hub.started.swap(true, std::sync::atomic::Ordering::SeqCst) { return; }
     tokio::spawn(async move {
+        // the base snapshot is heavy (the core asks Coder and Incus for every project) — every 30 s; in between, every 5 s,
+        // one cheap question about workspace memory (ADR-009): a workspace that got tight or lost a process is shown at once
+        let mut memory_seen = String::new();
+        let mut last_base: Option<std::time::Instant> = None;
         loop {
+            let memory_now = app.core_get("/system/pressure/state").await.map(|v| v.to_string()).unwrap_or_else(|_| memory_seen.clone());
+            let due = last_base.map(|t| t.elapsed() >= std::time::Duration::from_secs(BASE_SECS)).unwrap_or(true);
+            if !due && memory_now == memory_seen { tokio::time::sleep(std::time::Duration::from_secs(MEMORY_POLL_SECS)).await; continue }
+            memory_seen = memory_now;
+            last_base = Some(std::time::Instant::now());
             match crate::api::collect(&app).await {
                 Ok(c) => {
                     { *app.hub.today.lock().unwrap() = c.today.clone(); }
@@ -128,7 +177,7 @@ pub fn start(app: Arc<App>) {
                 }
                 Err(e) => tracing::warn!("хаб: базовый снимок: {e:#}"),
             }
-            tokio::time::sleep(std::time::Duration::from_secs(30)).await;
+            tokio::time::sleep(std::time::Duration::from_secs(MEMORY_POLL_SECS)).await;
         }
     });
 }

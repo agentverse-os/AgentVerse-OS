@@ -33,7 +33,8 @@ services:
       GITEA__server__SSH_LISTEN_PORT: ${APP_GITEA_SSH_PORT}
       GITEA__server__SSH_PORT: ${APP_GITEA_SSH_PORT}
       GITEA__server__START_SSH_SERVER: 'true'
-    image: gitea/gitea:1.27.3-rootless@sha256:1c17ecaead42eb3b5391553d8708103a4beb0e86edf5b9ebc1eb269c318845f2
+      GODEBUG: multipathtcp=0
+    image: gitea/gitea:28.4.0-rootless@sha256:15ab7fadb44981a2b781f40c712cad07066197f395100ea1c6326e14e5bb073a
     networks:
       appnet:
         aliases:

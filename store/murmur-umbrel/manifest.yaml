@@ -1,0 +1,72 @@
+# Imported from the umbrel catalog by `cloudd store import umbrel`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/murmur-umbrel
+description: A beautiful home for your Hermes agents
+endpoint:
+  port: 3000
+  service: web
+env:
+  APP_MURMUR_HERMES_PASSWORD: ''
+  APP_MURMUR_HERMES_SECRET: ''
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/murmur/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/murmur/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/murmur/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/murmur/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/murmur/5.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/murmur/6.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/murmur/7.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/murmur/8.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/murmur/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_MURMUR_HERMES_PASSWORD
+  path: null
+  user: murmur
+name: murmur-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: APP_MURMUR_HERMES_PASSWORD
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app murmur hermes password
+  options: null
+  required: false
+  type: password
+- env: APP_MURMUR_HERMES_SECRET
+  hint: переменная каталога Umbrel без значения по умолчанию
+  label: app murmur hermes secret
+  options: null
+  required: false
+  type: password
+tags: []
+title: Murmur
+type: app
+upstream:
+  author: Umbrel
+  categories:
+  - ai
+  release_notes: |-
+    Murmur now comes with Hermes 0.23.2. Your agents, chats, memories and settings carry over as they are.
+
+    Routines keep everything you gave them on the new Hermes: one made from a template keeps its name, its days and where it tells you, one your agent sets up in a chat still reports back in that chat, and what its runs found stays in place. If your own Hermes had already updated to 0.23.2, this fixes those for you too.
+
+    On Telegram and other messaging apps, a reply that was interrupted no longer arrives twice.
+  source: https://github.com/getumbrel/murmur
+  version: 0.15.1
+  website: https://umbrel.com
+website: https://umbrel.com

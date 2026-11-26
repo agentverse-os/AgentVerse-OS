@@ -47,7 +47,7 @@ services:
       - CMD-SHELL
       - curl -f -u "$${COUCHDB_USER}:$${COUCHDB_PASSWORD}" http://localhost:5984/_up
       timeout: 10s
-    image: couchdb:3.4.2
+    image: couchdb:3.5.3
     networks:
       appnet:
         aliases:

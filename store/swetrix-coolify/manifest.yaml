@@ -6,13 +6,12 @@ data:
 - tank/apps/swetrix-coolify
 description: Privacy-friendly and cookieless European web analytics alternative to Google Analytics.
 endpoint:
-  port: 3000
+  port: 80
   service: swetrix
 env:
   CLICKHOUSE_DATABASE: analytics
-  CLICKHOUSE_PORT: '8123'
   CLICKHOUSE_USER: default
-  CLOUDFLARE_PROXY_ENABLED: 'false'
+  CLIENT_IP_HEADER: x-forwarded-for
   DEBUG_MODE: 'false'
   DISABLE_REGISTRATION: 'false'
   FROM_EMAIL: ''
@@ -30,8 +29,8 @@ env:
     generate: password
   SERVICE_PASSWORD_REDIS:
     generate: password
-  SERVICE_URL_SWETRIXAPI: https://${APP_DOMAIN}
-  SERVICE_URL_SWETRIX_3000: https://${APP_DOMAIN}
+  SERVICE_URL_SWETRIX: https://${APP_DOMAIN}
+  SERVICE_URL_SWETRIX_80: https://${APP_DOMAIN}
   SMTP_HOST: ''
   SMTP_MOCK: 'false'
   SMTP_PASSWORD: ''
@@ -77,9 +76,9 @@ settings:
   options: null
   required: false
   type: text
-- env: CLOUDFLARE_PROXY_ENABLED
-  hint: 'по умолчанию: false'
-  label: cloudflare proxy enabled
+- env: CLIENT_IP_HEADER
+  hint: 'по умолчанию: x-forwarded-for'
+  label: client ip header
   options: null
   required: false
   type: text
@@ -149,15 +148,9 @@ settings:
   options: null
   required: false
   type: password
-- env: REDIS_PORT
-  hint: 'по умолчанию: 6379'
-  label: redis port
-  options: null
-  required: false
-  type: text
-- env: REDIS_USER
+- env: CLICKHOUSE_USER
   hint: 'по умолчанию: default'
-  label: redis user
+  label: clickhouse user
   options: null
   required: false
   type: text
@@ -167,15 +160,15 @@ settings:
   options: null
   required: false
   type: text
-- env: CLICKHOUSE_USER
-  hint: 'по умолчанию: default'
-  label: clickhouse user
+- env: REDIS_PORT
+  hint: 'по умолчанию: 6379'
+  label: redis port
   options: null
   required: false
   type: text
-- env: CLICKHOUSE_PORT
-  hint: 'по умолчанию: 8123'
-  label: clickhouse port
+- env: REDIS_USER
+  hint: 'по умолчанию: default'
+  label: redis user
   options: null
   required: false
   type: text

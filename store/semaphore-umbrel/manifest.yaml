@@ -1,0 +1,51 @@
+# Imported from the umbrel catalog by `cloudd store import umbrel`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/semaphore-umbrel
+description: Modern web UI for Ansible, Terraform, OpenTofu, and more
+endpoint:
+  port: 3000
+  service: web
+env:
+  APP_PASSWORD:
+    generate: password
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/semaphore/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/semaphore/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/semaphore/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/semaphore/4.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/semaphore/icon.svg
+login:
+  mode: generated
+  note: null
+  password: APP_PASSWORD
+  path: null
+  user: admin@localhost
+name: semaphore-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Semaphore UI
+type: app
+upstream:
+  author: Semaphore UI
+  categories:
+  - developer
+  release_notes: null
+  source: https://github.com/semaphoreui/semaphore
+  version: 2.20.23
+  website: https://semaphoreui.com
+website: https://semaphoreui.com

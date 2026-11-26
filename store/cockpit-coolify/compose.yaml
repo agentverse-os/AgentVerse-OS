@@ -5,6 +5,8 @@ networks:
     name: ${APP_NET}
 services:
   cockpit:
+    environment:
+    - SERVICE_URL_COCKPIT_80=${SERVICE_URL_COCKPIT_80}
     healthcheck:
       interval: 5s
       retries: 10
@@ -15,7 +17,7 @@ services:
       - --spider
       - http://127.0.0.1/api/system/healthcheck
       timeout: 20s
-    image: cockpithq/cockpit:core-latest
+    image: cockpithq/cockpit:core-2.14.1
     networks:
       appnet:
         aliases:

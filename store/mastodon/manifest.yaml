@@ -138,6 +138,6 @@ upstream:
   categories:
   - social
   source: https://github.com/mastodon/mastodon
-  tipi_version: 74
-  version: 4.7.0
+  tipi_version: 84
+  version: 4.7.5
 website: https://github.com/mastodon/mastodon

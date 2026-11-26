@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/affine/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/affine/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/affine/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/affine/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/affine/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/affine/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

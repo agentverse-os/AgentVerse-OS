@@ -189,7 +189,7 @@ services:
       - 127.0.0.1
       - ping
       timeout: 3s
-    image: redis:7-alpine
+    image: redis:8-alpine
     networks:
       appnet:
         aliases:

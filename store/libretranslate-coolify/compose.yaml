@@ -14,7 +14,7 @@ services:
       test:
       - CMD-SHELL
       - ./venv/bin/python scripts/healthcheck.py
-    image: libretranslate/libretranslate:latest
+    image: libretranslate/libretranslate:v1.9.6
     networks:
       appnet:
         aliases:

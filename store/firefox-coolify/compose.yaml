@@ -17,7 +17,7 @@ services:
       - --spider
       - http://127.0.0.1:5800/
       timeout: 20s
-    image: jlesage/firefox
+    image: jlesage/firefox:v26.09.1
     networks:
       appnet:
         aliases:

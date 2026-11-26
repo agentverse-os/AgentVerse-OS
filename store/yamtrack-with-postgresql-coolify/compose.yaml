@@ -33,7 +33,7 @@ services:
       - redis-cli
       - ping
       timeout: 20s
-    image: redis:7-alpine
+    image: redis:8-alpine
     networks:
       appnet:
         aliases:
@@ -70,7 +70,7 @@ services:
       - --spider
       - http://127.0.0.1:8000/health/
       timeout: 20s
-    image: ghcr.io/fuzzygrim/yamtrack
+    image: ghcr.io/fuzzygrim/yamtrack:0.26.3
     networks:
       appnet:
         aliases:

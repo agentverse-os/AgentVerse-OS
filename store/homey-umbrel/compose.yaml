@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   web:
-    image: ghcr.io/athombv/homey-shs:13.4.1@sha256:268b146973bddce7ee14ed5a5a8225a1b58419c15941f54916f352ff8015283f
+    image: ghcr.io/athombv/homey-shs:13.5.4@sha256:dbe1f5d3acd994869d18dd75930e96d9e35e824ecbde4fd66efe49bfd8c9301f
     network_mode: host
     privileged: true
     restart: on-failure

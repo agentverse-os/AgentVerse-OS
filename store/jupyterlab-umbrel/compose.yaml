@@ -6,7 +6,7 @@ networks:
 services:
   server:
     command: start-notebook.py --IdentityProvider.token=${APP_PASSWORD}
-    image: quay.io/jupyter/base-notebook:lab-4.6.3@sha256:5fe2f811217b1d35448ef2e94ea5515914e894aa9f41688b8fac55ddd0b82640
+    image: quay.io/jupyter/base-notebook:lab-4.6.6@sha256:1bac999da107f2987abf891ce389d6f1b92a6367d225854eb9916c471d9bb66e
     networks:
       appnet:
         aliases:

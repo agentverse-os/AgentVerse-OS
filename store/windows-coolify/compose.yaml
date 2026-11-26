@@ -22,7 +22,7 @@ services:
       - 127.0.0.1
       - '8006'
       timeout: 10s
-    image: dockurr/windows
+    image: dockurr/windows:6.06
     networks:
       appnet:
         aliases:

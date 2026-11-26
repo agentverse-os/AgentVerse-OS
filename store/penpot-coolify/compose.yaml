@@ -22,7 +22,7 @@ services:
       - -f
       - http://127.0.0.1:8080
       timeout: 10s
-    image: penpotapp/frontend:2.11.1
+    image: penpotapp/frontend:2.19.1
     networks:
       appnet:
         aliases:
@@ -41,7 +41,7 @@ services:
       - /mailpit
       - readyz
       timeout: 20s
-    image: axllent/mailpit:v1.28
+    image: axllent/mailpit:v1.33
     networks:
       appnet:
         aliases:
@@ -84,7 +84,7 @@ services:
       - -e
       - 'require(''http'').get({host:''127.0.0.1'', port:6060, path:''/readyz''}, res => process.exit(res.statusCode===200 ? 0 : 1)).on(''error'', () => process.exit(1));'
       timeout: 30s
-    image: penpotapp/backend:2.11.1
+    image: penpotapp/backend:2.19.1
     networks:
       appnet:
         aliases:
@@ -105,7 +105,7 @@ services:
       - -f
       - http://127.0.0.1:6061/readyz
       timeout: 10s
-    image: penpotapp/exporter:2.11.1
+    image: penpotapp/exporter:2.19.1
     networks:
       appnet:
         aliases:

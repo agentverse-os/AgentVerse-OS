@@ -28,10 +28,10 @@
     <span class="badge {statusClass(ws?.status)}">{ws?.status ?? t('project.noWorkspace')}</span>
   </div>
   {#if p.spec.description}<div class="desc" title={p.spec.description}>{p.spec.description}</div>{/if}
-  <div class="muted">{p.spec.workspace.runtime} · {p.spec.workspace.cpu} CPU · {p.spec.workspace.memory}{#if showIps} · {p.network} {p.subnet}{/if}</div>
+  <div class="muted">{p.spec.workspace.runtime} · {p.spec.workspace.cpu} CPU · {p.spec.workspace.memory}{#if showIps}{' '}· {p.network} {p.subnet}{/if}</div>
   {#if p.agents?.total}<div class="muted agents"><button class="link" onclick={() => wm.openSys('agents')}>🤖 {t('project.agentsLine', { total: p.agents.total, working: p.agents.working, waiting: p.agents.waiting })}</button>{#if p.agents.waiting}<span class="badge warn">✋ {p.agents.waiting}</span>{/if}</div>{/if}
-  <div class="muted">gate {p.gate.name}: <span class="badge {p.gate.status==='running'?'ok':'bad'}">{p.gate.status}</span>{#if showIps} {p.gate.detail}{/if} · {t('project.agent')}: {ws?.agent_status ?? '—'}{#if ws?.ip && showIps} · {ws.ip}{/if}</div>
-  <div class="row" style="margin-top: 10px;">
+  <div class="muted">gate {p.gate.name}: <span class="badge {p.gate.status==='running'?'ok':'bad'}">{p.gate.status}</span>{#if showIps} {p.gate.detail}{/if} · {t('project.agent')}: {ws?.agent_status ?? '—'}{#if ws?.ip && showIps}{' '}· {ws.ip}{/if}</div>
+  <div class="acts">
     {#if ws}
       {#if ws.status === 'running'}
         {#each ws.apps as a}<button class="primary" onclick={() => wm.open(`ws:${p.name}:${a.slug}`, `${p.name} · ${a.display_name}`, a.url, '🧩')}>{a.display_name}{a.health !== 'healthy' ? ` (${a.health})` : ''}</button>{/each}
@@ -46,9 +46,10 @@
         <span class="muted">{ws.status}…</span>
       {/if}
     {/if}
-    <span style="flex:1"></span>
-    <button disabled={!!busy} onclick={() => editing ? editing = false : startEdit()}>{editing ? t('common.cancel') : t('project.edit')}</button>
-    <button class="danger" disabled={!!busy} onclick={() => { if (confirm(t('project.confirmDelete', { name: p.name }))) run(t('project.deleting'), () => api.deleteProject(p.name)); }}>{t('common.delete')}</button>
+    <span class="admin">
+      <button disabled={!!busy} onclick={() => editing ? editing = false : startEdit()}>{editing ? t('common.cancel') : t('project.edit')}</button>
+      <button class="danger" disabled={!!busy} onclick={() => { if (confirm(t('project.confirmDelete', { name: p.name }))) run(t('project.deleting'), () => api.deleteProject(p.name)); }}>{t('common.delete')}</button>
+    </span>
   </div>
   {#if editing}
     <textarea class="desc-edit" rows="3" aria-label={t('project.description')} placeholder={t('project.descriptionPlaceholder')} bind:value={edit.description}></textarea>
@@ -67,7 +68,7 @@
       <label class="badge {g ? 'ok' : missing ? 'warn' : ''}" title={g ? `http://${c}.gate → ${g.app}` : missing ? t('project.noProvider') : t('project.grantHint')}>
         <input type="checkbox" checked={!!g || missing} disabled={!!busy || missing}
           onchange={(e) => { const on = (e.currentTarget as HTMLInputElement).checked; run(on ? t('project.granting') : t('project.revoking'), () => on ? api.grant(p.name, c) : api.revoke(p.name, c)); }} />
-        {c}{#if g} → {g.app}{/if}{#if missing}{' '}{t('project.noProviderBadge')}{/if}
+        {c}{#if g}{' '}→ {g.app}{/if}{#if missing}{' '}{t('project.noProviderBadge')}{/if}
       </label>
       {#if g && (p.providers?.[c]?.length ?? 0) > 1}<Dropdown value={g.app} ariaLabel={t('project.provider')} options={(p.providers?.[c] ?? []).map(a => ({ value: a, label: a }))} onchange={(v) => { if (v !== g.app) run(t('project.granting'), () => api.grant(p.name, c, v)); }} style="min-width: 9em" />{/if}
     {/each}
@@ -86,7 +87,11 @@
   .desc { margin-top: 4px; white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .card.compact .desc { display: block; }
   .desc-edit { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; resize: vertical; }
-  .caps { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+  /* workspace actions on the left, edit and delete together on the right; when the row wraps, they move to the next line as a pair */
+  .acts { display: flex; flex-wrap: wrap; gap: calc(8px * var(--sp)); align-items: center; margin-top: 12px; }
+  .acts a { display: contents; }
+  .admin { display: flex; gap: calc(8px * var(--sp)); margin-left: auto; }
+  .caps { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; }
   .caps label { cursor: pointer; }
   .caps input { vertical-align: -1px; }
   .agents { display: flex; gap: 6px; align-items: center; }

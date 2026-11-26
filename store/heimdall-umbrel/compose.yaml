@@ -8,7 +8,7 @@ services:
     environment:
     - PUID=1000
     - PGID=1000
-    image: linuxserver/heimdall:2.8.2@sha256:e0292a96e0c1e79d251dd5d882421b0fc50a9002a1074ce5024b97ffb0eacfb6
+    image: linuxserver/heimdall:2.8.4@sha256:a2ab22230f93ef416cdd92713470b17a615fa771a834848193a6332c6b311dce
     networks:
       appnet:
         aliases:

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Обои-«сцены» для темы Umbrel: живописные пейзажи в духе фотообоев umbrelOS (закат, тропические сумерки, дюны, сияние), нарисованные
-растром — Pillow без внешних ассетов и без чужих фотографий. Каждая сцена несёт brand-цвет (акцент темы, как в umbrelOS: у
-каждых обоев свой brandColorHsl). python3 assets/scenes.py [имя…] [--install] [--png] → assets/scene-<имя>-preview.jpg (и PNG при --png), при --install —
-desktop/public/wallpaper-umbrel-<имя>.webp. Зависимость: Pillow."""
+"""Wallpaper "scenes" for the Umbrel theme: picturesque landscapes in the spirit of the umbrelOS photo wallpapers (a sunset, a tropical
+dusk, dunes, an aurora), drawn as raster — Pillow with no external assets and no third-party photographs. Every scene carries a brand
+colour (the accent of the theme, as in umbrelOS: every wallpaper has its own brandColorHsl). python3 assets/scenes.py [name…] [--install]
+[--png] → assets/scene-<name>-preview.jpg (and a PNG with --png), with --install — desktop/public/wallpaper-umbrel-<name>.webp.
+Depends on Pillow."""
 import colorsys, math, random, sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
@@ -32,8 +33,8 @@ def vgrad(w, h, stops):
     return im
 
 def layer_for(base, color):
-    """Прозрачный слой, залитый цветом элемента: при размытии альфа-канал тянет цвет из прозрачных пикселей, и чёрная подложка
-    дала бы тёмный ореол вокруг светлых пятен."""
+    """A transparent layer filled with the colour of the element: under a blur the alpha channel pulls colour from transparent pixels,
+    and a black backing would leave a dark halo around light spots."""
     return Image.new("RGBA", base.size, rgb(color) + (0,))
 
 def glow(base, cx, cy, rx, ry, color, alpha, blur):

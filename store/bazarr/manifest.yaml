@@ -40,6 +40,6 @@ upstream:
   - media
   - utilities
   source: https://github.com/morpheus65535/bazarr
-  tipi_version: 29
-  version: 1.6.0
+  tipi_version: 31
+  version: 1.6.2
 website: https://github.com/morpheus65535/bazarr

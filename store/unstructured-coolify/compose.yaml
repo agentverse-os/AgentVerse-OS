@@ -17,7 +17,7 @@ services:
       - -qO-
       - http://0.0.0.0:8000/healthcheck
       timeout: 30s
-    image: downloads.unstructured.io/unstructured-io/unstructured-api:latest
+    image: downloads.unstructured.io/unstructured-io/unstructured-api:0.1.16
     networks:
       appnet:
         aliases:

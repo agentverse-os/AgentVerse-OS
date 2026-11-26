@@ -10,7 +10,7 @@ services:
       PUID: '0'
       SETTINGS_ENCRYPTION_KEY: ${DUPLICATI_ENCRYPTION_KEY}
       TZ: ${TZ}
-    image: lscr.io/linuxserver/duplicati:2.3.0
+    image: lscr.io/linuxserver/duplicati:2.4.1
     networks:
       appnet:
         aliases:

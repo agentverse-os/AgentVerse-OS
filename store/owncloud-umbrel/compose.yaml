@@ -80,7 +80,7 @@ services:
       - CMD
       - /usr/bin/healthcheck
       timeout: 10s
-    image: owncloud/server:11.0.0@sha256:f6823fe815a6e3f78239e5d1db840081b095e3153f0dbec724ba154079e479a6
+    image: owncloud/server:11.1.0@sha256:fa19b7038631f98929ec1771f1fb43595a18fc2b5f2f2220a7b66237c5ed1966
     networks:
       appnet:
         aliases:

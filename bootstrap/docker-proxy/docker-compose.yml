@@ -4,7 +4,7 @@
 # up -d
 services:
   docker-ro:
-    image: tecnativa/docker-socket-proxy:0.3.0
+    image: tecnativa/docker-socket-proxy:3.4   # the HAProxy 3.4 line, rebuilt upstream weekly; exact version tags are no longer published
     container_name: cloudos-docker-ro
     restart: unless-stopped
     environment:

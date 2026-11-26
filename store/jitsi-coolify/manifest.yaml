@@ -6,7 +6,7 @@ data:
 - tank/apps/jitsi-coolify
 description: Self-hosted Jitsi Meet — open-source video conferencing platform
 endpoint:
-  port: 80
+  port: 8000
   service: jicofo
 env:
   JVB_ADVERTISE_IPS: ''
@@ -17,6 +17,7 @@ env:
   SERVICE_PASSWORD_JVB:
     generate: password
   SERVICE_URL_JITSI: https://${APP_DOMAIN}
+  SERVICE_URL_JITSI_8000: https://${APP_DOMAIN}
 gallery: []
 health: null
 hooks: {}

@@ -102,6 +102,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/outline/outline
-  tipi_version: 46
-  version: 1.9.2
+  tipi_version: 52
+  version: 1.12.0
 website: https://github.com/outline/outline

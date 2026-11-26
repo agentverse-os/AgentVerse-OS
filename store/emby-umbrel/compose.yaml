@@ -9,7 +9,7 @@ services:
       GID: 1000
       TZ: Europe/Berlin
       UID: 1000
-    image: linuxserver/emby:version-4.9.5.0@sha256:3a06a04c7e2e3ad1cef5fb11bea83b1d6ec64e3bb9ac7c0763b38a6b934ad24b
+    image: linuxserver/emby:version-4.10.2.0@sha256:af9197e44a9f8acdeb3ce06d8d77f406a866bd99253eaaaca7c7cfbe1b47970a
     networks:
       appnet:
         aliases:

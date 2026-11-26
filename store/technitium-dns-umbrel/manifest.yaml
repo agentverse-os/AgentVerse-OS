@@ -13,9 +13,9 @@ env:
     generate: password
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/technitium-dns/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/technitium-dns/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/technitium-dns/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/technitium-dns/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/technitium-dns/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/technitium-dns/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,19 +45,15 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    ⚠️ Security note from 15.3: Technitium DNS Server removed the default Delete permission from DNS Administrators in the Apps and Settings sections. Existing installations should manually remove that permission from DNS Administrators in those sections.
-
-    If you're updating from a pre-15 version, Technitium DNS Server 15.x runs on .NET 10. Most Umbrel users do not need to take action, but if you use Technitium clustering, upgrade all cluster nodes together for compatibility.
-
-    Key highlights include:
-      - Fixed UDP socket binding issues that could affect response routing in some deployments
-      - Fixed RFC compliance checks that could affect DNS resolution and zone transfers
-      - Added Unix Domain Socket support for Web Service over HTTPS and DNS-over-HTTPS
-      - Included other minor bug fixes and improvements
+    This update includes security fixes and improvements:
+      - Fixed a zone permission boundary issue that could allow users to modify records in a separate subdomain zone.
+      - Fixed a denial-of-service issue caused by a stream of empty UDP packets.
+      - Fixed configuration synchronization issues in cluster deployments.
+      - Dashboard statistics now link to filtered query logs.
 
 
-    Full release notes can be found at https://github.com/TechnitiumSoftware/DnsServer/releases/tag/v15.4.0
+    Full release notes can be found at https://github.com/TechnitiumSoftware/DnsServer/releases/tag/v15.6.2
   source: https://github.com/TechnitiumSoftware/DnsServer
-  version: 15.4.0
+  version: 15.6.2
   website: https://technitium.com/dns/
 website: https://technitium.com/dns/

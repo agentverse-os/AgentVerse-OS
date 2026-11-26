@@ -7,7 +7,7 @@ services:
   server:
     environment:
       PASSWORD: $APP_PASSWORD
-    image: codercom/code-server:4.135.0@sha256:ccd326184d71efc5ebb94155eda7bb30153902342a35dbc8525450d81aa55012
+    image: codercom/code-server:4.145.2@sha256:09565f9e07f5624554e295e8bab0e2fec4a7c533eb3cff459ed6596a4d3d7c1c
     networks:
       appnet:
         aliases:

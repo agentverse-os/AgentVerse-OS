@@ -11,9 +11,9 @@ endpoint:
 env:
   APP_CLOUDFLARED_METRICS_PORT: '40901'
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/cloudflared/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/cloudflared/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/cloudflared/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/cloudflared/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/cloudflared/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/cloudflared/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,8 +42,8 @@ upstream:
   author: Radiokot
   categories:
   - networking
-  release_notes: The tunneling daemon (cloudflared) has been updated to 2026.7.3
+  release_notes: This update includes important security fixes and updates the Cloudflare Tunnel daemon to version 2026.10.4. We recommend updating as soon as possible.
   source: https://github.com/Radiokot/umbrel-cloudflared
-  version: 2026.7.3
+  version: 2026.10.4
   website: https://www.cloudflare.com/products/tunnel/
 website: https://www.cloudflare.com/products/tunnel/

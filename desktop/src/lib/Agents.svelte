@@ -394,7 +394,7 @@
   .mini.danger { color: var(--ag-bad); }
   select.mini { font-size: 12.5px; padding: 2px 6px; max-width: 220px; }
 
-  @media (max-width: 900px) {
+  @container win (max-width: 900px) {
     .agents { grid-template-columns: minmax(0, 1fr); }
     .side { position: absolute; top: 0; bottom: 0; left: 0; width: min(300px, 86vw); z-index: 40; transform: translateX(-100%); transition: transform .2s; box-shadow: 0 0 40px rgb(0 0 0 / .6); }
     .side-open .side { transform: none; }

@@ -14,10 +14,11 @@ env:
   RABBITMQ_PORT: '5672'
   SERVER_AUTH_COOKIE_DOMAIN: localhost:8080
   SERVER_AUTH_COOKIE_INSECURE: t
+  SERVER_AUTH_SET_EMAIL_VERIFIED: 'true'
   SERVER_GRPC_BIND_ADDRESS: 0.0.0.0
   SERVER_GRPC_BROADCAST_ADDRESS: localhost:7077
   SERVER_GRPC_INSECURE: t
-  SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS: hatchet-engine:7077
+  SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS: hatchet-engine:7070
   SERVICE_PASSWORD_POSTGRES:
     generate: password
   SERVICE_PASSWORD_RABBITMQ:
@@ -50,6 +51,18 @@ route:
   open: iframe
 schema: 1
 settings:
+- env: POSTGRES_DB
+  hint: 'по умолчанию: hatchet'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: SERVER_AUTH_SET_EMAIL_VERIFIED
+  hint: 'по умолчанию: true'
+  label: server auth set email verified
+  options: null
+  required: false
+  type: text
 - env: SERVER_GRPC_BIND_ADDRESS
   hint: 'по умолчанию: 0.0.0.0'
   label: server grpc bind address
@@ -59,12 +72,6 @@ settings:
 - env: SERVER_GRPC_INSECURE
   hint: 'по умолчанию: t'
   label: server grpc insecure
-  options: null
-  required: false
-  type: text
-- env: POSTGRES_DB
-  hint: 'по умолчанию: hatchet'
-  label: postgres db
   options: null
   required: false
   type: text
@@ -99,7 +106,7 @@ settings:
   required: false
   type: text
 - env: SERVER_INTERNAL_CLIENT_INTERNAL_GRPC_BROADCAST_ADDRESS
-  hint: 'по умолчанию: hatchet-engine:7077'
+  hint: 'по умолчанию: hatchet-engine:7070'
   label: server internal client internal grpc broadcast address
   options: null
   required: false

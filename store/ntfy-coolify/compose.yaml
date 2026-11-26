@@ -43,7 +43,7 @@ services:
       - CMD-SHELL
       - wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '"healthy"\s*:\s*true' || exit 1
       timeout: 10s
-    image: binwiederhier/ntfy
+    image: binwiederhier/ntfy:v2.38.0
     networks:
       appnet:
         aliases:

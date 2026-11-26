@@ -20,7 +20,7 @@ services:
       - ready
       - local
       timeout: 20s
-    image: quay.io/minio/minio:latest
+    image: pgsty/silo:RELEASE.2026-10-15T00-00-00Z
     networks:
       appnet:
         aliases:

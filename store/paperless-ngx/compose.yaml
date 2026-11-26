@@ -31,7 +31,7 @@ services:
     - gotenberg
     - --chromium-disable-javascript=true
     - --chromium-allow-list=file:///tmp/.*
-    image: gotenberg/gotenberg:8.36
+    image: gotenberg/gotenberg:8.40
     networks:
       appnet:
         aliases:
@@ -53,7 +53,7 @@ services:
       PAPERLESS_TIKA_ENDPOINT: http://tika:9998
       PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
       PAPERLESS_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
-    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.5
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.4.2
     networks:
       appnet:
         aliases:

@@ -10,11 +10,11 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/copyparty/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,14 +45,14 @@ upstream:
   - files
   release_notes: |-
     New features and improvements in this release:
-      - Adds custom thumbnail extractors and SVG support in the lightbox
-      - Improves WOPI support with access limits, persistent file IDs for real-time collaboration, and narrower per-file tokens
-      - Improves upload recovery and adds clearer guidance when reverse proxy request-size limits break uploads
-      - Fixes a first-visit JavaScript duplication issue, an image drag-and-drop panic, and a config autodetection crash
+      - Fixes thumbnail generation for RAW photos when using JPEG XL
+      - Reduces false warnings about shadowing on case-insensitive filesystems
+      - Improves symlink handling and access checks when using the optional xvol/xdev filesystem guards
+      - Fixes copy-on-write settings for history folders on Btrfs
 
 
-    Full release notes can be found at https://github.com/9001/copyparty/releases/tag/v1.20.21
+    Full release notes can be found at https://github.com/9001/copyparty/releases/tag/v1.20.26
   source: https://github.com/9001/copyparty
-  version: 1.20.21
+  version: 1.20.26
   website: https://github.com/9001/copyparty
 website: https://github.com/9001/copyparty

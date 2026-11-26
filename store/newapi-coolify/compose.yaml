@@ -22,9 +22,9 @@ services:
       retries: 3
       test:
       - CMD-SHELL
-      - 'wget -q -O - http://localhost:3000/api/status | grep -o ''"success":\s*true'' | awk -F: ''{print $2}'''
+      - wget -q -O - http://localhost:3000/api/status | grep -q '"success":\s*true'
       timeout: 10s
-    image: calciumion/new-api:v0.9.2.0
+    image: calciumion/new-api:v0.9.3.0
     networks:
       appnet:
         aliases:
@@ -59,7 +59,7 @@ services:
       - redis-cli
       - PING
       timeout: 10s
-    image: redis:7-alpine
+    image: redis:8-alpine
     networks:
       appnet:
         aliases:

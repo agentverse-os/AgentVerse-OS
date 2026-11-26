@@ -10,11 +10,11 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/wingfit/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wingfit/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wingfit/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wingfit/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wingfit/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wingfit/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wingfit/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wingfit/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wingfit/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wingfit/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,12 +44,16 @@ upstream:
   categories:
   - files
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Wingfit 5.3.1 release notes:
+
     This release includes:
       - Fix for dark mode menu on mobile
 
 
     Full release notes can be found at https://github.com/itskovacs/wingfit/releases
   source: https://github.com/itskovacs/wingfit
-  version: 5.3.1
+  version: 5.3.1-patch.1
   website: https://wingfit.fr/
 website: https://wingfit.fr/

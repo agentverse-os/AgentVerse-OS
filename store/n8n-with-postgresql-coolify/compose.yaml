@@ -42,7 +42,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:5678/healthz
       timeout: 20s
-    image: n8nio/n8n:2.10.2
+    image: n8nio/n8n:2.47.7
     networks:
       appnet:
         aliases:
@@ -85,7 +85,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:5680/healthz
       timeout: 20s
-    image: n8nio/runners:2.10.2
+    image: n8nio/runners:2.47.7
     networks:
       appnet:
         aliases:

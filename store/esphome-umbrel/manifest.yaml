@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/esphome/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/esphome/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/esphome/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/esphome/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/esphome/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/esphome/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,10 +42,16 @@ upstream:
   categories:
   - automation
   release_notes: |-
-    ESPHome 2026.8.2 is another follow-up to the recent ESPHome 2026.8.0 major update. If you're updating from a pre-2026.8 version, review the upstream upgrade checklist before updating if your configs use explicit BLE tracker IDs (`esp32_ble_id` -> `ble_hub_id`), `voc`/`nox` sensor keys, Modbus controller/server options, RC522 I²C defaults, custom web server integrations, RP2 on-die temperature ADC, LED strip color-order keys, or interrupt-pin `inverted`/`allow_other_uses` settings.
-    This point release updates the bundled ESPHome Device Builder, fixes ESP-IDF reconfiguration after component discovery, resolves one_wire reset busy-waiting, improves ESP32 HTTP request watchdog behavior, and fixes LVGL select triggers, JC3636518V2 MIPI SPI dimensions, and ESP8266 mDNS update handling when the radio cannot transmit.
-    Full release notes can be found at https://github.com/esphome/esphome/releases/tag/2026.8.2
+    ⚠️ Review the upstream upgrade checklist before rebuilding device firmware. Sub-devices under `esphome: devices:` now need `relation: via` or `relation: child`. ESP32 builds require ESP-IDF 5.1 or newer. HTTP-request scripts may need `mode: queued` or `mode: parallel` to preserve repeated runs. Check power-meter calibration on Beken and Realtek chips, renamed configuration options, custom lambdas, and external components.
+
+    If upgrading from before 2026.10, ESP8266 now defaults to the native Arduino toolchain; `toolchain: platformio` remains a temporary fallback for custom frameworks. Sendspin requires Music Assistant 2.10.7 or newer (or 2.11.0b4 or newer). Review the October upgrade checklist too: https://esphome.io/blog/2026/10/21/esphome-2026-10/
+
+    This release reduces firmware memory usage, generates smaller automation code, improves OTA uploads on unreliable Wi-Fi, and adds boot-log replay. It also improves Wi-Fi reconnection, MQTT, and Bluetooth reliability, fixes web-server security issues, and adds many new sensors and integrations including USB audio, HDMI-CEC, and an RTSP server.
+
+    Upgrade checklist: https://esphome.io/blog/2026/11/18/esphome-2026-11/
+
+    Full release notes can be found at https://github.com/esphome/esphome/releases/tag/2026.11.0
   source: https://github.com/esphome/esphome
-  version: 2026.8.2
+  version: 2026.11.0
   website: https://esphome.io
 website: https://esphome.io

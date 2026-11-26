@@ -41,6 +41,10 @@ pub struct Service {
     pub(crate) agents: Arc<crate::agents::AgentsState>,
     /// Spending limits (budgets.rs): when we warned last
     pub(crate) budgets_st: Arc<crate::budgets::BudgetsState>,
+    /// Memory pressure watch (pressure.rs, ADR-009): the latest sample, state and action per workspace
+    pub(crate) pressure: Arc<crate::pressure::PressureState>,
+    /// Perimeter (perimeter.rs, ADR-010): how the edge container reaches the core, the bridge listener switch
+    pub(crate) perimeter: Arc<crate::perimeter::PerimeterState>,
 }
 
 impl Service {
@@ -51,9 +55,10 @@ impl Service {
         let docker = DockerRt::new(&cfg.docker_socket)?;
         let coder = Coder::new(&cfg.coder_url, &cfg.coder_token);
         let komodo = Komodo::new(&cfg.komodo_url, &cfg.komodo_key, &cfg.komodo_secret, &cfg.komodo_server);
-        let edge = EdgeCaddy::new(&cfg.caddy_admin);
+        let edge = EdgeCaddy::new(&cfg.caddy_admin, &cfg.caddy_admin_sock());
         let agents = Arc::new(crate::agents::AgentsState::load(&store)); let budgets_st = Arc::new(crate::budgets::BudgetsState::load(&store));
-        Ok(Self { cfg: Arc::new(cfg), store, incus, docker, coder, komodo, edge, monitor: crate::monitor::Monitor::new(), feeds: crate::feeds::Feeds::default(), lock: Arc::new(tokio::sync::Mutex::new(())), backup_lock: Arc::new(tokio::sync::Mutex::new(())), backup_running: Arc::new(std::sync::atomic::AtomicBool::new(false)), catalog_cache: Default::default(), importing: Default::default(), agents, budgets_st })
+        let pressure = Arc::new(crate::pressure::PressureState::load(&store));
+        Ok(Self { cfg: Arc::new(cfg), store, incus, docker, coder, komodo, edge, monitor: crate::monitor::Monitor::new(), feeds: crate::feeds::Feeds::default(), lock: Arc::new(tokio::sync::Mutex::new(())), backup_lock: Arc::new(tokio::sync::Mutex::new(())), backup_running: Arc::new(std::sync::atomic::AtomicBool::new(false)), catalog_cache: Default::default(), importing: Default::default(), agents, budgets_st, pressure, perimeter: Default::default() })
     }
 
     // =====================================================================
@@ -248,7 +253,10 @@ impl Service {
             self.store.event("project", &st.name, if spec.description.is_some() { "описание обновлено" } else { "описание удалено" })?;
             return self.project_view(&st).await;
         }
-        let workspace_changed = previous.as_ref().map(|p| p.spec.workspace.cpu != spec.workspace.cpu || p.spec.workspace.memory != spec.workspace.memory).unwrap_or(false);
+        // cpu/memory/home are workspace parameters: a change is applied by a start build with parameters; the home volume
+        // only grows (Incus cannot shrink a block volume), so a smaller value is refused before anything is written
+        if let Some(p) = previous.as_ref() { if spec.workspace.home < p.spec.workspace.home && spec.workspace.home > 0 { bail!("дом проекта {}: уменьшить с {} до {} GiB нельзя — том Incus не сжимается; можно только увеличить", spec.project, p.spec.workspace.home, spec.workspace.home); } }
+        let workspace_changed = previous.as_ref().map(|p| p.spec.workspace.cpu != spec.workspace.cpu || p.spec.workspace.memory != spec.workspace.memory || p.spec.workspace.home != spec.workspace.home).unwrap_or(false);
         if let Some(p) = &previous {
             if p.spec.workspace.runtime != spec.workspace.runtime {
                 bail!("runtime проекта {} нельзя сменить после создания ({} → {}): удалите проект и создайте заново", spec.project, p.spec.workspace.runtime.as_param(), spec.workspace.runtime.as_param());
@@ -274,9 +282,8 @@ impl Service {
         // 2. Docker macvlan on the project bridge +
         // gate
         self.docker.ensure_macvlan(&st.macvlan_network(), &st.incus_network(), &st.subnet(base), &gw, &st.gate_ip_range(base)).await?;
-        let gate_dir = self.cfg.gates_dir().join(&st.name);
         self.render_gate(&st).await?;
-        self.docker.ensure_gate(&st.gate_name(), &st.macvlan_network(), &gate_ip, &gate_dir).await?;
+        self.ensure_gate_running(&st).await?;
         if self.has_external_grants(&st.name)? {
             self.ensure_egress(&st).await?;
         }
@@ -302,7 +309,7 @@ impl Service {
                         // place)
                         let params = self.rich_params(&st);
                         let b = self.coder.build_with_params(ws.id, "start", &params).await?;
-                        self.store.event("workspace", &st.name, &format!("параметры изменены: {} CPU, {} GiB — build {}", st.spec.workspace.cpu, st.spec.workspace.memory, b.id))?;
+                        self.store.event("workspace", &st.name, &format!("параметры изменены: {} CPU, {} GiB, дом {} GiB — build {}", st.spec.workspace.cpu, st.spec.workspace.memory, st.spec.workspace.home, b.id))?;
                         self.push_env_when_running(st.clone());
                         // the instance is not rebooted, yet the new build has a different agent token: restart the
                         // agent unit, it re-reads user.coder_agent_token through the guest API
@@ -369,6 +376,106 @@ impl Service {
         // http://s3.gate without /etc/hosts
         let v: serde_json::Value = serde_json::json!({ "raw.dnsmasq": format!("address=/.gate/{gate_ip}") });
         self.incus.patch_network(network, v).await
+    }
+
+    /// The project gate must be running. An existing container is started; when Docker refuses — after a host boot the gate's
+    /// macvlan network can be listed but not loaded by the driver, because Docker came up before the Incus bridge under it
+    /// ("network id … not found", the stand on 2026-11-04: three projects were left without their LLM route) — the container
+    /// and its macvlan network are recreated with the same address and the gate is joined again to the egress network and
+    /// to the networks of the granted providers. Returns what was done (`None` — the gate was already running). The caller
+    /// holds the service lock.
+    pub(crate) async fn ensure_gate_running(&self, st: &ProjectState) -> Result<Option<&'static str>> {
+        let base = &self.cfg.project_subnet_base;
+        let (name, mv, gate_ip) = (st.gate_name(), st.macvlan_network(), st.gate_ip(base));
+        let gate_dir = self.cfg.gates_dir().join(&st.name);
+        if self.docker.container_state(&name).await?.as_deref() == Some("running") { return Ok(None) }
+        let mut done = "создан";
+        if self.docker.container_exists(&name).await? {
+            match self.docker.start_container(&name).await {
+                Ok(()) => { self.store.event("gate", &st.name, "gate был остановлен — запущен")?; return Ok(Some("запущен")) }
+                Err(e) => {
+                    tracing::warn!("gate {name}: запуск не удался ({e:#}) — пересоздаю контейнер и сеть {mv}");
+                    self.docker.remove_container(&name).await?;
+                    // nothing but the gate lives on the project macvlan; a network the driver has lost can only be recreated
+                    if let Err(e) = self.docker.remove_network(&mv).await { tracing::warn!("gate {name}: сеть {mv} не удалена: {e:#}"); }
+                    done = "пересоздан";
+                }
+            }
+        }
+        self.docker.ensure_macvlan(&mv, &st.incus_network(), &st.subnet(base), &st.gateway(base), &st.gate_ip_range(base)).await?;
+        if !gate_dir.join("Caddyfile").exists() { self.render_gate(st).await?; }
+        self.docker.ensure_gate(&name, &mv, &gate_ip, &gate_dir).await?;
+        // a new container knows only the macvlan: bring back the provider networks of the project's grants
+        let mut egress = false;
+        for g in self.store.list_grants(Some(&st.name))? {
+            match self.store.get_app(&g.app)? {
+                Some(app) if app.manifest.kind == AppKind::External => egress = true,
+                Some(app) => { if let Err(e) = self.docker.connect(&app.network(), &name).await { tracing::warn!("gate {name}: сеть {} ({}): {e:#}", app.network(), g.capability); } }
+                None => {}
+            }
+        }
+        if egress { self.ensure_egress(st).await?; }
+        if let Err(e) = self.docker.reload_gate(&name).await { tracing::warn!("reload gate {name}: {e}"); }
+        self.store.event("gate", &st.name, &format!("gate {done}: {gate_ip}, сети провайдеров подключены заново"))?;
+        Ok(Some(done))
+    }
+
+    /// Gates run the image of the edge (`GATE_IMAGE`), but the core creates them itself, outside compose: when the image is
+    /// pulled for the edge, the running gates stay on the old one and keep its vulnerabilities. Recreates every gate whose
+    /// image is not the one the tag points to now, with the same address and networks — a couple of seconds without the
+    /// LLM route per project. A gate that fails to come back is picked up by the watchdog. Returns the recreated
+    /// containers.
+    pub async fn refresh_gates(&self) -> Result<Vec<String>> {
+        let Some(current) = self.docker.image_id(crate::docker::GATE_IMAGE).await? else { return Ok(vec![]) };
+        let mut done = vec![];
+        for st in self.store.list_projects()? {
+            let name = st.gate_name();
+            if !stale_image(self.docker.container_image_id(&name).await?.as_deref(), &current) { continue }
+            let _g = self.lock.lock().await;
+            self.docker.remove_container(&name).await?;
+            self.ensure_gate_running(&st).await.with_context(|| format!("{name}: пересоздание на новом образе"))?;
+            done.push(name);
+        }
+        Ok(done)
+    }
+
+    /// Gate watchdog: every 30 s each project's gate is checked and a stopped or missing one is brought back
+    /// (`ensure_gate_running`). The first pass runs right after the start — together with `serve --reconcile` this closes
+    /// the boot-order race between Docker and the Incus bridges. A project that keeps failing is retried every tenth pass
+    /// (5 min) and reported once per distinct error.
+    pub fn start_gate_watch(&self) {
+        let me = self.clone();
+        tokio::spawn(async move {
+            let mut failing: HashMap<String, (u32, String)> = HashMap::new();
+            tokio::time::sleep(std::time::Duration::from_secs(15)).await;
+            loop {
+                let projects = me.store.list_projects().unwrap_or_default();
+                for st in &projects {
+                    match me.docker.container_state(&st.gate_name()).await {
+                        Ok(Some(s)) if s == "running" => { failing.remove(&st.name); continue }
+                        Ok(_) => {}
+                        Err(_) => continue,   // Docker itself does not answer — the next pass
+                    }
+                    if let Some((n, _)) = failing.get_mut(&st.name) { *n += 1; if *n % 10 != 0 { continue } }
+                    let _g = me.lock.lock().await;
+                    match me.ensure_gate_running(st).await {
+                        Ok(_) => { failing.remove(&st.name); }
+                        Err(e) => {
+                            let m = format!("{e:#}");
+                            let known = failing.get(&st.name).map(|(_, prev)| *prev == m).unwrap_or(false);
+                            if !known {
+                                tracing::warn!("gate {}: не поднят: {m}", st.gate_name());
+                                let _ = me.store.event("gate", &st.name, &format!("gate не поднят: {}", m.chars().take(200).collect::<String>()));
+                            }
+                            let n = failing.get(&st.name).map(|(n, _)| *n).unwrap_or(0);
+                            failing.insert(st.name.clone(), (n.max(1), m));
+                        }
+                    }
+                }
+                failing.retain(|name, _| projects.iter().any(|p| &p.name == name));
+                tokio::time::sleep(std::time::Duration::from_secs(30)).await;
+            }
+        });
     }
 
     async fn render_gate(&self, st: &ProjectState) -> Result<()> {
@@ -466,9 +573,12 @@ impl Service {
         for st in self.store.list_projects()? {
             out.push(self.project_view(&st).await?);
         }
+        // owner's servers (ADR-008) in the same list, kind: host
+        for h in self.store.list_hosts()? { out.push(self.host_project_view(&h)); }
         Ok(out)
     }
     pub async fn project(&self, name: &str) -> Result<ProjectView> {
+        if let Some(h) = self.store.get_host(name)? { return Ok(self.host_project_view(&h)); }
         let st = self.store.get_project(name)?.ok_or_else(|| anyhow!("проект {name} не найден"))?;
         self.project_view(&st).await
     }
@@ -507,10 +617,11 @@ impl Service {
                             })
                             .unwrap_or_default(),
                         url: format!("{public}/@{}/{}", ws.owner_name, ws.name),
+                        memory: self.memory_view(&st.name),
                     })
                 }
                 Ok(None) => None,
-                Err(e) => Some(WorkspaceView { id, name: st.name.clone(), status: format!("unknown: {e}"), agent_status: None, instance: None, ip: None, apps: vec![], url: self.cfg.coder_public_url() }),
+                Err(e) => Some(WorkspaceView { id, name: st.name.clone(), status: format!("unknown: {e}"), agent_status: None, instance: None, ip: None, apps: vec![], url: self.cfg.coder_public_url(), memory: None }),
             },
             _ => None,
         };
@@ -528,6 +639,7 @@ impl Service {
         for v in providers.values_mut() { v.sort(); }
         Ok(ProjectView {
             name: st.name.clone(),
+            kind: "workspace".into(),
             spec: st.spec.clone(),
             network: st.incus_network(),
             subnet: st.subnet(base),
@@ -1092,7 +1204,7 @@ impl Service {
     }
 
     /// The same mechanics for app links: PROJECT=`app-<consumer>`, GATE_URL — the provider address inside Cloud OS.
-    async fn run_hook_for(&self, app: &AppState, hook: &str, project: &str, capability: &str, gate_url: &str) -> Result<String> {
+    pub(crate) async fn run_hook_for(&self, app: &AppState, hook: &str, project: &str, capability: &str, gate_url: &str) -> Result<String> {
         let dir = self.cfg.store_dir().join(&app.name);
         let script = dir.join(hook);
         if !script.exists() {
@@ -1264,6 +1376,9 @@ fi"#;
                 let what = if d.binary { "agentd выложен" } else { "agentd настроен" };
                 let _ = self.store.event("workspace", &st.name, &format!("{what}{}", if d.restarted { " и запущен" } else { "" }));
             }
+            Ok(d) if d.oom_policy => {
+                let _ = self.store.event("workspace", &st.name, "юниты agentd и агента Coder больше не останавливаются целиком, когда система завершает один их процесс по нехватке памяти (OOMPolicy=continue, без перезапуска)");
+            }
             Ok(_) => {}
             Err(e) => tracing::warn!("agentd в {inst}: {e:#}"),
         }
@@ -1289,6 +1404,12 @@ fi"#;
     /// Client to the agentd of a running workspace: the address from Incus, the
     /// token from the secret store.
     pub async fn agentd_client(&self, project: &str) -> Result<crate::agentd::AgentdClient> {
+        // an owner's server (ADR-008) is reached by its record, not through Incus
+        if let Some(h) = self.store.get_host(project)? {
+            if h.disabled { bail!("сервер {project} отключён — включите его в «Серверы»"); }
+            if h.addr.is_empty() { bail!("сервер {project} ещё не установлен"); }
+            return self.host_client(&h);
+        }
         let inst = self.workspace_instance(project).await;
         let info = self.incus.instances().await?.into_iter().find(|i| i.name == inst).ok_or_else(|| anyhow!("workspace {project} не найден"))?;
         if info.status != "Running" {
@@ -1314,19 +1435,30 @@ fi"#;
         let apps = self.store.list_apps()?;
         let alt = self.edge_alt_hosts();
         let previews = self.preview_routes().await;
+        // sockets in the shared directory when the container mounts it, the docker bridge for one created before ADR-010
+        let (cloudd_upstream, agents_upstream, admin_listen) = self.cfg.edge_upstreams(self.perimeter_sync().await);
+        let (deny_ranges, allow_ips) = self.edge_guard().await;
         let cfg = EdgeCaddy::render(&EdgeInput {
             host: &self.cfg.edge_host,
             alt_hosts: &alt,
-            cloudd_upstream: &self.cfg.edge_cloudd_upstream,
-            agents_upstream: &self.cfg.edge_agents_upstream,
+            cloudd_upstream: &cloudd_upstream,
+            agents_upstream: &agents_upstream,
             coder_upstream: &self.cfg.edge_coder_upstream,
             coder_port: self.cfg.coder_port,
             agents_port: self.cfg.agents_port,
             apps: &apps,
             previews: &previews,
             tls_internal: self.cfg.tls_internal,
+            admin_listen: &admin_listen,
+            deny_ranges: &deny_ranges,
+            allow_ips: &allow_ips,
         });
-        self.edge.load(&cfg).await
+        self.edge.load(&cfg).await?;
+        self.perimeter.guard_loaded(&deny_ranges, &allow_ips);
+        // a new app network is a new docker bridge: the firewall jumps follow right away, not at the next minute
+        let me = self.clone();
+        tokio::spawn(async move { if let Err(e) = me.ensure_firewall().await { tracing::warn!("периметр: firewall: {e:#}"); } });
+        Ok(())
     }
 
     /// Dev server previews (docs/agents-ux.md §4.9): routes for the edge render — upstream by the IP of the running
@@ -1407,15 +1539,56 @@ fi"#;
         self.reload_edge().await
     }
 
+    /// The edge gets its certificate from tailscaled through the socket directory bind-mounted into the container. When
+    /// tailscaled restarts (its own auto-update does that), systemd recreates `/run/tailscale` unless the unit keeps it
+    /// (`RuntimeDirectoryPreserve`, set by the installer); the container is left with the old empty directory and every TLS
+    /// handshake by the tailnet name fails. Seen from the host: the socket is there, and it is not in the container's view of
+    /// the same path. Without Tailscale certificates (`tls_internal`) there is nothing to lose.
+    async fn edge_lost_tailscale(&self) -> bool {
+        const SOCK: &str = "/var/run/tailscale/tailscaled.sock";
+        if self.cfg.tls_internal || !std::path::Path::new(SOCK).exists() { return false }
+        match self.docker.container_pid(&self.cfg.edge_container).await {
+            Ok(Some(pid)) => !std::path::Path::new(&format!("/proc/{pid}/root{SOCK}")).exists(),
+            _ => false,
+        }
+    }
+
     /// Edge watchdog: every 20 s checks whether the live Caddy configuration has the `desktop` server; if not (container
-    /// recreated) — restores the networks and configuration itself.
+    /// recreated or restarted) — restores the networks and configuration itself; and whether the container still sees the
+    /// Tailscale socket (`edge_lost_tailscale`).
     pub fn start_edge_watch(&self) {
         let me = self.clone();
         tokio::spawn(async move {
+            let mut restarted: Option<std::time::Instant> = None;
+            let mut sockets = me.perimeter_sync().await;
             loop {
                 tokio::time::sleep(std::time::Duration::from_secs(20)).await;
+                // the container was replaced by one that reaches the core differently (sockets ↔ the docker bridge): the
+                // configuration it needs is another one
+                let now = me.perimeter_sync().await;
+                if now != sockets {
+                    sockets = now;
+                    tracing::info!("edge: контейнер теперь {} — заливаю конфигурацию заново", if now { "с каталогом сокетов" } else { "без каталога сокетов" });
+                    if let Err(e) = me.restore_edge().await { tracing::warn!("edge: восстановление не удалось: {e:#}"); }
+                    continue;
+                }
+                // not more often than once in five minutes: a restart that did not help must not turn into a loop
+                if restarted.map(|t| t.elapsed() > std::time::Duration::from_secs(300)).unwrap_or(true) && me.edge_lost_tailscale().await {
+                    tracing::warn!("edge: контейнер не видит сокет tailscaled (tailscaled перезапускался) — перезапускаю {}", me.cfg.edge_container);
+                    let _ = me.store.event("edge", "tailscale", "edge потерял сокет Tailscale после перезапуска tailscaled и не мог получить сертификат — контейнер edge перезапущен");
+                    if let Err(e) = me.docker.restart_container(&me.cfg.edge_container).await { tracing::warn!("edge: перезапуск не удался: {e:#}"); }
+                    restarted = Some(std::time::Instant::now());
+                    continue;   // the next pass finds the bootstrap config and uploads ours
+                }
                 match me.edge.has_server("desktop").await {
-                    Ok(true) => {}
+                    Ok(true) => {
+                        // the edge's networks or its default gateway changed under a loaded guard (see `guard_stale`)
+                        let (deny, allow) = me.edge_guard().await;
+                        if me.perimeter.guard_stale(&deny, &allow) {
+                            tracing::info!("edge: сети контейнера изменились — заливаю конфигурацию со свежим стражем");
+                            if let Err(e) = me.reload_edge().await { tracing::warn!("edge: перезагрузка конфигурации не удалась: {e:#}"); }
+                        }
+                    }
                     Ok(false) => {
                         tracing::warn!("edge: в конфигурации Caddy нет сервера desktop (контейнер пересоздан?) — заливаю заново");
                         if let Err(e) = me.restore_edge().await { tracing::warn!("edge: восстановление не удалось: {e:#}"); } else { tracing::info!("edge: конфигурация восстановлена"); }
@@ -1456,6 +1629,12 @@ pub fn normalize_description(d: Option<String>) -> Result<Option<String>> {
     Ok(d)
 }
 
+/// A container runs a stale image when it exists and was created from another image than the tag points to now. A
+/// missing container is not stale: bringing it back is the watchdog's job.
+pub fn stale_image(container: Option<&str>, current: &str) -> bool {
+    matches!(container, Some(id) if id != current)
+}
+
 pub fn validate_name(n: &str) -> Result<()> {
     if n.is_empty() || n.len() > 48 || !n.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') || n.starts_with('-') {
         bail!("имя {n:?}: только [a-z0-9-], до 48 символов");
@@ -1489,7 +1668,7 @@ pub fn env_prefix(capability: &str) -> String {
     capability.chars().map(|c| if c.is_ascii_alphanumeric() { c.to_ascii_uppercase() } else { '_' }).collect()
 }
 
-fn shell_quote(v: &str) -> String {
+pub fn shell_quote(v: &str) -> String {
     format!("'{}'", v.replace('\'', "'\\''"))
 }
 

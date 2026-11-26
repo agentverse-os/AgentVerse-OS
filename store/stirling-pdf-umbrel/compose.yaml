@@ -10,7 +10,7 @@ services:
       INSTALL_BOOK_AND_ADVANCED_HTML_OPS: 'true'
       LANGS: ALL
       SECURITY_ENABLELOGIN: 'false'
-    image: stirlingtools/stirling-pdf:2.14.3@sha256:3b3670fce70b396ec56ba380a3cc7858e0abf83fe13f31c88f7737847763a396
+    image: stirlingtools/stirling-pdf:3.3.0@sha256:ed7b1775c6706b5e5ea24fa6155f078eff1027bd35a17d21834e4407036025e6
     networks:
       appnet:
         aliases:

@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   app:
-    image: emqx/mqttx-web:v1.13.0@sha256:64525ad96286280f85f9f1a3f74a98475d1bbfe7a8ee278f93fa6991e6090c9c
+    image: emqx/mqttx-web:v1.13.3@sha256:63f6ee50bc1b7dc6c9743d3571822ff13009ed41dc5de399645fb4a1340a5240
     networks:
       appnet:
         aliases:

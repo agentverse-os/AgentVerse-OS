@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   web:
-    image: ghcr.io/besoeasy/gupt:4.1.13@sha256:b0f15a2075bed76a9420ad7d128f92774077bf2bbd60fb6ce8816b24ee5dc48b
+    image: ghcr.io/besoeasy/gupt:6.1.32@sha256:0cb58e2f88c350c35b8c639f394075701d0b63e9d9859c11970f17867127fdc1
     networks:
       appnet:
         aliases:

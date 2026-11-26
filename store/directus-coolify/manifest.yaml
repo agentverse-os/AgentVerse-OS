@@ -15,6 +15,7 @@ env:
   CORS_ENABLED: 'true'
   CORS_METHODS: GET,POST,PATCH,DELETE,OPTIONS
   CORS_ORIGIN: ''
+  IP_TRUST_PROXY: 'true'
   SERVICE_BASE64_64_KEY:
     generate: hex64
   SERVICE_BASE64_64_SECRET:
@@ -47,6 +48,12 @@ settings:
 - env: ADMIN_EMAIL
   hint: 'по умолчанию: admin@example.com'
   label: admin email
+  options: null
+  required: false
+  type: text
+- env: IP_TRUST_PROXY
+  hint: 'по умолчанию: true'
+  label: ip trust proxy
   options: null
   required: false
   type: text

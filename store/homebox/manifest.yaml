@@ -54,6 +54,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/sysadminsmedia/homebox
-  tipi_version: 40
-  version: 0.26.2
+  tipi_version: 44
+  version: 0.27.1
 website: https://github.com/sysadminsmedia/homebox

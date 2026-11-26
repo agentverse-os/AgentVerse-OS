@@ -132,6 +132,15 @@ pub async fn datasets() -> Result<Vec<DatasetInfo>> {
 
 /// Snapshot of the given datasets (recursively — tank/workspaces has Incus child datasets). Returns the short snapshot
 /// name.
+/// Scheduled snapshots are skipped from this pool fill level (percent).
+pub const POOL_FULL_PCT: u32 = 85;
+
+/// Fill level of the pool that holds the backed-up datasets, percent (`zpool list -H -o capacity`); `None` — not readable.
+pub async fn pool_capacity() -> Option<u32> {
+    let pool = DATASETS.first()?.split('/').next()?;
+    run("zpool", &["list", "-H", "-o", "capacity", pool]).await.ok()?.trim().trim_end_matches('%').parse().ok()
+}
+
 pub async fn snapshot_of(datasets: &[&str], kind: &str) -> Result<String> {
     let mut name = snap_name(kind, OffsetDateTime::now_utc());
     let existing = list_snapshots().await.unwrap_or_default();
@@ -204,8 +213,20 @@ impl Service {
         self.backup_running.store(true, std::sync::atomic::Ordering::Relaxed);
         let started = std::time::Instant::now();
         let res = async {
-            let name = snapshot_of(DATASETS, kind).await?;
             let cfg = self.backup_config();
+            // scheduled snapshots stop when the pool is nearly full: old snapshots keep every changed block, and a full pool
+            // stops everything on it. The policy cleanup still runs (it is what frees the space); manual and pre-operation
+            // snapshots are the owner's decision and are not held back.
+            if matches!(kind, "hourly" | "daily" | "weekly") {
+                if let Some(cap) = pool_capacity().await.filter(|c| *c >= POOL_FULL_PCT) {
+                    let snaps = list_snapshots().await?;
+                    let mut pruned = 0;
+                    for (ds, s) in prune_plan(&snaps, &cfg) { destroy(&ds, &s).await?; pruned += 1; }
+                    self.store.event("backup", kind, &format!("снимок пропущен: пул заполнен на {cap} % (порог {POOL_FULL_PCT} %), удалено по политике: {pruned} — освободите место или уменьшите число хранимых снимков"))?;
+                    return Ok(json!({ "at": store::now(), "kind": kind, "ok": false, "skipped": "pool_full", "capacity": cap, "pruned": pruned }));
+                }
+            }
+            let name = snapshot_of(DATASETS, kind).await?;
             let snaps = list_snapshots().await?;
             let mut pruned = 0;
             for (ds, s) in prune_plan(&snaps, &cfg) { destroy(&ds, &s).await?; pruned += 1; }
@@ -257,11 +278,18 @@ impl Service {
         }
         // Coder database dump (a logical copy next to the tank/postgres
         // files)
-        match self.docker.exec(&self.cfg.coder_pg_container, vec!["pg_dumpall", "-U", "coder"]).await {
-            Ok(sql) if sql.len() > 100 => { std::fs::write(stage.join("dumps/coder.sql"), sql)?; }
-            Ok(_) => { self.store.event("backup", "restic", "дамп Postgres Coder пустой — пропущен")?; }
-            Err(e) => { self.store.event("backup", "restic", &format!("дамп Postgres Coder не снят: {e:#}"))?; }
+        // the configured container first, then the name the installer's compose project gives (`cloudos-coder`): the
+        // default is the stand's legacy project, and on a fresh install the dump used to be skipped silently
+        let mut dumped = false; let mut last_err = String::new();
+        for c in [self.cfg.coder_pg_container.as_str(), "cloudos-coder-postgres-1"] {
+            if c.is_empty() { continue }
+            match self.docker.exec(c, vec!["pg_dumpall", "-U", "coder"]).await {
+                Ok(sql) if sql.len() > 100 => { std::fs::write(stage.join("dumps/coder.sql"), sql)?; dumped = true; break }
+                Ok(_) => { last_err = format!("{c}: дамп пустой"); }
+                Err(e) => { last_err = format!("{c}: {e:#}"); }
+            }
         }
+        if !dumped { self.store.event("backup", "restic", &format!("дамп Postgres Coder не снят: {last_err}"))?; }
         let result = async {
             let mut out = json!({ "at": store::now(), "kind": kind, "snapshot": snap, "ok": true });
             for repo in std::iter::once(RESTIC_REPO.to_string()).chain(if cfg.remote.trim().is_empty() { None } else { Some(cfg.remote.trim().to_string()) }) {

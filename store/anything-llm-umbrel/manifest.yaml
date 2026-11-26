@@ -64,12 +64,12 @@ upstream:
   categories:
   - ai
   release_notes: |-
-    This release improves agent activity, provider support, and chat reliability.
+    This release improves browser extension chat, agent tools, and document handling.
 
-    - Added a cleaner collapsible chain-of-thought and agent activity view - Warns before leaving a chat while a response is still generating - Added AWS Bedrock cross-region inference profiles and LocalAI image generation support - Improved prompt draft persistence, onboarding, LLM selection, and streaming UI behavior - Fixed Gemini and Anthropic/Bedrock streaming crashes, workspace creation, agent websocket timing, memory cleanup, and PDF OCR handling
+    - Chat from the updated browser extension sidebar and add selected text or images as context - Create PowerPoint presentations with new themes, layouts, and live slide previews - Edit Gmail and Outlook email drafts directly in approval cards before sending - Manage MCP servers through the developer API and configure per-server tool timeouts - Improve document selection, scanned PDF imports, chat history, and provider compatibility - Strengthen access checks for embedded chats, browser extension keys, and agent sessions
 
-    Full release notes can be found at https://github.com/Mintplex-Labs/anything-llm/releases/tag/v1.16.1
+    Full release notes can be found at https://github.com/Mintplex-Labs/anything-llm/releases/tag/v1.20.0
   source: https://github.com/Mintplex-Labs/anything-llm
-  version: 1.16.1
+  version: 1.20.0
   website: https://anythingllm.com
 website: https://anythingllm.com

@@ -13,7 +13,9 @@ export const MAX_BYTES = 1_000_000;
 export const MAX_SESSIONS = 40;
 const DB = 'agents-chat'; const STORE = 'sessions';
 
-export interface CachedChat { key: string; project: string; id: string; schema: number; import_v: number | null; first_seq: number; last_seq: number; events: SessionEvent[]; saved_at: number }
+/** `import_v` is the version of the journal the events were taken from (Chat.svelte `jver`): the import parser's version, or
+ *  that with the number of the journal's rewrite after a slash */
+export interface CachedChat { key: string; project: string; id: string; schema: number; import_v: number | string | null; first_seq: number; last_seq: number; events: SessionEvent[]; saved_at: number }
 
 let dbp: Promise<IDBDatabase | null> | null = null;
 function open(): Promise<IDBDatabase | null> {
@@ -60,7 +62,7 @@ export function tail(events: SessionEvent[]): SessionEvent[] {
   return out;
 }
 
-export async function putChat(project: string, id: string, importV: number | null, events: SessionEvent[]): Promise<void> {
+export async function putChat(project: string, id: string, importV: number | string | null, events: SessionEvent[]): Promise<void> {
   if (!events.length) return;
   const ev = tail(events);
   const rec: CachedChat = { key: cacheKey(project, id), project, id, schema: SCHEMA, import_v: importV ?? null, first_seq: ev[0].seq, last_seq: ev[ev.length - 1].seq, events: ev, saved_at: Date.now() };

@@ -32,8 +32,6 @@ const CHECK_KEY: &str = "update.check";
 const APPLIED_KEY: &str = "update.applied";
 const SUMMARY_KEY: &str = "update.summary";
 const CATALOG_KEY: &str = "catalog.last_import";
-const FLOATING: &[&str] = &["latest", "main", "master", "stable", "nightly", "edge", "dev", "develop", "rolling", "current"];
-
 #[derive(Debug, Clone, Default, Serialize, Deserialize, ToSchema)]
 pub struct ReleaseInfo {
     pub version: String,
@@ -196,18 +194,26 @@ pub fn compose_differs(deployed: &str, rendered: &str) -> bool {
     }
 }
 
-/// Images with a floating tag in compose (services.*.image without a tag or with latest/main/…); `${VAR}`
-/// is skipped.
+/// A tag names one build when it carries a full version (`1.2.3`, `v2026.8.31`, `0.9.0-rc.1-cpu`), a date (`2024-10-22`)
+/// or a long build number. Everything else moves with the releases of the image: `latest`, `main-stable`, `lts`, and
+/// just as much `2`, `v8`, `16-alpine`, `1.25` — a major or minor line that receives every patch.
+pub fn exact_tag(tag: &str) -> bool {
+    // lengths of the numeric parts in each run of digits joined by `sep`: "v2026.8.31-x" with '.' → [[4, 1, 2]]
+    let runs = |sep: char| tag.split(|c: char| !(c.is_ascii_digit() || c == sep)).map(|r| r.split(sep).filter(|p| !p.is_empty()).map(str::len).collect::<Vec<_>>()).collect::<Vec<_>>();
+    runs('.').iter().any(|r| r.len() >= 3 || r.iter().any(|n| *n >= 8)) || runs('-').iter().any(|r| r.len() >= 3 && r[0] == 4)
+}
+
+/// Images with a floating tag in compose (services.*.image without a tag or with a tag that is not one exact build, see
+/// `exact_tag`). An image pinned by digest is not floating whatever its tag says; `${VAR}` is skipped.
 pub fn floating_tags(compose: &str) -> Vec<String> {
     let Ok(v) = serde_yaml_ng::from_str::<serde_json::Value>(compose) else { return vec![] };
     let mut out = vec![];
     if let Some(services) = v.get("services").and_then(|s| s.as_object()) {
         for svc in services.values() {
             let Some(img) = svc.get("image").and_then(|i| i.as_str()) else { continue };
-            if img.contains("${") { continue; }
-            let no_digest = img.split('@').next().unwrap_or(img);
-            let tag = match no_digest.rsplit_once(':') { Some((_, t)) if !t.contains('/') => Some(t), _ => None };
-            if tag.map(|t| FLOATING.contains(&t.to_lowercase().as_str())).unwrap_or(true) && !out.contains(&img.to_string()) {
+            if img.contains("${") || img.contains('@') { continue; }
+            let tag = match img.rsplit_once(':') { Some((_, t)) if !t.contains('/') => Some(t), _ => None };
+            if !tag.map(exact_tag).unwrap_or(false) && !out.contains(&img.to_string()) {
                 out.push(img.to_string());
             }
         }
@@ -243,6 +249,34 @@ fn sha256_hex(bytes: &[u8]) -> String {
 
 /// Read the package: manifest.json, the binary sha256 (checked against the manifest), the list of Store
 /// apps inside.
+/// How many packages stay in updates/ (the newest ones)
+pub const KEEP_PACKAGES: usize = 5;
+
+type Inspected = (PackageManifest, Vec<String>, u64, String);
+/// Inspected packages by path, valid while the size and the modification time are the same
+static PKG_CACHE: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<PathBuf, (u64, std::time::SystemTime, Inspected)>>> = std::sync::LazyLock::new(Default::default);
+
+/// Delete all `*.tar.gz` in `dir` except the `keep` newest (by modification time); other files are not touched
+pub fn prune_dir(dir: &Path, keep: usize) -> usize {
+    let Ok(rd) = std::fs::read_dir(dir) else { return 0 };
+    let mut files: Vec<(std::time::SystemTime, PathBuf)> = rd.flatten().filter(|e| e.file_name().to_string_lossy().ends_with(".tar.gz"))
+        .filter_map(|e| Some((e.metadata().ok()?.modified().ok()?, e.path()))).collect();
+    files.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| b.1.cmp(&a.1)));
+    let mut n = 0;
+    for (_, p) in files.into_iter().skip(keep) { if std::fs::remove_file(&p).is_ok() { PKG_CACHE.lock().unwrap().remove(&p); n += 1; } }
+    n
+}
+
+/// `inspect_package` remembered per file: a listing reads every package once, not on every request
+pub fn inspect_cached(path: &Path) -> Result<Inspected> {
+    let meta = std::fs::metadata(path).with_context(|| format!("чтение {}", path.display()))?;
+    let (len, mtime) = (meta.len(), meta.modified().unwrap_or(std::time::UNIX_EPOCH));
+    if let Some((l, t, v)) = PKG_CACHE.lock().unwrap().get(path) { if *l == len && *t == mtime { return Ok(v.clone()) } }
+    let v = inspect_package(path)?;
+    PKG_CACHE.lock().unwrap().insert(path.to_path_buf(), (len, mtime, v.clone()));
+    Ok(v)
+}
+
 pub fn inspect_package(path: &Path) -> Result<(PackageManifest, Vec<String>, u64, String)> {
     use sha2::{Digest, Sha256};
     let bytes = std::fs::read(path).with_context(|| format!("чтение {}", path.display()))?;
@@ -343,7 +377,7 @@ fn detached_shell(script: &str) -> Result<()> {
     Ok(())
 }
 
-async fn run_docker(args: &[String], step: &[&str], cwd: Option<&str>, env: &[(String, String)], timeout: Duration) -> Result<String> {
+pub(crate) async fn run_docker(args: &[String], step: &[&str], cwd: Option<&str>, env: &[(String, String)], timeout: Duration) -> Result<String> {
     let mut cmd = tokio::process::Command::new("docker");
     cmd.args(args).args(step).stdin(std::process::Stdio::null()).kill_on_drop(true);
     if let Some(c) = cwd { cmd.current_dir(c); }
@@ -371,12 +405,15 @@ impl Service {
         if url.is_empty() {
             self.store.put_kv(CHECK_KEY, &json!(null))?;
             self.store.event("update", "channel", "канал обновлений отключён")?;
-            return self.system_update_info();
+            return self.system_update_info_bg().await;
         }
         self.store.event("update", "channel", &format!("канал обновлений: {url}"))?;
         self.check_system_update().await
     }
 
+    /// The packages in updates/, newest first. Inspecting a package means reading, hashing and unpacking the whole archive, so
+    /// the result is remembered per file (`inspect_cached`); this is still blocking work — async callers go through
+    /// `system_update_info_bg`.
     fn list_packages(&self) -> Result<Vec<PackageInfo>> {
         let dir = self.updates_dir();
         let mut out = vec![];
@@ -386,7 +423,7 @@ impl Service {
         for e in entries {
             let file = e.file_name().to_string_lossy().to_string();
             let added_at = e.metadata().and_then(|m| m.modified()).ok().and_then(|t| time::OffsetDateTime::from(t).format(&time::format_description::well_known::Rfc3339).ok()).unwrap_or_default();
-            match inspect_package(&e.path()) {
+            match inspect_cached(&e.path()) {
                 Ok((m, apps, size, sha)) => out.push(PackageInfo {
                     relation: match version_cmp(&m.version, VERSION) { Ordering::Greater => "newer", Ordering::Equal => "same", Ordering::Less => "older" }.into(),
                     arch_ok: m.arch.as_deref().map(|a| a.starts_with(ARCH)).unwrap_or(true),
@@ -396,6 +433,22 @@ impl Service {
             }
         }
         Ok(out)
+    }
+
+    /// `system_update_info` off the async workers: it lists the packages, and a worker blocked right after it woke from the
+    /// I/O driver stops the whole core — no other worker polls the sockets until it returns. With 230 packages left from
+    /// earlier uploads one `GET /api/updates` took 40 s, and for those 40 s the core answered nobody.
+    pub async fn system_update_info_bg(&self) -> Result<SystemUpdateInfo> {
+        let me = self.clone();
+        tokio::task::spawn_blocking(move || me.system_update_info()).await.context("system_update_info")?
+    }
+
+    /// Keep the newest `KEEP_PACKAGES` packages in updates/, delete the rest: every upload used to stay forever (5.6 GB on
+    /// the stand). Returns how many files were removed.
+    pub fn prune_packages(&self) -> usize {
+        let n = prune_dir(&self.updates_dir(), KEEP_PACKAGES);
+        if n > 0 { let _ = self.store.event("update", "system", &format!("старые пакеты обновлений удалены: {n} (хранятся последние {KEEP_PACKAGES})")); }
+        n
     }
 
     pub fn system_update_info(&self) -> Result<SystemUpdateInfo> {
@@ -435,7 +488,7 @@ impl Service {
                 self.store.event("update", "system", &format!("доступно обновление {} (сейчас {VERSION})", l.version))?;
             }
         }
-        self.system_update_info()
+        self.system_update_info_bg().await
     }
 
     /// Download the package from the channel into
@@ -457,7 +510,8 @@ impl Service {
         std::fs::write(&tmp, &bytes)?;
         std::fs::rename(&tmp, dir.join(&file))?;
         self.store.event("update", "system", &format!("скачан пакет {file} ({} МБ)", bytes.len() / 1_048_576))?;
-        self.package_info(&file)
+        let me = self.clone();
+        tokio::task::spawn_blocking(move || { me.prune_packages(); me.package_info(&file) }).await.context("package_info")?
     }
 
     fn package_info(&self, file: &str) -> Result<PackageInfo> {
@@ -477,6 +531,7 @@ impl Service {
         match inspect_package(&path) {
             Ok(_) => {
                 self.store.event("update", "system", &format!("загружен пакет {file} ({} МБ)", bytes.len() / 1_048_576))?;
+                self.prune_packages();
                 self.package_info(&file)
             }
             Err(e) => { let _ = std::fs::remove_file(&path); Err(e) }
@@ -486,6 +541,7 @@ impl Service {
     pub fn delete_package(&self, file: &str) -> Result<()> {
         let p = self.updates_dir().join(safe_file_name(file)?);
         if p.exists() { std::fs::remove_file(&p)?; }
+        PKG_CACHE.lock().unwrap().remove(&p);
         Ok(())
     }
 
@@ -713,14 +769,19 @@ impl Service {
         let mut log = run_docker(&args, &["pull"], wd.as_deref(), &env, Duration::from_secs(900)).await?;
         self.store.event("update", project, "docker compose up -d")?;
         log.push_str(&run_docker(&args, &["up", "-d"], wd.as_deref(), &env, Duration::from_secs(600)).await?);
+        let mut gates = vec![];
         if c.title.starts_with("Edge") {
             // a new edge container starts with an empty Caddyfile and without app
             // networks
             tokio::time::sleep(Duration::from_secs(2)).await;
             self.reconcile_all().await.context("reconcile после обновления edge")?;
+            // the project gates run the same image, but the core creates them outside compose: `pull` moved the tag and
+            // left them on the old image
+            gates = self.refresh_gates().await.context("пересоздание gate на новом образе")?;
         }
         let after = self.components().await?.into_iter().find(|x| x.project == project).map(|x| x.containers).unwrap_or_default();
-        let changed: Vec<String> = after.iter().filter(|x| before.get(&x.name).map(|id| id != &x.image_id).unwrap_or(true)).map(|x| x.name.clone()).collect();
+        let mut changed: Vec<String> = after.iter().filter(|x| before.get(&x.name).map(|id| id != &x.image_id).unwrap_or(true)).map(|x| x.name.clone()).collect();
+        changed.extend(gates);
         self.store.event("update", project, &if changed.is_empty() { "компонент уже актуален".to_string() } else { format!("обновлены контейнеры: {}", changed.join(", ")) })?;
         Ok(ComponentUpdateResult { project: project.to_string(), changed, log: tail(log.trim(), 4000) })
     }
@@ -729,7 +790,7 @@ impl Service {
     // summary
 
     pub async fn updates_view(&self) -> Result<UpdatesView> {
-        let system = self.system_update_info()?;
+        let system = self.system_update_info_bg().await?;
         let apps = self.app_updates().await?;
         let components = self.components().await.unwrap_or_default();
         let n = apps.iter().filter(|a| a.has_update).count();

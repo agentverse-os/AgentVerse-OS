@@ -39,6 +39,6 @@ upstream:
   categories:
   - media
   source: https://github.com/autobrr/autobrr
-  tipi_version: 82
-  version: v1.84.0
+  tipi_version: 88
+  version: v1.90.0
 website: https://github.com/autobrr/autobrr

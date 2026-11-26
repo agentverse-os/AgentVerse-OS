@@ -8,7 +8,7 @@ services:
     environment:
     - PUID=1000
     - PGID=1000
-    image: ghcr.io/hotio/qbittorrent:release-5.2.3@sha256:251f7c1561294a9efb5aaafff50adf82952a2975f35dbb2bb519790d5068bcfb
+    image: ghcr.io/hotio/qbittorrent:release-5.3.0@sha256:84a374fce2b6a35687b77cc2e6ffe349d12c183b96a847c6faf7287482527d26
     networks:
       appnet:
         aliases:

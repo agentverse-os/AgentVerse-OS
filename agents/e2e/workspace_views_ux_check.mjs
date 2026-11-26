@@ -91,6 +91,7 @@ async function fixture({ tab = 'files', width = 1600, height = 900, view = 'thre
     } else if (/^\/projects\/demo\/sessions\/[^/]+$/.test(path)) json = { info: sessions.find(s => s.id === path.split('/').at(-1)), caps: { bypass_allowed: true }, pending: [] };
     else if (path.endsWith('/events')) json = [];
     else if (path.endsWith('/control')) json = { maxTokens: 1000000, totalTokens: 1000, percentage: .1 };
+    else if (path === '/notify/channels') json = { channels: [], rate_per_min: 20 };
     else { status = 501; json = { error: `Missing fixture ${method} ${path}` }; state.unexpected.push(`${method} ${path}`); }
     await route.fulfill({ status, json });
   });

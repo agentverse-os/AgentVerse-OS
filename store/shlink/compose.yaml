@@ -15,7 +15,7 @@ services:
       DB_USER: shlink
       DEFAULT_DOMAIN: ${APP_DOMAIN}
       IS_HTTPS_ENABLED: 'true'
-    image: ghcr.io/shlinkio/shlink:5.1.5
+    image: ghcr.io/shlinkio/shlink:5.1.8
     networks:
       appnet:
         aliases:

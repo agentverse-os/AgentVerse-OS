@@ -16,7 +16,7 @@ services:
       - -f
       - http://127.0.0.1:7700/health
       timeout: 10s
-    image: getmeili/meilisearch:v1.15
+    image: getmeili/meilisearch:v1.38
     networks:
       appnet:
         aliases:
@@ -63,7 +63,7 @@ services:
     - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
     - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-60000}
     - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
-    image: logiclabshq/open-archiver:latest
+    image: logiclabshq/open-archiver:v0.6.2
     networks:
       appnet:
         aliases:

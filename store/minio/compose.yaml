@@ -11,7 +11,7 @@ services:
       MINIO_DOMAIN: ${APP_DOMAIN}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-    image: ghcr.io/golithus/minio:latest
+    image: pgsty/silo:latest
     labels:
       traefik.http.middlewares.{{RUNTIPI_APP_ID}}-api-web-redirect.redirectscheme.scheme: https
       traefik.http.routers.{{RUNTIPI_APP_ID}}-api-insecure.entrypoints: web

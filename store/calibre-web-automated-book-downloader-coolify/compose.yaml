@@ -19,7 +19,7 @@ services:
       - CMD-SHELL
       - curl -fs http://localhost:8083 || exit 1
       timeout: 10s
-    image: crocodilestick/calibre-web-automated:latest
+    image: crocodilestick/calibre-web-automated:v4.0.8
     networks:
       appnet:
         aliases:
@@ -42,7 +42,7 @@ services:
     - UID=${UID:-1000}
     - GID=${GID:-100}
     - CWA_DB_PATH=${CWA_DB_PATH:-/cwa-config/app.db}
-    image: ghcr.io/calibrain/calibre-web-automated-book-downloader:latest
+    image: ghcr.io/calibrain/calibre-web-automated-book-downloader:1.7.0
     networks:
       appnet:
         aliases:

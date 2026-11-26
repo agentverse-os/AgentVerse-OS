@@ -22,13 +22,14 @@ services:
     healthcheck:
       interval: 2s
       retries: 15
+      start_period: 120s
       test:
       - CMD
       - curl
       - -f
       - http://127.0.0.1:80
       timeout: 10s
-    image: dolibarr/dolibarr:latest
+    image: dolibarr/dolibarr:24.0.2
     networks:
       appnet:
         aliases:
@@ -52,7 +53,7 @@ services:
       - --connect
       - --innodb_initialized
       timeout: 20s
-    image: mariadb:latest
+    image: mariadb:13.0.2
     networks:
       appnet:
         aliases:

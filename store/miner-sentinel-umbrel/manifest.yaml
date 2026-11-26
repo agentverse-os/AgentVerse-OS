@@ -4,20 +4,24 @@ auth: own
 compose: ./compose.yaml
 data:
 - tank/apps/miner-sentinel-umbrel
-description: Unified monitoring dashboard for Bitaxe and Avalon Bitcoin miners
+description: Multi-make Bitcoin mining monitor for home ASIC fleets
 endpoint:
   port: 80
   service: frontend
 env:
+  APP_MINER_SENTINEL_LOCAL_IPS: ${local_ips}
+  APP_MINER_SENTINEL_LOCAL_URLS: ${ips_with_port}
+  APP_MINER_SENTINEL_PORT: '3082'
   APP_SEED:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
+  DEVICE_HOSTNAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/miner-sentinel/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,13 +50,8 @@ upstream:
   author: Davide Bert
   categories:
   - bitcoin
-  release_notes: |-
-    Fixes a port conflict that could prevent MinerSentinel from running alongside OpenResty Manager.
-
-    MinerSentinel now opens on port 3082. No action is needed for normal use.
-
-    Note: If you manually created bookmarks or reverse proxy rules for MinerSentinel, update them to use the new port.
+  release_notes: This update fixes signing in and saving changes when you open MinerSentinel with https:// in the address bar.
   source: https://github.com/dcbert/miner-sentinel
-  version: 1.0.3-1
+  version: 1.2.0-patch.1
   website: https://github.com/dcbert/miner-sentinel
 website: https://github.com/dcbert/miner-sentinel

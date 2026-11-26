@@ -47,6 +47,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/siyuan-note/siyuan
-  tipi_version: 79
-  version: v3.8.2
+  tipi_version: 94
+  version: v3.8.10
 website: https://github.com/siyuan-note/siyuan

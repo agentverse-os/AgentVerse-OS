@@ -21,7 +21,7 @@ services:
       - -f
       - http://127.0.0.1:80
       timeout: 10s
-    image: lscr.io/linuxserver/phpmyadmin:latest
+    image: lscr.io/linuxserver/phpmyadmin:5.2.3
     networks:
       appnet:
         aliases:

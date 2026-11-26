@@ -9,12 +9,17 @@ endpoint:
   port: 3900
   service: garage
 env:
+  GARAGE_DEFAULT_BUCKET: default
   RUST_LOG: garage=info
   SERVICE_HEX_64_RPCSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_64_GARAGE:
     generate: hex64
   SERVICE_PASSWORD_GARAGE:
     generate: password
   SERVICE_PASSWORD_GARAGEMETRICS:
+    generate: password
+  SERVICE_USER_GARAGE:
     generate: password
 gallery: []
 health: null
@@ -38,6 +43,12 @@ route:
   open: iframe
 schema: 1
 settings:
+- env: GARAGE_DEFAULT_BUCKET
+  hint: 'по умолчанию: default'
+  label: garage default bucket
+  options: null
+  required: false
+  type: text
 - env: RUST_LOG
   hint: 'по умолчанию: garage=info'
   label: rust log

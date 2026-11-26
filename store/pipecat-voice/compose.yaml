@@ -3,13 +3,17 @@
 # its port only on 127.0.0.1.
 services:
   pipecat:
+    # The tag carries a build number after the Pipecat version: pip resolves the transitive packages (aiohttp, Pillow,
+    # certifi, …) at build time, so their fixes arrive only with a rebuild — raise the number to get one. `pull` refreshes
+    # the base image on that rebuild as well.
     build:
       context: .
+      pull: true
       dockerfile_inline: |
         FROM python:3.12-slim
         RUN pip install --no-cache-dir "pipecat-ai[openai,silero,webrtc,runner]==1.8.1" "pipecat-ai-prebuilt==1.0.6"
         WORKDIR /app
-    image: cloudos/pipecat-voice:1.8.1
+    image: cloudos/pipecat-voice:1.8.1-2
     network_mode: host
     restart: unless-stopped
     command: ["/bin/sh", "-c", "if [ -f /edge-ca/caddy/pki/authorities/local/root.crt ]; then cat /edge-ca/caddy/pki/authorities/local/root.crt >> /etc/ssl/certs/ca-certificates.crt; fi; exec python /app/bot.py -t webrtc --host 0.0.0.0 --port 7860"]
@@ -32,7 +36,7 @@ services:
     volumes:
       - edge_ca:/edge-ca:ro
   speech:
-    image: ghcr.io/speaches-ai/speaches:0.9.0-rc.1-cpu
+    image: ghcr.io/speaches-ai/speaches:0.9.0-rc.3-cpu
     user: "0:0"
     restart: unless-stopped
     ports:
@@ -45,7 +49,7 @@ services:
       - ${APP_DATA_DIR}/hf-cache:/home/ubuntu/.cache/huggingface/hub
     networks: [appnet]
   web:
-    image: alpine/socat:1.8.0.0
+    image: alpine/socat:1.8.1.3
     restart: unless-stopped
     command: TCP-LISTEN:7860,fork,reuseaddr TCP:host.docker.internal:7860
     extra_hosts:

@@ -16,7 +16,7 @@ services:
       - -f
       - http://127.0.0.1:8080
       timeout: 30s
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:v0.13.3
     networks:
       appnet:
         aliases:

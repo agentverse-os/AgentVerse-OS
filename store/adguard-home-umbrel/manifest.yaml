@@ -10,10 +10,10 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/adguard-home/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,14 +43,12 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    This release updates Go to address upstream Go security fixes and improves DNS-over-QUIC resistance to resource exhaustion attacks.
+    ⚠️ MAJOR UPDATE — BETA RELEASE: This update moves AdGuard Home from the stable 0.107 series to the 1.0 beta, with a redesigned interface. Bugs and regressions are possible. Devices or routers relying on AdGuard Home for DNS may lose internet access if DNS stops working. Back up your app data before updating. If you depend on reliable DNS, consider waiting for a stable 1.0 release.
 
-    Bootstrap server configuration now supports comments, install API configuration accepts a language property, and static DHCP lease hostnames can be removed through the HTTP API.
+    This beta introduces a refreshed web interface and includes security fixes for Go and improved handling of TCP DNS requests.
 
-    It also fixes DNS64 handling of unresolved CNAME/DNAME chains and blocked requests without EDNS(0) OPT records. The `strict_sni_check` option is now deprecated.
-
-    Full release notes can be found at https://github.com/AdguardTeam/AdGuardHome/releases/tag/v0.107.79
+    Full release notes can be found at https://github.com/AdguardTeam/AdGuardHome/releases/tag/v1.0.0-b.1
   source: https://github.com/AdguardTeam/AdGuardHome
-  version: 0.107.79
+  version: 1.0.0-b.1
   website: https://adguard.com/fr/adguard-home/overview.html
 website: https://adguard.com/fr/adguard-home/overview.html

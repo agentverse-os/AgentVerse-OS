@@ -8,8 +8,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     environment:
       APP_URL: http://${DEVICE_DOMAIN_NAME}:3395
       DB_HOST: mailflow_postgres_1
@@ -24,8 +22,8 @@ services:
       IMAP_MAX_PERSISTENT_PER_HOST: ''
       NODE_ENV: production
       PORT: 3000
-      REDIS_URL: redis://mailflow_redis_1:6379
       SESSION_SECRET: ${APP_SEED}
+      TRUST_PROXY_HOPS: 2
       VAPID_PRIVATE_KEY: ''
       VAPID_PUBLIC_KEY: ''
       VAPID_SUBJECT: ''
@@ -37,7 +35,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://localhost:3000/api/health || exit 1
       timeout: 5s
-    image: ghcr.io/maathimself/mailflow-backend:3.3.0@sha256:6aadb04ce8efcbaf404704eec84c280095f8fcf880da0bb6d32ff606102ad157
+    image: ghcr.io/maathimself/mailflow-backend:4.4.0@sha256:db540d4bc86da0de6e3c8fe86b0b0b79b42caeb245beb8231d7a4b4428306e5d
     networks:
       appnet:
         aliases:
@@ -48,15 +46,18 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    environment:
+      BACKEND_HOST: mailflow_backend_1
+      TLS_MODE: off
     healthcheck:
       interval: 15s
       retries: 3
       start_period: 20s
       test:
       - CMD-SHELL
-      - wget -qO/dev/null http://127.0.0.1:80/ || exit 1
+      - wget -qO/dev/null http://127.0.0.1:2080/healthz || exit 1
       timeout: 5s
-    image: ghcr.io/maathimself/mailflow-frontend:3.3.0@sha256:141ad791641380e3d2a21b23f54aef23a4d48d0185959464596b9cfbab4c3e8e
+    image: ghcr.io/maathimself/mailflow-frontend:4.4.0@sha256:74be6c108479985214fe54ac30c14fabe64c7a80a54100f80ad2b89b45fa6f43
     networks:
       appnet:
         aliases:
@@ -85,23 +86,3 @@ services:
     user: 1000:1000
     volumes:
     - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
-  redis:
-    command: redis-server --save 60 1 --loglevel warning
-    healthcheck:
-      interval: 10s
-      retries: 5
-      start_period: 10s
-      test:
-      - CMD
-      - redis-cli
-      - ping
-      timeout: 3s
-    image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
-    networks:
-      appnet:
-        aliases:
-        - mailflow_redis_1
-    restart: on-failure
-    user: 1000:1000
-    volumes:
-    - ${APP_DATA_DIR}/data/redis:/data

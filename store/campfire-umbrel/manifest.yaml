@@ -12,9 +12,9 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/campfire/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/campfire/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/campfire/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/campfire/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/campfire/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/campfire/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,8 +43,13 @@ upstream:
   author: basecamp
   categories:
   - social
-  release_notes: This update adds ONCE backup and restore hooks so Campfire can take consistent backups with less downtime.
+  release_notes: |-
+    This update fixes file uploads in chat.
+
+    If upgrading from a version older than 1.5.3, previous sign-in links and QR codes will no longer work; generate new ones if needed. Custom scripts and scripts injected by external proxies are now blocked.
+
+    Full release notes can be found at https://github.com/basecamp/once-campfire/releases/tag/v1.5.10
   source: https://github.com/basecamp/once-campfire
-  version: 1.4.9
+  version: 1.5.10
   website: https://once.com/campfire
 website: https://once.com/campfire

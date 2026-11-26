@@ -7,7 +7,7 @@ services:
   server:
     environment:
     - TRILIUM_DATA_DIR=/data
-    image: triliumnext/trilium:v0.105.0@sha256:cc6a15edd7ac3df9bb98ad39dd40af8ffda6c1c0bfafe37c26137ddcbecdb7e5
+    image: triliumnext/trilium:v0.107.0@sha256:739ba0f0488f506549f7c21dc9e792decd99382cc759f01d5ec1abba32e87da8
     networks:
       appnet:
         aliases:

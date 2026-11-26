@@ -56,6 +56,6 @@ upstream:
   - data
   - utilities
   source: https://github.com/docmost/docmost
-  tipi_version: 64
-  version: 0.95.0
+  tipi_version: 68
+  version: 0.97.0
 website: https://github.com/docmost/docmost

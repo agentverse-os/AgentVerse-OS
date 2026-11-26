@@ -6,24 +6,40 @@ data:
 - tank/apps/huly-coolify
 description: Open Source All-in-One Project Management Platform
 endpoint:
-  port: 8080
+  port: 80
   service: account
 env:
+  CR_DATABASE: huly
+  CR_USERNAME: huly
+  DEFAULT_LANGUAGE: en
+  LAST_NAME_FIRST: 'true'
+  SERVICE_FQDN_HULY: ${APP_DOMAIN}
+  SERVICE_PASSWORD_COCKROACH:
+    generate: password
+  SERVICE_PASSWORD_MINIO:
+    generate: password
+  SERVICE_PASSWORD_REDPANDA:
+    generate: password
   SERVICE_PASSWORD_SECRET:
     generate: password
-  SERVICE_URL_HULY_3000: https://${APP_DOMAIN}
-  SERVICE_URL_HULY_8080: https://${APP_DOMAIN}
+  SERVICE_URL_HULY: https://${APP_DOMAIN}
+  SERVICE_URL_HULY_80: https://${APP_DOMAIN}
+  SERVICE_USER_MINIO:
+    generate: password
+  SERVICE_USER_REDPANDA:
+    generate: password
+  TITLE: Huly Self Hosted
 gallery: []
 health: null
 hooks: {}
 host_docker_socket: false
 icon: null
 login:
-  mode: app
+  mode: generated
   note: null
-  password: null
+  password: SERVICE_PASSWORD_REDPANDA
   path: null
-  user: null
+  user: SERVICE_USER_REDPANDA
 name: huly-coolify
 notes: []
 origin: coolify
@@ -34,7 +50,37 @@ route:
   mode: port
   open: iframe
 schema: 1
-settings: []
+settings:
+- env: CR_DATABASE
+  hint: 'по умолчанию: huly'
+  label: cr database
+  options: null
+  required: false
+  type: text
+- env: CR_USERNAME
+  hint: 'по умолчанию: huly'
+  label: cr username
+  options: null
+  required: false
+  type: text
+- env: LAST_NAME_FIRST
+  hint: 'по умолчанию: true'
+  label: last name first
+  options: null
+  required: false
+  type: text
+- env: TITLE
+  hint: 'по умолчанию: Huly Self Hosted'
+  label: title
+  options: null
+  required: false
+  type: text
+- env: DEFAULT_LANGUAGE
+  hint: 'по умолчанию: en'
+  label: default language
+  options: null
+  required: false
+  type: text
 tags:
 - linear
 - jira
@@ -48,7 +94,7 @@ type: app
 upstream:
   categories:
   - cms
-  source: https://huly.io/
+  source: https://github.com/hcengineering/huly-selfhost
   tags:
   - linear
   - jira
@@ -58,4 +104,4 @@ upstream:
   - notion
   - motion
   template: huly.yaml
-website: https://huly.io/
+website: https://github.com/hcengineering/huly-selfhost

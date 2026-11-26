@@ -33,7 +33,7 @@ services:
     - SPARKY_FITNESS_FRONTEND_URL=${SERVICE_URL_SPARKYFITNESS_80}
     - SPARKY_FITNESS_SERVER_HOST=sparkyfitness-server
     - SPARKY_FITNESS_SERVER_PORT=3010
-    image: codewithcj/sparkyfitness:v1.6.1
+    image: codewithcj/sparkyfitness:v1.12.1
     networks:
       appnet:
         aliases:
@@ -67,7 +67,7 @@ services:
     - SPARKY_FITNESS_EMAIL_USER=${SPARKY_FITNESS_EMAIL_USER}
     - SPARKY_FITNESS_EMAIL_PASS=${SPARKY_FITNESS_EMAIL_PASS}
     - SPARKY_FITNESS_EMAIL_FROM=${SPARKY_FITNESS_EMAIL_FROM:-"Sparky Fitness <noreply@sparkyfitness.com>"}
-    image: codewithcj/sparkyfitness_server:v1.6.1
+    image: codewithcj/sparkyfitness_server:v1.12.1
     networks:
       appnet:
         aliases:

@@ -31,7 +31,7 @@ services:
     - EMAIL_SERVER_PASSWORD=${EMAIL_SERVER_PASSWORD}
     - NEXT_PUBLIC_APP_NAME="Cal.com"
     - ALLOWED_HOSTNAMES=["${SERVICE_URL_CALCOM}"]
-    image: calcom.docker.scarf.sh/calcom/cal.com
+    image: calcom.docker.scarf.sh/calcom/cal.com:v6.2.0
     networks:
       appnet:
         aliases:

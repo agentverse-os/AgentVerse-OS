@@ -8,7 +8,7 @@ services:
     environment:
       SEARXNG_LIMITER: 'false'
       SEARXNG_SECRET: ${APP_SEED}
-    image: ghcr.io/searxng/searxng:2026.9.2-eca1af4be@sha256:85b4307d233f232f0c88259b178ef3e24ec5b9396b5576471931c276f4a7fbf9
+    image: ghcr.io/searxng/searxng:2026.11.18-b867c56a5@sha256:6012a064924a032969a2e7989d66971803f126a237a2fb6c62f10ae3d82093e1
     networks:
       appnet:
         aliases:

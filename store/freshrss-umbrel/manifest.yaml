@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/freshrss/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/freshrss/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/freshrss/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/freshrss/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/freshrss/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/freshrss/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,18 +42,12 @@ upstream:
   categories:
   - social
   release_notes: |-
-    This FreshRSS bug-fix release improves feed imports, browser compatibility, and search behavior.
+    This security release updates PHP to address critical vulnerabilities that could allow remote code execution. It also includes improvements to authentication extensions and translations.
 
-    Key highlights:
-      - Added support for importing `.txt` lists of feed URLs
-      - Added a CLI tool for scheduled SQLite exports with retention
-      - Added more feed metadata, including last received and publication dates
-      - Fixed cookie handling in some browsers and search for shared user queries with empty results
-      - Improved OPML error handling and compatibility with older or simpler web browsers
+    If you are upgrading from a version older than 1.30.0, access to local-network feed URLs is now blocked by default. Admins can allow selected local networks in System configuration if needed.
 
-
-    Full release notes can be found at https://github.com/FreshRSS/FreshRSS/releases/tag/1.29.1
+    Full release notes can be found at https://github.com/FreshRSS/FreshRSS/releases/tag/1.30.4
   source: https://github.com/FreshRSS/FreshRSS
-  version: 1.29.1
+  version: 1.30.4
   website: https://freshrss.org/
 website: https://freshrss.org/

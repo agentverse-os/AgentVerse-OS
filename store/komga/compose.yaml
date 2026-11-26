@@ -7,7 +7,7 @@ services:
   komga:
     environment:
       TZ: ${TZ}
-    image: ghcr.io/gotson/komga:1.26.3
+    image: ghcr.io/gotson/komga:1.30.1
     networks:
       appnet:
         aliases:

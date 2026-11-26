@@ -100,6 +100,7 @@ async function fixture({ width = 1280, height = 900, theme = 'dark', lang = 'en'
     else if (path.endsWith('/events')) json = history;
     else if (path === `/projects/demo/sessions/${session.id}`) json = { info: session, caps, pending: [] };
     else if (path.endsWith('/control')) json = { maxTokens: 1000000, totalTokens: 1000, percentage: .1 };
+    else if (path === '/notify/channels') json = { channels: [], rate_per_min: 20 };
     else { state.unexpected.push(`${method} ${path}`); return route.fulfill({ status: 501, json: { error: `Missing fixture: ${method} ${path}` } }); }
     await route.fulfill({ json });
   });

@@ -12,9 +12,9 @@ env:
   DEVICE_HOSTNAME: ${EDGE_HOST}
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/jellyfin/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/jellyfin/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/jellyfin/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/jellyfin/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/jellyfin/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/jellyfin/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,14 +45,14 @@ upstream:
   categories:
   - media
   release_notes: |-
-    This bugfix release improves Jellyfin server reliability.
+    Jellyfin 12 is a major upgrade. Back up your Jellyfin data before updating because the database changes cannot be rolled back without restoring a backup. Direct upgrades from Jellyfin 10.11.x are supported, but repository plugins should be removed before migrating and re-added only after compatible versions are available.
 
-    Key improvements in this release:
-      - Improved user management reliability by adding locking around UserManager operations
+    This maintenance release updates Jellyfin's underlying .NET runtime to 10.0.14.
 
+    After upgrading, run a full library scan to restore alternative versions.
 
-    Full release notes can be found at https://github.com/jellyfin/jellyfin/releases/tag/v10.11.11
+    Full release notes can be found at https://github.com/jellyfin/jellyfin/releases/tag/v12.4
   source: https://github.com/jellyfin/jellyfin
-  version: 10.11.11
+  version: '12.4'
   website: https://jellyfin.org/
 website: https://jellyfin.org/

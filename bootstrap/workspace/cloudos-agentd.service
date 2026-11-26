@@ -1,7 +1,7 @@
-# Юнит адаптера AgentVerse OS внутри workspace (ADR-006). Кладёт и включает cloudd вместе с бинарём и токеном —
-# как /etc/cloudos/env.sh; шаблон Coder его не знает. Работает от coder: терминалы и агенты — с правами владельца.
-# KillMode по умолчанию (control-group): рестарт юнита пока убивает и его PTY — отдельный scope для них (урок Orca)
-# появится вместе с сессиями агентов.
+# The unit of the AgentVerse OS adapter inside a workspace (ADR-006). cloudd installs and enables it together with the binary and
+# the token — like /etc/cloudos/env.sh; the Coder template does not know about it. Runs as coder: terminals and agents have the
+# owner's rights. KillMode is the default (control-group): for now a restart of the unit kills its PTYs too — a separate scope for
+# them (the Orca lesson) will come together with agent sessions.
 [Unit]
 Description=AgentVerse OS workspace agent: PTY-демон, сессии агентов, файлы
 After=network-online.target

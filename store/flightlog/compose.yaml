@@ -7,7 +7,7 @@ services:
   flightlog:
     environment:
       FLIGHTLOG_SERVER_CONTEXT_PATH: /
-    image: perdian/flightlog:v2.1.14
+    image: perdian/flightlog:v2.1.15
     networks:
       appnet:
         aliases:

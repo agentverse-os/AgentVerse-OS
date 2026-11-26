@@ -9,7 +9,7 @@ services:
     - ${Z2M_DEVICE}:/dev/ttyACM0
     environment:
       TZ: ${TZ}
-    image: koenkk/zigbee2mqtt:2.13.0
+    image: koenkk/zigbee2mqtt:2.14.3
     networks:
       appnet:
         aliases:

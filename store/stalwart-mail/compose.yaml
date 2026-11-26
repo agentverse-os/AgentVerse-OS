@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   stalwart-mail:
-    image: ghcr.io/stalwartlabs/stalwart:v0.16.19
+    image: ghcr.io/stalwartlabs/stalwart:v0.16.27
     networks:
       appnet:
         aliases:

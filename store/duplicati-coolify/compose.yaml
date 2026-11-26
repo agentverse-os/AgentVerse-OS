@@ -21,7 +21,7 @@ services:
       - -f
       - http://127.0.0.1:8200
       timeout: 10s
-    image: lscr.io/linuxserver/duplicati:latest
+    image: lscr.io/linuxserver/duplicati:v2.4.1.0_stable_2026-10-29-ls318
     networks:
       appnet:
         aliases:

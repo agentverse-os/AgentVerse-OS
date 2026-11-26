@@ -23,7 +23,7 @@ services:
       - /dev/null
       - http://127.0.0.1:6789
       timeout: 10s
-    image: mageai/mageai:0.9.78
+    image: mageai/mageai:0.9.80
     networks:
       appnet:
         aliases:

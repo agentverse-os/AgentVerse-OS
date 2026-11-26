@@ -20,7 +20,7 @@ services:
     - BITCOIN_PRINTTOCONSOLE=${BITCOIN_PRINTTOCONSOLE:-1}
     - BITCOIN_TXINDEX=${BITCOIN_TXINDEX:-1}
     - BITCOIN_SERVER=${BITCOIN_SERVER:-1}
-    image: ruimarinho/bitcoin-core:latest
+    image: ruimarinho/bitcoin-core:32
     networks:
       appnet:
         aliases:

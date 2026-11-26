@@ -17,7 +17,7 @@ services:
       test: timeout 5s bash -c ':> /dev/tcp/127.0.0.1/6969' || exit 1
       timeout: 5s
     hostname: ${APP_ID}
-    image: ghcr.io/hotio/whisparr:nightly-2.0.0.548
+    image: ghcr.io/hotio/whisparr:latest
     networks:
       appnet:
         aliases:

@@ -10,7 +10,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       VERSION: docker
-    image: lscr.io/linuxserver/plex:1.43.3
+    image: lscr.io/linuxserver/plex:1.43.5
     network_mode: host
     restart: unless-stopped
     volumes:

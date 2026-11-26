@@ -5,6 +5,7 @@ import { api, agents, type Workspaces, type WsProject, type SessionInfo, type Pt
 import { clearChatCache } from './chatCache';
 import { familyWindow } from './adapters';
 import { toast } from './toast.svelte';
+import { notify } from './notify.svelte';
 import type { MenuItem } from './menu.svelte';
 import { t, fmt } from './i18n';
 
@@ -152,10 +153,13 @@ class Data {
       }
       // slice 60: the service derives "Inbox" and the "Chat" status from the same snapshot and sends them on change;
       // polling — only without the hub
-      else if (m.kind === 'inbox') { this.inbox = { waiting: m.waiting ?? [], failed: m.failed ?? [], done: m.done ?? [], today: m.today ?? this.inbox?.today ?? { cost_usd: 0, turns: 0 } } as Inbox; this.inboxError = ''; this.inboxLoading = false; this.hubInbox = true; this.syncBadge(); }
+      else if (m.kind === 'inbox') { this.inbox = { waiting: m.waiting ?? [], failed: m.failed ?? [], done: m.done ?? [], memory: m.memory ?? [], long: m.long ?? [], today: m.today ?? this.inbox?.today ?? { cost_usd: 0, turns: 0 } } as Inbox; this.inboxError = ''; this.inboxLoading = false; this.hubInbox = true; this.syncBadge(); }
       else if (m.kind === 'chat') { const { kind: _k, ...st } = m; this.chat = st as ChatStatus; this.chatError = ''; this.hubChat = true; }
       else if (m.kind === 'chats') { if (ui.section === 'chat') this.loadChats(); }
       else if (m.kind === 'limits') { this.limits = (m.limits ?? []) as Limit[]; }
+      // notification channels (§9.12): a channel or a binding changed — here, on another device, or a "once" binding went
+      // away by itself
+      else if (m.kind === 'notify') { void notify.load(); }
     };
     const down = () => {
       if (this.hubSock !== sock) return;
@@ -297,6 +301,9 @@ class Data {
   runs = $state<Run[]>([]);
   skills = $state<Skill[]>([]);
   mailPaused = $state(false);
+  /** The zone the routine schedules run in (settings.timezone; null — the server's own) and its offset from UTC in minutes. */
+  routinesZone = $state<{ name: string | null; offset: number }>({ name: null, offset: 0 });
+  zoneAsked = false;
   /** Only the simple chat list (the hub's `chats` signal) */
   private chatsSeq = 0;
   async loadChats() {
@@ -317,7 +324,14 @@ class Data {
     const [a, r, x, sk, st] = await Promise.allSettled([agents.agentsList(), agents.routines(), agents.runs({ limit: 100 }), agents.skills(), agents.settings()]);
     if (seq !== this.routinesSeq) return false;
     if (a.status === 'fulfilled') this.agentsList = a.value.agents;
-    if (r.status === 'fulfilled') this.routines = r.value.routines;
+    if (r.status === 'fulfilled') {
+      this.routines = r.value.routines; this.routinesZone = { name: r.value.timezone ?? null, offset: r.value.utc_offset_min ?? 0 };
+      // The schedules run on the owner's clock (docs/agents-ux.md §7.2): the first browser to open the section names the
+      // zone, but only while that changes nothing — with a schedule already working on the server clock the owner switches
+      // by hand (the hint under the schedule field). An automated browser is not the owner and never sets the zone.
+      const scheduled = r.value.routines.some(x => x.enabled && x.trigger?.kind === 'schedule');
+      if (!r.value.timezone && !this.zoneAsked && !scheduled && !navigator.webdriver) { this.zoneAsked = true; const zone = Intl.DateTimeFormat().resolvedOptions().timeZone; if (zone) agents.saveSettings({ timezone: zone }).then(() => this.loadRoutines()).catch(() => {}); }
+    }
     if (x.status === 'fulfilled') this.runs = x.value.runs;
     if (sk.status === 'fulfilled') this.skills = sk.value.skills;
     if (st.status === 'fulfilled') this.mailPaused = !!st.value.mail_paused;

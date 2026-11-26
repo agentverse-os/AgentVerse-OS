@@ -12,7 +12,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       SECRET_KEY: ${FIRESHARE_SECRET_KEY}
-    image: shaneisrael/fireshare:1.7.7
+    image: shaneisrael/fireshare:1.9.0
     networks:
       appnet:
         aliases:

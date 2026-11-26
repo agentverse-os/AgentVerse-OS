@@ -25,7 +25,7 @@ services:
       - --connect
       - --innodb_initialized
       timeout: 20s
-    image: mariadb:latest
+    image: mariadb:13.0.2
     networks:
       appnet:
         aliases:
@@ -60,7 +60,7 @@ services:
       - CMD
       - /usr/bin/healthcheck
       timeout: 10s
-    image: owncloud/server:latest
+    image: owncloud/server:10.16.7
     networks:
       appnet:
         aliases:

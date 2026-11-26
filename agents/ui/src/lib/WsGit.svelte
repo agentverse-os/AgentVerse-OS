@@ -161,12 +161,12 @@
   {:else if st}
     <div class="gbar">
       <button class="branch" disabled={!!busy} title={t('git.branches')} onclick={(e) => { e.stopPropagation(); branchMenu(e.currentTarget as HTMLElement); }}>⎇ <b>{st.head || '—'}</b> ▾</button>
-      {#if st.upstream}<span class="muted sm">→ {st.upstream}{#if st.ahead || st.behind} · ↑{st.ahead} ↓{st.behind}{/if}</span>{/if}
+      {#if st.upstream}<span class="muted sm">→ {st.upstream}{#if st.ahead || st.behind}{' '}· ↑{st.ahead} ↓{st.behind}{/if}</span>{/if}
       <span class="sp"></span>
       {#if remotes.length}
         <button class="mini fetch" disabled={!!busy} title={t('git.fetch')} onclick={() => run('fetch', 'fetch', {}).then(r => r && toast(t('git.fetched')))}>↓ {t('git.fetch')}</button>
         <button class="mini pull" disabled={!!busy} title={t('git.pull')} onclick={() => run('pull', 'pull', {}).then(r => r && toast(t('git.pulled')))}>⇣ {t('git.pull')}</button>
-        <button class="mini push" disabled={!!busy} title={t('git.push')} onclick={push}>⇡ {t('git.push')}{#if st.ahead} ({st.ahead}){/if}</button>
+        <button class="mini push" disabled={!!busy} title={t('git.push')} onclick={push}>⇡ {t('git.push')}{#if st.ahead}{' '}({st.ahead}){/if}</button>
       {/if}
       <button class="mini" aria-label={t('agents.refresh')} title={t('agents.refresh')} onclick={load}>⟳</button>
     </div>
@@ -194,8 +194,8 @@
             {@const ses = sessionsIn(w.path)}
             <div class="wrow" class:cur={w.current} data-name={w.name}>
               <span class="wn">{w.main ? '●' : '⎇'} <b>{w.main ? (w.branch ?? w.name) : w.name}</b>{#if w.current}<span class="badge">{t('git.wtCurrent')}</span>{/if}</span>
-              <span class="muted sm wp" title={w.path}>{w.main ? w.path : rel(w)}{#if !w.main && w.branch && w.branch !== w.name} · {w.branch}{/if}{#if w.detached} · detached{/if}</span>
-              <span class="muted sm">{tn('git.wtSessions', ses.length)}{#if w.changes} · <span class="warn">{tn('git.wtChanges', w.changes)}</span>{/if}</span>
+              <span class="muted sm wp" title={w.path}>{w.main ? w.path : rel(w)}{#if !w.main && w.branch && w.branch !== w.name}{' '}· {w.branch}{/if}{#if w.detached}{' '}· detached{/if}</span>
+              <span class="muted sm">{tn('git.wtSessions', ses.length)}{#if w.changes}{' '}· <span class="warn">{tn('git.wtChanges', w.changes)}</span>{/if}</span>
               <span class="wa">
                 <button class="mini act-session" disabled={!!busy} title={t('git.wtSessionHint')} onclick={() => openSession(w)}><Icon name="claude" size="s" /> {t('git.wtSession')}</button>
                 {#if !w.main}<button class="mini act-merge" disabled={!!busy || !w.branch} onclick={(e) => { e.stopPropagation(); mergeMenu(e.currentTarget as HTMLElement, w); }}>{t('git.wtMerge')} ▾</button><button class="mini act-remove" disabled={!!busy} onclick={(e) => { e.stopPropagation(); removeMenu(e.currentTarget as HTMLElement, w); }}>{t('git.wtRemove')} ▾</button>{/if}

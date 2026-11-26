@@ -61,19 +61,26 @@ pub fn for_agent(app: &App, agent: &crate::routines::AgentDef) -> Vec<Skill> {
     agent.skills.iter().filter_map(|n| all.iter().find(|s| &s.name == n).cloned()).collect()
 }
 
+/// What became of a skill an agent proposed.
+#[derive(Debug, PartialEq)]
+pub enum Proposed { /** a new skill of this agent */ New, /** its own earlier proposal, rewritten */ Updated, /** the owner has a skill of that name: it is used as it is */ Owners, /** another agent's proposal holds the name: nothing changes */ Taken }
+
 /// A skill proposed by an agent with a "НАВЫК: name: text" line: a new one — into the catalog with source `agent:<id>`;
-/// its own previous one — updated; an owner's skill (`user`) is left alone.
-pub fn upsert_from_agent(app: &App, agent_id: &str, name: &str, text: &str) -> Result<()> {
+/// its own previous one — updated; an owner's skill (`user`) and another agent's proposal are left alone. Until the owner
+/// accepts it (`accept`), such a skill lives only in the tasks of the agent that proposed it.
+pub fn upsert_from_agent(app: &App, agent_id: &str, name: &str, text: &str) -> Result<Proposed> {
     if !valid_name(name) { bail!("неверное имя навыка: {name}"); }
     let mut all = load(app)?;
     let src = format!("agent:{agent_id}");
     let (description, body) = split_desc(text);
-    match all.iter_mut().find(|s| s.name == name) {
-        Some(s) if s.source == "user" => return Ok(()),
-        Some(s) => { s.description = description; s.body = body; s.source = src; s.updated_at = now(); }
-        None => all.push(Skill { name: name.into(), description, body, source: src, created_at: now(), updated_at: now() }),
-    }
-    save(app, &all)
+    let outcome = match all.iter_mut().find(|s| s.name == name) {
+        Some(s) if s.source == "user" => return Ok(Proposed::Owners),
+        Some(s) if s.source != src => return Ok(Proposed::Taken),
+        Some(s) => { s.description = description; s.body = body; s.updated_at = now(); Proposed::Updated }
+        None => { all.push(Skill { name: name.into(), description, body, source: src, created_at: now(), updated_at: now() }); Proposed::New }
+    };
+    save(app, &all)?;
+    Ok(outcome)
 }
 
 /// The first sentence (up to a period or 160 characters) is the
@@ -150,6 +157,18 @@ pub async fn update(State(app): State<Arc<App>>, Path(name): Path<String>, Json(
     next.source = "user".into(); next.updated_at = now();
     *s = next.clone(); save(&app, &all)?;
     Ok(Json(serde_json::to_value(next)?))
+}
+
+/// The owner accepts a skill an agent proposed: it becomes the owner's own (`user`) — from then on it is also placed in
+/// the workspace's ~/.claude/skills with the agent's runs, where the owner's conversations see it, and no agent can
+/// rewrite it.
+pub async fn accept(State(app): State<Arc<App>>, Path(name): Path<String>) -> R {
+    let mut all = load(&app)?;
+    let s = all.iter_mut().find(|s| s.name == name).ok_or_else(|| ApiError(StatusCode::NOT_FOUND, format!("навык не найден: {name}")))?;
+    s.source = "user".into(); s.updated_at = now();
+    let out = serde_json::to_value(&*s)?;
+    save(&app, &all)?;
+    Ok(Json(out))
 }
 
 pub async fn delete(State(app): State<Arc<App>>, Path(name): Path<String>) -> Result<StatusCode, ApiError> {

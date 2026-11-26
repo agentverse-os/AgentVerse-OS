@@ -55,6 +55,6 @@ upstream:
   categories:
   - automation
   source: https://github.com/n8n-io/n8n
-  tipi_version: 102
-  version: 2.37.3
+  tipi_version: 157
+  version: 2.48.4
 website: https://github.com/n8n-io/n8n

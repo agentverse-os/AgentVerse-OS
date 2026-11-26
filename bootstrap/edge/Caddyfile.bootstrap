@@ -1,5 +1,6 @@
-# Стартовая конфигурация edge: только Admin API. Всё остальное загружает cloudd (POST /load).
+# The starting configuration of edge: only the Admin API — on a socket in a directory shared with the host (ADR-010).
+# Everything else is loaded by cloudd (POST /load).
 {
-  admin 0.0.0.0:2019
+  admin unix//run/cloudos-edge/admin.sock
   persist_config off
 }

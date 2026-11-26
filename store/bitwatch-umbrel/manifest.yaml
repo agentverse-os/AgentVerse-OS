@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/bitwatch/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bitwatch/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bitwatch/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitwatch/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitwatch/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitwatch/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,10 +42,15 @@ upstream:
   categories:
   - bitcoin
   release_notes: |-
-    This release addresses privacy concerns:
+    Telegram controls, per-recipient alerts, and hardened xpub support:
 
-      - when a local mempool instance is configured, address links open to that service url
+      - route telegram alerts to different chats per collection, extended key, descriptor, or address
+      - new telegram bot commands from the main chat: /status, /address, /accept, /addaddress, /refresh, /backup
+      - choose where alert address links point (local mempool, public mempool.space, or plain text) and toggle link previews
+      - support account-level xpubs with hardened origin paths (e.g. m/84'/0'/0')
+      - new installs alert on all balance directions by default, so spends reported by Fulcrum-backed mempool instances are not missed
+      - fix collection not auto-expanding when its first address is added
   source: https://github.com/zapomatic/bitwatch
-  version: 1.7.2
+  version: 1.8.0
   website: https://github.com/zapomatic/bitwatch
 website: https://github.com/zapomatic/bitwatch

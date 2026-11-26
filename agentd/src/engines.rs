@@ -68,7 +68,25 @@ pub fn title(id: &str) -> &'static str { get(id).map(|e| e.title).unwrap_or("Age
 /// Binary directories the workspace login shell may not know about (`.profile` without `~/.local/bin`): the Antigravity
 /// and Oh My Pi installers put their binaries into `~/.local/bin`, npm into `~/.npm-global/bin`. We add them ourselves
 /// on detection and when launching engines, so the catalog and sessions do not depend on the owner's profile.
-pub const PATH_PREFIX: &str = "export PATH=\"$HOME/.local/bin:$HOME/.npm-global/bin:$PATH\"; ";
+pub const PATH_PREFIX: &str = "export PATH=\"$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.local/node/bin:$PATH\"; ";
+
+/// Node.js for the npm step without root (an owner's server, ADR-008: workspaces get Node from the image). Missing `npm` →
+/// the current LTS tarball from nodejs.org into `~/.local/node`; the global npm prefix is moved into the home
+/// (`~/.npm-global`, as in workspaces) when it points elsewhere, and both paths go into ~/.profile and ~/.bashrc.
+pub const ENSURE_NODE_SH: &str = r#"ensure_node() {
+  export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.local/node/bin:$PATH"
+  if ! command -v npm >/dev/null 2>&1; then
+    echo 'Node.js не найден — ставлю LTS в ~/.local/node (без root)'
+    case "$(uname -m)" in x86_64) na=x64;; aarch64|arm64) na=arm64;; *) echo "нет сборки Node.js под $(uname -m)"; exit 1;; esac
+    f=$(curl -fsSL https://nodejs.org/dist/latest-v22.x/SHASUMS256.txt | grep -o "node-v22[0-9.]*-linux-$na.tar.gz" | head -1)
+    [ -n "$f" ] || { echo 'не удалось узнать версию Node.js (nodejs.org недоступен?)'; exit 1; }
+    mkdir -p "$HOME/.local/node" && curl -fsSL "https://nodejs.org/dist/latest-v22.x/$f" | tar -xz --strip-components=1 -C "$HOME/.local/node"
+    echo "Node.js $(node --version) установлен в ~/.local/node"
+  fi
+  case "$(npm config get prefix 2>/dev/null)" in "$HOME"/*) ;; *) mkdir -p "$HOME/.npm-global"; npm config set prefix "$HOME/.npm-global" >/dev/null; echo 'npm: глобальные пакеты — в ~/.npm-global';; esac
+  for rc in "$HOME/.profile" "$HOME/.bashrc"; do [ -f "$rc" ] || : > "$rc"; grep -q 'npm-global' "$rc" || echo 'export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.local/node/bin:$PATH"' >> "$rc"; done
+}
+ensure_node; "#;
 
 /// What is installed in the workspace: path and version of every binary from the login shell (PATH to ~/.npm-global).
 /// Versions are queried in parallel, 25 s overall limit.
@@ -136,7 +154,7 @@ pub fn install_cmd(e: &Engine, gate: bool) -> Vec<String> {
         else { e.post_install.to_string() };
     // no npm packages (Antigravity: Google's script only) — skip the npm
     // step
-    let main = if pkgs.is_empty() { format!("echo 'Готово: {} установлен.' && {} --version", e.title, e.bin) } else { format!("echo 'Установка {}: npm install -g {pkgs}'; npm install -g {pkgs} && echo && echo 'Готово: {} установлен.' && {} --version", e.title, e.title, e.bin) };
+    let main = if pkgs.is_empty() { format!("echo 'Готово: {} установлен.' && {} --version", e.title, e.bin) } else { format!("{ENSURE_NODE_SH}echo 'Установка {}: npm install -g {pkgs}'; npm install -g {pkgs} && echo && echo 'Готово: {} установлен.' && {} --version", e.title, e.title, e.bin) };
     vec!["bash".into(), "-lc".into(), format!("set -e; {pre}{main}; echo; {stamp}{tail}")]
 }
 
@@ -148,9 +166,9 @@ mod tests {
         assert!(is_acp("gemini") && is_acp("pi") && !is_acp("claude") && !is_acp("codex") && !is_acp("nope"));
         assert_eq!(title("pi"), "pi"); assert_eq!(title("x"), "Agent");
         assert_eq!(version_of("2.1.284 (Claude Code)"), "2.1.284"); assert_eq!(version_of("codex-cli 0.158.0"), "0.158.0"); assert_eq!(version_of("0.62.0"), "0.62.0"); assert_eq!(version_of("pi v1.0.0"), "1.0.0"); assert_eq!(version_of("omp/18.12.6"), "18.12.6");
-        let c = install_cmd(get("pi").unwrap(), false); assert!(c[2].contains("npm install -g @earendil-works/pi-coding-agent@latest pi-acp@latest"));
+        let c = install_cmd(get("pi").unwrap(), false); assert!(c[2].contains("npm install -g @earendil-works/pi-coding-agent@latest pi-acp@latest") && c[2].contains("ensure_node;") && c[2].contains("nodejs.org/dist/latest-v22.x"));
         let g = install_cmd(get("antigravity").unwrap(), true); assert!(g[2].contains("через gate") && g[2].ends_with("exec bash -l") && !g[2].contains("exec agy"), "{}", g[2]);
-        let a = install_cmd(get("antigravity").unwrap(), false); assert!(a[2].contains("antigravity.google/cli/install.sh") && !a[2].contains("npm install") && a[2].contains("Готово: Antigravity установлен."), "{}", a[2]);
+        let a = install_cmd(get("antigravity").unwrap(), false); assert!(a[2].contains("antigravity.google/cli/install.sh") && !a[2].contains("npm install") && !a[2].contains("ensure_node") && a[2].contains("Готово: Antigravity установлен."), "{}", a[2]);
         assert!(a[2].contains(STAMP) && a[2].ends_with("exec agy") && !a[2].contains("exec bash -l") && a[2].find(STAMP).unwrap() < a[2].find("exec agy").unwrap(), "{}", a[2]);
         assert!(c[2].contains(STAMP) && c[2].ends_with("exec bash -l") && c[2].find(STAMP).unwrap() < c[2].find("Эту вкладку").unwrap(), "{}", c[2]);
         let dir = std::env::temp_dir().join(format!("agentd-stamp-{}", std::process::id())); let _ = std::fs::remove_dir_all(&dir);

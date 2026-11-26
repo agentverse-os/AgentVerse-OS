@@ -19,7 +19,7 @@ env:
   MAIL_PASSWORD: ''
   MAIL_PORT: '587'
   MAIL_USERNAME: ''
-  MYSQL_DATABASE: bookstackapp
+  MYSQL_DATABASE: bookstack
   QUEUE_CONNECTION: ''
   SERVICE_PASSWORD_APPKEY:
     generate: password
@@ -54,7 +54,7 @@ route:
 schema: 1
 settings:
 - env: MYSQL_DATABASE
-  hint: 'по умолчанию: bookstackapp'
+  hint: 'по умолчанию: bookstack'
   label: mysql database
   options: null
   required: false

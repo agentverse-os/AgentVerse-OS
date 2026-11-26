@@ -31,7 +31,7 @@ services:
       - echo
       - ok
       timeout: 20s
-    image: ghost:5
+    image: ghost:6
     networks:
       appnet:
         aliases:

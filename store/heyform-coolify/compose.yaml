@@ -26,7 +26,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:9157 || exit 1
       timeout: 5s
-    image: heyform/community-edition:latest
+    image: heyform/community-edition:v3.0.6
     networks:
       appnet:
         aliases:
@@ -66,7 +66,7 @@ services:
       - CMD-SHELL
       - echo 'ok' > /dev/null 2>&1
       timeout: 5s
-    image: percona/percona-server-mongodb:latest
+    image: percona/percona-server-mongodb:8.3.13
     networks:
       appnet:
         aliases:

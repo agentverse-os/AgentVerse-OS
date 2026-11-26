@@ -24,4 +24,9 @@ iptables -C DOCKER-USER -i 'net-+' -o 'net-+' -j DROP 2>/dev/null || iptables -I
 # (found on the stand: without this rule the Incus gate is unreachable from a workspace of the same network)
 iptables -C DOCKER-USER -m physdev --physdev-is-bridged -j ACCEPT 2>/dev/null || iptables -I DOCKER-USER 1 -m physdev --physdev-is-bridged -j ACCEPT
 
+# The perimeter rules (ADR-010) are not here: cloudd itself keeps them in place — at start and every minute — and puts them
+# above the accept by -i net-+ set here. They close the control plane's published ports (Desktop with the API and "Agents")
+# to workspaces and containers, and the host's own services to workspaces: chains CLOUDOS-CTL-FWD, CLOUDOS-CTL-IN and
+# CLOUDOS-WS-IN, jumps marked with the comment "cloudos-perimeter". By hand: sudo cloudd firewall; off: CLOUDD_FIREWALL=off.
+
 echo "DOCKER-USER:"; iptables -S DOCKER-USER

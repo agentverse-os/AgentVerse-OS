@@ -23,7 +23,7 @@ services:
       REDIS_HOST: ghostfolio-redis
       REDIS_PASSWORD: ${GHOSTFOLIO_REDIS_PASSWORD}
       REDIS_PORT: '6379'
-    image: ghostfolio/ghostfolio:3.61.0
+    image: ghostfolio/ghostfolio:3.100.0
     networks:
       appnet:
         aliases:

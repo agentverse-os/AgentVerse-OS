@@ -10,9 +10,9 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/wordpress/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wordpress/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wordpress/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wordpress/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wordpress/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wordpress/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,14 +42,14 @@ upstream:
   categories:
   - social
   release_notes: |-
+    🚨 This security release fixes privilege escalation, SQL injection, cross-site scripting, unauthorized disclosure of private data, and a denial-of-service issue. Update as soon as possible, especially if your site is reachable from the internet.
+
     ⚠️ To fully update your WordPress instance, you need to go to the admin interface and update from there as well.
 
-    WordPress 7.1 "Mary Lou" adds responsive style controls, a persistent admin bar across editors, and a redesigned media editor with crop, flip, rotation, and metadata tools.
+    This update retains PHP 8.3.36 with its critical security fixes.
 
-    It also adds richer inline notes with mentions, new Playlist and Tabs blocks, expanded icon and automation APIs, browser-side image processing, AVIF/HEIC/HDR image support, and accessibility and performance improvements.
-
-    Full release notes can be found at https://wordpress.org/documentation/wordpress-version/version-7-1/
+    Full release notes can be found at https://wordpress.org/news/2026/11/wordpress-7-1-5/
   source: https://github.com/WordPress/WordPress
-  version: '7.1'
+  version: 7.1.5
   website: https://wordpress.org/
 website: https://wordpress.org/

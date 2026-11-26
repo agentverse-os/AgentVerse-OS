@@ -9,6 +9,8 @@ endpoint:
   port: 8080
   service: clickhouse
 env:
+  SERVICE_PASSWORD_64_OTELAUTH:
+    generate: hex64
   SERVICE_REALBASE64_JWTSECRET:
     generate: hex64
   SERVICE_URL_OTELCOLLECTORHTTP_4318: https://${APP_DOMAIN}

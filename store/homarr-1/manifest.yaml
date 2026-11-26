@@ -48,6 +48,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/homarr-labs/homarr
-  tipi_version: 67
-  version: v1.76.2
+  tipi_version: 98
+  version: v2.13.1
 website: https://github.com/homarr-labs/homarr

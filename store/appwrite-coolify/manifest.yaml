@@ -6,18 +6,30 @@ data:
 - tank/apps/appwrite-coolify
 description: A backend-as-a-service platform that simplifies the web & mobile app development.
 endpoint:
-  port: 3003
+  port: 80
   service: appwrite
 env:
+  COMPOSE_PROJECT_NAME: ''
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
   SERVICE_FQDN_APPWRITE: ${APP_DOMAIN}
   SERVICE_PASSWORD_64_APPWRITE:
     generate: hex64
-  SERVICE_PASSWORD_MARIADB:
+  SERVICE_PASSWORD_64_EXECUTOR:
+    generate: hex64
+  SERVICE_PASSWORD_64_GEO:
+    generate: hex64
+  SERVICE_PASSWORD_64_JOBS:
+    generate: hex64
+  SERVICE_PASSWORD_64_NOTIFICATIONS:
+    generate: hex64
+  SERVICE_PASSWORD_CLICKHOUSE:
     generate: password
-  SERVICE_PASSWORD_MARIADBROOT:
+  SERVICE_PASSWORD_POSTGRES:
     generate: password
   SERVICE_URL_APPWRITE: https://${APP_DOMAIN}
-  SERVICE_USER_MARIADB:
+  SERVICE_URL_APPWRITE_3000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
     generate: password
 gallery: []
 health: null
@@ -33,6 +45,7 @@ login:
 name: appwrite-coolify
 notes:
 - 'openruntimes-executor: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+- 'orchestrator: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
 origin: coolify
 provides: []
 readme: null
@@ -41,7 +54,25 @@ route:
   mode: port
   open: iframe
 schema: 1
-settings: []
+settings:
+- env: COMPOSE_PROJECT_NAME
+  hint: null
+  label: compose project name
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
 tags:
 - backend
 - backend-as-a-service

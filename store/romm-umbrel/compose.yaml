@@ -39,7 +39,7 @@ services:
     - DB_USER=romm-user
     - DB_PASSWD=moneyprintergobrr
     - ROMM_AUTH_SECRET_KEY=${APP_SEED}
-    image: rommapp/romm:5.2.0@sha256:3512f2ca455782f90247271bed23116e6bc675bc74e379be2c41696e607ab11e
+    image: rommapp/romm:5.4.1@sha256:8677fb7b81b1d3db20b849e989a1dadc2a11159e51eb34a2acdcb01102274edf
     networks:
       appnet:
         aliases:

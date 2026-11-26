@@ -4,6 +4,8 @@
 The check file is one scenario: the preamble (the service, browser launch), the head block (creating the `sid` session and the basic
 checks) and blocks separated by `    # ---- …` lines. A part = the preamble + (the head block | the mini-head) + the chosen blocks + the tail (b.close()).
 The mini-head creates a session through the API and opens it in Thread — the state the blocks after head start from.
+A part whose blocks never touch that session (`sid`) gets the light mini-head instead: only the view, no session and no
+model turn — most blocks make their own conversations, and a turn per part was pure overhead.
 Function definitions from all blocks are moved to the start of the part: the blocks use each other's helpers.
 
   mkpart.py __head__                       head only
@@ -39,6 +41,15 @@ MINI = r'''    # the mini-head of a parallel part: its own session through the A
 # cleanup of the mini-head session is the scenario's shared tail (after b.close(): two DELETEs and "cleanup:
 # session removed")
 
+MINI_LIGHT = r'''    # the light mini-head of a parallel part: its blocks make their own sessions — only the view they start from
+    sid = None
+    pg.locator(".rail .nav[data-tip='Рабочие места']").click(); time.sleep(0.5); tree_expand(pg, P)
+    try:
+        if pg.locator(".top .seg button:has-text('Thread')").count(): pg.locator(".top .seg button:has-text('Thread')").click(); time.sleep(0.3)
+    except Exception: pass
+'''
+USES_SID = re.compile(r"(?<![\w.])sid(?![\w])")
+
 def defs_of(lines, lo, hi):
     """`    def …` / `    class …` definitions in a line range (with the body, by indent)"""
     out = []; i = lo
@@ -70,6 +81,18 @@ def main():
     if want == ["--list"]:
         for a, b in blocks: print(f"{lines[a][11:80].strip()}  ({b - a} lines)")
         return
+    # a block is named by the start of its title; a name that starts no title is looked up anywhere in the title lines, as
+    # before. Matching anywhere first made "simple chat" also pick "conversation search and export (… simple chats …)",
+    # and that block ran twice in every full run.
+    def pick(w):
+        pre = [(a, b) for a, b in blocks if lines[a][11:].startswith(w)]
+        return pre or [(a, b) for a, b in blocks if w in lines[a]]
+    picked = {w: pick(w) for w in want if w != "__head__"}
+    missing = [w for w, got in picked.items() if not got]
+    if missing: sys.exit(f"нет такого блока: {missing} (имена — mkpart.py --list)")
+    chosen = [blk for blk in blocks if any(blk in got for got in picked.values())]
+    # the full mini-head only when a chosen block works with the shared session
+    light = mini and not any(USES_SID.search("\n".join(l for l in lines[a:b] if not l.lstrip().startswith("#"))) for a, b in chosen)
     part = lines[:head_end + 1]
     if "__head__" in want: part += lines[head_end + 1:marks[0]]
     else:
@@ -78,11 +101,10 @@ def main():
         for name, body in defs_of(lines, head_end + 1, tail_start):
             if name in seen: continue
             seen.add(name); part += body
-        part += MINI.rstrip("\n").split("\n") if mini else ["    try: pg.locator(\".top .seg button:has-text('Thread')\").click(); time.sleep(0.5)", "    except Exception: pass"]
-    chosen = [(a, b) for a, b in blocks if any(w != "__head__" and w in lines[a] for w in want)]
+        part += (MINI_LIGHT if light else MINI).rstrip("\n").split("\n") if mini else ["    try: pg.locator(\".top .seg button:has-text('Thread')\").click(); time.sleep(0.5)", "    except Exception: pass"]
     for a, b in chosen: part += lines[a:b]
     part += lines[tail_start:]
     open(out, "w", encoding="utf-8").write("\n".join(part))
-    print(f"{len(part)} строк; head={'да' if '__head__' in want else ('мини' if mini else 'нет')}; блоки: {[lines[a][11:60].strip() for a, b in chosen]}")
+    print(f"{len(part)} строк; head={'да' if '__head__' in want else (('мини, без беседы' if light else 'мини') if mini else 'нет')}; блоки: {[lines[a][11:60].strip() for a, b in chosen]}")
 
 if __name__ == "__main__": main()

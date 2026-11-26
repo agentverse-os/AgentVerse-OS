@@ -14,10 +14,10 @@ env:
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
   DEVICE_HOSTNAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/solidtime/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -50,12 +50,12 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This release adds Date and Week grouping to reports, sorting for the tasks table, search in the projects overview, improved download handling, and fixes for timezone mismatch prompts.
+    ⚠️ If you created shared reports through the API, review their member filters before updating. Reports saved with an empty member_ids array previously showed no data; after this update, the empty filter means all members and may reveal time totals through an existing public link. Make affected reports private or set explicit member filters before updating.
 
-    It also adds reusable invoice recipients for On-Premise Business installations, with existing invoice recipients migrated automatically.
+    This urgent security release updates PHP to 8.3.36 to fix two critical vulnerabilities (CVE-2026-109618 and CVE-2026-109619), and updates FrankenPHP to 1.13. Updating promptly is recommended.
 
-    Full release notes can be found at https://github.com/solidtime-io/solidtime/releases/tag/v0.20.0
+    Full release notes can be found at https://github.com/solidtime-io/solidtime/releases/tag/v0.22.1
   source: https://github.com/solidtime-io/solidtime
-  version: 0.20.0
+  version: 0.22.1
   website: https://www.solidtime.io/
 website: https://www.solidtime.io/

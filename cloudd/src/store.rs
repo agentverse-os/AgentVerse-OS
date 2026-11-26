@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS llm_usage (
   input INTEGER NOT NULL, output INTEGER NOT NULL, cache_read INTEGER NOT NULL, cache_create INTEGER NOT NULL,
   cost_usd REAL NOT NULL, duration_ms INTEGER, num_turns INTEGER, source TEXT NOT NULL, PRIMARY KEY (project, session, seq));
 CREATE INDEX IF NOT EXISTS llm_usage_ts ON llm_usage(ts);
+CREATE TABLE IF NOT EXISTS hosts (
+  name TEXT PRIMARY KEY, state TEXT NOT NULL, created_at TEXT NOT NULL);
 "#;
 
 pub fn now() -> String {
@@ -258,6 +260,43 @@ impl Store {
             c.execute("INSERT OR REPLACE INTO kv(key, value, updated_at) VALUES(?1,?2,?3)", params![key, serde_json::to_string(value)?, now()])?;
             Ok(())
         })
+    }
+
+    // ---- owner's servers (ADR-008): the record is one JSON document, the token lives in the secrets ----
+    pub fn list_hosts(&self) -> Result<Vec<crate::model::HostState>> {
+        self.with(|c| {
+            let mut st = c.prepare("SELECT state FROM hosts ORDER BY name")?;
+            let rows = st.query_map([], |r| r.get::<_, String>(0))?;
+            Ok(rows.filter_map(|r| r.ok()).filter_map(|s| serde_json::from_str(&s).ok()).collect())
+        })
+    }
+    pub fn get_host(&self, name: &str) -> Result<Option<crate::model::HostState>> {
+        let v: Option<String> = self.with(|c| c.query_row("SELECT state FROM hosts WHERE name=?1", [name], |r| r.get(0)).optional().map_err(Into::into))?;
+        Ok(v.and_then(|s| serde_json::from_str(&s).ok()))
+    }
+    pub fn put_host(&self, h: &crate::model::HostState) -> Result<()> {
+        self.with(|c| {
+            c.execute("INSERT INTO hosts(name, state, created_at) VALUES(?1,?2,?3) ON CONFLICT(name) DO UPDATE SET state=excluded.state", params![h.name, serde_json::to_string(h)?, h.created_at])?;
+            Ok(())
+        })
+    }
+    pub fn delete_host(&self, name: &str) -> Result<()> {
+        self.with(|c| {
+            c.execute("DELETE FROM grants WHERE project=?1", [name])?;
+            c.execute("DELETE FROM secrets WHERE scope=?1 OR scope LIKE ?2", params![format!("host:{name}"), format!("project:{name}:%")])?;
+            c.execute("DELETE FROM hosts WHERE name=?1", [name])?;
+            Ok(())
+        })
+    }
+    pub fn kv_prefix(&self, prefix: &str) -> Result<Vec<(String, serde_json::Value)>> {
+        self.with(|c| {
+            let mut st = c.prepare("SELECT key, value FROM kv WHERE key LIKE ?1")?;
+            let rows = st.query_map([format!("{}%", prefix.replace('%', "\\%").replace('_', "\\_"))], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?;
+            Ok(rows.filter_map(|r| r.ok()).filter_map(|(k, v)| serde_json::from_str(&v).ok().map(|v| (k, v))).collect())
+        })
+    }
+    pub fn delete_kv(&self, key: &str) -> Result<()> {
+        self.with(|c| { c.execute("DELETE FROM kv WHERE key=?1", [key])?; Ok(()) })
     }
 
     // ---- events (the feed for Desktop) ----

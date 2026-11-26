@@ -21,7 +21,7 @@ services:
       SMTP_TLS_ENABLED: ${RALLLY_SMTP_TLS_ENABLED}
       SMTP_USER: ${RALLLY_SMTP_USER}
       SUPPORT_EMAIL: ${RALLLY_SUPPORT_EMAIL}
-    image: lukevella/rallly:4.13.1
+    image: lukevella/rallly:4.17.0
     networks:
       appnet:
         aliases:

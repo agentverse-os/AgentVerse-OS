@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>AgentVerse OS</title>
   <meta name="theme-color" content="#121416">
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- fonts are self-hosted (public/fonts): the boot screen needs Space Grotesk before the app stylesheet arrives -->
+  <link rel="preload" href="/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>
+    @font-face { font-family: "Space Grotesk"; font-style: normal; font-weight: 300 700; font-display: swap; src: url("/fonts/space-grotesk-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
     /* Loading screen: shown right away, removed by the shell after the core's first answer (src/lib/boot.ts) */
     #boot { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: #0E1018; color: #F4F7FF; font-family: 'Space Grotesk', system-ui, sans-serif; transition: opacity .6s ease; overflow: hidden; }
     #boot.out { opacity: 0; pointer-events: none; }

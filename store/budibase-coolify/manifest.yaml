@@ -25,8 +25,6 @@ env:
     generate: password
   SERVICE_PASSWORD_REDIS:
     generate: password
-  SERVICE_PASSWORD_WATCHTOWER:
-    generate: password
   SERVICE_URL_BUDIBASE_10000: https://${APP_DOMAIN}
   SERVICE_USER_COUCHDB:
     generate: password
@@ -44,8 +42,7 @@ login:
   path: null
   user: null
 name: budibase-coolify
-notes:
-- 'watchtower-service: docker.sock заменён на read-only прокси (DOCKER_HOST=tcp://cloudos-docker-ro:2375)'
+notes: []
 origin: coolify
 provides: []
 readme: null

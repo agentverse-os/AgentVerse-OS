@@ -8,11 +8,12 @@ services:
     environment:
     - PUID=1000
     - PGID=1000
-    image: linuxserver/remmina:1.4.35@sha256:ca2b6788bad28d864086649fc276ce696cac9cdf69e6976b85497b341ed07d8d
+    image: linuxserver/remmina:1.4.43@sha256:fd394933f0c1d290153ddf278f332fad6575c98e67d5ed36d5cc643b72d8b921
     networks:
       appnet:
         aliases:
         - remmina_server_1
     restart: on-failure
+    shm_size: 1gb
     volumes:
     - ${APP_DATA_DIR}/data/config:/config

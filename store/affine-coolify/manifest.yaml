@@ -9,7 +9,7 @@ endpoint:
   port: 3010
   service: affine
 env:
-  AFFINE_REVISION: stable
+  AFFINE_REVISION: 0.27.4
   COPILOT_FAL_API_KEY: ''
   COPILOT_OPENAI_API_KEY: ''
   COPILOT_PERPLEXITY_API_KEY: ''
@@ -19,6 +19,7 @@ env:
   MAILER_SENDER: ''
   MAILER_USER: ''
   POSTGRES_DB: affine
+  POSTGRES_USER: ''
   SERVICE_PASSWORD_POSTGRES:
     generate: password
   SERVICE_URL_AFFINE: https://${APP_DOMAIN}
@@ -102,8 +103,14 @@ settings:
   required: false
   type: password
 - env: AFFINE_REVISION
-  hint: 'по умолчанию: stable'
+  hint: 'по умолчанию: 0.27.4'
   label: affine revision
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
   options: null
   required: false
   type: text

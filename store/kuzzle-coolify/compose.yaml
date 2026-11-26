@@ -55,7 +55,7 @@ services:
       - -f
       - http://127.0.0.1:7512/_healthcheck
       timeout: 1s
-    image: kuzzleio/kuzzle:latest
+    image: kuzzleio/kuzzle:2.61.2
     networks:
       appnet:
         aliases:
@@ -75,7 +75,7 @@ services:
       - redis-cli
       - ping
       timeout: 20s
-    image: redis:7-alpine
+    image: redis:8-alpine
     networks:
       appnet:
         aliases:

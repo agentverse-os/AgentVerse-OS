@@ -11,23 +11,25 @@ services:
     environment:
     - SERVICE_URL_CAP_3000=${SERVICE_URL_CAP_3000}
     - ADMIN_KEY=$SERVICE_PASSWORD_ADMIN
-    - REDIS_URL=redis://valkey:6379
+    - VALKEY_URL=redis://valkey:6379
     healthcheck:
       interval: 30s
       retries: 3
-      start_period: 5s
+      start_period: 20s
       test:
       - CMD
       - bun
       - -e
-      - fetch('http://localhost:3000').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))
+      - fetch('http://127.0.0.1:3000/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))
       timeout: 5s
-    image: tiago2/cap:3.0.4
+    image: tiago2/cap:4.0.15
     networks:
       appnet:
         aliases:
         - cap-captcha-coolify_cap_1
     restart: unless-stopped
+    volumes:
+    - cap-data:/usr/src/app/data
   valkey:
     command: valkey-server --save 60 1 --loglevel warning --maxmemory-policy noeviction
     healthcheck:
@@ -47,6 +49,12 @@ services:
     volumes:
     - valkey-data:/data
 volumes:
+  cap-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/cap-data
+      o: bind
+      type: none
   valkey-data:
     driver: local
     driver_opts:

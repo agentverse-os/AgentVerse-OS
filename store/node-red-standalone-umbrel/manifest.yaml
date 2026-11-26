@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/node-red-standalone/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/node-red-standalone/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/node-red-standalone/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/node-red-standalone/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/node-red-standalone/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/node-red-standalone/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,9 +42,14 @@ upstream:
   categories:
   - automation
   release_notes: |-
-    This maintenance release reverts a bcrypt dependency update to restore compatibility on certain Raspberry Pi architectures and operating systems.
-    Full release notes can be found at https://github.com/node-red/node-red/releases/tag/5.0.6
+    This release includes security hardening and improvements to flow editing and runtime reliability.
+
+    - Strengthened input validation and authentication handling, including fixes for unsafe file paths and compressed-request denial of service.
+    - Fixed context-store callback errors and malformed WebSocket messages that could crash the runtime.
+    - Improved editor error badges, palette controls, and handling of disabled nodes.
+
+    Full release notes can be found at https://github.com/node-red/node-red/releases/tag/5.0.10
   source: https://github.com/node-red/node-red
-  version: 5.0.6
+  version: 5.0.10
   website: https://nodered.org
 website: https://nodered.org

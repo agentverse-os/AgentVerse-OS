@@ -12,6 +12,8 @@ env:
   CALCOM_GOOGLE_API_CREDENTIALS: ''
   CALCOM_NEXTAUTH_SECRET:
     generate: password
+  CALCOM_POSTGRES_PASSWORD:
+    generate: token
   CALENDSO_ENCRYPTION_KEY:
     generate: token
   EMAIL_FROM: ''
@@ -48,6 +50,12 @@ route:
   open: iframe
 schema: 1
 settings:
+- env: CALCOM_POSTGRES_PASSWORD
+  hint: null
+  label: Cal.com database password
+  options: null
+  required: false
+  type: random
 - env: CALCOM_NEXTAUTH_SECRET
   hint: null
   label: Next.js Auth secret. Generate one with `openssl rand -base64 32`
@@ -128,6 +136,6 @@ upstream:
   categories:
   - social
   source: https://github.com/calcom/cal.com
-  tipi_version: 150
+  tipi_version: 152
   version: v6.2.0
 website: https://github.com/calcom/cal.com

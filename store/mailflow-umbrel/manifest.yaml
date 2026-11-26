@@ -45,12 +45,14 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    Mailbox Cleanup can now archive selected sender mail instead of only moving it to Trash, and GTD classification actions can be safely undone from the context menu or with Ctrl/Cmd+Z.
+    You will be signed out once after updating. Reload open MailFlow tabs and sign in again. Single sign-on users with a MailFlow authenticator will now be asked for its code.
 
-    This update also adds a sanitized diagnostics report in Settings > About, makes AI summaries follow the interface language, adds the full per-message menu on mobile, and adds Czech translation support.
+    - Fixed security issues that could bypass two-factor sign-in through recovery email or single sign-on. - Changing a recovery email now requires confirmation, and administrators can indicate when an identity provider already enforces multi-factor authentication. - MailFlow now runs without Redis, with sessions and temporary data stored in PostgreSQL. - Added spam controls on phones and clearer folder-search scope. - Improved the composer toolbar, large-text menus, message-list layout, and Proton Mail Bridge message previews.
 
-    Fixes improve AI provider testing with reasoning models, sidebar folder nesting, context-menu positioning, bulk-move picker positioning, and repeated email-link clicks.
+    Since version 4.0, contacts apps using passwords can no longer sign in through CardDAV when SSO-only or required two-factor authentication is enabled.
+
+    Full release notes can be found at https://github.com/maathimself/mailflow/releases/tag/v4.4.0
   source: https://github.com/maathimself/mailflow
-  version: 3.3.0
+  version: 4.4.0
   website: https://mailflow.sh
 website: https://mailflow.sh

@@ -1,0 +1,176 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/hi-events-coolify
+description: Open-source event management and ticketing platform.
+endpoint:
+  port: 80
+  service: hi-events
+env:
+  MAIL_ENCRYPTION: tls
+  MAIL_FROM_ADDRESS: noreply@example.com
+  MAIL_FROM_NAME: Hi.Events
+  MAIL_HOST: ''
+  MAIL_MAILER: log
+  MAIL_PASSWORD: ''
+  MAIL_PORT: '587'
+  MAIL_USERNAME: ''
+  POSTGRES_DB: hi-events
+  POSTGRES_USER: ''
+  REDIS_PASSWORD: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_PASSWORD_REDIS:
+    generate: password
+  SERVICE_REALBASE64_APPKEY:
+    generate: hex64
+  SERVICE_REALBASE64_JWTSECRET:
+    generate: hex64
+  SERVICE_URL_HIEVENTS: https://${APP_DOMAIN}
+  SERVICE_URL_HIEVENTS_80: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+  STRIPE_PUBLIC_KEY: ''
+  STRIPE_SECRET_KEY: ''
+  STRIPE_WEBHOOK_SECRET: ''
+  VITE_APP_NAME: Hi.Events
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: hi-events-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: VITE_APP_NAME
+  hint: 'по умолчанию: Hi.Events'
+  label: vite app name
+  options: null
+  required: false
+  type: text
+- env: STRIPE_PUBLIC_KEY
+  hint: null
+  label: stripe public key
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_DB
+  hint: 'по умолчанию: hi-events'
+  label: postgres db
+  options: null
+  required: false
+  type: text
+- env: MAIL_MAILER
+  hint: 'по умолчанию: log'
+  label: mail mailer
+  options: null
+  required: false
+  type: text
+- env: MAIL_HOST
+  hint: null
+  label: mail host
+  options: null
+  required: false
+  type: text
+- env: MAIL_PORT
+  hint: 'по умолчанию: 587'
+  label: mail port
+  options: null
+  required: false
+  type: text
+- env: MAIL_USERNAME
+  hint: null
+  label: mail username
+  options: null
+  required: false
+  type: text
+- env: MAIL_PASSWORD
+  hint: null
+  label: mail password
+  options: null
+  required: false
+  type: password
+- env: MAIL_ENCRYPTION
+  hint: 'по умолчанию: tls'
+  label: mail encryption
+  options: null
+  required: false
+  type: text
+- env: MAIL_FROM_ADDRESS
+  hint: 'по умолчанию: noreply@example.com'
+  label: mail from address
+  options: null
+  required: false
+  type: text
+- env: MAIL_FROM_NAME
+  hint: 'по умолчанию: Hi.Events'
+  label: mail from name
+  options: null
+  required: false
+  type: text
+- env: STRIPE_SECRET_KEY
+  hint: null
+  label: stripe secret key
+  options: null
+  required: false
+  type: password
+- env: STRIPE_WEBHOOK_SECRET
+  hint: null
+  label: stripe webhook secret
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: REDIS_PASSWORD
+  hint: null
+  label: redis password
+  options: null
+  required: false
+  type: password
+tags:
+- events
+- ticketing
+- tickets
+- booking
+- conferences
+- concerts
+- event-management
+- eventbrite
+title: Hi Events
+type: app
+upstream:
+  categories:
+  - productivity
+  source: https://hi.events/docs
+  tags:
+  - events
+  - ticketing
+  - tickets
+  - booking
+  - conferences
+  - concerts
+  - event-management
+  - eventbrite
+  template: hi-events.yaml
+website: https://hi.events/docs

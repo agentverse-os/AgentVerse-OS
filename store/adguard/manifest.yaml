@@ -50,7 +50,7 @@ upstream:
   categories:
   - network
   - security
-  source: https://github.com/AdguardTeam
-  tipi_version: 64
-  version: v0.107.79
-website: https://github.com/AdguardTeam
+  source: https://github.com/AdguardTeam/AdGuardHome
+  tipi_version: 65
+  version: v0.107.80
+website: https://github.com/AdguardTeam/AdGuardHome

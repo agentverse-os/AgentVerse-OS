@@ -31,7 +31,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:80/
       timeout: 20s
-    image: hoppscotch/hoppscotch:2026.2.1
+    image: hoppscotch/hoppscotch:2026.10.1
     networks:
       appnet:
         aliases:
@@ -47,7 +47,7 @@ services:
     - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
     - POSTGRES_DB=${POSTGRES_DB:-hoppscotch}
     - DATABASE_URL=postgres://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@hoppscotch-db:5432/${POSTGRES_DB:-hoppscotch}
-    image: hoppscotch/hoppscotch:2026.2.1
+    image: hoppscotch/hoppscotch:2026.10.1
     networks:
       appnet:
         aliases:

@@ -19,7 +19,7 @@ services:
       - CMD-SHELL
       - wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
       timeout: 5s
-    image: clickhouse/clickhouse-server:25.8
+    image: clickhouse/clickhouse-server:26.2
     networks:
       appnet:
         aliases:
@@ -46,7 +46,7 @@ services:
       - CMD-SHELL
       - nc -z 127.0.0.1 2375 || exit 1
       timeout: 5s
-    image: tecnativa/docker-socket-proxy:v0.4.2
+    image: tecnativa/docker-socket-proxy:v0.5.0
     networks:
       appnet:
         aliases:
@@ -54,29 +54,6 @@ services:
       dockerro: {}
     restart: unless-stopped
     volumes: []
-  electric:
-    depends_on:
-      postgresql:
-        condition: service_healthy
-    environment:
-    - DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB:-trigger-db}?sslmode=disable
-    - ELECTRIC_SECRET=${SERVICE_PASSWORD_64_ELECTRIC}
-    - ELECTRIC_USAGE_REPORTING=false
-    healthcheck:
-      interval: 10s
-      retries: 5
-      test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:3000/v1/health
-      timeout: 5s
-    image: electricsql/electric:1.2.9
-    networks:
-      appnet:
-        aliases:
-        - trigger-coolify_electric_1
-    restart: unless-stopped
   postgresql:
     command:
     - -c
@@ -150,7 +127,7 @@ services:
       - -e
       - require('http').get('http://127.0.0.1:8020/health',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))
       timeout: 5s
-    image: ghcr.io/triggerdotdev/supervisor:v4.3.0
+    image: ghcr.io/triggerdotdev/supervisor:v4.8.5
     networks:
       appnet:
         aliases:
@@ -165,17 +142,15 @@ services:
     depends_on:
       clickhouse:
         condition: service_healthy
-      electric:
-        condition: service_healthy
       postgresql:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
     - SERVICE_URL_TRIGGER_3000=${SERVICE_URL_TRIGGER_3000}
-    - APP_ORIGIN=${SERVICE_URL_TRIGGER_3000}
-    - LOGIN_ORIGIN=${SERVICE_URL_TRIGGER_3000}
-    - API_ORIGIN=${SERVICE_URL_TRIGGER_3000}
+    - APP_ORIGIN=${SERVICE_URL_TRIGGER}
+    - LOGIN_ORIGIN=${SERVICE_URL_TRIGGER}
+    - API_ORIGIN=${SERVICE_URL_TRIGGER}
     - SESSION_SECRET=${SERVICE_PASSWORD_64_SESSION}
     - MAGIC_LINK_SECRET=${SERVICE_PASSWORD_64_MAGICLINK}
     - ENCRYPTION_KEY=${SERVICE_PASSWORD_ENCRYPTIONKEY}
@@ -188,7 +163,6 @@ services:
     - REDIS_HOST=redis
     - REDIS_PORT=6379
     - REDIS_TLS_DISABLED=true
-    - ELECTRIC_ORIGIN=http://electric:3000
     - DEV_OTEL_EXPORTER_OTLP_ENDPOINT=${DEV_OTEL_EXPORTER_OTLP_ENDPOINT:-}
     - DEPLOY_REGISTRY_HOST=${DEPLOY_REGISTRY_HOST:-ghcr.io}
     - DEPLOY_REGISTRY_PROTOCOL=${DEPLOY_REGISTRY_PROTOCOL:-https}
@@ -223,6 +197,8 @@ services:
     - GRACEFUL_SHUTDOWN_TIMEOUT=1000
     - INTERNAL_OTEL_TRACE_LOGGING_ENABLED=${INTERNAL_OTEL_TRACE_LOGGING_ENABLED:-0}
     - TRIGGER_TELEMETRY_DISABLED=${TRIGGER_TELEMETRY_DISABLED:-true}
+    - REALTIME_BACKEND_NATIVE_ENABLED=1
+    - REALTIME_BACKEND_DEFAULT=native
     healthcheck:
       interval: 10s
       retries: 5
@@ -233,7 +209,7 @@ services:
       - -e
       - require('http').get('http://127.0.0.1:3000/healthcheck',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))
       timeout: 5s
-    image: ghcr.io/triggerdotdev/trigger.dev:v4.3.0
+    image: ghcr.io/triggerdotdev/trigger.dev:v4.8.5
     networks:
       appnet:
         aliases:

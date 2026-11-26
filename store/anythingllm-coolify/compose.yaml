@@ -24,7 +24,7 @@ services:
     - AUTH_TOKEN=${SERVICE_PASSWORD_AUTHTOKEN}
     - SERVER_PORT=${SERVER_PORT:-3001}
     - VECTOR_DB=lancedb
-    image: mintplexlabs/anythingllm
+    image: mintplexlabs/anythingllm:1.19.0
     networks:
       appnet:
         aliases:

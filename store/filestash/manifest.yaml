@@ -60,6 +60,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/mickael-kerjean/filestash
-  tipi_version: 17
+  tipi_version: 19
   version: latest
 website: https://github.com/mickael-kerjean/filestash

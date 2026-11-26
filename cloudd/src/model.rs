@@ -398,6 +398,9 @@ pub struct AppLink {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ProjectView {
     pub name: String,
+    /// `workspace` (an Incus workspace of the project) or `host` (an owner's server, ADR-008).
+    #[serde(default = "kind_workspace")]
+    pub kind: String,
     pub spec: ProjectSpec,
     pub network: String,
     pub subnet: String,
@@ -419,6 +422,79 @@ pub struct ProjectView {
     /// workspace is not running.
     #[serde(default)]
     pub agents: Option<AgentsSummary>,
+}
+
+/// An owner's server with agentd outside the workspaces (ADR-008). The token is in the secrets (`host:<name>` /
+/// `agentd_token`), the one-time install code in kv `hosts.code.<code>`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, ToSchema)]
+pub struct HostState {
+    pub name: String,
+    /// Owner's note (what this server is).
+    #[serde(default)]
+    pub note: String,
+    /// Address the core dials (tailnet IP or name) and agentd port; empty until the installer registers.
+    #[serde(default)]
+    pub addr: String,
+    #[serde(default = "agentd_port")]
+    pub port: u16,
+    #[serde(default)]
+    pub user: String,
+    #[serde(default)]
+    pub home: String,
+    #[serde(default)]
+    pub arch: String,
+    #[serde(default)]
+    pub os: String,
+    #[serde(default)]
+    pub hostname: String,
+    #[serde(default)]
+    pub agentd_version: String,
+    /// `new` (not registered) | `online` | `offline`.
+    #[serde(default)]
+    pub status: String,
+    pub created_at: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub registered_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_seen: Option<String>,
+    /// Last probe error (shown in the card while offline).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_error: Option<String>,
+    /// The LLM provider address as seen from this server, when it differs from the one in the provider's settings (another
+    /// route to the same proxy); empty — the provider's own address.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub llm_url: Option<String>,
+    /// Where agentd on the server reads its env file (`--env-file`, reported by /health); the core writes there.
+    #[serde(default)]
+    pub env_file: String,
+    /// Switched off by the owner: agentd was told to stop, the core neither probes nor uses the server until it is switched
+    /// on again (and agentd is started on the server).
+    #[serde(default)]
+    pub disabled: bool,
+}
+fn agentd_port() -> u16 { 7200 }
+fn kind_workspace() -> String { "workspace".into() }
+
+impl HostState {
+    pub fn online(&self) -> bool { self.status == "online" && !self.disabled }
+    /// `addr:port` for the agentd client.
+    pub fn dial(&self) -> String { if self.addr.contains(':') && !self.addr.starts_with('[') && self.addr.matches(':').count() > 1 { format!("[{}]:{}", self.addr, self.port) } else { format!("{}:{}", self.addr, self.port) } }
+}
+
+/// The server in the API: the record plus what the core knows about the install.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct HostView {
+    #[serde(flatten)]
+    pub state: HostState,
+    /// The agentd version embedded in this core — the server is "behind" when its version differs.
+    pub core_agentd_version: String,
+    /// The llm capability granted to the server (through the external provider).
+    pub llm: Option<String>,
+    /// Install command — only in the answer to the creation or to a re-issued code.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub install: Option<String>,
+    /// What the owner runs on the server to stop and wipe agentd after removal (the core cannot do it remotely).
+    pub uninstall: String,
 }
 
 /// Summary of agent sessions of one workspace (agents.rs).
@@ -505,6 +581,9 @@ pub struct WorkspaceView {
     pub ip: Option<String>,
     pub apps: Vec<WorkspaceApp>,
     pub url: String,
+    /// Memory of the running workspace as the pressure watch sees it (ADR-009); None — not running or an owner's server
+    #[serde(default)]
+    pub memory: Option<crate::pressure::MemoryView>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]

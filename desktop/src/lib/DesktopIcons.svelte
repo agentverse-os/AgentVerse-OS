@@ -1,9 +1,9 @@
 <script lang="ts">
   import { wm, SYS_APPS, type SysApp } from './windows.svelte';
   import { api, type AppView, type ProjectView } from './api';
-  import { sourceOf, openUrl, descOf } from './store-utils';
+  import { sourceOf, openUrl, descOf, iconOf } from './store-utils';
   import { t } from './i18n.svelte';
-  import SysIcon from './SysIcon.svelte';
+  import AppIcon, { refOf } from './AppIcon.svelte';
   import Mark from './Mark.svelte';
   import { widgets } from './widgets.svelte';
   let { look = 'default' }: { look?: 'default' | 'umbrel' } = $props();
@@ -12,9 +12,7 @@
   async function load() { try { [apps, projects] = await Promise.all([api.apps(), api.projects()]); } catch {} }
   $effect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t); });
   const sys: SysApp[] = ['projects', 'agents', 'store', 'files', 'system', 'settings'];
-  function icon(a: AppView) { return a.manifest.icon?.startsWith('./') ? `/api/apps/${a.name}/icon` : (a.manifest.icon ?? '📦'); }
-  function isImg(i: string) { return i.startsWith('/') || i.startsWith('http'); }
-  function openApp(a: AppView) { if (!a.url) return; if (a.manifest.route.open === 'iframe') wm.open(`app:${a.name}`, a.manifest.title ?? a.name, openUrl(a), icon(a)); else window.open(openUrl(a), '_blank', 'noopener'); }
+  function openApp(a: AppView) { if (!a.url) return; if (a.manifest.route.open === 'iframe') wm.open(`app:${a.name}`, a.manifest.title ?? a.name, openUrl(a), iconOf(a)); else window.open(openUrl(a), '_blank', 'noopener'); }
   // a single click — select (on touch screens — open), a double click — open; as in desktop OSes
   let selected = $state<string | null>(null);
   const touch = matchMedia('(pointer: coarse)').matches;
@@ -23,27 +21,27 @@
   // a greeting by time of day, like the umbrelOS desktop heading
   let hour = $state(new Date().getHours());
   $effect(() => { const t = setInterval(() => hour = new Date().getHours(), 60000); return () => clearInterval(t); });
-  // the umbrel look: the grid is centered, but the widgets (a free layer, a column on the top right by default) must not
-  // cover it — margins are reserved for the columns on the left and right; while a widget is being dragged the margins are
-  // not recomputed (otherwise the grid jitters)
-  let vw = $state(innerWidth);
-  $effect(() => { const h = () => vw = innerWidth; addEventListener('resize', h); return () => removeEventListener('resize', h); });
+  // the widgets (a free layer, a column on the top right by default) must not cover the icons: in the umbrel look the centered
+  // grid keeps margins for the widget columns on the left and right, in the regular look the icon area ends before the right
+  // column; while a widget is being dragged the margins are not recomputed (otherwise the grid jitters)
   let lastReserve = { left: 0, right: 0 };
   const reserve = $derived.by(() => {
-    if (!umbrel || vw < 700) return { left: 0, right: 0 };
+    const vw = wm.vw;
+    if (vw < 700) return { left: 0, right: 0 };
     if (widgets.dragging) return lastReserve;
     let left = 0, right = 0;
-    for (const w of widgets.items) { if (w.x + w.w / 2 > vw / 2) right = Math.max(right, vw - w.x + 12); else left = Math.max(left, w.x + w.w + 12); }
+    for (const w of widgets.fitted.values()) { if (w.x + w.w / 2 > vw / 2) right = Math.max(right, vw - w.x + 12); else left = Math.max(left, w.x + w.w + 12); }
     lastReserve = { left: Math.min(left, vw * 0.45), right: Math.min(right, vw * 0.45) };
     return lastReserve;
   });
   const greeting = $derived(hour < 5 ? t('shell.greetingNight') : hour < 12 ? t('shell.greetingMorning') : hour < 18 ? t('shell.greetingDay') : t('shell.greetingEvening'));
+  const wsState = (p: ProjectView) => p.workspace?.status === 'running' ? 'ok' : 'off';
 </script>
 
 {#snippet sysIcons()}
   {#each sys as k}
     <button class="icon" class:selected={selected === `sys:${k}`} title={t('shell.sysIconTitle', { title: t(SYS_APPS[k].title) })} onclick={() => act(`sys:${k}`, () => wm.openSys(k))} ondblclick={() => wm.openSys(k)} onkeydown={(e) => e.key === 'Enter' && wm.openSys(k)}>
-      {#if umbrel}<span class="glyph sys"><SysIcon name={k} size={52} /></span>{:else}<span class="glyph emoji">{SYS_APPS[k].icon}</span>{/if}<span class="name">{t(SYS_APPS[k].title)}</span>
+      <span class="glyph sys"><AppIcon icon={{ sys: k }} size="var(--isz)" /></span><span class="name">{t(SYS_APPS[k].title)}</span>
     </button>
   {/each}
 {/snippet}
@@ -51,8 +49,7 @@
   {#each projects as p (p.name)}
     <button class="icon" class:selected={selected === `proj:${p.name}`} title={t('shell.projectIconTitle', { name: p.name, status: p.workspace?.status ?? '—' }) + (p.spec.description ? '\n' + p.spec.description : '')}
       onclick={() => act(`proj:${p.name}`, () => wm.openSys('project', { name: p.name }, p.name))} ondblclick={() => wm.openSys('project', { name: p.name }, p.name)} onkeydown={(e) => e.key === 'Enter' && wm.openSys('project', { name: p.name }, p.name)}>
-      {#if umbrel}<span class="glyph sys"><SysIcon name="project" size={52} /><span class="state" class:ok={p.workspace?.status === 'running'} class:off={p.workspace?.status === 'stopped'}></span></span>
-      {:else}<span class="glyph emoji">🧩<span class="state" class:ok={p.workspace?.status === 'running'} class:off={p.workspace?.status === 'stopped'}></span></span>{/if}<span class="name">{p.name}</span>
+      <span class="glyph sys"><AppIcon icon={{ sys: 'project' }} size="var(--isz)" status={wsState(p)} /></span><span class="name">{p.name}</span>
     </button>
   {/each}
 {/snippet}
@@ -60,13 +57,13 @@
   {#each apps.filter(a => a.installed) as a (a.name)}
     <button class="icon" class:selected={selected === `app:${a.name}`} title="{a.manifest.title ?? a.name} · {sourceOf(a).label}{descOf(a) ? ' · ' + descOf(a) : ''}"
       onclick={() => act(`app:${a.name}`, () => openApp(a))} ondblclick={() => openApp(a)} onkeydown={(e) => e.key === 'Enter' && openApp(a)}>
-      {#if isImg(icon(a))}<img class="glyph" src={icon(a)} alt="" />{:else}<span class="glyph emoji">{icon(a)}</span>{/if}
+      <span class="glyph"><AppIcon icon={refOf(iconOf(a))} size="var(--isz)" label={a.manifest.title ?? a.name} /></span>
       <span class="name">{a.manifest.title ?? a.name}</span>
     </button>
   {/each}
 {/snippet}
 
-<div class="icons" class:umbrel role="group" aria-label={t('shell.desktopAria')} style={umbrel ? `padding-left:${28 + reserve.left}px; padding-right:${28 + reserve.right}px` : ''} onpointerdown={(e) => { if (e.target === e.currentTarget) selected = null; }}>
+<div class="icons" class:umbrel role="group" aria-label={t('shell.desktopAria')} style={umbrel ? `padding-left:${28 + reserve.left}px; padding-right:${28 + reserve.right}px` : `--res-r:${reserve.right}px`} onpointerdown={(e) => { if (e.target === e.currentTarget) selected = null; }}>
   {#if umbrel}
     <!-- the umbrel look: the logo, the greeting and one shared grid (system, projects, apps), as in umbrelOS -->
     <div class="hdr"><Mark size={56} /><h1>{greeting}</h1></div>
@@ -79,34 +76,32 @@
 </div>
 
 <style>
-  .icons { position: fixed; inset: 12px 12px 60px 12px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; pointer-events: none; max-width: 60vw; }
-  .grp { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, 96px); grid-auto-rows: 96px; gap: 6px; justify-content: start; position: relative; padding-top: 16px; }
-  .gl { position: absolute; left: 6px; top: 0; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); text-shadow: 0 1px 3px rgb(0 0 0 / .6); pointer-events: none; }
-  :root[data-theme="light"] .gl { text-shadow: none; }
-  @media (max-width: 700px) { .icons { inset: 8px 8px auto 8px; max-height: 214px; overflow-x: auto; grid-auto-flow: column; grid-template-rows: 96px 96px; grid-template-columns: none; grid-auto-columns: 84px; } }
-  .icon { pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: 96px; height: 96px; background: transparent; border-color: transparent; color: var(--ink); text-shadow: 0 1px 3px rgb(0 0 0 / .6); padding: 6px 2px; }
-  :root[data-theme="light"] .icon { text-shadow: 0 1px 2px rgb(255 255 255 / .8); }
-  .icon:hover { background: rgb(var(--accent-rgb) / .12); border-color: rgb(var(--accent-rgb) / .35); }
-  .icon.selected { background: rgb(var(--accent-rgb) / .22); border-color: rgb(var(--accent-rgb) / .6); }
-  .glyph { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; position: relative; }
-  .glyph.emoji { display: flex; align-items: center; justify-content: center; font-size: 30px; background: var(--glass); border: 1px solid var(--line); }
-  .name { font-size: .78rem; line-height: 1.2; text-align: center; max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .state { position: absolute; right: -3px; bottom: -3px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); border: 2px solid var(--bg); }
-  .state.ok { background: var(--ok); } .state.off { background: var(--muted); }
+  /* The desktop: icons in a fluid grid. The cell is derived from the icon size (--icon: the "icon size" setting), so the grid keeps
+     its proportions at any size; a long list scrolls inside the desktop, never under the taskbar. */
+  .icons { --isz: var(--icon); --cell: calc(var(--isz) + 44px); position: fixed; inset: 14px auto calc(var(--shell-b) + 10px) 14px; width: min(58vw, 760px, 100vw - var(--res-r, 0px) - 20px); display: flex; flex-direction: column; gap: 14px; align-items: flex-start; overflow: hidden auto; scrollbar-width: none; overscroll-behavior: contain; }
+  .icons::-webkit-scrollbar { display: none; }
+  .grp { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, var(--cell)); grid-auto-rows: calc(var(--isz) + 50px); gap: 4px; justify-content: start; position: relative; padding-top: 20px; }
+  .gl { position: absolute; left: 8px; top: 0; font-size: .68rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: color-mix(in oklab, var(--ink) 62%, transparent); text-shadow: 0 1px 3px rgb(0 0 0 / .6); pointer-events: none; }
+  :global(:root[data-theme="light"]) .gl { text-shadow: none; }
+  .icon { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 7px; width: var(--cell); padding: 8px 4px 4px; background: transparent; border-color: transparent; border-radius: var(--r-sm); color: var(--ink); text-shadow: 0 1px 3px rgb(0 0 0 / .65); --icon-ring: rgb(10 12 16 / .7); }
+  :global(:root[data-theme="light"]) .icon { text-shadow: 0 1px 2px rgb(255 255 255 / .85); --icon-ring: rgb(255 255 255 / .9); }
+  .icon:hover { background: color-mix(in oklab, var(--ink) 9%, transparent); border-color: color-mix(in oklab, var(--ink) 12%, transparent); }
+  .icon.selected { background: var(--accent-soft); border-color: var(--accent-line); }
+  .icon:active { transform: scale(.97); }
+  .glyph { display: grid; place-items: center; width: var(--isz); height: var(--isz); flex: none; filter: drop-shadow(0 4px 10px rgb(0 0 0 / .32)); transition: transform .22s var(--ease); }
+  .icon:hover .glyph { transform: translateY(-2px); }
+  .name { font-size: .78rem; font-weight: 500; line-height: 1.22; text-align: center; max-width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; text-wrap: balance; }
 
-  /* the umbrel look: the logo and greeting on top, the grid centered without group labels, 52 px tiles with a ring on hover */
-  .icons.umbrel { inset: 0 0 100px 0; max-width: none; align-items: center; justify-content: flex-start; gap: 4px; padding: 3vh 28px 16px; overflow: hidden auto; scrollbar-width: none; transition: padding var(--dur); }
-  .hdr { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 16px; pointer-events: none; }
-  .hdr h1 { font-size: clamp(20px, 2.6vw, 36px); font-weight: 700; letter-spacing: -.03em; color: rgb(255 255 255 / .92); text-shadow: 0 2px 8px rgb(0 0 0 / .5); margin: 0; }
-  .umbrel .grp { width: min(100%, 1120px); grid-template-columns: repeat(auto-fill, 112px); grid-auto-rows: 108px; gap: 6px 8px; justify-content: center; padding-top: 0; }
+  /* the umbrel look: the logo and greeting on top, the grid centered without group labels, bigger tiles with a ring on hover */
+  .icons.umbrel { --isz: calc(var(--icon) + 4px); --cell: calc(var(--isz) + 60px); inset: 0 0 var(--shell-b) 0; width: auto; align-items: center; justify-content: flex-start; gap: 4px; padding: clamp(14px, 3.4vh, 40px) 28px 16px; transition: padding var(--dur); }
+  .hdr { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: clamp(8px, 2vh, 20px); pointer-events: none; }
+  .hdr h1 { font-size: clamp(1.35rem, 1rem + 1.5vw, 2.4rem); font-weight: 700; letter-spacing: -.03em; color: rgb(255 255 255 / .94); text-shadow: 0 2px 8px rgb(0 0 0 / .5); margin: 0; }
+  .umbrel .grp { width: min(100%, 1180px); grid-auto-rows: calc(var(--isz) + 54px); gap: 6px 4px; justify-content: center; padding-top: 0; }
   .umbrel .gl { display: none; }
-  .umbrel .icon { width: 112px; height: 108px; gap: 8px; border-radius: 16px; text-shadow: 0 2px 4px rgb(0 0 0 / .6); color: rgb(255 255 255 / .92); }
-  .umbrel .icon:hover, .umbrel .icon.selected { background: rgb(255 255 255 / .06); border-color: rgb(255 255 255 / .12); }
-  .umbrel .glyph { width: 52px; height: 52px; border-radius: 14px; transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s; }
-  .umbrel .glyph.sys { display: grid; place-items: center; background: none; border: 0; }
-  .umbrel .glyph.emoji { background: rgb(255 255 255 / .1); border: .5px solid rgb(255 255 255 / .18); backdrop-filter: blur(4px); font-size: 32px; }
-  .umbrel .icon:hover .glyph { transform: scale(1.1); box-shadow: 0 0 0 6px rgb(255 255 255 / .25); }
-  .umbrel .name { font-size: 13px; font-weight: 500; max-width: 100px; }
-  .umbrel .state { border-color: rgb(0 0 0 / .7); }
-  @media (max-width: 700px) { .icons.umbrel { inset: 8px 8px auto 8px; max-height: none; overflow: auto; display: flex; flex-direction: column; padding: 4px 0 0; } .hdr { margin-bottom: 8px; } .hdr h1 { font-size: 20px; } }
+  .umbrel .icon { gap: 9px; padding-top: 10px; border-radius: 18px; text-shadow: 0 2px 4px rgb(0 0 0 / .6); color: rgb(255 255 255 / .94); --icon-ring: rgb(0 0 0 / .7); }
+  .umbrel .icon:hover, .umbrel .icon.selected { background: rgb(255 255 255 / .07); border-color: rgb(255 255 255 / .12); }
+  .umbrel .glyph { border-radius: 24%; transition: transform .25s var(--ease), box-shadow .25s; }
+  .umbrel .icon:hover .glyph { transform: scale(1.08); box-shadow: 0 0 0 5px rgb(255 255 255 / .22); }
+  .umbrel .name { font-size: .86rem; font-weight: 500; }
+  @media (max-height: 560px) { .icons.umbrel .hdr :global(svg) { display: none; } }
 </style>

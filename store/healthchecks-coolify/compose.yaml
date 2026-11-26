@@ -21,7 +21,7 @@ services:
     - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-mypassword}
     - EMAIL_USE_SSL=${EMAIL_USE_SSL:-True}
     - EMAIL_USE_TLS=${EMAIL_USE_TLS:-False}
-    image: healthchecks/healthchecks:v4.2
+    image: healthchecks/healthchecks:v5.0.3
     networks:
       appnet:
         aliases:

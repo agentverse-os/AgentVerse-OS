@@ -12,7 +12,7 @@ services:
       DOCKER_HOST: tcp://cloudos-docker-ro:2375
       SECRET_ENCRYPTION_KEY: ${HOMARR_SECRET_ENCRYPTION_KEY}
       TZ: ${TZ}
-    image: ghcr.io/homarr-labs/homarr:v1.76.2
+    image: ghcr.io/homarr-labs/homarr:v2.13.1
     networks:
       appnet:
         aliases:

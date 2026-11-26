@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/bitaxe-sentry/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bitaxe-sentry/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bitaxe-sentry/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitaxe-sentry/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitaxe-sentry/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitaxe-sentry/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,6 +42,10 @@ upstream:
   categories:
   - bitcoin
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Bitaxe Sentry 0.8.0 release notes:
+
     This release adds VR temperature monitoring, fan/pool telemetry, ntfy push notifications, pool latency monitoring, and per-miner notification muting, plus several bug fixes:
       - Added VR temperature tracking and alerting (default threshold 90°C, configurable in settings)
       - Added fan RPM/%, active pool URL, and session best difficulty to the dashboard
@@ -55,6 +59,6 @@ upstream:
       - Fixed history chart timeframes being shared instead of independent per chart
       - Fixed a fatal crash on fresh installs caused by an outdated Starlette TemplateResponse call
   source: https://github.com/zachchan105/bitaxe-sentry
-  version: 0.8.0
+  version: 0.8.0-patch.1
   website: https://github.com/zachchan105/bitaxe-sentry
 website: https://github.com/zachchan105/bitaxe-sentry

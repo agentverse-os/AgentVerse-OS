@@ -10,10 +10,10 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/whoogle-search/4.webp
 health: null
 hooks: {}
 host_docker_socket: false

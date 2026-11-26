@@ -29,7 +29,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: ${TZ}
-    image: ghcr.io/linuxserver/kometa:2.4.8
+    image: ghcr.io/linuxserver/kometa:2.5.5
     networks:
       appnet:
         aliases:

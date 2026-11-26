@@ -10,9 +10,9 @@ endpoint:
   service: nginx
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/invoice-ninja/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/invoice-ninja/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/invoice-ninja/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/invoice-ninja/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/invoice-ninja/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/invoice-ninja/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,10 +42,13 @@ upstream:
   categories:
   - finance
   release_notes: |-
-    This update improves payment and refund handling, client portal switching, password reset validation, tax summary reports, company exports, project linkage, and Swiss QR codes. It also adds Daily Task Digest notifications and support for task due dates and estimated duration.
+    This update includes security fixes for the built-in web server (nginx) that Invoice Ninja uses. There are no changes to Invoice Ninja itself.
 
-    Full release notes are available at https://github.com/invoiceninja/invoiceninja/releases/tag/v5.13.37
+    This update includes improvements to invoice payments and access controls:
+    - Preserves the selected payment amount when choosing a payment method in the client portal. - Improves permission filtering for company data and related records. - Prevents deleted client contacts from accessing the client API.
+
+    Full release notes are available at https://github.com/invoiceninja/invoiceninja/releases/tag/v5.13.53
   source: https://github.com/invoiceninja/invoiceninja
-  version: 5.13.37
+  version: 5.13.53-patch.1
   website: https://invoiceninja.com
 website: https://invoiceninja.com

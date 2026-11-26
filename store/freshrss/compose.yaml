@@ -9,7 +9,7 @@ services:
       PGID: '1000'
       PUID: '1000'
       TZ: ${TZ}
-    image: lscr.io/linuxserver/freshrss:1.29.1
+    image: lscr.io/linuxserver/freshrss:1.30.4
     networks:
       appnet:
         aliases:

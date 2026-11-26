@@ -13,7 +13,7 @@ services:
     - PBW_ENCRYPTION_KEY=${SERVICE_PASSWORD_64_PGBACKWEB}
     - PBW_POSTGRES_CONN_STRING=postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/${POSTGRES_DB:-pgbackweb-db}?sslmode=disable
     - TZ=${TIME_ZONE:-UTC}
-    image: eduardolat/pgbackweb:latest
+    image: eduardolat/pgbackweb:0.5.2
     networks:
       appnet:
         aliases:
@@ -33,14 +33,14 @@ services:
       - CMD-SHELL
       - pg_isready -U ${SERVICE_USER_POSTGRES} -d pgbackweb
       timeout: 5s
-    image: postgres:17
+    image: postgres:18
     networks:
       appnet:
         aliases:
         - pgbackweb-coolify_postgres_1
     restart: unless-stopped
     volumes:
-    - pgbackweb_postgres_data:/var/lib/postgresql/data
+    - pgbackweb_postgres_data:/var/lib/postgresql
 volumes:
   pgbackweb_backups:
     driver: local

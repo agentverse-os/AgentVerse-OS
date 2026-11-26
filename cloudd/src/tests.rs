@@ -101,6 +101,15 @@ fn project_state_addressing() {
 }
 
 #[test]
+fn a_gate_is_recreated_only_when_its_image_is_not_the_current_one() {
+    use crate::service::stale_image;
+    assert!(stale_image(Some("sha256:old"), "sha256:new"));
+    assert!(!stale_image(Some("sha256:new"), "sha256:new"));
+    // a gate that does not exist is the watchdog's business, not the image refresh's
+    assert!(!stale_image(None, "sha256:new"));
+}
+
+#[test]
 fn validate_names() {
     use crate::service::validate_name;
     assert!(validate_name("alpha").is_ok());
@@ -181,7 +190,7 @@ fn edge_config_servers_and_tls() {
         app_state(manifest("grafana", &[], RouteMode::Path, None), None),
         app_state(manifest("noport", &[], RouteMode::Port, None), None), // without an assigned port — skipped
     ];
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "host.docker.internal:7100", agents_upstream: "host.docker.internal:7300", coder_upstream: "coder:7080", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "host.docker.internal:7100", agents_upstream: "host.docker.internal:7300", coder_upstream: "coder:7080", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: true, admin_listen: "0.0.0.0:2019", deny_ranges: &[], allow_ips: &[] });
     let servers = cfg["apps"]["http"]["servers"].as_object().unwrap();
     let mut names: Vec<_> = servers.keys().cloned().collect();
     names.sort();
@@ -193,30 +202,38 @@ fn edge_config_servers_and_tls() {
     // "Agents" as a separate app: its own server on :8445, `/` → `/agents/`, the rest — to the service with
     // compression
     assert_eq!(servers["agents"]["listen"][0], ":8445");
-    assert_eq!(servers["agents"]["routes"][0]["match"][0]["path"][0], "/");
-    assert_eq!(servers["agents"]["routes"][0]["handle"][0]["status_code"], 302);
-    assert_eq!(servers["agents"]["routes"][0]["handle"][0]["headers"]["Location"][0], "/agents/");
-    assert_eq!(servers["agents"]["routes"][1]["handle"][0]["handler"], "encode");
-    assert_eq!(servers["agents"]["routes"][1]["handle"][1]["upstreams"][0]["dial"], "host.docker.internal:7300");
+    // the first route is the guard against other sites (ADR-010); with no docker networks known there is no network guard
+    assert_eq!(servers["agents"]["routes"].as_array().unwrap().len(), 3);
+    assert_eq!(servers["agents"]["routes"][0]["handle"][0]["status_code"], 403);
+    assert_eq!(servers["agents"]["routes"][1]["match"][0]["path"][0], "/");
+    assert_eq!(servers["agents"]["routes"][1]["handle"][0]["status_code"], 302);
+    assert_eq!(servers["agents"]["routes"][1]["handle"][0]["headers"]["Location"][0], "/agents/");
+    assert_eq!(servers["agents"]["routes"][2]["handle"][0]["handler"], "encode");
+    assert_eq!(servers["agents"]["routes"][2]["handle"][1]["upstreams"][0]["dial"], "host.docker.internal:7300");
     assert_eq!(servers["coder"]["routes"][0]["handle"][1]["upstreams"][0]["dial"], "coder:7080");
     assert_eq!(servers["app-whoami"]["listen"][0], ":8450");
     // a path app — a route inside the desktop server, before the
     // catch-all
     let routes = servers["desktop"]["routes"].as_array().unwrap();
-    assert_eq!(routes.len(), 3);
-    // the "Agents" service goes first: /agents/* goes to its port,
-    // bypassing the core
+    assert_eq!(routes.len(), 5);
+    // the "Agents" service goes first: /agents/* goes to its port, bypassing the core — behind its guard
+    assert_eq!(routes[0]["handle"][0]["status_code"], 403);
     assert_eq!(routes[0]["match"][0]["path"][1], "/agents/*");
-    assert_eq!(routes[0]["handle"][1]["upstreams"][0]["dial"], "host.docker.internal:7300");
-    assert_eq!(routes[1]["match"][0]["path"][0], "/apps/grafana/*");
-    assert_eq!(routes[2]["handle"][1]["handler"], "encode"); // API/shell compression before proxying
-    assert_eq!(routes[2]["handle"][2]["upstreams"][0]["dial"], "host.docker.internal:7100");
+    assert_eq!(routes[1]["match"][0]["path"][1], "/agents/*");
+    assert_eq!(routes[1]["handle"][1]["upstreams"][0]["dial"], "host.docker.internal:7300");
+    // a path app is not the control plane: its route stands before the core's guard
+    assert_eq!(routes[2]["match"][0]["path"][0], "/apps/grafana/*");
+    assert_eq!(routes[3]["handle"][0]["status_code"], 403);
+    assert_eq!(routes[3]["match"][0]["host"][0], "box.example");
+    assert_eq!(routes[4]["handle"][1]["handler"], "encode"); // API/shell compression before proxying
+    assert_eq!(routes[4]["handle"][2]["upstreams"][0]["dial"], "host.docker.internal:7100");
     // Desktop must not be framed; an app with open: iframe only from the Desktop
     // origin
-    assert_eq!(routes[2]["handle"][0]["response"]["set"]["X-Frame-Options"][0], "DENY");
+    assert_eq!(routes[4]["handle"][0]["response"]["set"]["X-Frame-Options"][0], "DENY");
+    assert_eq!(cfg["admin"]["listen"], "0.0.0.0:2019");
     assert_eq!(servers["app-whoami"]["routes"][0]["handle"][0]["response"]["set"]["Content-Security-Policy"][0], "frame-ancestors 'self' https://box.example https://box.example:8445");
     assert_eq!(cfg["apps"]["tls"]["automation"]["policies"][0]["issuers"][0]["module"], "internal");
-    let cfg2 = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &[], previews: &[], tls_internal: false });
+    let cfg2 = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &[], previews: &[], tls_internal: false, admin_listen: "0.0.0.0:2019", deny_ranges: &[], allow_ips: &[] });
     assert!(cfg2["apps"].get("tls").is_none(), "без internal CA — обычная автоматизация Caddy");
 }
 
@@ -512,7 +529,7 @@ fn garage_manifest_provides_storage_s3_with_hooks() {
 
 #[test]
 fn edge_alt_hosts_share_routes_and_certificate() {
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &["100.64.0.9".to_string()], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &[], previews: &[], tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &["100.64.0.9".to_string()], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &[], previews: &[], tls_internal: true, admin_listen: "0.0.0.0:2019", deny_ranges: &[], allow_ips: &[] });
     let text = serde_json::to_string(&cfg).unwrap();
     assert!(text.contains(r#"["box.example","100.64.0.9"]"#), "host-матчеры и subjects должны включать IP: {text}");
     assert!(text.contains("frame-ancestors 'self' https://box.example https://box.example:8445 https://100.64.0.9 https://100.64.0.9:8445"));
@@ -570,7 +587,7 @@ fn generate_rotation_yields_new_value_of_same_shape() {
 
 #[test]
 fn edge_no_h3_and_compresses_api() {
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &[], previews: &[], tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &[], previews: &[], tls_internal: true, admin_listen: "0.0.0.0:2019", deny_ranges: &[], allow_ips: &[] });
     let text = serde_json::to_string(&cfg).unwrap();
     assert!(text.contains(r#""protocols":["h1","h2"]"#));
     assert!(text.contains(r#""handler":"encode""#));
@@ -579,7 +596,7 @@ fn edge_no_h3_and_compresses_api() {
 #[test]
 fn edge_app_servers_have_friendly_error_page() {
     let apps = vec![app_state(manifest("whoami", &[], RouteMode::Port, Some(8450)), Some(8450))];
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: true, admin_listen: "0.0.0.0:2019", deny_ranges: &[], allow_ips: &[] });
     let errs = &cfg["apps"]["http"]["servers"]["app-whoami"]["errors"]["routes"][0]["handle"];
     assert_eq!(errs[1]["handler"], "static_response");
     assert!(errs[1]["body"].as_str().unwrap().contains("#app=whoami"));
@@ -619,12 +636,12 @@ fn appdata_mounts_expand_and_owner_from_compose() {
 fn edge_tailscale_mode_leaves_ts_net_host_to_caddy_and_keeps_internal_ca_for_alt_hosts() {
     let apps = vec![app_state(manifest("whoami", &[], RouteMode::Port, Some(8450)), Some(8450))];
     let alts = vec!["100.101.102.103".to_string()];
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.tail1234.ts.net", alt_hosts: &alts, cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: false });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.tail1234.ts.net", alt_hosts: &alts, cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: false, admin_listen: "0.0.0.0:2019", deny_ranges: &[], allow_ips: &[] });
     let policies = cfg["apps"]["tls"]["automation"]["policies"].as_array().unwrap();
     assert_eq!(policies.len(), 1);
     assert_eq!(policies[0]["subjects"], serde_json::json!(["100.101.102.103"]));
     assert_eq!(policies[0]["issuers"][0]["module"], "internal");
-    let no_alts = EdgeCaddy::render(&EdgeInput { host: "box.tail1234.ts.net", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: false });
+    let no_alts = EdgeCaddy::render(&EdgeInput { host: "box.tail1234.ts.net", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "a", coder_upstream: "y", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: false, admin_listen: "0.0.0.0:2019", deny_ranges: &[], allow_ips: &[] });
     assert!(no_alts["apps"].get("tls").is_none(), "без запасных имён политики TLS не нужны — Caddy сам обслужит .ts.net");
 }
 
@@ -725,6 +742,21 @@ fn floating_tags_from_compose() {
 }
 
 #[test]
+fn a_major_or_minor_line_is_a_floating_tag_too() {
+    use crate::updates::exact_tag;
+    // one build: a full version, a date, a build number
+    for t in ["1.2.3", "v2.15.0", "v2026.8.31", "0.9.0-rc.1-cpu", "1.8.0.0", "2024.10.22-7ca5933", "RELEASE.2023-03-20T20-16-18Z", "2024-10-22", "20241022", "1.109.1"] {
+        assert!(exact_tag(t), "{t} names one build");
+    }
+    // a line that keeps moving: the patch releases of a major or minor, a channel name
+    for t in ["2", "v8", "16-alpine", "7-alpine", "1.25", "v1.11", "2.11", "main-stable", "lts", "latest", "nightly"] {
+        assert!(!exact_tag(t), "{t} moves with the releases");
+    }
+    let c = "services:\n  app:\n    image: louislam/uptime-kuma:2\n  db:\n    image: postgres:16-alpine\n  log:\n    image: amir20/dozzle:v8\n  pinned:\n    image: caddy:2@sha256:abc\n  exact:\n    image: n8nio/n8n:2.47.7\n";
+    assert_eq!(crate::updates::floating_tags(c), vec!["louislam/uptime-kuma:2", "postgres:16-alpine", "amir20/dozzle:v8"]);
+}
+
+#[test]
 fn component_titles_and_file_names() {
     use crate::updates::{component_title, safe_file_name};
     assert_eq!(component_title("03-edge", "cloudos-edge"), "Edge (Caddy)");
@@ -764,6 +796,25 @@ fn package_inspect_verifies_sha_and_lists_store() {
     let bad = make_package(d.path(), "0.3.1", false);
     let e = crate::updates::inspect_package(&bad).unwrap_err().to_string();
     assert!(e.contains("sha256"), "{e}");
+}
+
+#[test]
+fn update_packages_are_pruned_to_the_newest_and_inspected_once() {
+    let d = tmp();
+    let dir = d.path().join("updates"); std::fs::create_dir_all(&dir).unwrap();
+    // eight packages a minute apart, a staging directory and a foreign file
+    let base = std::time::SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(1_794_000_000);
+    for i in 0..8u64 {
+        let p = dir.join(format!("upload-{i}-agentverse-os-0.2.0-x86_64.tar.gz")); std::fs::write(&p, b"x").unwrap();
+        std::fs::File::options().write(true).open(&p).unwrap().set_modified(base + std::time::Duration::from_secs(i * 60)).unwrap();
+    }
+    std::fs::create_dir_all(dir.join("stage-0.2.0")).unwrap(); std::fs::write(dir.join("notes.txt"), b"keep").unwrap();
+    assert_eq!(crate::updates::prune_dir(&dir, crate::updates::KEEP_PACKAGES), 3);
+    let mut left: Vec<String> = std::fs::read_dir(&dir).unwrap().flatten().map(|e| e.file_name().to_string_lossy().to_string()).collect(); left.sort();
+    assert_eq!(left, ["notes.txt", "stage-0.2.0", "upload-3-agentverse-os-0.2.0-x86_64.tar.gz", "upload-4-agentverse-os-0.2.0-x86_64.tar.gz", "upload-5-agentverse-os-0.2.0-x86_64.tar.gz", "upload-6-agentverse-os-0.2.0-x86_64.tar.gz", "upload-7-agentverse-os-0.2.0-x86_64.tar.gz"], "the five newest stay, other files are not touched");
+    assert_eq!(crate::updates::prune_dir(&dir, crate::updates::KEEP_PACKAGES), 0, "nothing more to delete");
+    // a package that does not read as an archive is an error every time, not a cached answer
+    assert!(crate::updates::inspect_cached(&dir.join("upload-7-agentverse-os-0.2.0-x86_64.tar.gz")).is_err());
 }
 
 #[test]
@@ -843,19 +894,92 @@ fn copy_store_keeps_hooks_and_skips_user_files() {
 fn edge_renders_preview_routes_like_port_apps() {
     use crate::caddy::PreviewRoute;
     let pv = vec![
-        PreviewRoute { project: "alpha".into(), port: 3000, edge_port: 8451, upstream: Some("10.77.7.146:3000".into()) },
+        PreviewRoute { project: "alpha".into(), port: 3000, edge_port: 8451, upstream: Some("10.77.1.10:3000".into()) },
         PreviewRoute { project: "alpha".into(), port: 5173, edge_port: 8452, upstream: None },
     ];
-    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "y", coder_upstream: "z", coder_port: 8444, agents_port: 8445, apps: &[], previews: &pv, tls_internal: true });
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &[], cloudd_upstream: "x", agents_upstream: "y", coder_upstream: "z", coder_port: 8444, agents_port: 8445, apps: &[], previews: &pv, tls_internal: true, admin_listen: "0.0.0.0:2019", deny_ranges: &[], allow_ips: &[] });
     let servers = &cfg["apps"]["http"]["servers"];
     let s1 = &servers["preview-alpha-3000"];
     assert_eq!(s1["listen"][0], ":8451");
     let handle = &s1["routes"][0]["handle"];
     assert!(handle[0]["response"]["set"]["Content-Security-Policy"][0].as_str().unwrap().contains("frame-ancestors 'self' https://box.example"), "превью встраивается в Desktop и «Агенты»");
-    assert_eq!(handle[1]["upstreams"][0]["dial"], "10.77.7.146:3000");
+    assert_eq!(handle[1]["upstreams"][0]["dial"], "10.77.1.10:3000");
     assert!(s1["errors"]["routes"][0]["handle"][1]["body"].as_str().unwrap().contains("превью alpha :3000"));
     // the workspace is not running — the server exists, a stub upstream, the error
     // page explains
     assert_eq!(servers["preview-alpha-5173"]["listen"][0], ":8452");
     assert_eq!(servers["preview-alpha-5173"]["routes"][0]["handle"][1]["upstreams"][0]["dial"], "127.0.0.1:9");
+}
+
+// ---------- perimeter (ADR-010) ----------
+
+#[test]
+fn edge_guards_refuse_other_sites_and_app_networks() {
+    let apps = vec![app_state(manifest("grafana", &[], RouteMode::Path, None), None)];
+    let deny = vec!["10.200.1.0/24".to_string(), "10.200.9.0/24".to_string()];
+    let allow = vec!["10.200.1.1/32".to_string()];
+    let cfg = EdgeCaddy::render(&EdgeInput { host: "box.example", alt_hosts: &["100.64.0.9".to_string()], cloudd_upstream: "unix//run/cloudos-edge/cloudd.sock", agents_upstream: "unix//run/cloudos-edge/agents.sock", coder_upstream: "coder:7080", coder_port: 8444, agents_port: 8445, apps: &apps, previews: &[], tls_internal: true, admin_listen: "unix//run/cloudos-edge/admin.sock", deny_ranges: &deny, allow_ips: &allow });
+    // the admin API and both upstreams are sockets in the shared directory: nothing of them is on a docker network
+    assert_eq!(cfg["admin"]["listen"], "unix//run/cloudos-edge/admin.sock");
+    let servers = &cfg["apps"]["http"]["servers"];
+    let d = servers["desktop"]["routes"].as_array().unwrap();
+    // guards for /agents (two), the service, the path app, guards for the core (two), the core
+    assert_eq!(d.len(), 7);
+    assert_eq!(d[2]["handle"][1]["upstreams"][0]["dial"], "unix//run/cloudos-edge/agents.sock");
+    assert_eq!(d[6]["handle"][2]["upstreams"][0]["dial"], "unix//run/cloudos-edge/cloudd.sock");
+    assert_eq!(d[3]["match"][0]["path"][0], "/apps/grafana/*", "приложение под префиксом остаётся перед стражами ядра");
+
+    // 1. another site: a state-changing method or a WebSocket with an Origin that is not ours
+    for (g, scope) in [(&d[0], "path"), (&d[4], "host")] {
+        assert_eq!(g["terminal"], true);
+        assert_eq!(g["handle"][0]["status_code"], 403);
+        let sets = g["match"].as_array().unwrap();
+        assert_eq!(sets.len(), 2);
+        for s in sets {
+            assert!(s.get(scope).is_some(), "страж сопоставляется вместе с маршрутом, который охраняет: {s}");
+            assert_eq!(s["header"]["Origin"], serde_json::json!(["*"]), "только когда Origin есть: curl и установщик сервера проходят");
+            assert_eq!(s["not"][0]["header"]["Origin"], serde_json::json!(["https://box.example", "https://box.example:8445", "https://100.64.0.9", "https://100.64.0.9:8445"]));
+            // the system share sheet of a phone posts into the installed app without a page behind it: `Origin: null`, this path only
+            assert_eq!(s["not"][1], serde_json::json!({ "path": ["/agents/share"], "header": { "Origin": ["null"] } }));
+            assert_eq!(s["not"].as_array().unwrap().len(), 2);
+        }
+        assert_eq!(sets[0]["method"], serde_json::json!(["POST", "PUT", "PATCH", "DELETE", "CONNECT"]));
+        assert!(sets[0]["header"].get("Upgrade").is_none());
+        assert_eq!(sets[1]["header"]["Upgrade"][0], "websocket");
+        assert!(sets[1].get("method").is_none(), "WebSocket открывается запросом GET");
+    }
+    // 2. a container that shares a docker network with the edge; the NAT gateway is let through
+    for g in [&d[1], &d[5]] {
+        assert_eq!(g["handle"][0]["status_code"], 403);
+        assert_eq!(g["match"][0]["remote_ip"]["ranges"], serde_json::json!(["10.200.1.0/24", "10.200.9.0/24"]));
+        assert_eq!(g["match"][0]["not"][0]["remote_ip"]["ranges"], serde_json::json!(["10.200.1.1/32"]));
+    }
+    // the same guards on the separate "Agents" origin; Coder, apps and previews keep their own doors
+    let a = servers["agents"]["routes"].as_array().unwrap();
+    assert_eq!(a.len(), 4);
+    assert_eq!(a[0]["handle"][0]["status_code"], 403);
+    assert_eq!(a[1]["match"][0]["remote_ip"]["ranges"][0], "10.200.1.0/24");
+    assert_eq!(a[3]["handle"][1]["upstreams"][0]["dial"], "unix//run/cloudos-edge/agents.sock");
+    assert_eq!(servers["coder"]["routes"].as_array().unwrap().len(), 1);
+}
+
+#[test]
+fn share_target_path_matches_the_app_manifest() {
+    let m: serde_json::Value = serde_json::from_str(include_str!("../../agents/ui/public/manifest.webmanifest")).unwrap();
+    assert_eq!(m["share_target"]["action"], "/agents/share", "страж edge пропускает общий лист телефона именно по этому пути");
+    assert_eq!(m["share_target"]["method"], "POST");
+}
+
+#[test]
+fn edge_upstreams_follow_the_container() {
+    std::env::set_var("CLOUDD_EDGE_HOST", "box.example");
+    std::env::set_var("CLOUDD_ENV_FILE", "/nonexistent/cloudd.env");
+    for k in ["CLOUDD_LISTEN", "CLOUDD_EDGE_RUN_DIR", "CLOUDD_EDGE_CLOUDD_UPSTREAM", "CLOUDD_EDGE_AGENTS_UPSTREAM"] { std::env::remove_var(k); }
+    let cfg = crate::config::Config::load().unwrap();
+    assert_eq!(cfg.listen, vec!["127.0.0.1:7100"], "мост Docker по умолчанию не слушается");
+    // a container with the shared directory: sockets everywhere
+    assert_eq!(cfg.edge_upstreams(true), ("unix//run/cloudos-edge/cloudd.sock".to_string(), "unix//run/cloudos-edge/agents.sock".to_string(), "unix//run/cloudos-edge/admin.sock".to_string()));
+    // one created before ADR-010: the docker bridge and the TCP admin API, as it was
+    assert_eq!(cfg.edge_upstreams(false), ("host.docker.internal:7100".to_string(), "host.docker.internal:7300".to_string(), "0.0.0.0:2019".to_string()));
+    assert_eq!(cfg.edge_bridge_listen, "172.17.0.1:7100");
 }

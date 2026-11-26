@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/snowflake/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/snowflake/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/snowflake/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/snowflake/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/snowflake/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/snowflake/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,14 +42,10 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    This update improves validation of WebRTC offers and answers to avoid crashes from malformed session descriptions.
+    This update includes security fixes for dependencies used by Snowflake.
 
-    It also adds SOCKS5-based interactive connectivity testing for Snowflake.
-
-    Release information: https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/-/releases/v2.14.1
-
-    Compare to v2.14.0: https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/-/compare/v2.14.0...v2.14.1
+    Full release notes: https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/-/blob/v2.15.4/ChangeLog
   source: https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/-/tree/main
-  version: v2.14.1
+  version: v2.15.4
   website: https://snowflake.torproject.org/
 website: https://snowflake.torproject.org/

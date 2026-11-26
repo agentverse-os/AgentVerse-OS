@@ -11,7 +11,7 @@ endpoint:
 env:
   AWS_REGION: us-east-1
   AWS_SESSION_TOKEN: ''
-  CELLD_VERSION: latest
+  CELLD_VERSION: v0.6.3
   RUST_LOG: info
   S3_ENDPOINT: ''
   SERVICE_URL_CELLD_8080: https://${APP_DOMAIN}
@@ -19,7 +19,7 @@ gallery: []
 health: null
 hooks: {}
 host_docker_socket: false
-icon: ./logo.svg
+icon: null
 login:
   mode: app
   note: null
@@ -38,7 +38,7 @@ route:
 schema: 1
 settings:
 - env: CELLD_VERSION
-  hint: 'по умолчанию: latest'
+  hint: 'по умолчанию: v0.6.3'
   label: celld version
   options: null
   required: false

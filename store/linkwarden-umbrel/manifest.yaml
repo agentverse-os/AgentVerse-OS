@@ -11,9 +11,9 @@ endpoint:
 env:
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/linkwarden/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/linkwarden/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/linkwarden/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/linkwarden/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/linkwarden/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/linkwarden/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,10 +43,18 @@ upstream:
   categories:
   - social
   release_notes: |-
-    This release fixes case-insensitive sorting in Docker-based installs, addresses other bugs, and updates dependencies.
+    This update lets you connect an AI provider, such as OpenAI or the Ollama app, in Linkwarden's app settings on umbrelOS 2.0 for automatic tagging.
 
-    Full release notes can be found at https://github.com/linkwarden/linkwarden/releases/tag/v2.16.2
+    Previous Linkwarden 2.17.0 release notes:
+
+    This release adds custom link ordering, smoother browsing of large collections, and security improvements.
+
+    - Drag links into a custom order within collections. - Browse large lists of links, collections, and tags more smoothly. - Import bookmarks more reliably while preserving their original dates. - Benefit from stronger password protection and other security fixes.
+
+    Changing your password now signs out other devices and revokes access tokens. Sign back into browser extensions and integrations after changing your password.
+
+    Full release notes can be found at https://github.com/linkwarden/linkwarden/releases/tag/v2.17.0
   source: https://github.com/linkwarden/linkwarden
-  version: 2.16.2
+  version: 2.17.0-patch.1
   website: https://linkwarden.app
 website: https://linkwarden.app

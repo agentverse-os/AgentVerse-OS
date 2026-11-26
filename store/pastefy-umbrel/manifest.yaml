@@ -11,11 +11,11 @@ endpoint:
 env:
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pastefy/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,10 +45,14 @@ upstream:
   categories:
   - developer
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Pastefy 7.1.6 release notes:
+
     This update contains bug fixes and performance improvements.
 
     Full release notes can be found at https://github.com/interaapps/pastefy/releases
   source: https://github.com/interaapps/pastefy
-  version: 7.1.6
+  version: 7.1.6-patch.1
   website: https://pastefy.app/
 website: https://pastefy.app/

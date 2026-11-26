@@ -14,12 +14,12 @@ env:
   POSTGRES_DB: ''
   POSTGRES_USER: ''
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/5.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/6.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/5.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kitchenowl/6.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -61,6 +61,10 @@ upstream:
   categories:
   - files
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous KitchenOwl 0.7.10 release notes:
+
     This release includes security improvements and fixes:
       - Fixed a recipe privacy issue where logged-in users could access private recipes
       - Fixed recipe authorization when adding recipes to the meal planner
@@ -70,6 +74,6 @@ upstream:
 
     Full release notes: https://github.com/TomBursch/kitchenowl/releases/tag/v0.7.10
   source: https://github.com/TomBursch/kitchenowl
-  version: 0.7.10
+  version: 0.7.10-patch.1
   website: https://kitchenowl.org/
 website: https://kitchenowl.org/

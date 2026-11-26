@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   app:
-    image: ghcr.io/muchobien/pocketbase:0.40.1@sha256:8b14308d9634c37bfb4d8ecfd7b90e5961b0f0b4e6b7c8d7116f4c68fabbe58c
+    image: ghcr.io/muchobien/pocketbase:0.40.6@sha256:9a0be68a80ca1348ba8d15f217b3f983be4c094b3c571a09b3ebdeb357259338
     networks:
       appnet:
         aliases:

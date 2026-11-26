@@ -17,7 +17,7 @@ services:
       - --spider
       - http://127.0.0.1:8080
       timeout: 20s
-    image: ghcr.io/alam00000/bentopdf:v1.16.1
+    image: ghcr.io/alam00000/bentopdf:v2.8.11
     networks:
       appnet:
         aliases:

@@ -9,23 +9,18 @@ endpoint:
   port: 3000
   service: reactive-resume
 env:
-  POSTGRES_DB: postgres
+  FLAG_DISABLE_EMAIL_AUTH: 'false'
+  FLAG_DISABLE_SIGNUPS: 'false'
+  POSTGRES_DB: reactive_resume
   POSTGRES_USER: ''
-  SERVICE_PASSWORD_ACCESSTOKEN:
-    generate: password
-  SERVICE_PASSWORD_CHROMETOKEN:
-    generate: password
-  SERVICE_PASSWORD_MINIO:
-    generate: password
+  SERVICE_PASSWORD_64_AUTHSECRET:
+    generate: hex64
+  SERVICE_PASSWORD_64_ENCRYPTIONSECRET:
+    generate: hex64
   SERVICE_PASSWORD_POSTGRES:
     generate: password
-  SERVICE_PASSWORD_REFRESHTOKEN:
-    generate: password
-  SERVICE_URL_MINIO: https://${APP_DOMAIN}
   SERVICE_URL_REACTIVERESUME: https://${APP_DOMAIN}
   SERVICE_URL_REACTIVERESUME_3000: https://${APP_DOMAIN}
-  SERVICE_USER_MINIO:
-    generate: password
   SERVICE_USER_POSTGRES:
     generate: password
 gallery: []
@@ -51,8 +46,20 @@ route:
 schema: 1
 settings:
 - env: POSTGRES_DB
-  hint: 'по умолчанию: postgres'
+  hint: 'по умолчанию: reactive_resume'
   label: postgres db
+  options: null
+  required: false
+  type: text
+- env: FLAG_DISABLE_SIGNUPS
+  hint: 'по умолчанию: false'
+  label: flag disable signups
+  options: null
+  required: false
+  type: text
+- env: FLAG_DISABLE_EMAIL_AUTH
+  hint: 'по умолчанию: false'
+  label: flag disable email auth
   options: null
   required: false
   type: text
@@ -72,11 +79,11 @@ type: app
 upstream:
   categories:
   - productivity
-  source: https://rxresu.me/
+  source: https://docs.rxresu.me/self-hosting/docker
   tags:
   - reactive-resume
   - resume-builder
   - open-source
   - 2fa
   template: reactive-resume.yaml
-website: https://rxresu.me/
+website: https://docs.rxresu.me/self-hosting/docker

@@ -46,8 +46,13 @@ upstream:
   author: syslog-ng team
   categories:
   - networking
-  release_notes: Fixed an issue where the web log viewer could show 0 logs on fresh installs until the app was restarted.
+  release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Syslog-ng 4.10.2-1 release notes:
+
+    Fixed an issue where the web log viewer could show 0 logs on fresh installs until the app was restarted.
   source: https://github.com/syslog-ng/syslog-ng
-  version: 4.10.2-1
+  version: 4.10.2-1-patch.1
   website: https://www.syslog-ng.com/
 website: https://www.syslog-ng.com/

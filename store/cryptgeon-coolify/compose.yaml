@@ -25,7 +25,7 @@ services:
       - --fail
       - http://127.0.0.1:8000/api/live/
       timeout: 3s
-    image: cupcakearmy/cryptgeon:latest
+    image: cupcakearmy/cryptgeon:2.9.3
     networks:
       appnet:
         aliases:

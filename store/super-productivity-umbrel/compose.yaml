@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   web:
-    image: johannesjo/super-productivity:v18.21.2@sha256:7bf1dc87be356bb049c03782b62aa81f7ebc49a064bb4ae3934da868e05b3840
+    image: johannesjo/super-productivity:v20.0.0@sha256:99004ec9e1996fd7d266a108cdeedfb73adb507587f53ea32361870dae94a261
     networks:
       appnet:
         aliases:

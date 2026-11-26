@@ -8,12 +8,14 @@ services:
     environment:
     - PUID=1000
     - PGID=1000
-    image: linuxserver/libreoffice:7.6.7@sha256:a62c7f094f2a7ed8145983d04f54ca80d85b557bbdda0f9aa784ccb6267b70e8
+    hostname: libreoffice
+    image: linuxserver/libreoffice:25.8.7@sha256:cd95f41ecfc36dab3af29eb9dba21271a0d828dc512f2c46294cf3341e0cd0c3
     networks:
       appnet:
         aliases:
         - libreoffice_server_1
     restart: on-failure
+    shm_size: 1gb
     stop_grace_period: 1m
     volumes:
     - ${APP_DATA_DIR}/data/config:/config

@@ -15,7 +15,7 @@ services:
       - CMD-SHELL
       - bash -c ':> /dev/tcp/127.0.0.1/80' || exit 1
       timeout: 20s
-    image: freshrss/freshrss:latest
+    image: freshrss/freshrss:1.30.4
     networks:
       appnet:
         aliases:

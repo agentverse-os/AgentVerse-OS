@@ -44,10 +44,12 @@ upstream:
   categories:
   - files
   release_notes: |-
-    - Added archive downloads so folders or the whole vault can be downloaded as ZIP files.
-    - Improved share and export security by escaping wikilink targets, labels, and note titles in generated HTML.
-    - Logout now uses POST-only session handling to prevent forced logouts from simple GET requests.
+    - Download all notes or a single folder, including attachments, as a ZIP file from Settings.
+    - Graph connections now appear immediately when you create a note referenced by an existing wikilink.
+    - Quoted frontmatter tags are now recognized consistently without modifying your notes.
+
+    Full release notes can be found at https://github.com/gamosoft/NoteDiscovery/releases/tag/v0.35.0
   source: https://github.com/gamosoft/NoteDiscovery
-  version: 0.31.4
+  version: 0.35.0
   website: https://www.notediscovery.com/
 website: https://www.notediscovery.com/

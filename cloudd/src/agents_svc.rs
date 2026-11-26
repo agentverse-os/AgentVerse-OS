@@ -15,8 +15,17 @@ pub const SERVICE: &str = "cloudos-agents";
 
 async fn sc(args: &[&str]) -> Result<std::process::Output> { crate::setup::run("systemctl", args, Duration::from_secs(60)).await }
 
+/// The unit for this host: the socket the edge dials (ADR-010) and — only for an edge container created without the shared
+/// socket directory — the docker bridge address as a second listener.
+pub fn render_unit(sock: &Path, bridge: Option<&str>) -> String {
+    let mut u = UNIT.replace("AGENTS_SOCKET=/run/cloudos-edge/agents.sock", &format!("AGENTS_SOCKET={}", sock.display()));
+    if let Some(b) = bridge.filter(|b| !b.is_empty()) { u = u.replace("AGENTS_LISTEN=127.0.0.1:7300", &format!("AGENTS_LISTEN=127.0.0.1:7300,{b}")); }
+    u
+}
+
 /// Install or update the service on the host. Returns what changed.
-pub async fn ensure_installed() -> Result<Vec<&'static str>> {
+pub async fn ensure_installed(sock: &Path, bridge: Option<&str>) -> Result<Vec<&'static str>> {
+    let unit = render_unit(sock, bridge);
     let mut changed = Vec::new();
     if BIN.is_empty() {
         tracing::warn!("cloudos-agents не встроен в cloudd — сервис «Агенты» не ставится");
@@ -33,8 +42,8 @@ pub async fn ensure_installed() -> Result<Vec<&'static str>> {
         std::fs::rename(&tmp, BIN_PATH).with_context(|| format!("замена {BIN_PATH}"))?;
         changed.push("binary");
     }
-    if std::fs::read_to_string(UNIT_PATH).ok().as_deref() != Some(UNIT) {
-        std::fs::write(UNIT_PATH, UNIT).with_context(|| format!("запись {UNIT_PATH}"))?;
+    if std::fs::read_to_string(UNIT_PATH).ok().as_deref() != Some(unit.as_str()) {
+        std::fs::write(UNIT_PATH, &unit).with_context(|| format!("запись {UNIT_PATH}"))?;
         changed.push("unit");
     }
     if changed.contains(&"unit") { sc(&["daemon-reload"]).await.context("daemon-reload")?; }
@@ -59,5 +68,16 @@ mod tests {
     fn unit_runs_the_installed_binary() {
         assert!(UNIT.contains(&format!("ExecStart={BIN_PATH}")), "юнит должен запускать бинарь из BIN_PATH");
         assert!(UNIT.contains("After=network-online.target cloudd.service"), "сервис стартует после ядра");
+    }
+
+    #[test]
+    fn unit_listens_on_the_bridge_only_for_an_old_edge() {
+        let sock = Path::new("/run/cloudos-edge/agents.sock");
+        let new = render_unit(sock, None);
+        assert!(new.contains("Environment=AGENTS_LISTEN=127.0.0.1:7300\n") && new.contains("Environment=AGENTS_SOCKET=/run/cloudos-edge/agents.sock\n"), "{new}");
+        assert!(!new.contains("172.17.0.1"), "без старого edge мост Docker не слушается: {new}");
+        let old = render_unit(sock, Some("172.17.0.1:7300"));
+        assert!(old.contains("Environment=AGENTS_LISTEN=127.0.0.1:7300,172.17.0.1:7300\n") && old.contains("AGENTS_SOCKET=/run/cloudos-edge/agents.sock"), "{old}");
+        assert!(render_unit(Path::new("/srv/edge-run/agents.sock"), None).contains("Environment=AGENTS_SOCKET=/srv/edge-run/agents.sock\n"));
     }
 }

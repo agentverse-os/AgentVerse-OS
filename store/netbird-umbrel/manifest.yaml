@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/netbird/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/netbird/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/netbird/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/netbird/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/netbird/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/netbird/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,12 +42,14 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    This update fixes Linux session extension and SSH authentication so they no longer always use the device code flow.
+    This update includes security fixes for the built-in web server (nginx) that NetBird uses. There are no changes to NetBird itself.
 
-    It also improves debug bundle privacy, route handling, and client behavior across supported platforms.
+    This maintenance release keeps NetBird aligned with the latest upstream version. There are no Linux-specific changes in this release.
 
-    Full release notes can be found at https://github.com/netbirdio/netbird/releases/tag/v0.77.1
+    Advanced users: TCP daemon connections are no longer supported. Use the Unix socket for custom CLI integrations.
+
+    Full release notes can be found at https://github.com/netbirdio/netbird/releases/tag/v0.83.1
   source: https://github.com/netbirdio/netbird
-  version: 0.77.1
+  version: 0.83.1-patch.1
   website: https://netbird.io/
 website: https://netbird.io/

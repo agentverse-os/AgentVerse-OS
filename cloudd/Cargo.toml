@@ -21,7 +21,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml_ng = "0.10"
 clap = { version = "4", features = ["derive", "env"] }
-rusqlite = { version = "0.37", features = ["bundled"] }
+rusqlite = { version = "0.41", features = ["bundled"] }
 age = { version = "0.11", features = ["armor"] }
 secrecy = "0.10"
 rand = "0.9"
@@ -42,6 +42,7 @@ sha2 = "0.10"
 feed-rs = "2"
 urlencoding = "2"
 sysinfo = "0.33"
+libc = "0.2"   # pidfd_open / pidfd_send_signal and openat for the memory pressure watch (ADR-009)
 
 [dev-dependencies]
 tempfile = "3"

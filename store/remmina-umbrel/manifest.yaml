@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/remmina/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/remmina/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/remmina/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/remmina/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/remmina/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/remmina/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,15 +42,12 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    This release includes several improvements and bug fixes:
-      - Fixed build issues for OpenSSL 1.1
-      - Added support for running SSH commands when connecting via SSH tunnel
-      - Resolved compilation issues with GCC-14
-      - Fixed a crash related to the 'disable password storing' feature
-      - Updated handling of load balancing information
+    This update brings Remmina from 1.4.35 to 1.4.43, with bug fixes and improvements across its RDP, VNC, and SSH support.
 
-    For full release notes, visit https://gitlab.com/Remmina/Remmina/-/releases
+    Remmina now streams to your browser with a new, smoother web desktop, and it opens over HTTPS. Your saved connections and settings are kept.
+
+    Full release notes are available at https://gitlab.com/Remmina/Remmina/-/releases
   source: https://gitlab.com/Remmina/Remmina
-  version: 1.4.35
+  version: 1.4.43
   website: https://remmina.org
 website: https://remmina.org

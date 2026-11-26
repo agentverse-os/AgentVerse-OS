@@ -10,7 +10,7 @@ services:
         condition: service_healthy
     environment:
       NC_DB: pg://nocodb_postgres_1:5432?u=nocodb&p=itworkslocally&d=nocodb
-    image: nocodb/nocodb:2026.08.1@sha256:2aacc3c704d4f74b27e2a39ac838ac9019c0b008bbbfff673b541a3a75ee1579
+    image: nocodb/nocodb:2026.10.1@sha256:8c2dd06896d95e750d55010e529972c22c1ee73b22dce321b1d2de2e7d5cd6ae
     networks:
       appnet:
         aliases:

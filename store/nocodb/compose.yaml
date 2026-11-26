@@ -14,7 +14,7 @@ services:
       NC_DB: pg://nocodb-db:5432?u=postgres&p=${NOCODB_DB_PASSWORD}&d=nocodb
       NC_PUBLIC_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
       NC_REDIS_URL: redis://default:${NOCODB_REDIS_PASSWORD}@nocodb-redis:6379
-    image: nocodb/nocodb:2026.08.1
+    image: nocodb/nocodb:2026.10.1
     networks:
       appnet:
         aliases:

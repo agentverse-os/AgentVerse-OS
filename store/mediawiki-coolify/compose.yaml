@@ -16,7 +16,7 @@ services:
       - -f
       - http://localhost:80
       timeout: 20s
-    image: mediawiki:latest
+    image: mediawiki:1.46.2
     networks:
       appnet:
         aliases:

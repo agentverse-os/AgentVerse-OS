@@ -40,6 +40,6 @@ upstream:
   - books
   - media
   source: https://github.com/advplyr/audiobookshelf
-  tipi_version: 75
-  version: 2.36.0
+  tipi_version: 78
+  version: 2.37.2
 website: https://github.com/advplyr/audiobookshelf

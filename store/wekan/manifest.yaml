@@ -54,6 +54,6 @@ upstream:
   categories:
   - development
   source: https://github.com/wekan/wekan
-  tipi_version: 185
-  version: v11.16
+  tipi_version: 245
+  version: v13.13
 website: https://github.com/wekan/wekan

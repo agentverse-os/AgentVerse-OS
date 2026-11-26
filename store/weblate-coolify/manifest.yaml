@@ -23,6 +23,14 @@ env:
     generate: password
   WEBLATE_ADMIN_EMAIL: admin@example.com
   WEBLATE_ADMIN_NAME: Admin
+  WEBLATE_DEFAULT_FROM_EMAIL: admin@example.com
+  WEBLATE_EMAIL_HOST: localhost
+  WEBLATE_EMAIL_HOST_PASSWORD: ''
+  WEBLATE_EMAIL_HOST_USER: ''
+  WEBLATE_EMAIL_PORT: '587'
+  WEBLATE_EMAIL_USE_SSL: 'false'
+  WEBLATE_EMAIL_USE_TLS: 'true'
+  WEBLATE_SERVER_EMAIL: admin@example.com
 gallery: []
 health: null
 hooks: {}
@@ -54,6 +62,54 @@ settings:
 - env: WEBLATE_ADMIN_EMAIL
   hint: 'по умолчанию: admin@example.com'
   label: weblate admin email
+  options: null
+  required: false
+  type: text
+- env: WEBLATE_SERVER_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: weblate server email
+  options: null
+  required: false
+  type: text
+- env: WEBLATE_DEFAULT_FROM_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: weblate default from email
+  options: null
+  required: false
+  type: text
+- env: WEBLATE_EMAIL_HOST
+  hint: 'по умолчанию: localhost'
+  label: weblate email host
+  options: null
+  required: false
+  type: text
+- env: WEBLATE_EMAIL_PORT
+  hint: 'по умолчанию: 587'
+  label: weblate email port
+  options: null
+  required: false
+  type: text
+- env: WEBLATE_EMAIL_HOST_USER
+  hint: null
+  label: weblate email host user
+  options: null
+  required: false
+  type: text
+- env: WEBLATE_EMAIL_HOST_PASSWORD
+  hint: null
+  label: weblate email host password
+  options: null
+  required: false
+  type: password
+- env: WEBLATE_EMAIL_USE_TLS
+  hint: 'по умолчанию: true'
+  label: weblate email use tls
+  options: null
+  required: false
+  type: text
+- env: WEBLATE_EMAIL_USE_SSL
+  hint: 'по умолчанию: false'
+  label: weblate email use ssl
   options: null
   required: false
   type: text

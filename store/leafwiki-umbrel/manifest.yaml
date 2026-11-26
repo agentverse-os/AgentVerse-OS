@@ -46,9 +46,12 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This update adds Markdown highlighting, collapsible blocks, optional code block line numbers, and a copy button for inline code.
-    It also improves section sorting, sidebar navigation, and hotkeys, fixes authentication, two-factor authentication, and restore-related issues, includes API keys in backup and restore, and improves SQLite concurrency and import/restore size limits.
+    This update makes Git backup pulls all-or-nothing and prevents force pushes that would discard remote commits. It also handles damaged databases more safely, preserving non-rebuildable data instead of deleting it. If the user database is unreadable, LeafWiki now stops and logs recovery instructions.
+
+    Pages now use a consistent reading column for text, code, and tables. Attachments are easier to find, dropped text files upload as attachments, and links to your own wiki open in the current tab. Search and page navigation are faster, and security-related dependency fixes are included.
+
+    Full release notes can be found at https://github.com/perber/leafwiki/releases/tag/v0.14.2
   source: https://github.com/perber/leafwiki
-  version: 0.12.1
+  version: 0.14.2
   website: https://leafwiki.com/
 website: https://leafwiki.com/

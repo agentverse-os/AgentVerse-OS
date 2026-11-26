@@ -57,6 +57,14 @@ struct Args {
     /// Data directory (session journals); ~/.cloudos/agentd by default
     #[arg(long, env = "AGENTD_DATA")]
     data: Option<PathBuf>,
+    /// Gate env file (addresses and keys of the project grants): rendered by the core — in a workspace through Incus, on an
+    /// owner's server through `PUT /v1/fs/file` (ADR-008)
+    #[arg(long, env = "AGENTD_ENV_FILE", default_value = "/etc/cloudos/env.sh")]
+    env_file: PathBuf,
+    /// Do not serve: read the session journals under this directory and report the second copies a start would drop from
+    /// them (events read back from the provider journal after agentd went away with a process running). Changes nothing.
+    #[arg(long, value_name = "SESSIONS_DIR")]
+    journal_check: Option<PathBuf>,
 }
 
 struct AppState {
@@ -84,6 +92,7 @@ impl AppState {
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().with_env_filter(tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into())).init();
     let args = Args::parse();
+    if let Some(dir) = &args.journal_check { return session::journal_check(dir); }
     let token = match args.token.clone().or_else(|| std::fs::read_to_string(&args.token_file).ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty())) {
         Some(t) => Some(t),
         None if args.insecure => {
@@ -92,6 +101,7 @@ async fn main() -> Result<()> {
         }
         None => anyhow::bail!("нет токена: положите его в {} или задайте --token / AGENTD_TOKEN (или --insecure для отладки)", args.token_file.display()),
     };
+    codex::set_env_file(args.env_file.clone());
     let data = args.data.clone().unwrap_or_else(|| PathBuf::from(home()).join(".cloudos/agentd"));
     let sessions = Manager::open(data.join("sessions")).with_context(|| format!("каталог данных {}", data.display()))?;
     let state = Arc::new(AppState { ptys: RwLock::new(HashMap::new()), sessions, token, started: Instant::now(), engines_cache: std::sync::Mutex::new(None), engines_flight: tokio::sync::Mutex::new(()), browser: browser::Browser::default() });
@@ -130,6 +140,7 @@ async fn main() -> Result<()> {
         .route("/v1/sessions/{id}/mode", axum::routing::post(session_mode))
         .route("/v1/sessions/{id}/model", axum::routing::post(session_model))
         .route("/v1/sessions/{id}/label", axum::routing::post(session_label))
+        .route("/v1/sessions/{id}/allow_retry", axum::routing::post(session_allow_retry))
         .route("/v1/sessions/{id}/limit_hit", axum::routing::post(session_limit_hit))
         .route("/v1/sessions/{id}/note", axum::routing::post(session_note))
         .route("/v1/sessions/{id}/tui", axum::routing::post(session_tui).delete(session_tui_stop))
@@ -146,6 +157,8 @@ async fn main() -> Result<()> {
         .route("/v1/sessions/{id}/queue/{qid}", axum::routing::delete(session_unqueue))
         .route("/v1/permissions", get(perms::get).put(perms::put))
         .route("/v1/sessions/import", axum::routing::post(session_import).layer(axum::extract::DefaultBodyLimit::max(transfer::MAX_ARCHIVE + 1024)))
+        .route("/v1/update", axum::routing::post(self_update).layer(axum::extract::DefaultBodyLimit::max(256 * 1024 * 1024)))
+        .route("/v1/shutdown", axum::routing::post(shutdown))
         .route("/v1/fs/find", get(fs::find))
         .route("/v1/usage", get(usage_since))
         .route("/v1/fs", get(fs::list).delete(fs::remove))
@@ -195,15 +208,70 @@ async fn auth(State(st): State<Arc<AppState>>, req: Request, next: Next) -> Resp
     }
 }
 
-async fn health(State(st): State<Arc<AppState>>) -> Json<serde_json::Value> {
+/// `/health` answers without a token (the installer waits for it, the core probes it), but the facts about the machine
+/// (ADR-008) are added only when the request carries the token: on a server the port is reachable from the whole tailnet.
+async fn health(State(st): State<Arc<AppState>>, headers: axum::http::HeaderMap) -> Json<serde_json::Value> {
     let cgroup = std::fs::read_to_string("/proc/self/cgroup").ok().and_then(|s| s.lines().next().and_then(|l| l.rsplit(':').next().map(str::to_owned)));
     let ptys = st.ptys.read().unwrap();
-    Json(serde_json::json!({
+    let authed = match &st.token { None => true, Some(t) => headers.get(axum::http::header::AUTHORIZATION).and_then(|v| v.to_str().ok()).and_then(|v| v.strip_prefix("Bearer ")).map(|v| v.trim() == t).unwrap_or(false) };
+    let mut v = serde_json::json!({
         "version": env!("CARGO_PKG_VERSION"), "protocol": PROTOCOL, "uptime_s": st.started.elapsed().as_secs(),
         "ptys": ptys.len(), "ptys_alive": ptys.values().filter(|p| p.exit_code().is_none()).count(),
         "sessions": st.sessions.list().len(), "sessions_alive": st.sessions.list().iter().filter(|s| s.alive).count(),
-        "user": std::env::var("USER").ok(), "cgroup": cgroup, "auth": st.token.is_some(),
-    }))
+        "auth": st.token.is_some(), "build": exe_fingerprint(),
+    });
+    if authed {
+        v["user"] = serde_json::json!(std::env::var("USER").ok()); v["cgroup"] = serde_json::json!(cgroup);
+        v["home"] = serde_json::json!(home()); v["arch"] = serde_json::json!(std::env::consts::ARCH); v["os"] = serde_json::json!(os_release());
+        v["hostname"] = serde_json::json!(std::fs::read_to_string("/etc/hostname").ok().map(|h| h.trim().to_string()));
+        v["env_file"] = serde_json::json!(codex::env_file().to_string_lossy()); v["exe"] = serde_json::json!(std::env::current_exe().ok().map(|p| p.to_string_lossy().to_string()));
+    }
+    Json(v)
+}
+
+/// Fingerprint of the running binary (FNV-1a over the file, computed once): the core compares it with the fingerprint of
+/// the agentd embedded in it to tell whether a server is behind (ADR-008). Not a security hash.
+fn exe_fingerprint() -> &'static str {
+    static FP: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    FP.get_or_init(|| std::env::current_exe().ok().and_then(|p| std::fs::read(p).ok()).map(|b| fnv1a(&b)).unwrap_or_default())
+}
+pub fn fnv1a(b: &[u8]) -> String {
+    let mut h: u64 = 0xcbf29ce484222325;
+    for x in b { h ^= *x as u64; h = h.wrapping_mul(0x100000001b3); }
+    format!("{h:016x}")
+}
+
+/// Stop on the core's request (ADR-008: the server is switched off in «Servers»): the reply goes out, then the process
+/// exits with code 75 — the server unit carries `RestartPreventExitStatus=75`, so systemd leaves it stopped until the owner
+/// starts it again (or runs the install command anew). Terminals and live agent processes die with it; the journals stay.
+async fn shutdown(State(st): State<Arc<AppState>>) -> Json<serde_json::Value> {
+    let ptys = st.ptys.read().unwrap().values().filter(|p| p.exit_code().is_none()).count();
+    tracing::warn!("остановка по запросу ядра (сервер отключён) — выхожу с кодом 75; живых терминалов: {ptys}");
+    tokio::spawn(async { tokio::time::sleep(std::time::Duration::from_millis(300)).await; std::process::exit(75); });
+    Json(serde_json::json!({ "ok": true, "exit": 75, "ptys_killed": ptys }))
+}
+
+/// `PRETTY_NAME` of /etc/os-release (e.g. "Ubuntu 24.04.3 LTS").
+fn os_release() -> Option<String> {
+    std::fs::read_to_string("/etc/os-release").ok()?.lines().find_map(|l| l.strip_prefix("PRETTY_NAME=").map(|v| v.trim_matches('"').to_string()))
+}
+
+/// Self-update (ADR-008): the body is the new binary; it is written next to the running one and renamed over it, then
+/// the process exits after the reply — systemd (`Restart=always`) starts the new version. Terminals and live agent
+/// processes die with the process, like at any agentd restart; the journals stay.
+async fn self_update(State(st): State<Arc<AppState>>, body: axum::body::Bytes) -> Result<Json<serde_json::Value>, ApiError> {
+    if body.len() < 1024 * 1024 || !body.starts_with(b"\x7fELF") { return Err(ApiError::BadRequest("тело должно быть бинарём cloudos-agentd (ELF)".into())); }
+    let exe = std::env::current_exe().map_err(|e| ApiError::Internal(anyhow::anyhow!("current_exe: {e}")))?;
+    let exe = std::fs::canonicalize(&exe).unwrap_or(exe);
+    let tmp = exe.with_extension("new");
+    std::fs::write(&tmp, &body).map_err(|e| ApiError::Internal(anyhow::anyhow!("запись {}: {e}", tmp.display())))?;
+    use std::os::unix::fs::PermissionsExt;
+    let _ = std::fs::set_permissions(&tmp, std::fs::Permissions::from_mode(0o755));
+    std::fs::rename(&tmp, &exe).map_err(|e| ApiError::Internal(anyhow::anyhow!("замена {}: {e}", exe.display())))?;
+    let ptys = st.ptys.read().unwrap().values().filter(|p| p.exit_code().is_none()).count();
+    tracing::warn!("agentd обновлён ({} байт) — завершаюсь для перезапуска; живых терминалов: {ptys}", body.len());
+    tokio::spawn(async { tokio::time::sleep(std::time::Duration::from_millis(300)).await; std::process::exit(0); });
+    Ok(Json(serde_json::json!({ "ok": true, "bytes": body.len(), "exe": exe.to_string_lossy(), "ptys_killed": ptys })))
 }
 
 #[derive(Deserialize)]
@@ -243,7 +311,7 @@ async fn pty_create(State(st): State<Arc<AppState>>, Json(b): Json<CreateBody>) 
     // TUI of an ACP engine from the "+" menu (no agentd session): the same preparation as before a session — otherwise
     // pi starts with its own model without a key (401), and Gemini without the gate and a trusted folder
     if let Some(engine) = b.engine.as_deref().and_then(engines::get).filter(|e| e.protocol == "acp" || e.protocol == "agy").or_else(|| engines::in_cmd(&cmd)) {
-        let base = std::fs::read_to_string("/etc/cloudos/env.sh").map(|t| codex::parse_env_sh(&t)).unwrap_or_default();
+        let base = std::fs::read_to_string(codex::env_file()).map(|t| codex::parse_env_sh(&t)).unwrap_or_default();
         if engine.id == "pi" { acp::pi_ensure_gate(&base).await; }
         // Oh My Pi: the gate provider and the model as a flag (without it omp takes its own default google/…,
         // which we do not have)
@@ -458,7 +526,7 @@ async fn engines_list(State(st): State<Arc<AppState>>, Query(q): Query<HashMap<S
 /// is invalidated.
 async fn engine_install(State(st): State<Arc<AppState>>, Path(id): Path<String>) -> Result<Json<pty::PtyInfo>, ApiError> {
     let e = engines::get(&id).ok_or_else(|| ApiError::BadRequest(format!("неизвестный движок {id}")))?;
-    let base = std::fs::read_to_string("/etc/cloudos/env.sh").map(|t| codex::parse_env_sh(&t)).unwrap_or_default();
+    let base = std::fs::read_to_string(codex::env_file()).map(|t| codex::parse_env_sh(&t)).unwrap_or_default();
     let gate = e.id == "antigravity" && acp::antigravity_gate(&base);
     let p = PtySession::spawn(PtyOpts { cmd: engines::install_cmd(e, gate), cwd: home(), cols: 120, rows: 30, title: format!("Установка {}", e.title), env: Default::default(), session: None, tui: false })?;
     st.ptys.write().unwrap().insert(p.id.clone(), p.clone()); hub::touch();
@@ -775,6 +843,16 @@ async fn session_limit_hit(State(st): State<Arc<AppState>>, Path(id): Path<Strin
     s.set_limit_hit(serde_json::json!({ "window": b.get("window").cloned().unwrap_or(serde_json::json!("five_hour")), "resets_at": b.get("resets_at").cloned().unwrap_or(serde_json::Value::Null), "source": "manual" }));
     Ok(Json(serde_json::json!({ "ok": true, "limit_hit": s.info().meta.limit_hit })))
 }
+#[derive(Deserialize)]
+struct AllowRetryBody { tool_use_id: String }
+/// "Allow and retry" for a declined Antigravity tool (docs/agents-ux.md §4.3.17): a rule into the project scope, agy restarted
+/// with it on the same conversation, a short message to go on.
+async fn session_allow_retry(State(st): State<Arc<AppState>>, Path(id): Path<String>, Json(b): Json<AllowRetryBody>) -> Result<Json<serde_json::Value>, ApiError> {
+    let s = session_of(&st, &id)?;
+    if !engines::is_agy(&s.info().meta.agent) { return Err(ApiError::BadRequest("«разрешить и повторить» есть только у Antigravity".into())); }
+    Ok(Json(s.agy_allow_retry(&b.tool_use_id).await?))
+}
+
 #[derive(Deserialize)]
 struct LabelBody { label: Option<String> }
 /// Own session name (docs/agents-ux.md §4.8): `{label: ""}` brings back the auto-title

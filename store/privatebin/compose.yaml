@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   privatebin:
-    image: privatebin/nginx-fpm-alpine:2.0.6
+    image: privatebin/nginx-fpm-alpine:2.1.1
     networks:
       appnet:
         aliases:

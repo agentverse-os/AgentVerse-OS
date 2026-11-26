@@ -14,7 +14,7 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXTAUTH_URL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-    image: ghcr.io/hoarder-app/hoarder:0.33.2
+    image: ghcr.io/hoarder-app/hoarder:0.35.0
     networks:
       appnet:
         aliases:
@@ -24,13 +24,12 @@ services:
     - ${APP_DATA_DIR}/data/app:/data
   hoarder-chrome:
     command:
-    - --no-sandbox
     - --disable-gpu
     - --disable-dev-shm-usage
-    - --remote-debugging-address=0.0.0.0
-    - --remote-debugging-port=9222
     - --hide-scrollbars
-    image: gcr.io/zenika-hub/alpine-chrome:124
+    - --disable-blink-features=AutomationControlled
+    - --window-size=1440,900
+    image: ghcr.io/karakeep-app/karakeep-chrome:release
     networks:
       appnet:
         aliases:
@@ -40,7 +39,8 @@ services:
     environment:
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
       MEILI_NO_ANALYTICS: 'true'
-    image: getmeili/meilisearch:v1.53
+      MEILI_UPGRADE_DB: 'true'
+    image: getmeili/meilisearch:v1.57
     networks:
       appnet:
         aliases:

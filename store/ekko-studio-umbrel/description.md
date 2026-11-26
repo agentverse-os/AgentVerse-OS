@@ -1,0 +1,9 @@
+Ekko Studio is a browser workspace for AI agents, with conversations, file tools, persistent memory, skills, and model settings. It includes both the Ekko and Hermes runtimes so you can choose an agent for each conversation.
+
+🔑 On first launch, sign in with the default credentials shown by Umbrel and change your password when prompted.
+
+Connect your own supported model provider in the app; provider subscriptions or API usage may cost extra.
+
+To use Hermes, add your provider and model in Models, then select Hermes when starting a new chat. Ask it to work with files in /opt/data or explicitly save something to memory. Chats, provider settings, agent memory, and workspace files are stored on your Umbrel across restarts. Ekko and Hermes have separate memory; select the same runtime when continuing your work.
+
+This package provides the browser interface. Native-app cloud connectivity, peer-to-peer connections, and preview-server ports are not exposed. Optional subscription sign-in requires approval with the provider; API-key setup is available in the browser.

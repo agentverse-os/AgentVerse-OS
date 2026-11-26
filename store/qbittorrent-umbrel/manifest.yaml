@@ -11,9 +11,9 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,16 +43,17 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    This update includes WebUI, RSS, search, and torrent handling fixes.
+    This update brings new torrent controls, WebUI improvements, and security fixes.
     Highlights:
-      - Fixed a potential invalid migration procedure and a database transaction deadlock
-      - Fixed WebUI issues with UI themes, collapsed transfer filters, and CSS selector escaping
-      - Fixed RSS feed interval handling and search plugin update counts
-      - Fixed email MIME header encoding, web seed encoding, tracker conversion, and stricter peer address parsing
+      - Download completed files directly from the WebUI and pause or resume the entire BitTorrent session
+      - Keep search tabs across restarts and import or export RSS download rules
+      - Improved torrent content management, share limits, and IP-range banning
+      - Fixed WebUI authentication bypass via spoofed proxy headers and improved cross-site request protection
+      - Fixed email notification security and torrent completion handling with ignored files
 
     If you are upgrading from a version before 5.2.0, note that qBittorrent on umbrelOS now uses "/downloads" as the default download path for better compatibility with other apps. Existing torrents may need to be manually moved to the new location.
-    Full release notes are available at https://github.com/qbittorrent/qBittorrent/releases/tag/release-5.2.3
+    Full release notes are available at https://github.com/qbittorrent/qBittorrent/releases/tag/release-5.3.0
   source: https://github.com/qBittorrent/qBittorrent
-  version: 5.2.3
+  version: 5.3.0
   website: https://qbittorrent.org/
 website: https://qbittorrent.org/

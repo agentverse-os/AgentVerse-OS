@@ -10,10 +10,10 @@ endpoint:
   service: dashboard
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/bitcoin-regtest-dashboard/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,9 +44,14 @@ upstream:
   categories:
   - bitcoin
   release_notes: |-
-    - Added an auto-mine feature to mine blocks at a set interval, either until stopped or for a chosen duration
-    - Upgraded Bitcoin Core to v31.0
+    - Added a documented local HTTP API so test suites, scripts and AI agents can drive the regtest network from other apps
+    - Added a Logs tab that tails Bitcoin Core and dashboard logs live, with filtering and debug category control
+    - Added an API tab with connection details, copyable commands and a searchable endpoint reference
+    - Added a faucet endpoint that funds an address and confirms it in one call
+    - Added reorg and wait endpoints for testing how wallets handle chain changes
+    - Added optional API token authentication, off by default
+    - Upgraded Bitcoin Core to v31.1
   source: https://github.com/coreyphillips/bitcoin-regtest-dashboard
-  version: 1.0.4
+  version: 1.1.0
   website: https://github.com/coreyphillips/bitcoin-regtest-dashboard
 website: https://github.com/coreyphillips/bitcoin-regtest-dashboard

@@ -10,10 +10,10 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/nocodb/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,17 +43,20 @@ upstream:
   categories:
   - files
   release_notes: |-
-    New features and improvements in this release:
-      - Adds realtime presence in Grid views so collaborators can see where others are working
-      - Adds folders for grouping tables, documents, dashboards, and views
-      - Adds support for freezing multiple fields in Grid views
-      - Improves Interfaces with copied view settings, field sizing, dashboard permissions, and layout polish
-      - Improves API support for v3 records upsert link fields and currency-field schema details
-      - Fixes two-factor sign-in in the installed app, scheduled snapshot naming, rich text previews, AI response recovery, API field updates, link-field permissions, and interface permissions
+    ⚠️ Date and time values in API responses, webhooks, and CSV exports now include milliseconds. Check integrations that expect a fixed date format. Changing your password now deletes API tokens and disconnects OAuth apps.
+
+    Improvements and fixes:
+      - Improved classic apps on phones, grouping, column resizing, and live updates
+      - Sort Single Select fields by option order
+      - Fixed workflows and webhooks not firing when linked records change
+      - Fixed formulas, filters, linked records, and copying large text or JSON values
+      - Improved sign-in, attachments, sharing, and security hardening
 
 
-    Full release notes can be found at https://github.com/nocodb/nocodb/releases/tag/2026.08.1
+    Webhooks and uploads by URL reject private network addresses. Local ClickHouse connections and MySQL or PostgreSQL Unix socket connections require NC_ALLOW_LOCAL_EXTERNAL_DBS=true. MCP now lists every tool; clients with tool limits can use /mcp-discovery instead. Some MCP response formats have changed; the REST v3 API is unchanged.
+
+    Full release notes can be found at https://github.com/nocodb/nocodb/releases/tag/2026.10.1
   source: https://github.com/nocodb/nocodb
-  version: 2026.08.1
+  version: 2026.10.1
   website: https://nocodb.com
 website: https://nocodb.com

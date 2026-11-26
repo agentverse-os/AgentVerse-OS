@@ -11,9 +11,9 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/pinchflat/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pinchflat/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pinchflat/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pinchflat/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pinchflat/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pinchflat/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,8 +42,8 @@ upstream:
   author: Kieran Eglin
   categories:
   - media
-  release_notes: null
+  release_notes: This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
   source: https://github.com/kieraneglin/pinchflat
-  version: 2025.6.6
+  version: 2025.6.6-patch.1
   website: https://github.com/kieraneglin/pinchflat
 website: https://github.com/kieraneglin/pinchflat

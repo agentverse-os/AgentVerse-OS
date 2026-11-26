@@ -1,0 +1,52 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/lidarr-coolify
+description: Lidarr - a music collection manager for Usenet and BitTorrent users
+endpoint:
+  port: 8686
+  service: lidarr
+env:
+  SERVICE_URL_LIDARR_8686: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: lidarr-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags:
+- media
+- server
+- music
+- audio
+title: Lidarr
+type: app
+upstream:
+  categories:
+  - media
+  source: https://hub.docker.com/r/linuxserver/lidarr
+  tags:
+  - media
+  - server
+  - music
+  - audio
+  template: lidarr.yml
+website: https://hub.docker.com/r/linuxserver/lidarr

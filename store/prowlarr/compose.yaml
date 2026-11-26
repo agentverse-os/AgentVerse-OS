@@ -7,7 +7,7 @@ services:
   prowlarr:
     environment:
       TZ: ${TZ}
-    image: ghcr.io/linuxserver/prowlarr:2.5.2
+    image: ghcr.io/linuxserver/prowlarr:2.7.0
     networks:
       appnet:
         aliases:

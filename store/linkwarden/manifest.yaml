@@ -62,6 +62,6 @@ upstream:
   categories:
   - data
   source: https://github.com/linkwarden/linkwarden
-  tipi_version: 60
-  version: v2.16.2
+  tipi_version: 64
+  version: v2.17.0
 website: https://github.com/linkwarden/linkwarden

@@ -43,13 +43,8 @@ upstream:
   author: Grocy
   categories:
   - files
-  release_notes: |-
-    This update includes Grocy 4.7.0 with improvements and fixes across stock management, shopping lists, recipes, meal planning, chores, tasks, userfields, and the API.
-
-    It also adds an "Assigned to" task filter, improves accent-insensitive searching, lets users view and delete active user sessions, and fixes login with passwords containing special escape sequences.
-
-    Web sessions are invalidated by this update, so you will need to log in again after Grocy restarts.
+  release_notes: This maintenance update refreshes Grocy's underlying container and system packages. Grocy remains on version 4.7.1, with your existing data and settings preserved.
   source: https://github.com/grocy/grocy
-  version: 4.7.0
+  version: 4.7.1-patch.1
   website: https://grocy.info/
 website: https://grocy.info/

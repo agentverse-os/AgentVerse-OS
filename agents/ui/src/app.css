@@ -104,6 +104,10 @@ svg.i.s { width: 14px; height: 14px; } svg.i.l { width: 20px; height: 20px; }
 .chip.mono { font-family: var(--mono); font-weight: 400; }
 .badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; font-size: 11px; background: var(--bg-3); color: var(--fg-2); border: 1px solid var(--line-1); }
 .badge.warn { color: var(--warn); border-color: rgb(242 184 75 / .4); }
+/* workspace memory label (ADR-009): "tight" — amber, "stalled" — red; shown only under pressure */
+.badge.memtag { flex: none; cursor: help; }
+.badge.memtag.tight { color: var(--warn); border-color: rgb(242 184 75 / .4); }
+.badge.memtag.stalled { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); font-weight: 600; }
 .count { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--bg-3); color: var(--fg-2); }
 .count.warn { background: var(--warn); color: #0a0c10; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--fg-3); flex: none; display: inline-block; opacity: .55; }
@@ -280,9 +284,38 @@ svg.i.s { width: 14px; height: 14px; } svg.i.l { width: 20px; height: 20px; }
   .composer-more .more-label { display: none; }
   .composer-more { width: 32px; padding: 0; justify-content: center; }
   .composer-control.model, .composer-control.mono { max-width: 145px; }
-  .composer-send:not(.queueing) .action-label { display: none; }
+  /* Every action is an icon here, the queue one too ("+" instead of the arrow). Its label used to stay — "В очередь" is 102 px
+     against 44 — and together with the stop button that appears during a turn the actions no longer fitted the row: they
+     dropped to a second line and the composer grew by 36 px every time the agent started working. */
+  .composer-send .action-label { display: none; }
   .composer-send { min-width: 32px; padding: 0 9px; }
+  /* Nothing to queue while the field is empty: the stop button alone stands in the action's place (as in the simple chat),
+     and the row is exactly as wide as at rest. The queue button comes with the first character or image. */
+  .composer-send.queueing.no-draft { display: none; }
   .composer-toolbar { gap: 6px; }
+  /* One line: when the row is short of room the model button gives way (ellipsis, down to its icon) — the actions do not
+     drop to a second line under the fingers. */
+  .composer-toolbar, .composer-controls { flex-wrap: nowrap; }
+  .composer-controls { flex: 1 1 0; }
+  .composer-control.model, .composer-control.mono { flex: 0 1 auto; min-width: 44px; }
+  .composer-more { flex: none; }
+}
+/* Five 44-pixel actions (stop next to the action: something typed or a message edited during a turn) and the two controls
+   need 339 px with the usual gaps and 326 px with 3-pixel ones — that keeps the 360-pixel phones on one line too. */
+@container composer (max-width: 339px) {
+  .chat-composer .composer-toolbar, .composer-controls, .composer-actions { gap: 3px; }
+}
+/* Narrower than that this one state wraps; `flex-basis: auto` gives the controls their width back, otherwise the line
+   "fits" and the buttons overlap. */
+@container composer (max-width: 325px) {
+  .composer-toolbar:has(.stop):not(:has(.composer-send.queueing.no-draft)) { flex-wrap: wrap; }
+  .composer-toolbar:has(.stop):not(:has(.composer-send.queueing.no-draft)) .composer-controls { flex: 1 1 auto; }
+}
+/* Four actions and the two controls need 282 px: a narrower composer (the 280-pixel cover screen of the first Fold) wraps in
+   every state, as it did before. */
+@container composer (max-width: 281px) {
+  .composer-toolbar { flex-wrap: wrap; }
+  .composer-controls { flex: 1 1 auto; }
 }
 @media (pointer: coarse) {
   .composer-control, .composer-attach, .composer-send { height: 44px; }
@@ -310,6 +343,15 @@ svg.i.s { width: 14px; height: 14px; } svg.i.l { width: 20px; height: 20px; }
 .ws .wrow .chev { color: var(--fg-3); transition: transform var(--dur); }
 .ws.closed .wrow .chev { transform: rotate(-90deg); }
 .ws .wname { flex: 1; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* an owner's server in the tree (ADR-008): a server glyph before the name */
+.ws .hostglyph { display: inline-flex; color: var(--fg-3); margin-right: -2px; }
+.ws.host.stopped .wrow { opacity: .75; }
+/* settings → servers (ADR-008) */
+.host-row { padding: 8px 0; border-top: 1px solid var(--line-2); }
+.host-row:first-of-type { border-top: 0; }
+.host-row.off .mono, .host-row.off .muted { opacity: .7; }
+.host-cmd { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--accent); border-radius: var(--r-2); background: var(--bg-2); }
+.host-cmd code.cmd { flex: 1; min-width: 0; overflow-wrap: anywhere; user-select: all; font-size: 12px; }
 .ws .wrow button { opacity: 0; } .ws .wrow:hover button, .ws .wrow button:focus-visible { opacity: 1; }
 @media (hover: none) { .ws .wrow button { opacity: 1; } }
 .ws.stopped .wname { color: var(--fg-3); }
@@ -366,6 +408,8 @@ svg.i.s { width: 14px; height: 14px; } svg.i.l { width: 20px; height: 20px; }
 .toasts { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); display: grid; gap: 8px; z-index: 90; }
 .toast { display: flex; gap: 10px; align-items: center; padding: 10px 14px; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-2); box-shadow: var(--shadow-3); font-size: 13px; animation: in .2s ease-out; max-width: min(420px, 90vw); }
 .toast .ic { width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center; background: var(--ok-soft); color: var(--ok); flex: none; }
+/* an error text may carry a word longer than the toast (a URL, a metric name): it breaks instead of running off the screen */
+.toast > span:last-child { min-width: 0; overflow-wrap: anywhere; }
 .toast.bad .ic { background: var(--bad-soft); color: var(--bad); } .toast.info .ic { background: var(--accent-soft); color: var(--accent); }
 @keyframes in { from { transform: translateY(8px); opacity: 0; } }
 
@@ -381,6 +425,19 @@ svg.i.s { width: 14px; height: 14px; } svg.i.l { width: 20px; height: 20px; }
 .card:hover { border-color: var(--line-3); }
 .card.active { border-color: rgb(var(--accent-rgb) / .55); box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / .12), var(--shadow-2); }
 .canvas.c1 .card { grid-column: auto !important; }
+/* The layout is shared between the owner's devices, so a card widened on a big screen also arrives where fewer columns fit.
+   A span above the column count makes the grid grow an implicit 2 px column, and the cards after it land there. The span is
+   clamped to the columns that fit: 420 px plus the 14 px gap each in auto mode and in a group. Below 860 px the narrow-screen
+   rules reset spans themselves. */
+.canvas { container: canvas / inline-size; }
+.group { container: cgroup / inline-size; }
+@media (min-width: 860px) {
+  .canvas.c2 > .card.w3 { grid-column: span 2 !important; }
+  @container canvas (max-width: 853.98px) { .canvas.c0 > .card { grid-column: auto !important; } }
+  @container canvas (min-width: 854px) and (max-width: 1287.98px) { .canvas.c0 > .card.w3 { grid-column: span 2 !important; } }
+  @container cgroup (max-width: 853.98px) { .group > .card { grid-column: auto !important; } }
+  @container cgroup (min-width: 854px) and (max-width: 1287.98px) { .group > .card.w3 { grid-column: span 2 !important; } }
+}
 .card.sizing { user-select: none; outline: 2px solid rgb(var(--accent-rgb) / .55); outline-offset: -2px; }
 .card .size-hint { position: absolute; right: 24px; bottom: 6px; padding: 2px 8px; border-radius: 999px; background: var(--bg-3); color: var(--fg-1); font-size: 11.5px; font-variant-numeric: tabular-nums; box-shadow: var(--shadow-1); pointer-events: none; }
 .card.drop-before { box-shadow: -4px 0 0 var(--accent), var(--shadow-1); }
@@ -454,7 +511,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .inbox .col { min-width: 0; }
 .inbox .item { position: relative; overflow: hidden; padding: 12px 16px 12px 18px; margin-bottom: 10px; display: grid; gap: 8px; }
 .inbox .item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--warn); }
-.inbox .item.failed::before { background: var(--bad); } .inbox .item.done::before { background: var(--ok); } .inbox .item.answered { opacity: .6; } .inbox .item.answered::before { background: var(--fg-3); }
+.inbox .item.failed::before, .inbox .item.mem.killed::before, .inbox .item.mem.oom::before, .inbox .item.mem.live::before { background: var(--bad); } .inbox .item.done::before { background: var(--ok); } .inbox .item.answered { opacity: .6; } .inbox .item.answered::before { background: var(--fg-3); }
 .inbox .who { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--fg-3); flex-wrap: wrap; }
 .inbox .who b { color: var(--fg-1); font-weight: 600; }
 .inbox .what { font-size: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -604,6 +661,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .rt-form .inl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .rt-form .inl input { width: 110px; }
 .rt-form .hook { font-family: var(--mono); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg-2); background: var(--bg-4); border: 1px solid var(--line-1); border-radius: var(--r-1); padding: 6px 8px; min-width: 0; }
+/* the webhook address with its two actions stays one row on a wide form: the address gives way, the buttons do not */
+@media (min-width: 600px) { .rt-form .inl:has(> .hook) { flex-wrap: nowrap; min-width: 0; } .rt-form .inl:has(> .hook) > button { flex: none; } }
 .runs .tr { display: grid; grid-template-columns: 20px 92px minmax(0, 1fr) auto; gap: 2px 10px; padding: 10px 14px; border-top: 1px solid var(--line-1); align-items: center; font-size: 13px; }
 .runs .tr:first-child { border-top: 0; }
 .runs .tr .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -624,8 +683,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .m.user { position: relative; }
 .m.user .macts { position: absolute; top: 4px; right: 6px; display: flex; gap: 2px; opacity: 0; transition: opacity var(--dur); }
 .m.user:hover .macts, .m.user:focus-within .macts { opacity: 1; }
-/* without hover (phone, tablet) the buttons do not overlay the text — a row under it, at the right edge */
-@media (hover: none) { .m.user .macts { position: static; opacity: .8; justify-content: flex-end; margin: 6px -4px -2px 0; } .m.user .macts:empty { display: none; } }
 .m.user .ma { width: 22px; height: 22px; border: 0; border-radius: 6px; background: rgb(0 0 0 / .25); color: inherit; display: grid; place-items: center; cursor: pointer; padding: 0; }
 .m.user .ma:hover { background: rgb(0 0 0 / .45); }
 /* answer read-aloud (slice 64): a button in the corner of the agent bubble, visible on hover, on touch — always */
@@ -634,7 +691,17 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .m.agent:hover .macts, .m.agent:focus-within .macts, .m.agent .macts:has(.ma.on), .m.agent .macts:has(.ma.busy) { opacity: 1; }
 .m.agent .ma { width: 22px; height: 22px; border: 0; border-radius: 6px; background: var(--bg-3); color: var(--fg-2); display: grid; place-items: center; cursor: pointer; padding: 0; }
 .m.agent .ma:hover { color: var(--fg-1); } .m.agent .ma.on { color: var(--accent); } .m.agent .ma.busy { opacity: .6; animation: pulse 1s infinite; }
-@media (hover: none) { .m.agent .macts { position: static; opacity: .8; justify-content: flex-end; margin: 6px -4px -2px 0; } }
+/* Without hover (phone, tablet) the buttons do not overlay the text — a row under it, at the right edge. There a button is a
+   bare icon: the touch rule further down makes every button at least 44×44, and the dark plate of the 22-pixel hover button
+   grew into two black squares inside the owner's message (the agent's never showed: their plate has the bubble's colour).
+   The row is pulled into the bubble's padding — the finger target stays 44 px, the message does not grow by a whole row.
+   This block stands after the rules above on purpose: the selectors are equally specific, the later one wins. */
+@media (hover: none) {
+  .m.user .macts, .m.agent .macts { position: static; opacity: .8; justify-content: flex-end; margin: 0 -9px -8px 0; }
+  .m.user .macts:empty { display: none; }
+  .m.user .ma, .m.user .ma:hover, .m.agent .ma { background: transparent; }
+  .m.user .ma:active, .m.agent .ma:active { background: rgb(0 0 0 / .2); }
+}
 .editbar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; margin-bottom: 6px; border-radius: var(--r-2); background: var(--warn-soft); color: var(--warn); font-size: 12.5px; }
 .qcard { display: flex; align-items: center; gap: 8px; padding: 5px 10px; margin-bottom: 6px; border-radius: var(--r-2); background: var(--bg-3); border: 1px solid var(--line-1); font-size: 12.5px; }
 .qcard .txt { flex: 1; min-width: 0; }

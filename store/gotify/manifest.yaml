@@ -54,6 +54,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/gotify/server
-  tipi_version: 20
-  version: 3.0.0
+  tipi_version: 24
+  version: 3.1.1
 website: https://github.com/gotify/server

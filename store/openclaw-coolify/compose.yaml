@@ -17,7 +17,7 @@ services:
       - CMD-SHELL
       - bash -c ':> /dev/tcp/127.0.0.1/9222' || exit 1
       timeout: 5s
-    image: coollabsio/openclaw-browser:latest
+    image: coollabsio/openclaw-browser:0.3.0
     networks:
       appnet:
         aliases:
@@ -91,7 +91,7 @@ services:
       - -sf
       - http://127.0.0.1:8080/healthz
       timeout: 10s
-    image: coollabsio/openclaw:2026.2.6
+    image: coollabsio/openclaw:2026.11.3
     networks:
       appnet:
         aliases:

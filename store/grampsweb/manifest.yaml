@@ -47,6 +47,6 @@ upstream:
   - data
   - social
   source: https://github.com/gramps-project/gramps-web
-  tipi_version: 70
-  version: 26.8.1
+  tipi_version: 84
+  version: 26.11.2
 website: https://github.com/gramps-project/gramps-web

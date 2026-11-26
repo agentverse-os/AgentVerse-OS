@@ -5,7 +5,9 @@ networks:
     name: ${APP_NET}
 services:
   web:
-    image: ghcr.io/ersatztv/legacy:v26.8.1@sha256:c42a0b0520668e995f5da6f42a3db939f7f0e1b3372bfc1046d650389d650bca
+    environment:
+      HOME: /config
+    image: ghcr.io/ersatztv/legacy:v26.12.0@sha256:cfe78ee1148f90d96582dcc58196f4b2153f9e6f70c1bcf6baab3b375d675a47
     networks:
       appnet:
         aliases:

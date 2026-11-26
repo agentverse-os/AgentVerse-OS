@@ -10,9 +10,9 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/mqttx-web/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/mqttx-web/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/mqttx-web/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/mqttx-web/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/mqttx-web/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/mqttx-web/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,29 +42,10 @@ upstream:
   categories:
   - automation
   release_notes: |-
-    Payload inspector and UI refresh update with enhanced functionality:
+    Updates MQTTX Web to version 1.13.3. This release keeps the Web client aligned with the MQTTX release; upstream's new features and fixes in this release apply to the Desktop and CLI editions.
 
-    New features:
-      - Quick copy options for topic, broker, and host information
-      - Topic whitespace detection to warn about leading or trailing spaces
-      - Syntax highlighting for JSON payload display
-      - Support for Protobuf Editions 2023
-
-
-    Improvements:
-      - Refreshed UI with modernized styling and smoother animations
-      - Simplified connection list styling
-      - Redesigned help and about pages
-
-
-    Bug fixes:
-      - Fixed topic input issues causing subscription errors
-      - Fixed topic input and select styling issues
-      - Prevented newlines in topic and alias inputs
-
-
-    Full release notes can be found at https://github.com/emqx/MQTTX/releases/tag/v1.13.0
+    Full release notes can be found at https://github.com/emqx/MQTTX/releases/tag/v1.13.3
   source: https://github.com/emqx/MQTTX
-  version: 1.13.0
+  version: 1.13.3
   website: https://mqttx.app/
 website: https://mqttx.app/

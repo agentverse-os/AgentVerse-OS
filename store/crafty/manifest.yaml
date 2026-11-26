@@ -42,6 +42,6 @@ upstream:
   categories:
   - gaming
   source: https://gitlab.com/crafty-controller/crafty-4
-  tipi_version: 46
-  version: 4.10.8
+  tipi_version: 48
+  version: 4.11.0
 website: https://gitlab.com/crafty-controller/crafty-4

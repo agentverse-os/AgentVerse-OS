@@ -28,9 +28,9 @@ env:
   MONERO_DEFAULT_NETWORK: ${MONERO_CHAIN}
   TOR_DATA_DIR: ''
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/monero/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/monero/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/monero/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/monero/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/monero/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/monero/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,6 +45,7 @@ name: monero-umbrel
 notes:
 - 'порт ${APP_MONERO_P2P_PORT}:${APP_MONERO_P2P_PORT} (monerod) не публикуется: доступ только через edge/gate'
 - 'порт ${APP_MONERO_RPC_PORT}:${APP_MONERO_RPC_PORT} (monerod) не публикуется: доступ только через edge/gate'
+- 'порт ${APP_MONERO_RESTRICTED_RPC_PORT}:${APP_MONERO_RESTRICTED_RPC_PORT} (monerod) не публикуется: доступ только через edge/gate'
 origin: umbrel
 provides: []
 readme: ./description.md
@@ -98,10 +99,9 @@ upstream:
   categories:
   - crypto
   release_notes: |-
-    This update upgrades the Monero daemon to v0.18.5.1, a recommended maintenance release with fixes and hardening across blockchain synchronization, peer handling, transaction pool processing, and general daemon stability. It also updates RandomX to v1.2.2.
-
-    Full release notes can be found at https://www.getmonero.org/2026/07/08/monero-0.18.5.1-released.html
+    This update makes the "RPC (IP - Restricted Access)" connection option work from other devices on your network. Its port (18089) is now published, so wallets such as Feather and Monero GUI can connect to it using your RPC username and password.
+    This is still Monero v0.18.5.4. Full release notes can be found at https://www.getmonero.org/2026/10/16/monero-0.18.5.4-released.html
   source: https://github.com/deverickapollo/umbrel-monero
-  version: 0.18.5.1
+  version: 0.18.5.4-patch.1
   website: https://www.getmonero.org/
 website: https://www.getmonero.org/

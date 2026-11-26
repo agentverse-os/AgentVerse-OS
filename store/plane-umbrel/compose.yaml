@@ -39,7 +39,7 @@ services:
         USE_X_FORWARDED_HOST: 1
         WEBHOOK_ALLOWED_HOSTS: ''
         WEBHOOK_ALLOWED_IPS: ''
-    image: makeplane/plane-admin:v1.4.2@sha256:6e1bb1d800d3c7ce84a09f810d5588db8613b35d4464e722a1bec12556ca0ebb
+    image: makeplane/plane-admin:v1.5.0@sha256:3857dc1000f08446375c277674ccda119ab092562f454e935bdba3aca5c5f4ee
     networks:
       appnet:
         aliases:
@@ -85,7 +85,7 @@ services:
         USE_X_FORWARDED_HOST: 1
         WEBHOOK_ALLOWED_HOSTS: ''
         WEBHOOK_ALLOWED_IPS: ''
-    image: makeplane/plane-backend:v1.4.2@sha256:90032ce088708889b60c00d491897916f4deb882facda27db59fd10fb68729ef
+    image: makeplane/plane-backend:v1.5.0@sha256:386f659e0e43c9cb29050fb71439f04f40c5c7e1d93cca2c810bc7e2b1134daf
     networks:
       appnet:
         aliases:
@@ -138,7 +138,7 @@ services:
         USE_X_FORWARDED_HOST: 1
         WEBHOOK_ALLOWED_HOSTS: ''
         WEBHOOK_ALLOWED_IPS: ''
-    image: makeplane/plane-backend:v1.4.2@sha256:90032ce088708889b60c00d491897916f4deb882facda27db59fd10fb68729ef
+    image: makeplane/plane-backend:v1.5.0@sha256:386f659e0e43c9cb29050fb71439f04f40c5c7e1d93cca2c810bc7e2b1134daf
     networks:
       appnet:
         aliases:
@@ -229,12 +229,13 @@ services:
         USE_X_FORWARDED_HOST: 1
         WEBHOOK_ALLOWED_HOSTS: ''
         WEBHOOK_ALLOWED_IPS: ''
-    image: makeplane/plane-live:v1.4.2@sha256:cbb630ccaea24bb9998040cb45c11619a7501e8b6c75d449df2f8fd9b9cddbd0
+    image: makeplane/plane-live:v1.5.0@sha256:f285e6979ed213b39207fcdf62abee9b5bde5dcc3731b4346d71e3a4f595810f
     networks:
       appnet:
         aliases:
         - plane_live_1
     restart: on-failure
+    stop_grace_period: 30s
     user: 1000:1000
   migrator:
     command:
@@ -276,7 +277,7 @@ services:
         USE_X_FORWARDED_HOST: 1
         WEBHOOK_ALLOWED_HOSTS: ''
         WEBHOOK_ALLOWED_IPS: ''
-    image: makeplane/plane-backend:v1.4.2@sha256:90032ce088708889b60c00d491897916f4deb882facda27db59fd10fb68729ef
+    image: makeplane/plane-backend:v1.5.0@sha256:386f659e0e43c9cb29050fb71439f04f40c5c7e1d93cca2c810bc7e2b1134daf
     networks:
       appnet:
         aliases:
@@ -329,7 +330,7 @@ services:
   nginx:
     depends_on:
     - web
-    image: nginx:alpine3.23@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de
+    image: nginx:1.30.7-alpine@sha256:bef154735288bc38d99fac41ae63730684bcc661503673a04a0f9bc526ba8598
     networks:
       appnet:
         aliases:
@@ -431,7 +432,7 @@ services:
       - CMD-SHELL
       - 'node -e "require(''http'').get(''http://127.0.0.1:3000/'', (r) => process.exit(r.statusCode < 500 ? 0 : 1)).on(''error'', () => process.exit(1))"'
       timeout: 5s
-    image: makeplane/plane-space:v1.4.2@sha256:f8f842f05f41a16e9fe8c4f5e17a3bb175338ccdc094620e58ae49764ffbd671
+    image: makeplane/plane-space:v1.5.0@sha256:e7fd925a61796c4e37c2c42b39bf0c660dd0d4ca220705df70bee9f5e28e9273
     networks:
       appnet:
         aliases:
@@ -473,7 +474,7 @@ services:
         USE_X_FORWARDED_HOST: 1
         WEBHOOK_ALLOWED_HOSTS: ''
         WEBHOOK_ALLOWED_IPS: ''
-    image: makeplane/plane-frontend:v1.4.2@sha256:22fd2434fb8d6658439f669ab72f999ce0773abe587663da21a77d70bd63ff61
+    image: makeplane/plane-frontend:v1.5.0@sha256:d6e8afb888431c8d2bc77d4ff7244a5cd28f8c674aa46f114315b8300014b8ce
     networks:
       appnet:
         aliases:
@@ -523,7 +524,7 @@ services:
         USE_X_FORWARDED_HOST: 1
         WEBHOOK_ALLOWED_HOSTS: ''
         WEBHOOK_ALLOWED_IPS: ''
-    image: makeplane/plane-backend:v1.4.2@sha256:90032ce088708889b60c00d491897916f4deb882facda27db59fd10fb68729ef
+    image: makeplane/plane-backend:v1.5.0@sha256:386f659e0e43c9cb29050fb71439f04f40c5c7e1d93cca2c810bc7e2b1134daf
     networks:
       appnet:
         aliases:

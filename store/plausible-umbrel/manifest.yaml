@@ -14,9 +14,9 @@ env:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/plausible/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/plausible/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/plausible/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/plausible/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/plausible/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/plausible/3.webp
 health: null
 hooks: {}
 host_docker_socket: false

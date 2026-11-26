@@ -10,9 +10,9 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/uptime-kuma/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/uptime-kuma/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/uptime-kuma/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/uptime-kuma/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/uptime-kuma/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/uptime-kuma/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,18 +42,12 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    New features:
-      - Added new SMS Gateway, ClickUp, TurboSMTP, BearSMS, Pinglet, Milky, and OpenWA notification providers
+    ⚠️ TLS support has been removed from TCP Port monitors. Existing SSL or STARTTLS monitors become plain TCP monitors and no longer check TLS. Review any affected monitors after updating.
 
+    This update improves security by sandboxing JSON query evaluation and updating dependencies.
 
-    Bug fixes:
-      - Fixed SQLite validation for the analytics type setting
-      - Fixed RADIUS monitors so Access-Challenge responses are treated as successful
-      - Fixed the 2.5.x release version metadata
-
-
-    Full release notes can be found at https://github.com/louislam/uptime-kuma/releases/tag/2.5.3
+    Full release notes can be found at https://github.com/louislam/uptime-kuma/releases/tag/2.5.12
   source: https://github.com/louislam/uptime-kuma
-  version: 2.5.3
+  version: 2.5.12
   website: https://uptime.kuma.pet
 website: https://uptime.kuma.pet

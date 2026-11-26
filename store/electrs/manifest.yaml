@@ -54,6 +54,6 @@ upstream:
   categories:
   - finance
   source: https://github.com/romanz/electrs
-  tipi_version: 11
-  version: v0.11.1
+  tipi_version: 13
+  version: v0.12.0
 website: https://github.com/romanz/electrs

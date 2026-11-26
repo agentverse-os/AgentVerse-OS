@@ -12,15 +12,15 @@ services:
       interval: 5s
       retries: 10
       test:
-      - CMD-SHELL
-      - wget --quiet --tries=1 --spider http://127.0.0.1:8080/api/health-check || exit 1
+      - CMD
+      - node
+      - /usr/src/app/docker_healthcheck.cjs
       timeout: 20s
-    image: ghcr.io/triliumnext/trilium:stable
+    image: ghcr.io/triliumnext/trilium:v0.107.0
     networks:
       appnet:
         aliases:
         - triliumnext-coolify_triliumnext_1
-    platform: linux/amd64
     restart: unless-stopped
     volumes:
     - triliumnext_data:/home/node/trilium-data

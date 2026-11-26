@@ -12,11 +12,11 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/searxng/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/searxng/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/searxng/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/searxng/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/searxng/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/searxng/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/searxng/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/searxng/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/searxng/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/searxng/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,8 +45,11 @@ upstream:
   author: SearXNG
   categories:
   - networking
-  release_notes: This release updates SearXNG's bundled Wikidata and external bang search data, improves DuckDuckGo Weather location handling, updates ClearURLs metadata, refreshes the simple web client dependencies, and removes the Heexy engine because it is blocked by Cloudflare CAPTCHA.
+  release_notes: |-
+    ⚠️ Wikipedia, Wikidata and OpenStreetMap results now need a contact address, as their usage policies require. These engines stay off until you add a mailto: address or web page URL in SearXNG's app settings on umbrelOS 2.0. Other search engines work as before.
+
+    This update improves Startpage search reliability, updates Go package searches to use the official API, and prevents stalled image hosts from tying up search workers.
   source: https://github.com/searxng/searxng
-  version: 2026.9.2
+  version: 2026.11.18
   website: https://docs.searxng.org/
 website: https://docs.searxng.org/

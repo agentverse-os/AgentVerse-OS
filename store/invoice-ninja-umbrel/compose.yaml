@@ -30,7 +30,7 @@ services:
       REDIS_PORT: 6379
       REQUIRE_HTTPS: 'false'
       SESSION_DRIVER: redis
-    image: invoiceninja/invoiceninja-debian:5.13.37@sha256:e000e57231e1f5d0fbbb84319c671ff2726893ea21756018833e6ffd736b8989
+    image: invoiceninja/invoiceninja-debian:5.13.53@sha256:217a0f2d45403b9562f90af51762cdd22bc6d9728c9a8751571ff6bfefc51f64
     networks:
       appnet:
         aliases:
@@ -68,7 +68,7 @@ services:
   nginx:
     depends_on:
     - app
-    image: nginx:1.21-alpine@sha256:686aac2769fd6e7bab67663fd38750c135b72d993d0bb0a942ab02ef647fc9c3
+    image: nginx:1.30.7-alpine@sha256:bef154735288bc38d99fac41ae63730684bcc661503673a04a0f9bc526ba8598
     init: true
     networks:
       appnet:

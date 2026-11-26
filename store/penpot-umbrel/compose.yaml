@@ -4,6 +4,22 @@ networks:
     external: true
     name: ${APP_NET}
 services:
+  penpot-admin-console:
+    depends_on:
+    - penpot-postgres
+    environment:
+    - PENPOT_PUBLIC_URI=http://${DEVICE_DOMAIN_NAME}:${APP_PENPOT_UI_PORT}
+    - PENPOT_INTERNAL_URI=http://penpot-frontend:8080
+    - PENPOT_SECRET_KEY=${APP_SEED}
+    - PENPOT_DATABASE_URI=postgresql://penpot-postgres/penpot
+    - PENPOT_DATABASE_USERNAME=penpot
+    - PENPOT_DATABASE_PASSWORD=penpot
+    image: penpotapp/admin-console:2.19.3@sha256:27c7ae5d7c061f2e07ddbad393316fa50e3d1d6873f1c5c807740316f29f3715
+    networks:
+      appnet:
+        aliases:
+        - penpot_penpot-admin-console_1
+    restart: on-failure
   penpot-backend:
     depends_on:
     - penpot-postgres
@@ -11,6 +27,7 @@ services:
     environment:
     - PENPOT_FLAGS=enable-registration enable-login-with-password disable-email-verification disable-smtp enable-prepl-server disable-secure-session-cookies
     - PENPOT_SECRET_KEY=${APP_SEED}
+    - PENPOT_ADMIN_CONSOLE_URI=http://penpot-admin-console:3000
     - PENPOT_DATABASE_URI=postgresql://penpot-postgres/penpot
     - PENPOT_DATABASE_USERNAME=penpot
     - PENPOT_DATABASE_PASSWORD=penpot
@@ -19,7 +36,7 @@ services:
     - PENPOT_OBJECTS_STORAGE_FS_DIRECTORY=/opt/data/assets
     - PENPOT_TELEMETRY_ENABLED=false
     - PENPOT_PUBLIC_URI=http://${DEVICE_DOMAIN_NAME}:${APP_PENPOT_UI_PORT}
-    image: penpotapp/backend:2.17.2@sha256:770b55f6e51bfcee49152b30858ca6a47143256de8d43953a50b952b5c60bb55
+    image: penpotapp/backend:2.19.3@sha256:31ebb4dabd104c2ed3ae736dcf5a6043a0660ddaac7bcd8501c28036fb4b578c
     networks:
       appnet:
         aliases:
@@ -34,7 +51,7 @@ services:
     - PENPOT_PUBLIC_URI=http://${DEVICE_DOMAIN_NAME}:${APP_PENPOT_UI_PORT}
     - PENPOT_INTERNAL_URI=http://penpot-frontend:8080
     - PENPOT_REDIS_URI=redis://penpot_penpot-valkey_1/0
-    image: penpotapp/exporter:2.17.2@sha256:72a8061e88069b9baf0767bc11fbf3310d2527bb5964ca084cf8c844d84306c8
+    image: penpotapp/exporter:2.19.3@sha256:1705d70e79f3530b3cee65d0cdbee3c5f44f26d62f5ad43bac7945dce4c7b653
     networks:
       appnet:
         aliases:
@@ -46,9 +63,11 @@ services:
     - penpot-backend
     - penpot-exporter
     - penpot-mcp
+    - penpot-admin-console
     environment:
     - PENPOT_FLAGS=enable-registration enable-login-with-password
-    image: penpotapp/frontend:2.17.2@sha256:94fa2864d8fc0cd62245af95c03cca89306a7fd23c206a98a3e9dc9a376ea27e
+    - PENPOT_ADMIN_CONSOLE_URI=http://penpot-admin-console:3000
+    image: penpotapp/frontend:2.19.3@sha256:d22ce9f6f4859adbc726f45965da0d4b083817b0c13ca4a49aa3e927901cccb9
     networks:
       appnet:
         aliases:
@@ -57,7 +76,7 @@ services:
     volumes:
     - ${APP_DATA_DIR}/data/assets:/opt/data/assets
   penpot-mcp:
-    image: penpotapp/mcp:2.17.2@sha256:84f3f07ead11745ad95c2c1db90d33d00c550cff76844791ca4389d307f1be37
+    image: penpotapp/mcp:2.19.3@sha256:01ee7620262379c337a9f77e3149d860330d261ffc640d89af60dc8bd45aef94
     networks:
       appnet:
         aliases:

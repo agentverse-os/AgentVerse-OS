@@ -41,6 +41,6 @@ upstream:
   - security
   - utilities
   source: https://github.com/FlareSolverr/FlareSolverr
-  tipi_version: 35
-  version: v3.5.0
+  tipi_version: 37
+  version: v3.5.2
 website: https://github.com/FlareSolverr/FlareSolverr

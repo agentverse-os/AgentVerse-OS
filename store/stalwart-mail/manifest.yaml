@@ -54,6 +54,6 @@ upstream:
   - network
   - utilities
   source: https://github.com/stalwartlabs
-  tipi_version: 78
-  version: v0.16.19
+  tipi_version: 93
+  version: v0.16.27
 website: https://github.com/stalwartlabs

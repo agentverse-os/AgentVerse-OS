@@ -27,7 +27,7 @@ services:
       - --spider
       - http://localhost:7080
       timeout: 20s
-    image: ghcr.io/coder/coder:latest
+    image: ghcr.io/coder/coder:v2.39.1
     networks:
       appnet:
         aliases:
@@ -47,7 +47,7 @@ services:
       - CMD-SHELL
       - pg_isready -U ${POSTGRES_USER:-username} -d ${POSTGRES_DB:-coder}
       timeout: 5s
-    image: postgres:16.4-alpine
+    image: postgres:17.12-alpine
     networks:
       appnet:
         aliases:

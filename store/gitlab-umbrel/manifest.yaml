@@ -13,9 +13,9 @@ env:
     generate: password
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/gitlab/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/gitlab/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/gitlab/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/gitlab/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/gitlab/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/gitlab/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,15 +46,13 @@ upstream:
   categories:
   - developer
   release_notes: |-
-    Updates GitLab CE from 19.3.0 to 19.3.1.
+    Updates GitLab CE to 19.5.6. Required migrations run automatically during the update. GitLab may take some time to come back online; leave it running until the update finishes.
 
-    ⚠️ Upgrade note: GitLab 19 required upgrade stops are 19.2, 19.5, 19.8, and 19.11. Users updating from older releases may see the UI unavailable while database and background migrations finish.
-    This patch release includes security fixes for SCIM and OAuth username validation, import job limits, merge request approval rules, policy job trust checks, and terminal websocket authorization.
-    It also includes a deployments database-cleanup fix.
+    This security release strengthens access checks for private repository content, discussions, build artifacts, and Git LFS. It also fixes cross-site scripting in error tracking, hardens project imports, and improves protected-branch push performance.
 
-    Full changelog: https://github.com/gitlabhq/gitlabhq/blob/v19.3.1/CHANGELOG.md
+    Full changelog: https://gitlab.com/gitlab-org/gitlab-foss/-/blob/v19.5.6/CHANGELOG.md
     Full upgrade notes are available at: https://docs.gitlab.com/update/versions/gitlab_19_changes/
   source: https://gitlab.com/gitlab-org/omnibus-gitlab/tree/master/docker
-  version: 19.3.1
+  version: 19.5.6
   website: https://about.gitlab.com
 website: https://about.gitlab.com

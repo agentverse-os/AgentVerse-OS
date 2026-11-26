@@ -10,9 +10,9 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/sqlitebrowser/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/sqlitebrowser/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/sqlitebrowser/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/sqlitebrowser/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/sqlitebrowser/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/sqlitebrowser/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -41,8 +41,11 @@ upstream:
   author: SQLiteBrowser
   categories:
   - developer
-  release_notes: null
+  release_notes: |-
+    SQLite Browser now streams to your browser with a new, smoother web desktop, and it opens over HTTPS. Your databases and settings are kept.
+
+    This update also moves SQLite Browser to a rebuilt image with the latest security fixes. The SQLite Browser version is unchanged (3.13.1).
   source: https://github.com/sqlitebrowser/sqlitebrowser
-  version: 3.13.1
+  version: 3.13.1-patch.2
   website: https://sqlitebrowser.org/
 website: https://sqlitebrowser.org/

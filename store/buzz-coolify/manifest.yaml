@@ -17,7 +17,7 @@ env:
   BUZZ_S3_ACCESS_KEY: ''
   BUZZ_S3_BUCKET: buzz-media
   BUZZ_S3_SECRET_KEY: ''
-  BUZZ_TAG: main
+  BUZZ_TAG: 0.3.0
   POSTGRES_DB: buzz
   POSTGRES_USER: ''
   REDIS_PASSWORD: ''
@@ -63,7 +63,7 @@ route:
 schema: 1
 settings:
 - env: BUZZ_TAG
-  hint: 'по умолчанию: main'
+  hint: 'по умолчанию: 0.3.0'
   label: buzz tag
   options: null
   required: false

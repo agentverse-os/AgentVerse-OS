@@ -15,9 +15,9 @@ env:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/seafile/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/seafile/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/seafile/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/seafile/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/seafile/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/seafile/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -47,8 +47,8 @@ upstream:
   author: Seafile
   categories:
   - files
-  release_notes: Updated Seafile Community Edition to the latest 13.0.25 maintenance release.
+  release_notes: Updated Seafile Community Edition to version 14.0.9. This release includes the 14.0 upgrade line with file sharing and collaboration fixes, updated Docker deployment defaults, and configuration updates for WebDAV, search, thumbnails, local passwords, and traffic limits.
   source: https://github.com/haiwen/seafile
-  version: 13.0.25
+  version: 14.0.9
   website: https://www.seafile.com/
 website: https://www.seafile.com/

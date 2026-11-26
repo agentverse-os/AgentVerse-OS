@@ -46,7 +46,7 @@ services:
       - --spider
       - http://127.0.0.1:3000/xrpc/_health
       timeout: 10s
-    image: ghcr.io/bluesky-social/pds:0.4.182
+    image: ghcr.io/bluesky-social/pds:0.4.5051
     networks:
       appnet:
         aliases:

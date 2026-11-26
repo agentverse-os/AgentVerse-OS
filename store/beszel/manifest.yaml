@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/henrygd/beszel
-  tipi_version: 55
-  version: 0.18.8
+  tipi_version: 60
+  version: 0.21.2
 website: https://github.com/henrygd/beszel

@@ -10,10 +10,10 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/opencode/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/opencode/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/opencode/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/opencode/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/opencode/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/opencode/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/opencode/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/opencode/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,14 +43,12 @@ upstream:
   categories:
   - ai
   release_notes: |-
-    This update improves reliability for Claude, Bedrock, Azure, and tool-call workflows.
+    ⚠️ Session sharing has been discontinued. Existing share links, session-sharing commands, and importing sessions from share URLs are no longer supported.
 
-    Claude 5 sessions now tolerate stale thinking blocks after prompt or tool changes, and Bedrock reasoning/replay handling is more reliable.
+    Sessions with many images now replace older images with placeholders when image history exceeds 25 MiB, preventing oversized requests. Requests rejected as too large now trigger compaction and a retry instead of failing the turn.
 
-    Azure CLI sign-in now asks for the resource name directly instead of querying Azure management APIs, tool-call timing stays accurate when metadata changes, and apply_patch permission metadata no longer includes empty move paths.
-
-    Full release notes can be found at https://github.com/anomalyco/opencode/releases/tag/v1.18.26
+    Full release notes can be found at https://github.com/anomalyco/opencode/releases/tag/v1.19.6
   source: https://github.com/anomalyco/opencode
-  version: 1.18.26
+  version: 1.19.6
   website: https://opencode.ai/
 website: https://opencode.ai/

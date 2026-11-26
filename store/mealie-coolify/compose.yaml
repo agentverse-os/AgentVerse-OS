@@ -20,7 +20,7 @@ services:
       - CMD-SHELL
       - bash -c ':> /dev/tcp/127.0.0.1/9000' || exit 1
       timeout: 10s
-    image: ghcr.io/mealie-recipes/mealie:3.17.0
+    image: ghcr.io/mealie-recipes/mealie:v3.31.0
     networks:
       appnet:
         aliases:

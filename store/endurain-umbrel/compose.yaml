@@ -14,10 +14,11 @@ services:
       DB_PASSWORD: endurain
       DB_PORT: 5432
       DB_TYPE: postgres
-      GID: '1000'
+      DEPLOYMENT_PROFILE: local
       SECRET_KEY: ${APP_PASSWORD}
-      UID: '1000'
-    image: ghcr.io/endurain-project/endurain:v0.17.7@sha256:af3d2b50667c081211e9af6b3590f6cbfbaacb73f63910902574f9d65c24b346
+      TRUSTED_PROXIES: ${NETWORK_IP}/16
+      WEB_WORKERS: 1
+    image: ghcr.io/endurain-project/endurain:v0.20.2@sha256:045af8835f82df64203b4e025baa2c603512da9c2e17babd0044533452cc20d6
     networks:
       appnet:
         aliases:

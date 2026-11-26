@@ -19,7 +19,7 @@ services:
       - -f
       - http://localhost:8081/service/rest/v1/status
       timeout: 10s
-    image: sonatype/nexus3
+    image: sonatype/nexus3:3.98.1
     networks:
       appnet:
         aliases:

@@ -11,9 +11,9 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/pyload-ng/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pyload-ng/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pyload-ng/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pyload-ng/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pyload-ng/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pyload-ng/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,8 +42,25 @@ upstream:
   author: pyload
   categories:
   - files
-  release_notes: null
+  release_notes: |-
+    This update brings pyLoad up to 0.5.0b3.dev102, with security fixes, new features and plugin updates.
+
+    Highlights from this release include the following:
+
+    - Fixes 9 security advisories, including session invalidation, API key handling, trusted proxy and client IP handling, archive extraction and SSRF protection.
+    - Adds decompression-bomb protection and disk space validation to archive extractors.
+    - Adds file upload size validation to prevent denial-of-service attacks.
+    - Adds a QR code for connecting the mobile app when generating a new API key.
+    - Shows a favicon badge when a captcha is waiting to be solved.
+    - Adds an option to allow embedding the web interface in an iframe.
+    - Adds CaptchaAI and Solvecha captcha solvers and a new OrigridIo hoster plugin.
+    - Adds chunked downloads with resume support for MegaCoNz.
+    - Fixes package and file reordering, plus several thread-safety and race-condition issues.
+    - Fixes the OneFichierCom, TurbobitNet, YadiSk, DdownloadCom and MegaDebridEu plugins.
+    - Removes the deprecated AndroidPhoneNotify and WindowsPhoneNotify plugins.
+
+    Full release notes can be found at https://github.com/linuxserver/docker-pyload-ng/releases/tag/0.5.0b3.dev102-ls261
   source: https://github.com/pyload/pyload/
-  version: 0.5.0
+  version: 0.5.0-0b3.dev102
   website: https://pyload.net/
 website: https://pyload.net/

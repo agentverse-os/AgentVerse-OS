@@ -24,7 +24,7 @@ services:
       - CMD-SHELL
       - curl -f http://127.0.0.1:7860/health
       timeout: 20s
-    image: langflowai/langflow:1.7.2
+    image: langflowai/langflow:1.13.2
     networks:
       appnet:
         aliases:

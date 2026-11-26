@@ -11,6 +11,8 @@ Features include:
   - Browse mempool and blocks
   - Decode and broadcast raw transactions
   - Full RPC console for advanced commands
+  - Live log viewer for Bitcoin Core and the dashboard
+  - Local HTTP API with an OpenAPI spec, for driving regtest from your own apps and scripts
 
 
 Perfect for Bitcoin developers who need quick access to regtest node functionality for testing wallets, applications, and Bitcoin integrations.

@@ -67,10 +67,10 @@ tags: []
 title: OneDev
 type: app
 upstream:
-  author: https://code.onedev.io/
+  author: OneDev
   categories:
   - development
   source: https://code.onedev.io/onedev/server
-  tipi_version: 257
-  version: 16.5.11
+  tipi_version: 294
+  version: 17.2.1
 website: https://code.onedev.io/onedev/server

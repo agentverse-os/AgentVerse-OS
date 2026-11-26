@@ -19,7 +19,7 @@ services:
       CONDUIT_TRUSTED_SERVERS: ${TRUSTED_SERVERS:-[]}
       CONDUIT_TURN_SECRET: ${TURN_SECRET:-turnsecret}
       CONDUIT_TURN_URIS: ${TURN_URIS:-["turn:localhost?transport=udp", "turn:localhost?transport=tcp"]}
-    image: matrixconduit/matrix-conduit:v0.10.12
+    image: matrixconduit/matrix-conduit:v0.10.16
     labels:
       traefik.enable: 'true'
       traefik.http.middlewares.{{RUNTIPI_APP_ID}}-conduit-web-redirect.redirectscheme.scheme: https

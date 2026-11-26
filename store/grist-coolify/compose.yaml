@@ -57,7 +57,7 @@ services:
       - 'require(''http'').get(''http://localhost:8484/status'', res => process.exit(res.statusCode === 200 ? 0 : 1))'
       - '> /dev/null 2>&1'
       timeout: 20s
-    image: gristlabs/grist:latest
+    image: gristlabs/grist:1.7.22
     networks:
       appnet:
         aliases:

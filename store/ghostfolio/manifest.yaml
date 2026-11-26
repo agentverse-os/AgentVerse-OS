@@ -71,6 +71,6 @@ upstream:
   categories:
   - finance
   source: https://github.com/ghostfolio/ghostfolio
-  tipi_version: 300
-  version: 3.61.0
+  tipi_version: 346
+  version: 3.100.0
 website: https://github.com/ghostfolio/ghostfolio

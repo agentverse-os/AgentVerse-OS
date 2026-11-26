@@ -8,7 +8,7 @@ services:
     environment:
     - PUID=1000
     - PGID=1000
-    image: linuxserver/obsidian:1.8.10@sha256:b85e75e572e75f5e00062fb564102eaad8e19970938ee8ec7bae0a96566c1400
+    image: linuxserver/obsidian:1.15.1@sha256:de6f29048621ee475bf14a7554eabf4799d83b2181566a4fdc9f58c009d6a1dc
     networks:
       appnet:
         aliases:

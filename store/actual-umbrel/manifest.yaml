@@ -1,0 +1,55 @@
+# Imported from the umbrel catalog by `cloudd store import umbrel`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/actual-umbrel
+description: Powerful budgeting made simple
+endpoint:
+  port: 5006
+  service: web
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/actual/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/actual/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/actual/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/actual/icon.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: actual-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Actual
+type: app
+upstream:
+  author: Actual Budget
+  categories:
+  - finance
+  release_notes: |-
+    This update adds automatic bank syncing while Actual is open, reports grouped by tags, and customizable sidebar pages and start page.
+
+    It also improves performance for large budgets, fixes transaction imports and schedules, makes budget saves more resilient, and includes security improvements for sign-in and bank connections.
+
+    If you use a custom SimpleFIN bridge on a private network, you must now explicitly allow it in the server configuration.
+
+    Full release notes can be found at https://actualbudget.org/blog/release-26.11.0
+  source: https://github.com/actualbudget/actual
+  version: 26.11.0
+  website: https://actualbudget.org/
+website: https://actualbudget.org/

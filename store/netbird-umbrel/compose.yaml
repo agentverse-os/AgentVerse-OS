@@ -9,14 +9,39 @@ services:
     - NET_ADMIN
     - SYS_ADMIN
     - SYS_RESOURCE
-    image: ghcr.io/netbirdio/netbird:0.77.1-rootless@sha256:357e093c094b70ae764405303de3a43bb2017a5c96ddcc46c7a0a9e429e3d286
+    image: ghcr.io/netbirdio/netbird:0.83.1-rootless@sha256:6445b1ef0f21d8daecb131c3a89d5911c32eb2b4b5adc57a37e0bfce00517991
     network_mode: host
     restart: on-failure
     user: 1000:1000
     volumes:
     - ${APP_DATA_DIR}/data/app_data:/var/lib/netbird:rw
+  status:
+    command:
+    - |
+      trap 'exit 0' TERM INT
+      while true; do
+        if netbird status --json 2>/dev/null | grep -q '"daemonStatus": *"Connected"' \
+          && ! grep -q '"status":"connected"' /www/status.json 2>/dev/null; then
+          echo '{"status":"connected","message":"Connected to NetBird"}' > /www/status.json.tmp
+          mv -f /www/status.json.tmp /www/status.json
+        fi
+        sleep 5 & wait $$!
+      done
+    entrypoint:
+    - /bin/bash
+    - -c
+    image: ghcr.io/netbirdio/netbird:0.83.1-rootless@sha256:6445b1ef0f21d8daecb131c3a89d5911c32eb2b4b5adc57a37e0bfce00517991
+    networks:
+      appnet:
+        aliases:
+        - netbird_status_1
+    restart: on-failure
+    user: 1000:1000
+    volumes:
+    - ${APP_DATA_DIR}/data/app_data:/var/lib/netbird:ro
+    - ${APP_DATA_DIR}/data/www:/www
   web:
-    image: nginx:1.27@sha256:124b44bfc9ccd1f3cedf4b592d4d1e8bddb78b51ec2ed5056c52d3692baebc19
+    image: nginx:1.30.7-alpine@sha256:bef154735288bc38d99fac41ae63730684bcc661503673a04a0f9bc526ba8598
     networks:
       appnet:
         aliases:

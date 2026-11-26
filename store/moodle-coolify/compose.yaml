@@ -52,7 +52,7 @@ services:
       - -r
       - 'exit(file_exists(''/opt/bitnami/moodle/config.php'') ? 0 : 1);'
       timeout: 10s
-    image: docker.io/bitnamilegacy/moodle:4.3
+    image: docker.io/bitnamilegacy/moodle:5.0.2
     networks:
       appnet:
         aliases:

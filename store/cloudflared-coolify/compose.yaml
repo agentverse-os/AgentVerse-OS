@@ -16,6 +16,6 @@ services:
       - cloudflared
       - --version
       timeout: 20s
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.11.0
     network_mode: host
     restart: unless-stopped

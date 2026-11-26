@@ -10,11 +10,11 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/webcheck/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,15 +44,16 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    This update improves website analysis accuracy and adds new checks:
-      - Added an advisory panel and a new vulnerabilities panel
-      - Improved subdomain lookup, WAF detection, and UI result accuracy
-      - Fixed IPv6 DNS record display issues
-      - Shows OCSP stapling as informational instead of pass/fail
+    This update improves website analysis and makes results easier to explore:
+      - Added expanded check views and copy buttons for results
+      - Added light mode and accessibility settings
+      - Added CAA record and mixed-content checks
+      - Improved threat detection and DKIM checks
+      - Fixed stale results and added timeouts for status and screenshot checks
 
 
-    Full release notes can be found at https://github.com/lissy93/web-check/releases/tag/2.2.0
+    Full release notes can be found at https://github.com/lissy93/web-check/releases/tag/2.4.0
   source: https://github.com/Lissy93/web-check
-  version: 2.2.0
+  version: 2.4.0
   website: https://web-check.xyz/
 website: https://web-check.xyz/

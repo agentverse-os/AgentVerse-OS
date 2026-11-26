@@ -41,8 +41,6 @@ env:
   RESEND_API_KEY: ''
   SERVICE_PASSWORD_64_CLICKHOUSE:
     generate: hex64
-  SERVICE_PASSWORD_64_ELECTRIC:
-    generate: hex64
   SERVICE_PASSWORD_64_MAGICLINK:
     generate: hex64
   SERVICE_PASSWORD_64_SESSION:
@@ -53,6 +51,7 @@ env:
     generate: password
   SERVICE_PASSWORD_POSTGRES:
     generate: password
+  SERVICE_URL_TRIGGER: https://${APP_DOMAIN}
   SERVICE_URL_TRIGGER_3000: https://${APP_DOMAIN}
   SERVICE_USER_CLICKHOUSE:
     generate: password

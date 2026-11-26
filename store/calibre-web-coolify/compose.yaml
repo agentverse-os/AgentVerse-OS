@@ -20,7 +20,7 @@ services:
       - -f
       - http://127.0.0.1:8083
       timeout: 20s
-    image: lscr.io/linuxserver/calibre-web:latest
+    image: lscr.io/linuxserver/calibre-web:0.6.27
     networks:
       appnet:
         aliases:

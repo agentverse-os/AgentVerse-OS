@@ -5,21 +5,152 @@ networks:
     name: ${APP_NET}
 services:
   lobe-chat:
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rustfs:
+        condition: service_healthy
+      rustfs-init:
+        condition: service_completed_successfully
     environment:
     - SERVICE_URL_LOBECHAT_3210=${SERVICE_URL_LOBECHAT_3210}
+    - APP_URL=${SERVICE_URL_LOBECHAT}
+    - INTERNAL_APP_URL=http://localhost:3210
+    - KEY_VAULTS_SECRET=${SERVICE_REALBASE64_32_KEYVAULTS}
+    - AUTH_SECRET=${SERVICE_REALBASE64_32_AUTH}
+    - DATABASE_URL=postgresql://postgres:${SERVICE_PASSWORD_POSTGRES}@postgresql:5432/${POSTGRES_DB:-lobechat}
+    - REDIS_URL=redis://redis:6379
+    - REDIS_PREFIX=lobechat
+    - REDIS_TLS=0
+    - S3_ENDPOINT=${SERVICE_URL_RUSTFS}
+    - S3_INTERNAL_ENDPOINT=http://rustfs:9000
+    - S3_BUCKET=${S3_BUCKET:-lobe}
+    - S3_ENABLE_PATH_STYLE=1
+    - S3_ACCESS_KEY=${SERVICE_USER_RUSTFS}
+    - S3_ACCESS_KEY_ID=${SERVICE_USER_RUSTFS}
+    - S3_SECRET_ACCESS_KEY=${SERVICE_PASSWORD_RUSTFS}
+    - S3_SET_ACL=0
+    - LLM_VISION_IMAGE_USE_BASE64=1
     - OPENAI_API_KEY=${OPENAI_API_KEY}
     - OPENAI_PROXY_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
-    - ACCESS_CODE=${SERVICE_PASSWORD_ACCESSCODE}
     healthcheck:
-      interval: 5s
-      retries: 10
+      interval: 10s
+      retries: 15
+      start_period: 30s
       test:
       - CMD-SHELL
-      - wget -qO- http://localhost:3210/ || exit 1
-      timeout: 20s
-    image: lobehub/lobe-chat:1.135.5
+      - wget -qO- http://localhost:3210/signin > /dev/null || exit 1
+      timeout: 10s
+    image: lobehub/lobehub:2.3.3
     networks:
       appnet:
         aliases:
         - lobe-chat-coolify_lobe-chat_1
     restart: unless-stopped
+  postgresql:
+    command:
+    - postgres
+    - -c
+    - shared_preload_libraries=pg_search,pg_cron,pg_stat_statements
+    environment:
+    - POSTGRES_DB=${POSTGRES_DB:-lobechat}
+    - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      start_period: 60s
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres -h 127.0.0.1
+      timeout: 5s
+    image: paradedb/paradedb:0.26.7-pg17
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat-coolify_postgresql_1
+    restart: unless-stopped
+    volumes:
+    - lobe-postgresql-data:/var/lib/postgresql/data
+  redis:
+    command: redis-server --save 60 1000 --appendonly yes
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 3s
+    image: redis:8.10.3-alpine
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat-coolify_redis_1
+    restart: unless-stopped
+    volumes:
+    - lobe-redis-data:/data
+  rustfs:
+    environment:
+    - SERVICE_URL_RUSTFS_9000=${SERVICE_URL_RUSTFS_9000}
+    - RUSTFS_ACCESS_KEY=${SERVICE_USER_RUSTFS}
+    - RUSTFS_SECRET_KEY=${SERVICE_PASSWORD_RUSTFS}
+    - RUSTFS_CONSOLE_ENABLE=false
+    healthcheck:
+      interval: 5s
+      retries: 30
+      test:
+      - CMD-SHELL
+      - wget -qO- http://localhost:9000/health > /dev/null 2>&1 || exit 1
+      timeout: 3s
+    image: rustfs/rustfs:1.0.6
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat-coolify_rustfs_1
+    restart: unless-stopped
+    volumes:
+    - lobe-rustfs-data:/data
+  rustfs-init:
+    command:
+    - -c
+    - |
+      set -e
+      rc alias set rustfs http://rustfs:9000 "$$RUSTFS_ACCESS_KEY" "$$RUSTFS_SECRET_KEY"
+      rc mb "rustfs/$$S3_BUCKET" --ignore-existing
+      rc anonymous set download "rustfs/$$S3_BUCKET"
+      printf '%s' '<CORSConfiguration><CORSRule><AllowedOrigin>*</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedMethod>PUT</AllowedMethod><AllowedMethod>HEAD</AllowedMethod><AllowedHeader>*</AllowedHeader><ExposeHeader>ETag</ExposeHeader><MaxAgeSeconds>3600</MaxAgeSeconds></CORSRule></CORSConfiguration>' | rc bucket cors set "rustfs/$$S3_BUCKET" -
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    environment:
+    - RUSTFS_ACCESS_KEY=${SERVICE_USER_RUSTFS}
+    - RUSTFS_SECRET_KEY=${SERVICE_PASSWORD_RUSTFS}
+    - S3_BUCKET=${S3_BUCKET:-lobe}
+    image: rustfs/rc:v0.1.37
+    networks:
+      appnet:
+        aliases:
+        - lobe-chat-coolify_rustfs-init_1
+    restart: no
+volumes:
+  lobe-postgresql-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/lobe-postgresql-data
+      o: bind
+      type: none
+  lobe-redis-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/lobe-redis-data
+      o: bind
+      type: none
+  lobe-rustfs-data:
+    driver: local
+    driver_opts:
+      device: ${APP_DATA_DIR}/lobe-rustfs-data
+      o: bind
+      type: none

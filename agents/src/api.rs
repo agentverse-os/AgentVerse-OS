@@ -29,6 +29,8 @@ pub async fn collect(app: &App) -> Result<Collected> {
     let projects = app.core_get("/projects?all=1").await?;
     let projects = projects.as_array().cloned().unwrap_or_default();
     let usage = app.core_get("/usage?days=1").await.unwrap_or(json!({}));
+    // the core's memory watch settings (ADR-009): the "long command" threshold per project
+    let pressure = app.core_get("/system/pressure").await.unwrap_or(json!({}));
     let by_project: HashMap<String, f64> = usage.get("by_project").and_then(|b| b.as_array()).map(|a| a.iter().filter_map(|b| Some((b.get("key")?.as_str()?.to_string(), b.get("cost_usd")?.as_f64()?))).collect()).unwrap_or_default();
     let running: Vec<String> = projects.iter().filter(|p| p.pointer("/workspace/status").and_then(|s| s.as_str()) == Some("running")).filter_map(|p| p.get("name")?.as_str().map(str::to_string)).collect();
     let fetched = join_all(running.iter().map(|name| async move {
@@ -52,6 +54,10 @@ pub async fn collect(app: &App) -> Result<Collected> {
             "apps": p.pointer("/workspace/apps").cloned().unwrap_or(json!([])), "reachable": reachable, "cost_today": by_project.get(&name).copied().unwrap_or(0.0),
             "sessions": sessions, "ptys": ptys, "agents": p.get("agents").cloned(), "hidden": p.pointer("/spec/hidden").and_then(|h| h.as_bool()).unwrap_or(false),
             "engines_v": hub_v.get(&name).cloned().unwrap_or(json!(0)),
+            // an owner's server (ADR-008): kind host, the address and the probe status for the row
+            "kind": p.get("kind").cloned().unwrap_or(json!("workspace")), "addr": p.pointer("/workspace/ip").cloned().unwrap_or(Value::Null), "host_status": p.pointer("/workspace/agent_status").cloned().unwrap_or(Value::Null),
+            // memory of the running workspace as the core's pressure watch sees it (ADR-009): used/limit, state, the last action
+            "memory": p.pointer("/workspace/memory").cloned().unwrap_or(Value::Null), "long_turn_secs": crate::watch::long_secs(&pressure, &name),
         })
     }).collect();
     Ok(Collected { projects: out, today: usage.get("total").cloned().unwrap_or(json!({ "cost_usd": 0.0, "turns": 0 })) })
@@ -106,7 +112,11 @@ pub async fn inbox_from(app: &App, projects: &[Value], today: &Value) -> Value {
     let created = |v: &Value| v.pointer("/session/created_at").and_then(|c| c.as_u64()).unwrap_or(0);
     done.sort_by(|a, b| created(b).cmp(&created(a)));
     done.truncate(20);
-    json!({ "waiting": waiting, "failed": failed, "done": done, "today": today })
+    // memory watch (ADR-009): what it did last in each workspace, and turns silent for hours
+    let (dismissed, now) = (crate::watch::dismissed(&app.store), crate::watch::now_secs());
+    let memory = crate::watch::memory_cards(projects, &dismissed, now);
+    let long = crate::watch::long_cards(app, projects, &dismissed, now).await;
+    json!({ "waiting": waiting, "failed": failed, "done": done, "memory": memory, "long": long, "today": today })
 }
 
 #[derive(Deserialize)]
@@ -139,8 +149,15 @@ pub fn settings_flag(app: &App, key: &str) -> bool { settings_of(app).ok().and_t
 pub async fn settings_get(State(app): State<Arc<App>>) -> R { Ok(Json(settings_of(&app)?)) }
 pub async fn settings_put(State(app): State<Arc<App>>, Json(body): Json<Value>) -> Result<StatusCode, ApiError> {
     if !body.is_object() { return Err(ApiError(StatusCode::BAD_REQUEST, "настройки — объект {prices, defaults, limits}".into())); }
+    // the owner's time zone (routine schedules run on it): an IANA name the service knows, or empty to go back to the
+    // server's own clock. An unknown name would leave the schedules on the server clock while the settings said otherwise
+    let zone = body.get("timezone").map(|z| z.as_str().unwrap_or("").trim().to_string());
+    if let Some(z) = zone.as_deref().filter(|z| !z.is_empty()) {
+        if z.parse::<chrono_tz::Tz>().is_err() { return Err(ApiError(StatusCode::BAD_REQUEST, format!("неизвестный часовой пояс: {z}"))); }
+    }
     let mut cur = settings_of(&app)?;
-    for (k, v) in body.as_object().unwrap() { cur[k] = v.clone(); }
+    for (k, v) in body.as_object().unwrap() { if k != "timezone" { cur[k] = v.clone(); } }
+    match zone.as_deref() { Some("") => { if let Some(o) = cur.as_object_mut() { o.remove("timezone"); } } Some(z) => cur["timezone"] = json!(z), None => {} }
     app.store.put_kv("settings", &cur)?;
     // spending limits are applied by the core (§8.3, slice 67): mirror on every save
     if body.get("limits").is_some() {

@@ -18,7 +18,7 @@ services:
       ENDPOINT: https://${APP_DOMAIN}
       NODE_ENV: production
       TRUST_PROXY_HEADER: '1'
-    image: svhd/logto:1.42.0
+    image: svhd/logto:1.46.0
     labels:
       traefik.http.routers.{{RUNTIPI_APP_ID}}-admin.entrypoints: websecure
       traefik.http.routers.{{RUNTIPI_APP_ID}}-admin.rule: Host(`${LOGTO_ADMIN_URL}`)

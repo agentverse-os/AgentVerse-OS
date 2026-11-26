@@ -40,6 +40,6 @@ upstream:
   - media
   - utilities
   source: https://github.com/recyclarr/recyclarr
-  tipi_version: 41
-  version: 8.7.1
+  tipi_version: 49
+  version: 8.8.1
 website: https://github.com/recyclarr/recyclarr

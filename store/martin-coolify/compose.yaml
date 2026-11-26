@@ -20,9 +20,9 @@ services:
       - wget
       - -q
       - --spider
-      - http://127.0.0.1:3000
+      - http://127.0.0.1:3000/health
       timeout: 20s
-    image: ghcr.io/maplibre/martin:v0.13.0
+    image: ghcr.io/maplibre/martin:1.16.1
     networks:
       appnet:
         aliases:

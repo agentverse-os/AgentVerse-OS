@@ -20,7 +20,7 @@ services:
       - --spider
       - http://localhost:3000
       timeout: 10s
-    image: lscr.io/linuxserver/libreoffice:latest
+    image: lscr.io/linuxserver/libreoffice:25.8.7
     networks:
       appnet:
         aliases:

@@ -14,11 +14,11 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/komodo/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/komodo/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/komodo/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/komodo/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/komodo/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/komodo/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/komodo/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/komodo/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/komodo/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/komodo/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -49,12 +49,10 @@ upstream:
   categories:
   - developer
   release_notes: |-
-    Komodo v2.3.3 fixes batch procedure tag filters and intermittent stack project-missing reports by lengthening periphery command timeouts.
+    This security update removes the emSign ECC Root CA - G3 certificate from Komodo's trusted TLS roots following the compromise of eMudhra intermediate certificate keys.
 
-    This release also adds page breadcrumbs throughout the UI and fixes a v2 update edge case when KOMODO_FIRST_SERVER_ADDRESS is still defined.
-
-    Full release notes can be found at https://github.com/moghtech/komodo/releases/tag/v2.3.3
+    Full release notes can be found at https://github.com/moghtech/komodo/releases/tag/v2.3.4
   source: https://github.com/moghtech/komodo
-  version: 2.3.3
+  version: 2.3.4
   website: https://komo.do/
 website: https://komo.do/

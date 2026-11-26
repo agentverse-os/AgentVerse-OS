@@ -12,7 +12,7 @@ services:
       WORDPRESS_DB_NAME: wordpress
       WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
       WORDPRESS_DB_USER: tipi
-    image: wordpress:7.1.0
+    image: wordpress:7.1.4
     networks:
       appnet:
         aliases:

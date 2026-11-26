@@ -7,7 +7,7 @@ data:
 description: Ente Photos is a fully open source, End to End Encrypted alternative to Google Photos and Apple Photos.
 endpoint:
   port: 8080
-  service: web
+  service: albums
 env:
   ENTE_DB_HOST: postgres
   ENTE_DB_NAME: ente_db
@@ -27,20 +27,21 @@ env:
   PRIMARY_STORAGE_ARE_LOCAL_BUCKETS: 'false'
   PRIMARY_STORAGE_USE_PATH_STYLE_URLS: 'true'
   S3_STORAGE_REGION: us-east-1
+  SERVICE_PASSWORD_64_JWT:
+    generate: hex64
   SERVICE_PASSWORD_POSTGRES:
     generate: password
   SERVICE_REALBASE64_64_HASH:
     generate: hex64
   SERVICE_REALBASE64_ENCRYPTION:
     generate: hex64
-  SERVICE_REALBASE64_JWT:
-    generate: hex64
+  SERVICE_URL_ALBUMS: https://${APP_DOMAIN}
+  SERVICE_URL_ALBUMS_3002: https://${APP_DOMAIN}
   SERVICE_URL_MUSEUM: https://${APP_DOMAIN}
   SERVICE_URL_MUSEUM_8080: https://${APP_DOMAIN}
   SERVICE_URL_WEB: https://${APP_DOMAIN}
   SERVICE_URL_WEB_3000: https://${APP_DOMAIN}
   SERVICE_URL_WEB_3001: https://${APP_DOMAIN}
-  SERVICE_URL_WEB_3002: https://${APP_DOMAIN}
   SERVICE_URL_WEB_3004: https://${APP_DOMAIN}
   SERVICE_USER_POSTGRES:
     generate: password

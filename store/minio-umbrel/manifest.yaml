@@ -10,9 +10,9 @@ endpoint:
   service: web
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/minio/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/minio/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/minio/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/minio/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/minio/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/minio/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,6 +43,10 @@ upstream:
   categories:
   - developer
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous MinIO RELEASE.2025-06-13T11-33-47Z release notes:
+
     This release includes improvements to system performance and reliability:
       - Fixed ILM-related S3 listing and upload issues
       - Improved replication metrics and region config
@@ -52,6 +56,6 @@ upstream:
 
     Full release notes are found at https://github.com/minio/minio/releases
   source: https://github.com/minio/minio
-  version: RELEASE.2025-06-13T11-33-47Z
+  version: RELEASE.2025-06-13T11-33-47Z-patch.1
   website: https://min.io
 website: https://min.io

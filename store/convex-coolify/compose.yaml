@@ -39,7 +39,7 @@ services:
       interval: 5s
       start_period: 10s
       test: curl -f http://127.0.0.1:3210/version
-    image: ghcr.io/get-convex/convex-backend:a9a760ca10399ed42e1b4bb87c78539a235488c7
+    image: ghcr.io/convex/convex-backend:a9a760ca10399ed42e1b4bb87c78539a235488c7
     networks:
       appnet:
         aliases:
@@ -58,7 +58,7 @@ services:
       interval: 5s
       start_period: 5s
       test: curl -f http://127.0.0.1:6791/
-    image: ghcr.io/get-convex/convex-dashboard:a9a760ca10399ed42e1b4bb87c78539a235488c7
+    image: ghcr.io/convex/convex-dashboard:a9a760ca10399ed42e1b4bb87c78539a235488c7
     networks:
       appnet:
         aliases:

@@ -11,19 +11,19 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/downtify/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/downtify/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/downtify/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/downtify/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/downtify/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/downtify/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
 icon: https://getumbrel.github.io/umbrel-apps-gallery/downtify/icon.svg
 login:
-  mode: app
-  note: null
-  password: null
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: downtify
   path: null
-  user: null
+  user: admin
 name: downtify-umbrel
 notes: []
 origin: umbrel
@@ -43,10 +43,14 @@ upstream:
   categories:
   - media
   release_notes: |-
-    This release includes upstream maintenance cleanup with no announced user-facing changes.
+    ⚠️ The music library is now shared across accounts: all users can see every downloaded song. Admins can hide songs, albums, or artists from listings, but hiding does not prevent access to a file whose address is already known. Do not use it to protect sensitive files.
 
-    Full release notes can be found at https://github.com/henriquesebastiao/downtify/releases/tag/2.10.1
+    This update adds a karaoke view, music metadata editing, and tools to repair duplicate songs and playlists. Artist monitoring can now find missing releases and manage multiple watches at once.
+
+    It also fixes concurrent downloads corrupting cookies, playlist edits being overwritten, and audio streaming issues, and adds a close button to the player.
+
+    Full release notes can be found at https://github.com/henriquesebastiao/downtify/releases/tag/3.11.0
   source: https://github.com/henriquesebastiao/downtify
-  version: 2.10.1
+  version: 3.11.0
   website: https://github.com/henriquesebastiao/downtify
 website: https://github.com/henriquesebastiao/downtify

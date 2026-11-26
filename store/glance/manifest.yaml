@@ -39,6 +39,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/glanceapp/glance
-  tipi_version: 29
-  version: v0.8.5
+  tipi_version: 35
+  version: v0.8.8
 website: https://github.com/glanceapp/glance

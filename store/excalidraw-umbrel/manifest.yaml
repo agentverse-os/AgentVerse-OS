@@ -10,9 +10,9 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/excalidraw/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/excalidraw/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/excalidraw/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/excalidraw/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/excalidraw/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/excalidraw/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -42,6 +42,10 @@ upstream:
   categories:
   - files
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous Excalidraw 0.18.0-7 release notes:
+
     This update brings several new features and fixes:
       - Board sharing is now supported via shareable links with separate edit and read-only permissions
       - Board IDs have been migrated to UUIDs, with automatic migration of existing boards
@@ -50,6 +54,6 @@ upstream:
       - Fixed the copy URL button not working on non-HTTPS connections
       - Fixed various issues with loading states and error handling
   source: https://github.com/ozencb/excalidraw-persist
-  version: 0.18.0-7
+  version: 0.18.0-7-patch.1
   website: https://excalidraw.com/
 website: https://excalidraw.com/

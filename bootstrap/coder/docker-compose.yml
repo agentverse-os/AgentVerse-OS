@@ -22,7 +22,7 @@ services:
       retries: 20
 
   coder:
-    image: ghcr.io/coder/coder:latest                      # pin a specific stable after the spike
+    image: ghcr.io/coder/coder:v2.37.14                   # a patch line, not `latest`: a new minor is taken on purpose, after the template is checked against it
     restart: unless-stopped
     depends_on:
       postgres:

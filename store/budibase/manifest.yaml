@@ -39,6 +39,6 @@ upstream:
   categories:
   - development
   source: https://github.com/Budibase/budibase
-  tipi_version: 484
-  version: v3.43.0
+  tipi_version: 501
+  version: v3.51.0
 website: https://github.com/Budibase/budibase

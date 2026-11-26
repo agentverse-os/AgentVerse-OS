@@ -13,11 +13,11 @@ env:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/blinko/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/blinko/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/blinko/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/blinko/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/blinko/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/blinko/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/blinko/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/blinko/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/blinko/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/blinko/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -47,18 +47,20 @@ upstream:
   categories:
   - files
   release_notes: |-
-    This update includes new features, bug fixes, and improvements.
+    This update improves Blinko’s security and compatibility. No extra setup is needed for regular note-taking or AI features.
 
-    Key highlights in this version:
-      - Added LiteLLM as an AI gateway provider option
-      - Added streamable HTTP MCP support
-      - Upgraded MiniMax provider models to M3 and removed older M2.5 options
-      - Fixed note editor behavior, chat state resets, embedding delete errors, and Qwen prompt compatibility
-      - Added Ukrainian localization and refreshed Japanese and German translations
+    If you use Blinko’s desktop or mobile apps, update those too. If you were halfway through signing in with two-factor authentication, start the sign-in again.
 
+    🔧 **Only for users of MCP integrations that run local commands (stdio):** These integrations now need your approval before they can run. MCP integrations that connect through a URL (HTTP) are unaffected.
 
-    Full release notes are available at https://github.com/blinko-space/blinko/releases/tag/1.8.8
+    To approve a local integration, open Blinko’s app settings **in Umbrel** → Advanced → Environment variables. Set `BLINKO_MCP_STDIO_ALLOWLIST` to a JSON array containing the integration’s exact `command`, `args`, and `env` values. Only approve commands you trust, as they can access your Blinko data.
+
+    Saving restarts Blinko. Your approvals are kept across restarts and app updates. This setting requires umbrelOS 2.0 or later.
+
+    Back up your Blinko data before updating.
+
+    [Full release notes](https://github.com/blinko-space/blinko/releases/tag/1.8.9)
   source: https://github.com/blinko-space/blinko
-  version: 1.8.8
+  version: 1.8.9
   website: https://blinko-demo.vercel.app/
 website: https://blinko-demo.vercel.app/

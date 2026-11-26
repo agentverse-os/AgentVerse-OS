@@ -12,9 +12,9 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/umami/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/umami/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/umami/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/umami/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/umami/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/umami/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -45,19 +45,18 @@ upstream:
   categories:
   - developer
   release_notes: |-
-    This maintenance release improves upgrade safety, tracking accuracy, analytics reporting, and two-factor authentication configuration.
+    This update adds browser error tracking and improves analytics, navigation, and account security. If you still use the default administrator password, you will be prompted to change it before continuing. Password settings are now under Settings → Security.
 
-    Some of the key highlights in this release include:
-      - Safer two-factor authentication enforcement and clearer feedback when the encryption key is missing or invalid
-      - Fixes for event property filtering, event/session preservation, relational event pagination, funnel steps with null event values, and zero/false website values
-      - Improved tracker visit-state handling, root-path handling with REMOVE_TRAILING_SLASH, expanded metrics performance, username conflict handling, and admin/menu UI polish
-      - A database migration that lowercases usernames from pre-3.2 installs while safely handling soft-deleted-account conflicts
+    Key highlights:
+      - Capture browser errors alongside analytics and investigate grouped issues and affected visits
+      - Improved date-range selection, comparison charts, timezone handling, and reporting performance
+      - Easier replay navigation and dashboard access on mobile
+      - Stronger two-factor authentication, team permissions, and shared-report access controls
+      - Fixes session attribution, stale analytics caches, and tracking and display issues
 
 
-    This Umbrel package now provides Umami's persistent two-factor encryption key from the app seed so two-factor authentication can be used after upgrade.
-
-    Full release notes are found at https://github.com/umami-software/umami/releases/tag/v3.3.1
+    Full release notes are found at https://github.com/umami-software/umami/releases/tag/v3.5.0
   source: https://github.com/umami-software/umami
-  version: 3.3.1
+  version: 3.5.0
   website: https://umami.is
 website: https://umami.is

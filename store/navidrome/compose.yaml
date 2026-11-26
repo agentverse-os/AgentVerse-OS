@@ -9,7 +9,7 @@ services:
       ND_LOGLEVEL: info
       ND_SCANSCHEDULE: 1h
       ND_SESSIONTIMEOUT: 24h
-    image: deluan/navidrome:0.63.2
+    image: deluan/navidrome:0.64.2
     networks:
       appnet:
         aliases:

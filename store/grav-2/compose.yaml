@@ -9,7 +9,7 @@ services:
     - PUID=1000
     - PGID=1000
     - TZ=${TZ}
-    image: lscr.io/linuxserver/grav:2.0.21
+    image: lscr.io/linuxserver/grav:2.2.29
     networks:
       appnet:
         aliases:

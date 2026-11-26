@@ -20,7 +20,7 @@ services:
       - -f
       - http://localhost:7878/ping
       timeout: 10s
-    image: lscr.io/linuxserver/radarr:latest
+    image: lscr.io/linuxserver/radarr:7.0.3
     networks:
       appnet:
         aliases:

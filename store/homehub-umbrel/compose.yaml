@@ -8,7 +8,7 @@ services:
     environment:
     - FLASK_ENV=production
     - SECRET_KEY=${APP_SEED}
-    image: ghcr.io/surajverma/homehub:0.2.4@sha256:fd1a7172b56f01dff3fb9fb5c9c2268baa7ab63ed5d7e348907107a34dee83e8
+    image: ghcr.io/surajverma/homehub:0.7.0@sha256:c16dc026f72509dfa8ceb7c754c7963dde9cea9ee2c11bc0058ebd9647a3af01
     networks:
       appnet:
         aliases:

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Бренд AgentVerse OS · знак Monolith. Генерирует SVG и PNG в assets/ (и иконки PWA в desktop/public при --install).
-Запуск: python3 assets/build.py svg → SVG и render-manifest.json; затем PNG рендерит Chromium (assets/render.py в контейнере Playwright:
-маски SVG cairosvg не умеет); python3 assets/build.py assemble [--install] → favicon.ico и копирование в desktop/public. Зависимость: Pillow.
-Геометрия (viewBox 256): шпиль — треугольник apex (128,22), основание 92…164 на y=224, две грани по оси x=128;
-кольцо — эллипс 196×56 с центром (128,170), наклон −16°; спереди кольцо отделено от шпиля прозрачным зазором (mask)."""
+"""The AgentVerse OS brand · the Monolith mark. Generates SVG and PNG into assets/ (and the PWA icons into desktop/public with --install).
+Run: python3 assets/build.py svg → SVG and render-manifest.json; the PNGs are then rendered by Chromium (assets/render.py in a Playwright
+container: cairosvg cannot do SVG masks); python3 assets/build.py assemble [--install] → favicon.ico and the copy into desktop/public.
+Depends on Pillow.
+Geometry (viewBox 256): the spire is a triangle with the apex at (128,22) and the base 92…164 at y=224, two facets along the axis x=128;
+the ring is an ellipse 196×56 centred at (128,170), tilted −16°; in front the ring is separated from the spire by a transparent gap (mask)."""
 import os, sys, io
 from pathlib import Path
 from PIL import Image
@@ -13,8 +14,9 @@ ROOT = HERE.parent
 P = {"blue": "#5B8CFF", "violet": "#7A5CFF", "lilac": "#A2B4FF", "paper": "#F4F7FF", "night": "#0E1018", "deep": "#3B2FA8"}
 
 def mark_parts(mono=None, simple=False, uid="m"):
-    """Знак Monolith v2 (по референсу): широкий гранёный шпиль с вырезом снизу (силуэт A), внутренний клин между ножками
-    и тонкое широкое кольцо под −10°. Вырез и зазор перед кольцом — маски, поэтому фон любой. Возвращает (defs, body)."""
+    """The Monolith mark v2 (after the reference): a wide faceted spire with a notch at the bottom (the silhouette of an A), an inner
+    wedge between the legs and a thin wide ring at −10°. The notch and the gap in front of the ring are masks, so any background
+    works. Returns (defs, body)."""
     ring_w = 16 if simple else 9
     cut_w = ring_w + (10 if simple else 6)
     notch = "128,132 112,228 144,228" if simple else "128,118 108,228 148,228"
@@ -72,8 +74,8 @@ def mark_svg(size=256, mono=None, simple=False, uid="m", bg=None, pad=0, radius=
 FONT = "'Space Grotesk','Segoe UI',system-ui,sans-serif"
 
 def font_style():
-    """Space Grotesk (OFL, assets/fonts/SpaceGrotesk-latin.woff2, вариативный 300…700) встраивается в SVG как data-URI:
-    SVG внутри <img> внешние шрифты не грузит, а в контейнере рендера Space Grotesk нет (sans-serif там — WenQuanYi)."""
+    """Space Grotesk (OFL, assets/fonts/SpaceGrotesk-latin.woff2, variable 300…700) is embedded into the SVG as a data URI:
+    an SVG inside <img> does not load external fonts, and the render container has no Space Grotesk (its sans-serif is WenQuanYi)."""
     import base64
     f = HERE / "fonts" / "SpaceGrotesk-latin.woff2"
     if not f.exists(): return ""
@@ -211,8 +213,8 @@ def shards_and_streaks(w, h, avoid, rnd, op, n_shards=7, n_streaks=4, streak_x=(
     return out
 
 def abstractions(w, h, cx, cy, r, light=False, seed=11, portrait=False):
-    """Космические абстракции верхнего слоя (размываются вместе со знаком): обрывки больших орбит, планеты, осколки, штрихи, два графа.
-    portrait — раскладка для телефона: знак по центру сверху, графы под ним."""
+    """Cosmic abstractions of the top layer (blurred together with the mark): fragments of large orbits, planets, shards, strokes,
+    two graphs. portrait — the layout for a phone: the mark centred at the top, the graphs below it."""
     import random
     rnd = random.Random(seed)
     c1, c2, c3 = AB_C
@@ -254,8 +256,9 @@ def abstractions_lockup(w, h, box, light=False, seed=11, portrait=False):
     return "\n".join(parts)
 
 def wallpaper_svg(w, h, light=False, quiet=False, layer="all", portrait=False):
-    """Обои: градиент неба, две туманности, звёзды и орбиты; знак справа сверху ~34 % высоты (portrait — по центру сверху, 42 % ширины).
-    quiet — водяной знак вместо цветного. layer: all — целиком; bg — только космос (под размытие Desktop); mark — только знак на прозрачном."""
+    """Wallpaper: a sky gradient, two nebulae, stars and orbits; the mark at the top right, ~34 % of the height (portrait — centred
+    at the top, 42 % of the width). quiet — a watermark instead of the coloured mark. layer: all — everything; bg — the cosmos only
+    (for the Desktop blur); mark — the mark alone on transparent."""
     bg1, bg2 = ("#F4F7FF", "#E4E9FF") if light else ("#0B0D14", "#141a2e")
     if portrait: size = int(w * 0.42); x, y = int((w - size) / 2), int(h * 0.12)
     else: size = int(h * (0.30 if quiet else 0.34)); x, y = int(w * 0.66), int(h * 0.14)
@@ -284,8 +287,9 @@ def wallpaper_svg(w, h, light=False, quiet=False, layer="all", portrait=False):
 """
 
 def wallpaper_lockup_svg(w, h, light=False, layer="all", portrait=False):
-    """Обои с лок-апом по центру и космосом по краям: горизонтальный лок-ап 48 % ширины (portrait — вертикальный, 60 % ширины).
-    layer: all — целиком; bg — космос (под размытие Desktop); top — лок-ап и абстракции на прозрачном (верхний слой)."""
+    """Wallpaper with the lockup in the centre and the cosmos along the edges: the horizontal lockup at 48 % of the width (portrait —
+    the vertical one, 60 % of the width). layer: all — everything; bg — the cosmos (for the Desktop blur); top — the lockup and the
+    abstractions on transparent (the top layer)."""
     bg1, bg2 = ("#F4F7FF", "#E4E9FF") if light else ("#0B0D14", "#141a2e")
     ink, accent, muted = (P["night"], P["blue"], "#5B6488") if light else (P["paper"], P["lilac"], "#8E97B8")
     body, vw, vh = lockup_parts(vertical=portrait, ink=ink, accent=accent, muted=muted, uid="wl")
@@ -410,8 +414,8 @@ def write_mark_svelte(path: Path):
     defs_m, body_m = mark_parts(mono="MONO", uid="U")
     def sv(t): return t.replace("U-", "{uid}-").replace("#U-", "#{uid}-").replace("MONO", "{mono}")
     path.write_text(f"""<script lang="ts">
-  // Знак Monolith — сгенерировано assets/build.py --install из той же геометрии, что assets/mark.svg. Не править руками.
-  // simple — версия для 16–18 px; mono — одноцветный силуэт указанного цвета.
+  // The Monolith mark — generated by assets/build.py --install from the same geometry as assets/mark.svg. Do not edit by
+  // hand. simple — the version for 16–18 px; mono — a single-color silhouette of the given color.
   let {{ size = 24, simple = false, mono = '' }}: {{ size?: number; simple?: boolean; mono?: string }} = $props();
   const uid = `mk${{Math.random().toString(36).slice(2, 8)}}`;
 </script>

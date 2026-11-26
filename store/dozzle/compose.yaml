@@ -2,7 +2,7 @@
 # host socket.
 services:
   dozzle:
-    image: amir20/dozzle:v8
+    image: amir20/dozzle:v11.4.2
     restart: unless-stopped
     environment:
       DOZZLE_NO_ANALYTICS: "true"

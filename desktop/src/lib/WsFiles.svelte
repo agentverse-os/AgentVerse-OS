@@ -123,5 +123,5 @@
   .sm { font-size: 11.5px; }
   .hint { font-size: 12.5px; padding: 8px; }
   .dropzone { position: absolute; inset: 0; display: grid; place-items: center; background: rgb(var(--accent-rgb) / .12); border: 2px dashed var(--accent); border-radius: 10px; font-weight: 600; pointer-events: none; }
-  @media (max-width: 700px) { .split.with-preview { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); } .meta.time { display: none; } .row .ico { opacity: 1; } }
+  @container win (max-width: 700px) { .split.with-preview { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); } .meta.time { display: none; } .row .ico { opacity: 1; } }
 </style>

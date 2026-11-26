@@ -1,12 +1,14 @@
 <script lang="ts">
   // Inbox: everything waiting for a human from all workspaces — permissions and agent questions answered right
   // here, failed and finished sessions.
-  import { ui, data, actions, agentName, money, ago } from '../state.svelte';
+  import { ui, data, actions, agentName, money, ago, when } from '../state.svelte';
   import { t } from '../i18n';
   import Icon from '../Icon.svelte';
   import Md from '../Md.svelte';
-  import { api, type InboxItem, type PendingReq } from '../api';
+  import { api, agents, type InboxItem, type PendingReq, type MemoryCard, type LongCard } from '../api';
   import { msg } from '../state.svelte';
+  import { toast } from '../toast.svelte';
+  import { memBytes, memSpan } from '../memory';
   let wsFilter = $state('all');
   let picks = $state<Record<string, Record<string, string[]>>>({});
   let custom = $state<Record<string, Record<string, string>>>({});
@@ -15,7 +17,44 @@
   let resolved = $state<Record<string, boolean>>({});
   const list = $derived(data.inbox);
   const filt = (items: InboxItem[]) => items.filter(i => wsFilter === 'all' || i.project === wsFilter);
-  const projects = $derived(Array.from(new Set([...(list?.waiting ?? []), ...(list?.failed ?? []), ...(list?.done ?? [])].map(i => i.project))));
+  const projects = $derived(Array.from(new Set([...(list?.waiting ?? []), ...(list?.failed ?? []), ...(list?.done ?? []), ...(list?.memory ?? []), ...(list?.long ?? [])].map(i => i.project))));
+  // memory watch (ADR-009, §4.13): what it did last in a workspace and turns that have been silent for hours
+  const byWs = <T extends { project: string }>(items: T[] | undefined) => (items ?? []).filter(i => wsFilter === 'all' || i.project === wsFilter);
+  const memCards = $derived(byWs(list?.memory));
+  const longCards = $derived(byWs(list?.long));
+  let hidden = $state<Record<string, boolean>>({});
+  let busyKey = $state('');
+  let nowSecs = $state(Math.floor(Date.now() / 1000));
+  $effect(() => { const iv = setInterval(() => (nowSecs = Math.floor(Date.now() / 1000)), 30000); return () => clearInterval(iv); });
+  const memTitle = (c: MemoryCard) => (c.kind === 'killed' ? (c.note === 'manual' ? t('mem.killedManual') : t('mem.killed')) : c.kind === 'oom' ? t('mem.oom') : t('mem.standing'));
+  const memNote = (c: MemoryCard) => (c.note === 'notify' ? t('mem.noteNotify') : c.note === 'small' ? t('mem.noteSmall') : c.note === 'rate' ? t('mem.noteRate') : c.note === 'host' ? t('mem.noteHost') : '');
+  function memLines(c: MemoryCard): string[] {
+    const pct = Math.round(c.full60); const out: string[] = [];
+    if (c.kind === 'killed') { out.push(t('mem.proc', { cmd: c.cmd, rss: memBytes(c.rss), age: memSpan(c.age_secs) })); if (c.note !== 'manual' && c.stalled_secs) out.push(t('mem.stood', { secs: memSpan(c.stalled_secs), limit: memBytes(c.limit), pct })); }
+    else if (c.kind === 'oom') { out.push(c.cmd ? t('mem.procOom', { cmd: c.cmd, rss: memBytes(c.rss) }) : t('mem.procUnknown')); out.push(t('mem.limitOnly', { limit: memBytes(c.limit) })); }
+    else { out.push(c.live ? t('mem.standsNow', { pct, secs: memSpan(c.stalled_secs + Math.max(0, nowSecs - c.at)), limit: memBytes(c.limit) }) : t('mem.stood', { secs: memSpan(c.stalled_secs), limit: memBytes(c.limit), pct })); if (c.cmd) out.push(t('mem.largest', { cmd: c.cmd, rss: memBytes(c.rss) })); const n = memNote(c); if (n) out.push(n); }
+    if (c.session_title) out.push(t('mem.session', { title: c.session_title }));
+    return out;
+  }
+  async function dismiss(key: string) {
+    hidden[key] = true;
+    try { await agents.inboxDismiss(key); } catch (e) { hidden[key] = false; toast(msg(e), 'bad'); }
+  }
+  async function killNow(c: MemoryCard) {
+    if (busyKey || !window.confirm(t('mem.killConfirm', { project: c.project }))) return;
+    busyKey = c.key;
+    try { const a = await api.memoryKill(c.project); toast(t('mem.killDone', { project: c.project, cmd: a.cmd })); }
+    catch (e) { toast(msg(e), 'bad'); }
+    finally { busyKey = ''; }
+  }
+  async function interrupt(c: LongCard) {
+    if (busyKey) return; busyKey = c.key;
+    try { await api.sessionInterrupt(c.project, c.session.id); toast(t('long.interrupted', { title: c.session.title })); }
+    catch (e) { toast(msg(e), 'bad'); }
+    finally { busyKey = ''; }
+  }
+  /** Memory limit lives in the project parameters of Desktop */
+  const openLimit = () => window.open(`${location.origin}/#projects`, '_blank', 'noopener');
   $effect(() => { if (list && wsFilter !== 'all' && !projects.includes(wsFilter)) wsFilter = 'all'; });
   const requestKey = (it: InboxItem, p: PendingReq) => `${it.project}:${it.session.id}:${p.request_id}`;
   const canAnswer = (it: InboxItem, p: PendingReq) => (p.input?.questions ?? []).length > 0 && (p.input.questions as any[]).every(q => custom[requestKey(it, p)]?.[q.question]?.trim() || picks[requestKey(it, p)]?.[q.question]?.length);
@@ -64,6 +103,25 @@
       <div class="inbox">
         <div class="col">
           <div class="h-sec">{t('inbox.waitTitle')}</div>
+          {#each memCards.filter(c => !hidden[c.key]) as c (c.key)}
+            <div class="item card-s mem {c.kind}" class:live={c.live} data-mem-card={c.kind} data-key={c.key} aria-busy={busyKey === c.key}>
+              <div class="who"><Icon name={c.kind === 'stalled' ? 'gauge' : 'alert'} size="s" /> {ago(c.at)} · <b>{c.project}</b> · {t('mem.title')}<span class="sp"></span><button class="xs ghost mem-hide" onclick={() => dismiss(c.key)}>{t('mem.hide')}</button></div>
+              <div class="what"><b>{memTitle(c)}</b></div>
+              {#each memLines(c) as line, i (i)}<div class="muted sm mem-line">{line}</div>{/each}
+              <div class="acts">
+                {#if c.can_kill}<button class="danger mem-kill" disabled={!!busyKey} onclick={() => killNow(c)}>{t('mem.kill')}</button>{/if}
+                {#if c.session}<button class="mem-open" onclick={() => ui.goto({ project: c.project, kind: 'session', id: c.session! })}>{t('mem.openSession')} <Icon name="arrowUR" size="s" /></button>{/if}
+                <button class="ghost mem-limit" onclick={openLimit}>{t('mem.limit')}</button>
+              </div>
+            </div>
+          {/each}
+          {#each longCards.filter(c => !hidden[c.key]) as c (c.key)}
+            <div class="item card-s long" data-long-card={c.session.id} data-key={c.key} aria-busy={busyKey === c.key}>
+              <div class="who"><Icon name="gauge" size="s" /> <b>{c.project}</b> · <b>{c.session.title}</b> · {t('long.title', { time: memSpan(nowSecs - c.since) })}<span class="sp"></span><button class="xs ghost long-mute" onclick={() => dismiss(c.key)}>{t('long.mute')}</button></div>
+              <div class="what">{#if c.tool}<Icon name="terminal" size="s" /><code class="block">{c.tool}</code>{:else}{t('long.noTool', { when: when(c.since) })}{/if}</div>
+              <div class="acts"><button class="primary long-open" onclick={() => ui.goto({ project: c.project, kind: 'session', id: c.session.id })}>{t('long.open')}</button><button class="ghost danger long-interrupt" disabled={!!busyKey} onclick={() => interrupt(c)}>{t('long.interrupt')}</button></div>
+            </div>
+          {/each}
           {#each filt(list.waiting) as it (it.session.id)}
             {#each (it.pending ?? []).filter(p => !resolved[requestKey(it, p)]) as p (p.request_id)}
               <div class="item card-s" data-request={p.request_id} aria-busy={pending[requestKey(it, p)]}>
@@ -83,7 +141,7 @@
               </div>
             {/each}
           {/each}
-          {#if !filt(list.waiting).length}<div class="empty card-s"><span class="ic"><Icon name="checkc" size="l" /></span><b>{t('inbox.none')}</b><span>{t('inbox.noneHint')}</span></div>{/if}
+          {#if !filt(list.waiting).length && !memCards.some(c => !hidden[c.key]) && !longCards.some(c => !hidden[c.key])}<div class="empty card-s"><span class="ic"><Icon name="checkc" size="l" /></span><b>{t('inbox.none')}</b><span>{t('inbox.noneHint')}</span></div>{/if}
         </div>
         <div class="col done-col">
           <div class="h-sec">{t('inbox.doneTitle')}</div>

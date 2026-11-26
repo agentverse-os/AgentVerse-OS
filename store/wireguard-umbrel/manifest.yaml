@@ -10,9 +10,9 @@ endpoint:
   service: app
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/wireguard/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wireguard/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/wireguard/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/wireguard/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wireguard/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/wireguard/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,10 +43,17 @@ upstream:
   categories:
   - networking
   release_notes: |-
-    Fixes WireGuard failing to start on newer Raspberry Pi kernels by automatically using the nftables-compatible firewall backend when legacy iptables is unavailable. Existing clients and configuration are preserved.
+    This update brings WireGuard Easy from 15.3.0 to 15.5.0:
+      - Optional OAuth sign-in and an option to turn off the update check
+      - Support for the WireGuard Table setting and a configurable interface name
+      - AmneziaWG 3.1 support
+      - Security hardening and various bug fixes
+
 
     Existing WireGuard Easy 14 users: version 15 is a complete rewrite. Back up your current configuration before updating. Umbrel will attempt to migrate your server keys and clients automatically. If migration does not complete, do not uninstall WireGuard; use your version 14 backup in WireGuard Easy's setup wizard.
+
+    Full release notes are available at https://github.com/wg-easy/wg-easy/releases
   source: https://github.com/wg-easy/wg-easy
-  version: 15.3.0-1
+  version: 15.5.0
   website: https://github.com/wg-easy/wg-easy
 website: https://github.com/wg-easy/wg-easy

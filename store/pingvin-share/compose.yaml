@@ -5,7 +5,7 @@ networks:
     name: ${APP_NET}
 services:
   pingvin-share:
-    image: stonith404/pingvin-share:v1.13.0
+    image: ghcr.io/smp46/pingvin-share-x:v2.1.1
     networks:
       appnet:
         aliases:

@@ -55,6 +55,6 @@ upstream:
   categories:
   - utilities
   source: https://github.com/benjaminjonard/koillection
-  tipi_version: 46
-  version: 1.8.4
+  tipi_version: 50
+  version: 1.8.6
 website: https://github.com/benjaminjonard/koillection

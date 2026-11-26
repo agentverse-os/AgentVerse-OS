@@ -20,7 +20,7 @@
       {#if isImg(ic)}<img src={ic} alt="" />{:else}<span class="emoji">{ic ?? '📦'}</span>{/if}
       <div>
         <h2>{t('app.readyTitle', { title: titleOf(app) })}</h2>
-        <div class="muted">{sourceOf(app).label} · {app.state ?? t('app.startingState')}{#if app.port} · {t('app.port', { port: app.port })}{/if}</div>
+        <div class="muted">{sourceOf(app).label} · {app.state ?? t('app.startingState')}{#if app.port}{' '}· {t('app.port', { port: app.port })}{/if}</div>
       </div>
     </div>
     <h3>{t('app.loginDetails')}</h3>

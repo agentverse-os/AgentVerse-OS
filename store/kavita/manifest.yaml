@@ -39,6 +39,6 @@ upstream:
   categories:
   - media
   source: https://github.com/Kareadita/Kavita
-  tipi_version: 27
-  version: 0.9.0
+  tipi_version: 29
+  version: 0.9.1
 website: https://github.com/Kareadita/Kavita

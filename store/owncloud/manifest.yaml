@@ -62,6 +62,6 @@ upstream:
   categories:
   - data
   source: https://github.com/owncloud/core
-  tipi_version: 28
-  version: 11.0.0
+  tipi_version: 32
+  version: 11.1.0
 website: https://github.com/owncloud/core

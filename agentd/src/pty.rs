@@ -77,6 +77,13 @@ impl PtySession {
         cmd.args(rest);
         cmd.cwd(&opts.cwd);
         cmd.env("TERM", "xterm-256color");
+        // ADR-008: owner's server — the login shell does not source ~/.cloudos/env.sh, so inject the gate keys here
+        // (a workspace gets them from /etc/profile.d and is left untouched); explicit opts.env still wins.
+        if crate::codex::env_file() != std::path::Path::new("/etc/cloudos/env.sh") {
+            for (k, v) in crate::codex::workspace_env() {
+                cmd.env(k, v);
+            }
+        }
         for (k, v) in &opts.env {
             cmd.env(k, v);
         }

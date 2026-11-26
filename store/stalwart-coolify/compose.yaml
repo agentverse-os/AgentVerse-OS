@@ -13,12 +13,10 @@ services:
       interval: 30s
       retries: 3
       test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8080/
+      - CMD-SHELL
+      - curl -fsS http://127.0.0.1:8080/healthz/live || curl -fsSk https://127.0.0.1:443/healthz/live
       timeout: 10s
-    image: stalwartlabs/stalwart:v0.16.13
+    image: stalwartlabs/stalwart:v1.1.0
     networks:
       appnet:
         aliases:

@@ -11,12 +11,12 @@ services:
       INFLUXDB_PASSWORD: $APP_PASSWORD
       INFLUXDB_URL: http://influxdb_influxdb_1:8086
       INFLUXDB_USERNAME: admin
-    image: chronograf:1.11.2@sha256:a6db91a1ba1d88d19b04ca4cad6db77d90ded5d9c7bec3ef5a793a967c23c04d
+    image: chronograf:1.11.4@sha256:1aa585346868ef0859c507b2c8544a175ad308024765929f5df5b64a9679031d
     networks:
       appnet:
         aliases:
         - influxdb_chronograf_1
-    restart: unless-stopped
+    restart: on-failure
     user: 1000:1000
     volumes:
     - ${APP_DATA_DIR}/data/chronograf:/var/lib/chronograf
@@ -25,7 +25,7 @@ services:
       INFLUXDB_ADMIN_PASSWORD: $APP_PASSWORD
       INFLUXDB_ADMIN_USER: admin
       INFLUXDB_HTTP_AUTH_ENABLED: 'true'
-    image: influxdb:1.12.4@sha256:e9363fd88d67f8ae6f019f37a30cc136e3644f2cbaea5abd71ad63c96dc6ae08
+    image: influxdb:1.13.2@sha256:b33525b2fa01ee40ad93e318f299e76286a3de2271333c441b4a224c1ac42194
     networks:
       appnet:
         aliases:

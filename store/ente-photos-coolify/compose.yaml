@@ -4,6 +4,27 @@ networks:
     external: true
     name: ${APP_NET}
 services:
+  albums:
+    environment:
+    - SERVICE_URL_ALBUMS_3002=${SERVICE_URL_ALBUMS_3002}
+    - ENTE_API_ORIGIN=${SERVICE_URL_MUSEUM}
+    - ENTE_ALBUMS_ORIGIN=${SERVICE_URL_ALBUMS}
+    - ENTE_PHOTOS_ORIGIN=${SERVICE_URL_WEB}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - curl
+      - --fail
+      - http://127.0.0.1:3002
+      timeout: 5s
+    image: ghcr.io/ente/web
+    networks:
+      appnet:
+        aliases:
+        - ente-photos-coolify_albums_1
+    restart: unless-stopped
   museum:
     depends_on:
       postgres:
@@ -11,7 +32,7 @@ services:
     environment:
     - SERVICE_URL_MUSEUM_8080=${SERVICE_URL_MUSEUM_8080}
     - ENTE_HTTP_USE_TLS=${ENTE_HTTP_USE_TLS:-false}
-    - ENTE_APPS_PUBLIC_ALBUMS=${SERVICE_URL_WEB_3002}
+    - ENTE_APPS_PUBLIC_ALBUMS=${SERVICE_URL_ALBUMS}
     - ENTE_APPS_CAST=${SERVICE_URL_WEB_3004}
     - ENTE_APPS_ACCOUNTS=${SERVICE_URL_WEB_3001}
     - ENTE_PHOTOS_ORIGIN=${SERVICE_URL_WEB}
@@ -22,7 +43,7 @@ services:
     - ENTE_DB_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
     - ENTE_KEY_ENCRYPTION=${SERVICE_REALBASE64_ENCRYPTION}
     - ENTE_KEY_HASH=${SERVICE_REALBASE64_64_HASH}
-    - ENTE_JWT_SECRET=${SERVICE_REALBASE64_JWT}
+    - ENTE_JWT_SECRET=${SERVICE_PASSWORD_64_JWT}
     - ENTE_INTERNAL_ADMIN=${ENTE_INTERNAL_ADMIN:-1580559962386438}
     - ENTE_INTERNAL_DISABLE_REGISTRATION=${ENTE_INTERNAL_DISABLE_REGISTRATION:-false}
     - ENTE_S3_B2_EU_CEN_ARE_LOCAL_BUCKETS=${PRIMARY_STORAGE_ARE_LOCAL_BUCKETS:-false}
@@ -48,7 +69,7 @@ services:
       - -qO-
       - http://127.0.0.1:8080/ping
       timeout: 5s
-    image: ghcr.io/ente-io/server:latest
+    image: ghcr.io/ente/server:latest
     networks:
       appnet:
         aliases:
@@ -81,7 +102,7 @@ services:
     environment:
     - SERVICE_URL_WEB_3000=${SERVICE_URL_WEB_3000}
     - ENTE_API_ORIGIN=${SERVICE_URL_MUSEUM}
-    - ENTE_ALBUMS_ORIGIN=${SERVICE_URL_WEB_3002}
+    - ENTE_ALBUMS_ORIGIN=${SERVICE_URL_ALBUMS}
     healthcheck:
       interval: 5s
       retries: 10
@@ -91,7 +112,7 @@ services:
       - --fail
       - http://127.0.0.1:3000
       timeout: 5s
-    image: ghcr.io/ente-io/web
+    image: ghcr.io/ente/web
     networks:
       appnet:
         aliases:

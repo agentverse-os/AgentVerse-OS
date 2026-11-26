@@ -1,0 +1,48 @@
+# Imported from the umbrel catalog by `cloudd store import umbrel`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/calibre-web-automated-umbrel
+description: An automated, all-in-one e-book library
+endpoint:
+  port: 8083
+  service: server
+env: {}
+gallery:
+- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web-automated/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web-automated/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/calibre-web-automated/3.webp
+health: null
+hooks: {}
+host_docker_socket: false
+icon: https://getumbrel.github.io/umbrel-apps-gallery/calibre-web-automated/icon.svg
+login:
+  mode: default
+  note: пароль по умолчанию из образа приложения — смените после первого входа
+  password: admin123
+  path: null
+  user: admin
+name: calibre-web-automated-umbrel
+notes: []
+origin: umbrel
+provides: []
+readme: ./description.md
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings: []
+tags: []
+title: Calibre-Web Automated
+type: app
+upstream:
+  author: Crocodile Sticks
+  categories:
+  - files
+  release_notes: null
+  source: https://github.com/crocodilestick/Calibre-Web-Automated
+  version: v4.0.8
+  website: https://github.com/crocodilestick/Calibre-Web-Automated
+website: https://github.com/crocodilestick/Calibre-Web-Automated

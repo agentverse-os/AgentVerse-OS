@@ -20,7 +20,7 @@ services:
       - -f
       - http://localhost:5000/api/system/version
       timeout: 10s
-    image: revenz/fileflows
+    image: revenz/fileflows:26.10
     networks:
       appnet:
         aliases:

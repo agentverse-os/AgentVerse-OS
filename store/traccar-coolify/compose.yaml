@@ -59,7 +59,7 @@ services:
       - --spider
       - http://127.0.0.1:8082
       timeout: 10s
-    image: traccar/traccar:latest
+    image: traccar/traccar:6.17.0
     networks:
       appnet:
         aliases:

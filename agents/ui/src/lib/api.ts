@@ -21,14 +21,15 @@ export interface GateAuth { targets: GateTarget[] }
 export interface GateStart { app: string; provider: string; url: string; state: string; flow: 'device' | 'callback' | 'code'; user_code?: string | null; expires_in?: number; callback?: string | null; title?: string; core?: boolean }
 /** Gate model: `id` — the real one (the proxy masks non-Claude models in the Anthropic list, `listed` — as it returned it), `provider` — the proxy
  *  account channel. */
-export interface GateModel { id: string; listed?: string; owned_by?: string | null; type?: string | null; name?: string | null; context?: number | null; max_output?: number | null; provider?: string; provider_title?: string; kind?: 'chat' | 'image' | 'video' }
+export type ModelKind = 'chat' | 'image' | 'video' | 'tts' | 'audio' | 'embedding' | 'special';
+export interface GateModel { id: string; listed?: string; owned_by?: string | null; type?: string | null; name?: string | null; context?: number | null; max_output?: number | null; provider?: string; provider_title?: string; kind?: ModelKind; family?: string }
 export interface Account { id: string; provider: string; kind: string; label: string; created_at: string; env_keys: string[]; files: string[]; imported_from?: string | null; pool?: boolean; stamp?: number; models?: string[] }
 /** Subscription limit window (docs/agents-ux.md §9.2): the provider id (five_hour, seven_day, primary…), share in %, reset (RFC 3339), window length
  *  in minutes. */
 export interface LimitWindow { id: string; used_pct: number; resets_at?: string | null; window_mins?: number | null }
 export interface AccountLimits { account: string; provider: string; plan?: string | null; windows: LimitWindow[]; credits?: Record<string, unknown> | null; fetched_at: string; error?: string | null; refreshed_token: boolean }
 export interface SessionUsage { input: number; output: number; cache_read: number; cache_create: number; cost_usd: number; turns: number }
-export interface SessionInfo { id: string; agent: string; cwd: string; title: string; label?: string | null; import_v?: number | null; created_at: number; provider_session_id?: string | null; model?: string | null; permission_mode?: string | null; account?: string | null; status: 'starting' | 'idle' | 'working' | 'waiting' | 'exited' | 'error'; alive: boolean; last_seq: number; pending: number; usage: SessionUsage; last_text?: string | null; updated_at?: number; imported?: boolean; effort?: string | null; max_thinking_tokens?: number | null; service_tier?: string | null; cache_ttl?: string | null; tui?: string | null; background?: number; tasks?: TaskInfo[]; queued?: QueuedItem[] }
+export interface SessionInfo { id: string; agent: string; cwd: string; title: string; label?: string | null; import_v?: number | null; journal_rev?: number | null; created_at: number; provider_session_id?: string | null; model?: string | null; permission_mode?: string | null; account?: string | null; status: 'starting' | 'idle' | 'working' | 'waiting' | 'exited' | 'error'; alive: boolean; last_seq: number; pending: number; usage: SessionUsage; last_text?: string | null; updated_at?: number; imported?: boolean; effort?: string | null; max_thinking_tokens?: number | null; service_tier?: string | null; cache_ttl?: string | null; tui?: string | null; background?: number; tasks?: TaskInfo[]; queued?: QueuedItem[] }
 export interface QueuedItem { id: string; content: any; ts: number }
 export interface Scheduled { id: string; project: string; session: string; content: string; at: number; status: string; created_at: number; sent_at?: number | null; note?: string | null; error?: string | null }
 /** Claude Code background task after a turn (background Bash, Agent, Workflow…): from `task_started`, lives until
@@ -235,9 +236,21 @@ export const api = {
   permissionsGet: (name: string, scope: 'user' | 'project', cwd: string) => call<{ scope: string; path: string; exists: boolean; allow: string[]; deny: string[]; ask: string[]; default_mode?: string | null }>('GET', `/projects/${name}/permissions?scope=${scope}&cwd=${encodeURIComponent(cwd)}`),
   permissionsPut: (name: string, scope: 'user' | 'project', cwd: string, body: { allow: string[]; deny: string[]; ask: string[] }) => call<{ scope: string; path: string; allow: string[]; deny: string[]; ask: string[] }>('PUT', `/projects/${name}/permissions?scope=${scope}&cwd=${encodeURIComponent(cwd)}`, body),
   sessionInterrupt: (name: string, id: string) => call<unknown>('POST', `/projects/${name}/sessions/${id}/interrupt`, {}),
+  /** The owner's "end the process" button of the memory card: the core ends the largest ordinary process of a workspace that is not calm (ADR-009) */
+  memoryKill: (name: string) => call<MemoryAction>('POST', `/projects/${name}/memory/kill`, {}),
   sessionMode: (name: string, id: string, mode: string) => call<unknown>('POST', `/projects/${name}/sessions/${id}/mode`, { mode }),
   /** Own session name (§4.8); an empty string brings back the auto-title */
+  // owner's servers (ADR-008): the core keeps the records, the install script and the switch
+  hosts: () => call<HostView[]>('GET', '/hosts'),
+  hostAdd: (name: string, note = '') => call<HostView>('POST', '/hosts', { name, note }),
+  hostEdit: (name: string, patch: { enabled?: boolean; note?: string; llm_url?: string }) => call<HostView>('PATCH', `/hosts/${encodeURIComponent(name)}`, patch),
+  hostRemove: (name: string) => call<void>('DELETE', `/hosts/${encodeURIComponent(name)}`),
+  hostCode: (name: string) => call<HostView>('POST', `/hosts/${encodeURIComponent(name)}/code`),
+  hostProbe: (name: string) => call<HostView>('POST', `/hosts/${encodeURIComponent(name)}/probe`),
+  hostUpdate: (name: string) => call<Record<string, unknown>>('POST', `/hosts/${encodeURIComponent(name)}/update`),
   sessionLabel: (name: string, id: string, label: string) => call<{ ok: boolean; label: string | null; title: string }>('POST', `/projects/${name}/sessions/${id}/label`, { label }),
+  /** Antigravity: allow the declined tool call with a rule in the project scope, restart agy and ask it to continue. */
+  sessionAllowRetry: (name: string, id: string, tool_use_id: string) => call<{ ok: boolean; rule: string; added: boolean; sent: boolean; queued: boolean }>('POST', `/projects/${name}/sessions/${id}/allow_retry`, { tool_use_id }),
   sessionModel: (name: string, id: string, model: string | null, context_window?: number | null) => call<unknown>('POST', `/projects/${name}/sessions/${id}/model`, { model, context_window: context_window ?? null }),
   sessionDelete: (name: string, id: string) => call<void>('DELETE', `/projects/${name}/sessions/${id}`),
   // terminal mode (as in CloudCLI): the agent's native TUI on the same conversation in the session PTY;
@@ -387,11 +400,20 @@ export interface BackupStatus { config: BackupConfig; datasets: DatasetInfo[]; r
 export interface RestorePoint { snapshot: string; kind: string; created: number; path: string }
 
 // ---- the "Agents" service's own views (cloudos-agents) ----
-export interface WsProject { name: string; description?: string | null; status: string; apps: { slug: string; url: string; display_name: string }[]; reachable: boolean; engines_v?: number; cost_today: number; sessions: SessionInfo[]; ptys: PtyInfo[]; hidden?: boolean }
+/** An owner's server (ADR-008): the core record plus what the core knows about the install. */
+export interface HostView { name: string; note: string; addr: string; port: number; user: string; home: string; arch: string; os: string; hostname: string; agentd_version: string; status: 'new' | 'registered' | 'online' | 'offline' | 'disabled' | string; created_at: string; registered_at?: string | null; last_seen?: string | null; last_error?: string | null; llm_url?: string | null; env_file?: string; disabled: boolean; core_agentd_version: string; llm: string | null; install?: string; uninstall: string }
+/** Memory of a running workspace as the core's pressure watch sees it (ADR-009): `state` drives the tree label, `last` — the "Inbox" card */
+export interface MemoryProc { cmd: string; rss: number; age_secs: number; session?: string | null }
+export interface MemoryAction { at: number; kind: 'killed' | 'stalled' | 'oom'; cmd: string; rss: number; age_secs: number; session?: string | null; stalled_secs: number; full60: number; limit: number; note?: string | null }
+export interface WsMemory { used: number; limit: number; anon: number; full10: number; full60: number; state: 'ok' | 'tight' | 'stalled'; action: 'kill' | 'notify' | 'off'; top?: MemoryProc | null; last?: MemoryAction | null }
+export interface WsProject { name: string; kind?: 'workspace' | 'host'; addr?: string | null; host_status?: string | null; description?: string | null; memory?: WsMemory | null; status: string; apps: { slug: string; url: string; display_name: string }[]; reachable: boolean; engines_v?: number; cost_today: number; sessions: SessionInfo[]; ptys: PtyInfo[]; hidden?: boolean }
 export interface Workspaces { projects: WsProject[]; today: UsageTotals }
 export interface PendingReq { request_id: string; tool_name: string; input: any; seq: number; kind?: string; suggestions?: any[] | null }
 export interface InboxItem { project: string; session: SessionInfo; pending?: PendingReq[] }
-export interface Inbox { waiting: InboxItem[]; failed: InboxItem[]; done: InboxItem[]; today: UsageTotals }
+/** "Inbox" cards of the memory watch (docs/agents-ux.md §4.13): the last action in a workspace and a turn silent for hours */
+export interface MemoryCard { key: string; project: string; kind: 'killed' | 'stalled' | 'oom'; at: number; cmd: string; rss: number; age_secs: number; stalled_secs: number; full60: number; limit: number; note?: string | null; session?: string | null; session_title?: string | null; live: boolean; can_kill: boolean }
+export interface LongCard { key: string; project: string; session: SessionInfo; since: number; tool?: string | null }
+export interface Inbox { waiting: InboxItem[]; failed: InboxItem[]; done: InboxItem[]; memory?: MemoryCard[]; long?: LongCard[]; today: UsageTotals }
 export interface ModelPrice { input: number; output: number; cache_read: number; cache_write: number; context?: number; note?: string; source?: string; source_id?: string; synced_at?: number }
 export interface PricesSync { at: number; source: string; models: number; updated: number; added: number; missing: string[] }
 export interface PricesSyncResult { ok: boolean; at: number; source: string; models: number; updated: string[]; added: string[]; missing: string[] }
@@ -407,14 +429,14 @@ export interface PreviewRoute { project: string; port: number; edge_port: number
 /** Browser in the session (§4.9): per workspace — the dev server preview (and later the agent browser); off by
  *  default */
 export interface BrowserPrefs { preview?: boolean; port?: number; agent?: boolean }
-export interface AgentsSettings { prices: Record<string, ModelPrice>; browser?: Record<string, BrowserPrefs>; prices_sync?: PricesSync | null; prices_source?: string; defaults: { claude: string; codex: string }; limits: Limit[]; mail_paused?: boolean; chat?: ChatSettings }
+export interface AgentsSettings { prices: Record<string, ModelPrice>; browser?: Record<string, BrowserPrefs>; prices_sync?: PricesSync | null; prices_source?: string; defaults: { claude: string; codex: string }; limits: Limit[]; mail_paused?: boolean; chat?: ChatSettings; timezone?: string }
 // agents (employees), routines and runs — the service's routines.rs; the scratch
 // chat — chat.rs
 export interface RunBrief { id: string; status: string; started_at: number; ended_at?: number | null; cost_usd: number; summary?: string | null; reason?: string | null; session?: string | null; project: string }
 export interface AgentDef { id: string; name: string; brief: string; provider: string; model?: string | null; account?: string | null; workspace: string; mode: 'ask' | 'auto' | 'bypass'; effort?: string | null; rules?: { allow: string[]; deny: string[] }; memory: string; remember: boolean; place: string; can_mail: boolean; can_routine: boolean; memory_budget: number; reflect: boolean; skills: string[]; reflected_at?: number | null; created_at: number; updated_at: number; routines?: number; last_run?: RunBrief | null }
 export interface Trigger { kind: 'schedule' | 'webhook' | 'event' | 'manual'; cron: string; event: string; contains: string }
-export interface Routine { id: string; name: string; agent: string; prompt: string; trigger: Trigger; budget: { run_usd: number; day_usd: number }; notify: 'ask_error' | 'always' | 'never'; enabled: boolean; mode?: '' | 'ask' | 'auto' | 'bypass'; token: string; created_at: number; updated_at: number; last_run_at?: number | null; last_status?: string | null; agent_name?: string; workspace?: string; schedule_text?: string; next_at?: number | null; last?: RunBrief | null }
-export interface Run extends RunBrief { routine?: string | null; routine_name?: string | null; agent: string; agent_name: string; trigger: string; prompt?: string | null; from_agent?: string | null; reply_to?: string | null; hops?: number }
+export interface Routine { id: string; name: string; agent: string; prompt: string; trigger: Trigger; budget: { run_usd: number; day_usd: number }; notify: 'ask_error' | 'always' | 'never'; enabled: boolean; mode?: '' | 'ask' | 'auto' | 'bypass'; retries?: boolean; overlap?: 'skip' | 'parallel'; on_question?: 'wait' | 'deny'; token: string; created_at: number; updated_at: number; last_run_at?: number | null; last_status?: string | null; agent_name?: string; workspace?: string; schedule_text?: string; next_at?: number | null; last?: RunBrief | null }
+export interface Run extends RunBrief { routine?: string | null; routine_name?: string | null; agent: string; agent_name: string; trigger: string; prompt?: string | null; from_agent?: string | null; reply_to?: string | null; hops?: number; attempt?: number; retry_at?: number | null; retry_of?: string | null; kind?: string | null }
 /** Skill from the service catalog (skills.rs): a repeatable procedure; source — user |
  *  agent:<id>. */
 export interface Skill { name: string; description: string; body: string; source: string; created_at: number; updated_at: number; agents?: string[] }
@@ -426,20 +448,51 @@ export interface ChatAttachment { file: string; name: string; mime: string; size
 export interface ChatPreset { id: string; name: string; text: string }
 export interface ChatToolUse { name: string; args: Record<string, unknown>; result: string; ok: boolean }
 export interface ChatMessage { id: string; chat: string; seq: number; role: 'user' | 'assistant'; text: string; attachments: ChatAttachment[]; tools: ChatToolUse[]; tokens_in: number; tokens_out: number; cost_usd: number; created_at: number; error?: string | null }
-export interface ChatModel { id: string; name: string; context?: number | null; price_in?: number | null; price_out?: number | null; vision?: boolean | null; tools?: boolean | null; provider?: string; provider_title?: string; vendor?: string | null; kind?: 'chat' | 'image' | 'video' }
+export interface ChatModel { id: string; name: string; context?: number | null; price_in?: number | null; price_out?: number | null; vision?: boolean | null; tools?: boolean | null; provider?: string; provider_title?: string; vendor?: string | null; kind?: ModelKind; family?: string }
 /** Models by provider in the order the server returned (the Claude Code and Codex subscriptions first); within — newer
  *  on top. */
-export function byProvider<T extends { id: string; name?: string | null; provider?: string; provider_title?: string; kind?: string }>(list: T[]): { key: string; title: string; models: T[] }[] {
+/** Gate/route models by channel; `all` keeps the non-chat kinds (speech, images, special previews) that the chat menus hide
+ *  by default. Inside a channel the models are ordered by family (newest version first, by the core's `family`), then by name. */
+export function byProvider<T extends { id: string; name?: string | null; provider?: string; provider_title?: string; kind?: string; family?: string }>(list: T[], all = false): { key: string; title: string; models: T[] }[] {
   const groups = new Map<string, { key: string; title: string; models: T[] }>();
-  for (const m of list) { if ((m.kind ?? 'chat') !== 'chat') continue; const k = m.provider ?? 'other'; if (!groups.has(k)) groups.set(k, { key: k, title: m.provider_title ?? k, models: [] }); groups.get(k)!.models.push(m); }
-  for (const g of groups.values()) g.models.sort((a, b) => (b.name ?? b.id).localeCompare(a.name ?? a.id, undefined, { numeric: true }));
+  for (const m of list) { if (!all && (m.kind ?? 'chat') !== 'chat') continue; const k = m.provider ?? 'other'; if (!groups.has(k)) groups.set(k, { key: k, title: m.provider_title ?? k, models: [] }); groups.get(k)!.models.push(m); }
+  for (const g of groups.values()) g.models.sort((a, b) => familyRank(b.family) - familyRank(a.family) || (a.family ?? '').localeCompare(b.family ?? '') || (b.name ?? b.id).localeCompare(a.name ?? a.id, undefined, { numeric: true }));
   return [...groups.values()];
 }
+/** The version number at the end of a family name ("Gemini 3.8" → 3.8); families without one sort last. */
+export function familyRank(family?: string | null): number { const v = parseFloat((family ?? '').split(' ').pop() ?? ''); return Number.isFinite(v) ? v : -1; }
+/** Models of one channel split by family, in the channel's order; a channel with few models gets a single unnamed family. */
+export function byFamily<T extends { family?: string }>(models: T[], minForSplit = 7): { family: string; models: T[] }[] {
+  if (models.length < minForSplit) return [{ family: '', models }];
+  const out: { family: string; models: T[] }[] = [];
+  for (const m of models) { const f = m.family ?? ''; const last = out[out.length - 1]; if (last && last.family === f) last.models.push(m); else out.push({ family: f, models: [m] }); }
+  return out;
+}
+/** The family of a model id, as the core computes it (gateauth.rs `model_family`): the vendor word(s) and the first version
+ *  — "gemini-3.8-flash-high" → "Gemini 3.8", "devin/gpt-5-4" → "GPT 5.4", "claude-fable-5-1" → "Claude Fable 5.1". */
+export function familyOf(id: string): string {
+  const base = (id.split('/').pop() ?? id).toLowerCase();
+  const segs = base.split(/[-_]/).filter(Boolean);
+  const words: string[] = []; let version: string | null = null;
+  for (let i = 0; i < segs.length; i++) {
+    const seg = segs[i];
+    if (/^\d+(\.\d+)?$/.test(seg)) { if (/^\d{4,}$/.test(seg)) break; version = seg; const next = segs[i + 1]; if (!seg.includes('.') && next && /^\d{1,2}$/.test(next)) version = `${seg}.${next}`; break; }
+    if (seg === 'latest' || seg === 'preview') break;
+    if (words.length < 2) words.push(seg);
+  }
+  if (!words.length) return 'Other';
+  const cap = (w: string) => (w === 'gpt' ? 'GPT' : w === 'glm' ? 'GLM' : w === 'o' ? 'o' : w.charAt(0).toUpperCase() + w.slice(1));
+  const known = ['gemini', 'gpt', 'grok', 'kimi', 'qwen', 'glm', 'deepseek', 'mistral', 'llama', 'o'].includes(words[0]);
+  const name = known || words.length === 1 ? cap(words[0]) : `${cap(words[0])} ${cap(words[1])}`;
+  return version ? `${name} ${version}` : base.includes('latest') ? `${name} latest` : name;
+}
+/** Models the chat menus hide by default (everything that is not a chat model), with their kind. */
+export function specialModels<T extends { kind?: string }>(list: T[]): T[] { return list.filter(m => (m.kind ?? 'chat') !== 'chat'); }
 export interface ChatRoute { id: string; kind: 'gate' | 'key'; title: string; provider: string; host: string; models: ChatModel[]; error?: string }
 export interface ChatRoutes { routes: ChatRoute[]; defaults: { route?: string | null; model?: string | null }; search: { ready: boolean; kind: string } }
 export type ChatEvent = { kind: 'user'; message: ChatMessage } | { kind: 'delta'; text: string } | { kind: 'tool_start'; name: string; args: Record<string, unknown> } | { kind: 'tool'; name: string; args: Record<string, unknown>; result: string; ok: boolean } | { kind: 'done'; message: ChatMessage; chat: SimpleChat } | { kind: 'error'; error: string; message?: ChatMessage; chat?: SimpleChat };
 export interface ChatStatus { project: string; exists: boolean; status: string; reachable: boolean; sessions: SessionInfo[]; cost_today?: number; busy: boolean; error?: string }
-export interface PushPrefs { permission: boolean; done: boolean; error: boolean; limit: boolean }
+export interface PushPrefs { permission: boolean; done: boolean; error: boolean; limit: boolean; memory: boolean }
 export interface PushSub { endpoint: string; host: string; tail: string; ua: string; created_at: number; last_ok: number; fails: number }
 export interface PushInfo { public_key: string; subscriptions: PushSub[]; count: number; prefs: PushPrefs }
 export interface SharePayload { title: string; text: string; url: string; files: { name: string; type: string; size: number; data: string }[]; at: number }
@@ -472,10 +525,24 @@ async function own<T>(method: string, path: string, body?: unknown): Promise<T> 
   if (!r.ok) { let m = `HTTP ${r.status}`; try { m = (await r.json()).error ?? m; } catch {} throw new Error(m); }
   const t = await r.text(); return (t ? JSON.parse(t) : undefined) as T;
 }
+/** Notification channels (docs/agents-ux.md §9.12). Secrets are write-only: a channel comes back with the bot's name, the
+ *  host and a tail of the address — never with the token or the address itself. */
+export type NotifyBinding = { id: string; channel: string; scope: 'session' | 'workspace' | 'routine' | 'all'; project: string; session: string; routine: string; when: 'once' | 'always'; content: 'fact' | 'brief' | 'full'; reports: boolean; away_only: boolean; created_at: number };
+export type NotifyKind = 'telegram' | 'slack' | 'slack_bot' | 'discord' | 'webhook';
+export type NotifyChannel = { id: string; kind: NotifyKind; name: string; enabled: boolean; bot: string; chat_title: string; chat_linked: boolean; protect: boolean; buttons: boolean; slack_channel: string; host: string; tail: string; internal: boolean; signed: boolean; created_at: number;
+  /** the service takes files (a Slack webhook does not) */
+  files: boolean; bindings: NotifyBinding[]; sent_today: number; last: { at: number; status: string; error: string | null; event: string } | null;
+  /** a plain webhook, right after creation only: the key its receiver checks the signature with */
+  signing_key?: string };
+export type NotifyLogRow = { at: number; status: string; event: string; title: string; error: string | null; tries: number; files: number };
+export type NotifyBindBody = { channel: string; scope: NotifyBinding['scope']; project?: string; session?: string; routine?: string; when?: 'once' | 'always'; content?: 'fact' | 'brief' | 'full'; reports?: boolean; away_only?: boolean };
+
 export const agents = {
   health: () => own<{ ok: boolean; version: string; cloudd: boolean; cloudd_version?: string | null; hub_subscriptions?: number }>('GET', '/health'),
   workspaces: () => own<Workspaces>('GET', '/workspaces'),
   inbox: () => own<Inbox>('GET', '/inbox'),
+  /** Hide a memory card or stop reminding about a long command (until the turn moves on) */
+  inboxDismiss: (key: string) => own<{ ok: boolean }>('POST', '/inbox/dismiss', { key }),
   models: (days = 1) => own<Models>('GET', `/models?days=${days}`),
   settings: () => own<AgentsSettings>('GET', '/settings'),
   /** Model price synchronization with the public source (docs/agents-ux.md §9.6) */
@@ -486,7 +553,9 @@ export const agents = {
   agentUpdate: (id: string, patch: Partial<AgentDef>) => own<AgentDef>('PUT', `/agents/${id}`, patch),
   agentDelete: (id: string) => own<void>('DELETE', `/agents/${id}`),
   agentRun: (id: string, prompt: string) => own<{ run: Run }>('POST', `/agents/${id}/run`, { prompt }),
-  routines: () => own<{ routines: Routine[]; scheduler: boolean; now: number }>('GET', '/routines'),
+  routines: () => own<{ routines: Routine[]; scheduler: boolean; now: number; timezone?: string | null; utc_offset_min?: number }>('GET', '/routines'),
+  /** A new webhook address for the routine; the old one stops working at once. */
+  routineToken: (id: string) => own<Routine>('POST', `/routines/${id}/token`, {}),
   routineCreate: (r: Partial<Routine>) => own<Routine>('POST', '/routines', r),
   routineUpdate: (id: string, patch: Partial<Routine>) => own<Routine>('PUT', `/routines/${id}`, patch),
   routineDelete: (id: string) => own<void>('DELETE', `/routines/${id}`),
@@ -500,6 +569,8 @@ export const agents = {
   skillCreate: (s: Pick<Skill, 'name' | 'description' | 'body'>) => own<Skill>('POST', '/skills', s),
   skillUpdate: (name: string, patch: Partial<Pick<Skill, 'description' | 'body'>>) => own<Skill>('PUT', `/skills/${name}`, patch),
   skillDelete: (name: string) => own<void>('DELETE', `/skills/${name}`),
+  /** The owner accepts a skill an agent proposed: it becomes the owner's own. */
+  skillAccept: (name: string) => own<Skill>('POST', `/skills/${name}/accept`, {}),
   scheduled: (project: string, session: string) => own<{ scheduled: Scheduled[]; now: number }>('GET', `/scheduled?project=${encodeURIComponent(project)}&session=${encodeURIComponent(session)}`),
   scheduleCreate: (b: { project: string; session: string; content: string; at: number }) => own<Scheduled>('POST', '/scheduled', b),
   scheduleDelete: (id: string) => own<void>('DELETE', `/scheduled/${id}`),
@@ -520,6 +591,18 @@ export const agents = {
   pushPrefs: (p: Partial<PushPrefs>) => own<PushPrefs>('PUT', '/push/prefs', p),
   pushTest: (endpoint?: string) => own<{ sent: number; failed: number; errors: string[] }>('POST', '/push/test', endpoint ? { endpoint } : {}),
   shareTake: (id: string) => own<SharePayload>('GET', `/share/${id}`),
+  /** Notification channels (§9.12): the app's own address goes along so that links in messages lead back here */
+  notifyChannels: () => own<{ channels: NotifyChannel[]; rate_per_min: number }>('GET', '/notify/channels'),
+  notifyChannelCreate: (b: Record<string, unknown>) => own<NotifyChannel>('POST', '/notify/channels', { ...b, origin: location.origin }),
+  notifyChannelUpdate: (id: string, b: Record<string, unknown>) => own<NotifyChannel>('PUT', `/notify/channels/${id}`, b),
+  notifyChannelDelete: (id: string) => own<void>('DELETE', `/notify/channels/${id}`),
+  notifyChannelTest: (id: string) => own<{ ok: boolean; error: string | null }>('POST', `/notify/channels/${id}/test`, {}),
+  notifyChannelLog: (id: string) => own<{ log: NotifyLogRow[] }>('GET', `/notify/channels/${id}/log`),
+  notifyTgBegin: (token: string) => own<{ pending: string; bot: string; code: string }>('POST', '/notify/telegram/begin', { token }),
+  notifyTgFind: (pending: string) => own<{ found: boolean; chat_title?: string; chat_type?: string }>('POST', '/notify/telegram/find', { pending }),
+  notifyBind: (b: NotifyBindBody) => own<NotifyBinding>('POST', '/notify/bindings', { ...b, origin: location.origin }),
+  notifyUnbind: (id: string) => own<void>('DELETE', `/notify/bindings/${id}`),
+  notifyShare: (b: { channel: string; project: string; session: string; seq: number; title: string }) => own<{ ok: boolean; channel: string }>('POST', '/notify/share', { ...b, origin: location.origin }),
   /** Streaming recognition (§4.7, slice 72): a WebSocket to the service, the provider key stays on the
    *  server */
   voiceStreamUrl: (lang = '') => `${location.origin.replace(/^http/, 'ws')}${OWN}/voice/stream?lang=${encodeURIComponent(lang)}`,
@@ -539,7 +622,7 @@ export const agents = {
   chats: () => own<{ chats: SimpleChat[] }>('GET', '/chats'),
   chatNew: (b: { route?: string; model?: string; system?: string; tools?: ChatTools; incognito?: boolean; title?: string }) => own<SimpleChat>('POST', '/chats', b),
   search: (q: string) => own<SearchResult>('GET', `/search?q=${encodeURIComponent(q)}`),
-  chatGet: (id: string) => own<{ chat: SimpleChat; messages: ChatMessage[]; busy: boolean }>('GET', `/chats/${id}`),
+  chatGet: (id: string) => own<{ chat: SimpleChat; messages: ChatMessage[]; busy: boolean; partial?: { text: string; tools: ChatToolUse[]; running: string | null } }>('GET', `/chats/${id}`),
   chatPatch: (id: string, patch: Partial<Pick<SimpleChat, 'title' | 'model' | 'route' | 'system' | 'tools'>>) => own<SimpleChat>('PUT', `/chats/${id}`, patch),
   chatRemove: (id: string) => own<void>('DELETE', `/chats/${id}`),
   chatStop: (id: string) => own<{ stopped: boolean }>('POST', `/chats/${id}/stop`, {}),
@@ -550,9 +633,10 @@ export const agents = {
   chatPresetsSave: (presets: ChatPreset[]) => own<{ presets: ChatPreset[] }>('PUT', '/chat/presets', { presets }),
   /** Message to the simple chat: an SSE stream (delta, tool, done, error); returns a function that cancels reading (the answer on the server continues — stop via
    *  chatStop). */
-  async chatSend(id: string, body: { text: string; attachments?: { name: string; mime: string; data: string }[]; model?: string; tools?: ChatTools }, onEvent: (e: ChatEvent) => void, signal?: AbortSignal): Promise<void> {
+  async chatSend(id: string, body: { text: string; attachments?: { name: string; mime: string; data: string }[]; model?: string; tools?: ChatTools; regenerate?: boolean; replace_from?: string; keep_files?: string[] }, onEvent: (e: ChatEvent) => void, signal?: AbortSignal): Promise<void> {
     const r = await fetch(`${OWN}/chats/${id}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store', signal });
-    if (!r.ok || !r.body) { let m = `HTTP ${r.status}`; try { m = (await r.json()).error ?? m; } catch {} throw new Error(m); }
+    // the status goes along with the error: a refusal by size (413) is told to the owner in words
+    if (!r.ok || !r.body) { let m = `HTTP ${r.status}`; try { m = (await r.json()).error ?? m; } catch {} throw Object.assign(new Error(m), { status: r.status }); }
     const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
     for (;;) {
       const { value, done } = await reader.read(); if (done) break;

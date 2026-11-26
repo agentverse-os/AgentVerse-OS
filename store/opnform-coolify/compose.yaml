@@ -26,6 +26,17 @@ configs:
               proxy_set_header Connection "Upgrade";
           }
 
+          # Proxy Nuxt icon requests to client container
+          location ^~ /api/_nuxt_icon/ {
+              proxy_http_version 1.1;
+              proxy_pass http://opnform-ui:3000;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-Host $host;
+              proxy_set_header X-Forwarded-Port $server_port;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "Upgrade";
+          }
+
           location ~/(api|open|local\/temp|forms\/assets)/ {
               set $original_uri $uri;
               try_files $uri $uri/ /index.php$is_args$args;
@@ -108,7 +119,7 @@ services:
       - CMD-SHELL
       - php /usr/share/nginx/html/artisan app:scheduler-status --mode=check --max-minutes=3 || exit 1
       timeout: 30s
-    image: jhumanj/opnform-api:2.2.4
+    image: jhumanj/opnform-api:2.8.4
     networks:
       appnet:
         aliases:
@@ -179,7 +190,7 @@ services:
       - CMD-SHELL
       - pgrep -f 'php artisan queue:work' > /dev/null || exit 1
       timeout: 10s
-    image: jhumanj/opnform-api:2.2.4
+    image: jhumanj/opnform-api:2.8.4
     networks:
       appnet:
         aliases:
@@ -205,7 +216,7 @@ services:
       - nginx
       - -t
       timeout: 10s
-    image: nginx:1.31.3
+    image: nginx:1.31.8
     networks:
       appnet:
         aliases:
@@ -279,7 +290,7 @@ services:
       - CMD-SHELL
       - php /usr/share/nginx/html/artisan about || exit 1
       timeout: 15s
-    image: jhumanj/opnform-api:2.2.4
+    image: jhumanj/opnform-api:2.8.4
     networks:
       appnet:
         aliases:
@@ -308,7 +319,7 @@ services:
       - CMD-SHELL
       - wget --spider -q http://opnform-ui:3000/login || exit 1
       timeout: 10s
-    image: jhumanj/opnform-client:2.2.4
+    image: jhumanj/opnform-client:2.8.4
     networks:
       appnet:
         aliases:

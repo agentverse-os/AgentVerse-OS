@@ -6,12 +6,15 @@ data:
 - tank/apps/wikijs-coolify
 description: The most powerful and extensible open source Wiki software.
 endpoint:
-  port: 80
+  port: 3000
   service: wikijs
 env:
+  ADMIN_EMAIL: admin@example.com
   POSTGRESQL_DATABASE: wiki-db
   POSTGRES_DB: ''
   POSTGRES_USER: ''
+  SERVICE_PASSWORD_ADMIN:
+    generate: password
   SERVICE_PASSWORD_POSTGRES:
     generate: password
   SERVICE_URL_WIKIJS_3000: https://${APP_DOMAIN}
@@ -23,11 +26,11 @@ hooks: {}
 host_docker_socket: false
 icon: ./logo.svg
 login:
-  mode: app
+  mode: generated
   note: null
-  password: null
+  password: SERVICE_PASSWORD_ADMIN
   path: null
-  user: null
+  user: ADMIN_EMAIL
 name: wikijs-coolify
 notes: []
 origin: coolify
@@ -39,6 +42,12 @@ route:
   open: iframe
 schema: 1
 settings:
+- env: ADMIN_EMAIL
+  hint: 'по умолчанию: admin@example.com'
+  label: admin email
+  options: null
+  required: false
+  type: text
 - env: POSTGRESQL_DATABASE
   hint: 'по умолчанию: wiki-db'
   label: postgresql database
@@ -66,10 +75,10 @@ type: app
 upstream:
   categories:
   - cms
-  source: https://docs.requarks.io
+  source: https://docs.js.wiki
   tags:
   - wiki
   - collaboration
   - documentation
   template: wikijs.yaml
-website: https://docs.requarks.io
+website: https://docs.js.wiki

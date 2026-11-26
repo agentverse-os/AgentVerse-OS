@@ -63,6 +63,6 @@ upstream:
   categories:
   - data
   source: https://github.com/BookStackApp/BookStack
-  tipi_version: 42
-  version: 26.05.20260608
+  tipi_version: 45
+  version: 26.09.20260929
 website: https://github.com/BookStackApp/BookStack

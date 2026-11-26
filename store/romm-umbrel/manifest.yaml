@@ -12,9 +12,9 @@ env:
   APP_SEED:
     generate: hex64
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/romm/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/romm/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/romm/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/romm/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/romm/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/romm/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,19 +44,18 @@ upstream:
   categories:
   - media
   release_notes: |-
-    RomM 5.2 is a follow-up to the recent RomM 5.0 major update. If you're updating from a pre-5.0 version and share your library with other users, review permissions after upgrading.
+    This update lets you add metadata provider credentials, such as IGDB, ScreenScraper, SteamGridDB and RetroAchievements, in RomM's app settings on umbrelOS 2.0, so RomM can fetch game metadata, artwork and achievements.
 
-    Highlights include:
-      - Added reorderable region and language priority lists in scan settings
-      - Added provider ratings, searchable platform metadata, improved soundtrack artwork, and previous/next controls on game details
-      - Improved ScreenScraper pacing, scan reporting, home-page performance, resource caching, hashing, gallery updates, and metadata matching
-      - Fixed permission gaps found during the 5.1 audit, including state uploads, smart collection caching, file deletion grants, streaming endpoint permissions, and kiosk read-only access
+    Previous RomM 5.4.1 release notes:
 
+    RomM 5.4 includes database migrations that may take 15-20 minutes on large libraries. Do not restart RomM while the first start after upgrading is still migrating.
+
+    This security update distrusts compromised eMudhra certificate intermediates and updates dependencies with security fixes. Upstream recommends upgrading promptly.
 
     If you're updating from a pre-4.9 version and manually enabled gamelist exports in config.yml, follow RomM's official config docs to update that setting: https://docs.romm.app/4.9.0/reference/configuration-file/#scangamelistexport
 
-    Full release notes can be found at https://github.com/rommapp/romm/releases/tag/5.2.0
+    Full release notes can be found at https://github.com/rommapp/romm/releases/tag/5.4.1
   source: https://github.com/rommapp/romm
-  version: 5.2.0
+  version: 5.4.1-patch.1
   website: https://github.com/rommapp/romm
 website: https://github.com/rommapp/romm

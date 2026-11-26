@@ -22,7 +22,7 @@ services:
       - ${SERVICE_USER_ADMIN}:${SERVICE_PASSWORD_ADMIN}
       - http://localhost:9091/
       timeout: 10s
-    image: lscr.io/linuxserver/transmission:latest
+    image: lscr.io/linuxserver/transmission:4.1.4
     networks:
       appnet:
         aliases:

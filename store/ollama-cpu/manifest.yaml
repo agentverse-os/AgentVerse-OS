@@ -39,6 +39,6 @@ upstream:
   categories:
   - ai
   source: https://github.com/ollama/ollama
-  tipi_version: 149
-  version: 0.32.15
+  tipi_version: 179
+  version: 0.40.16
 website: https://github.com/ollama/ollama

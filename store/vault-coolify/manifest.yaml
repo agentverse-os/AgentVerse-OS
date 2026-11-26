@@ -10,7 +10,7 @@ endpoint:
   service: vault
 env:
   SERVICE_URL_VAULT_8200: https://${APP_DOMAIN}
-  VAULT_VERSION: latest
+  VAULT_VERSION: 2.2.2
 gallery: []
 health: null
 hooks: {}
@@ -34,7 +34,7 @@ route:
 schema: 1
 settings:
 - env: VAULT_VERSION
-  hint: 'по умолчанию: latest'
+  hint: 'по умолчанию: 2.2.2'
   label: vault version
   options: null
   required: false

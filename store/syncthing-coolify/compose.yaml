@@ -17,7 +17,7 @@ services:
       - CMD-SHELL
       - wget -qO- http://127.0.0.1:8384/
       timeout: 20s
-    image: lscr.io/linuxserver/syncthing:latest
+    image: lscr.io/linuxserver/syncthing:2.1.7
     networks:
       appnet:
         aliases:

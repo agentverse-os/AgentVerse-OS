@@ -14,10 +14,10 @@ env:
     generate: hex64
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/outline/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/outline/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/outline/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/outline/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/outline/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/outline/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/outline/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/outline/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -49,26 +49,21 @@ upstream:
   categories:
   - files
   release_notes: |-
-    New features and improvements in this release:
-      - Per-share branding lets you override the title and logo on individual public shares
-      - MCP responses now include breadcrumbs, summaries, and title guidance
-      - Added delete_document and delete_collection tools to MCP
-      - Self-hosted instances can now tune rate limiting with the new RATE_LIMITER_MULTIPLIER option
-      - Default model creation rate limits raised from 10/min to 25/min
-      - Added a UI element to clear search highlights when navigating to a document from search results
-      - Improved table-of-contents positioning on shared documents
-      - Improved sidebar performance
-      - Shift-Tab on a list item inside a toggle block no longer outdents the entire block
-      - Code blocks now expand correctly when printing
-      - API keys created with global read/write scope are now saved correctly
-      - Republishing a document now correctly updates the last modified user
-      - Suspended users are no longer counted toward the cached group member count
-      - Post-login redirects with invalid paths are now handled correctly in Firefox
-      - Autofocus now works inside lazy-loaded modals and popovers
+    Outline now opens over HTTPS on umbrelOS 2.0. Bookmarks and links to the old http:// address will redirect to sign-in again.
+
+    New features and improvements:
+      - Redesigned search filters and faster document search indexing
+      - Gitea and Forgejo integration, expiry dates for public share links, and preview cards for links, documents, and collections
+      - Choose a destination when importing, and filter menu items by typing
+      - Settings save automatically, with a refreshed settings layout
+      - Fixes for editing, imports, exports, and shared documents, including PDF imports on ARM64 devices
+      - Security improvements for sign-in, sharing, permissions, and attachments, plus MCP and OAuth compatibility fixes
 
 
-    Full release notes can be found at https://github.com/outline/outline
+    If upgrading from an older release, collapsible headings have been replaced by toggle headings.
+
+    Full release notes can be found at https://github.com/outline/outline/releases/tag/v1.13.0
   source: https://github.com/outline/outline
-  version: 1.7.1
+  version: 1.13.0
   website: https://www.getoutline.com/
 website: https://www.getoutline.com/

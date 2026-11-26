@@ -42,15 +42,20 @@ const baseRoutine = { id: 'routine-a', name: 'Review each morning', agent: 'agen
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==', 'base64');
 const nap = ms => new Promise(r => setTimeout(r, ms));
 
-async function fixture({ section = 'work', view = 'thread', width = 1280, height = 800, touch = false, theme = 'dark', lang = 'en', settingsTab = 'accounts', routinesTab = 'agents', initialFailures = {}, cols = 3 } = {}) {
+async function fixture({ section = 'work', view = 'thread', width = 1280, height = 800, touch = false, theme = 'dark', lang = 'en', settingsTab = 'accounts', routinesTab = 'agents', initialFailures = {}, cols = 3, zone = 'Asia/Tbilisi', zoneOffset = 240, runs = [], routine = {}, owner = false, channels = [] } = {}) {
   const sessions = [structuredClone(baseSession), { ...structuredClone(baseSession), id: 'code-b', title: 'Refine workspace settings' }, { ...structuredClone(baseSession), id: 'code-c', title: 'Review mobile navigation' }];
   const state = {
     calls: [], unexpected: [], pageErrors: [], failures: new Map(Object.entries(initialFailures)), delays: new Map(), sessions, searches: {}, scratchSessions: [{ ...structuredClone(baseSession), id: 'scratch-a', title: 'Advanced discussion' }],
     workspaces: { projects: [{ name: 'east', description: 'Main project', status: 'running', reachable: true, apps: [], cost_today: 3, sessions, ptys: [] }, { name: 'west', description: 'Other project', status: 'running', reachable: true, apps: [], cost_today: 1, sessions: [], ptys: [] }], today: usage },
     inbox: { waiting: [{ project: 'east', session: { ...baseSession, id: 'question-session', title: 'Layout question', status: 'waiting', pending: 1 }, pending: [question] }, { project: 'west', session: { ...baseSession, id: 'permission-session', title: 'Validate changes', status: 'waiting', pending: 1 }, pending: [permission] }], failed: [], done: [{ project: 'west', session: { ...baseSession, id: 'finished', title: 'Previous review', status: 'exited' } }], today: usage },
-    chats: [structuredClone(simple)], agents: [structuredClone(baseAgent), { ...structuredClone(baseAgent), id: 'agent-b', name: 'Second reviewer' }], routines: [structuredClone(baseRoutine)], skills: [{ name: 'review-ux', description: 'Review interaction problems', body: 'Inspect the controls.', source: 'user', created_at: ts, updated_at: ts }],
+    chats: [structuredClone(simple)], agents: [structuredClone(baseAgent), { ...structuredClone(baseAgent), id: 'agent-b', name: 'Second reviewer' }], routines: [{ ...structuredClone(baseRoutine), ...structuredClone(routine) }], skills: [{ name: 'review-ux', description: 'Review interaction problems', body: 'Inspect the controls.', source: 'user', created_at: ts, updated_at: ts }],
+    zone, zoneOffset, runs: structuredClone(runs),
+    // notification channels (§9.12): the lists the service keeps, whether the Telegram code has arrived, a channel's journal
+    channels: structuredClone(channels), tgFound: false, notifyLog: [], testError: null,
   };
   const context = await browser.newContext({ viewport: { width, height }, hasTouch: touch, isMobile: width < 600, serviceWorkers: 'block', timezoneId: 'Asia/Tbilisi' });
+  // Playwright marks the browser as automated, and an automated browser never names the owner's time zone
+  if (owner) await context.addInitScript(() => { Object.defineProperty(Navigator.prototype, 'webdriver', { get: () => false }); });
   await context.addInitScript(({ sessions, section, view, settingsTab, routinesTab, theme, lang, cols }) => {
     localStorage.setItem('agents.lang', lang); localStorage.setItem('agents.theme', theme);
     localStorage.setItem('agents.ui', JSON.stringify({ section, view, sel: { project: 'east', kind: 'session', id: 'code-a' }, cards: sessions.map(s => ({ project: 'east', kind: 'session', id: s.id, w: 1, h: 1 })), cols, inspector: false, chatSel: 'simple-a', chatEngine: 'simple', settingsTab, routinesTab, routinesSel: 'agent-a' }));
@@ -73,25 +78,28 @@ async function fixture({ section = 'work', view = 'thread', width = 1280, height
     state.calls.push({ method, path, query: u.search, body });
     const exact = key + u.search; const delay = state.delays.get(exact) ?? state.delays.get(key) ?? 0;
     const failureKey = state.failures.has(exact) ? exact : key; const failures = state.failures.get(failureKey) ?? 0;
-    if (failures > 0) { state.failures.set(failureKey, failures - 1); if (delay) await nap(delay); return route.fulfill({ status: 503, json: { error: `Fixture unavailable: ${path}` } }); }
+    if (failures > 0) { state.failures.set(failureKey, failures - 1); if (delay) await nap(delay); return route.fulfill({ status: 503, json: { error: state.failureText ?? `Fixture unavailable: ${path}` } }); }
     let result; let text;
     if (path === '/health') result = { ok: true, cloudd: true, version: 'fixture' };
     else if (path === '/workspaces') result = structuredClone(state.workspaces);
     else if (path === '/agents/layout') result = { cards: sessions.map(s => ({ project: 'east', kind: 'session', id: s.id, w: 1, h: 1 })), cols, groups: {} };
     else if (path === '/accounts') result = { accounts: [], defaults: {} };
     else if (path === '/settings/desktop') result = { appearance: { language: lang } };
+    else if (path === '/settings' && method === 'PUT') { if (body?.timezone) { state.zone = body.timezone; state.zoneOffset = 240; } result = {}; }
     else if (path === '/settings') result = { prices: {}, defaults: { claude: '', codex: '' }, limits: [], mail_paused: false };
     else if (path === '/inbox') result = structuredClone(state.inbox);
     else if (path === '/models') { const days = Number(u.searchParams.get('days') ?? 1); const cost = days === 1 ? 4 : days === 7 ? 84 : 320; result = { period_days: days, total: { ...usage, cost_usd: cost }, by_day: Array.from({ length: days }, (_, i) => ({ ...usage, key: String(i) })), by_project: [{ ...usage, key: 'east', cost_usd: days === 1 ? 3 : 80 }], models: [{ id: baseSession.model, agent: 'Claude', ...usage }], routes: [], defaults: { claude: '', codex: '' }, limits: [{ scope: 'total', per_day: 10, action: 'warn' }, { scope: 'east', per_day: 5, action: 'warn' }], project_defaults: {} }; }
     else if (path === '/agents') result = { agents: structuredClone(state.agents) };
-    else if (path === '/routines') result = { routines: structuredClone(state.routines), scheduler: true, now: ts, timezone: 'Asia/Tbilisi' };
-    else if (path === '/runs') result = { runs: [] };
+    else if (path === '/routines') result = { routines: structuredClone(state.routines), scheduler: true, now: ts, timezone: state.zone, utc_offset_min: state.zoneOffset };
+    else if (path === '/runs') result = { runs: structuredClone(state.runs) };
     else if (path === '/skills') result = { skills: structuredClone(state.skills) };
     else if (path === '/scheduled') result = { scheduled: [], now: ts };
+    else if (path === '/voice') result = { provider: 'openai', language: '', ready: false, model: 'fixture', elevenlabs: { model: 'fixture', base: '', default_base: '', has_key: false, key_tail: '' }, openai: { model: 'fixture', base: '', default_base: '', has_key: false, key_tail: '' }, models: { elevenlabs: ['fixture'], openai: ['fixture'] } };
     else if (path === '/agents/policy') result = { bypass: true };
     else if (path === '/gate/auth') result = { targets: [] };
     else if (path === '/gate/models') result = { targets: [{ app: 'demo', title: 'Demo', models: routes.routes[0].models }] };
     else if (path === '/agents/notify') result = { app: null, server: null, topic: '', user: '', password: null, token: null };
+    else if (path === '/push') result = { public_key: '', count: 0, subscriptions: [], prefs: { permission: true, done: true, error: true, limit: true, memory: true } };
     else if (path === '/chat') result = { project: 'scratch', exists: true, status: 'running', reachable: true, sessions: structuredClone(state.scratchSessions), busy: false };
     else if (path === '/chat/routes') result = routes;
     else if (path === '/chat/presets') result = { presets: [] };
@@ -114,8 +122,34 @@ async function fixture({ section = 'work', view = 'thread', width = 1280, height
     else if (path.endsWith('/permission')) result = {};
     else if (path.endsWith('/prompt') && method === 'POST') result = { seq: 3, ts: ts + 2, kind: 'user', content: body.content };
     else if (/^\/(agents|routines|skills)\/[^/]+$/.test(path) && method === 'PUT') { const type = path.split('/')[1]; const id = path.split('/').at(-1); const item = state[type].find(item => (type === 'skills' ? item.name : item.id) === id); Object.assign(item, body); result = structuredClone(item); }
+    else if (/^\/routines\/[^/]+\/token$/.test(path) && method === 'POST') { const item = state.routines.find(r => r.id === path.split('/')[2]); item.token = 'rotated'; result = structuredClone(item); }
+    else if (/^\/skills\/[^/]+\/accept$/.test(path) && method === 'POST') { const item = state.skills.find(k => k.name === path.split('/')[2]); item.source = 'user'; result = structuredClone(item); }
     else if (/^\/(agents|routines)\/[^/]+\/run$/.test(path)) result = { run: { id: 'run-fixture', status: 'running', project: 'east', started_at: ts, cost_usd: 0 } };
     else if (path === '/search') result = structuredClone(state.searches[u.searchParams.get('q')] ?? { q: u.searchParams.get('q'), words: [], hits: [], stopped: [], total: 0 });
+    else if (path === '/notify/channels' && method === 'GET') result = { channels: structuredClone(state.channels), rate_per_min: 20 };
+    else if (path === '/notify/channels' && method === 'POST') {
+      const c = { id: `ch_${state.channels.length + 1}`, kind: body.kind, name: body.name || (body.kind === 'telegram' ? 'Alex' : 'fixture.invalid'), enabled: true, bot: body.kind === 'telegram' ? '@stand_bot' : '', chat_title: body.kind === 'telegram' ? 'Alex' : '', chat_linked: body.kind === 'telegram', protect: body.protect ?? true, buttons: !!body.buttons,
+        slack_channel: body.slack_channel ?? '', host: body.kind === 'telegram' ? '' : body.kind === 'slack_bot' ? 'slack.com' : 'fixture.invalid', tail: body.kind === 'telegram' ? '' : String(body.url ?? body.token ?? '').slice(-4), internal: !!body.internal, signed: body.kind === 'webhook' && body.signed !== false, created_at: ts, files: body.kind !== 'slack', bindings: [], sent_today: 0, last: null };
+      state.channels.push(c); result = { ...structuredClone(c), ...(c.signed ? { signing_key: 'f'.repeat(64) } : {}) };
+    }
+    else if (/^\/notify\/channels\/[^/]+$/.test(path)) {
+      const id = path.split('/').at(-1); const c = state.channels.find(x => x.id === id);
+      if (method === 'DELETE') { state.channels = state.channels.filter(x => x.id !== id); result = null; }
+      else { for (const k of ['name', 'enabled', 'protect', 'buttons', 'internal', 'slack_channel']) if (body[k] !== undefined) c[k] = body[k]; if (body.url || body.token) c.tail = String(body.url ?? body.token).slice(-4); result = structuredClone(c); }
+    }
+    else if (/^\/notify\/channels\/[^/]+\/test$/.test(path)) { const c = state.channels.find(x => x.id === path.split('/')[3]); if (!state.testError) c.sent_today += 1; c.last = { at: ts, status: state.testError ? 'failed' : 'sent', error: state.testError, event: 'test' }; result = { ok: !state.testError, error: state.testError }; }
+    else if (/^\/notify\/channels\/[^/]+\/log$/.test(path)) result = { log: structuredClone(state.notifyLog) };
+    else if (path === '/notify/telegram/begin') result = { pending: 'tg_fixture', bot: '@stand_bot', code: '483920' };
+    else if (path === '/notify/telegram/find') result = state.tgFound ? { found: true, chat_title: 'Alex', chat_type: 'private' } : { found: false };
+    else if (path === '/notify/bindings' && method === 'POST') {
+      const c = state.channels.find(x => x.id === body.channel); const key = b => [b.scope, b.project ?? '', b.session ?? '', b.routine ?? ''].join('|');
+      let b = c.bindings.find(x => key(x) === key(body));
+      if (!b) { b = { id: `nb_${Date.now()}_${c.bindings.length}`, channel: c.id, scope: body.scope, project: body.scope === 'routine' ? '' : body.project ?? '', session: body.session ?? '', routine: body.routine ?? '', when: 'always', content: 'fact', reports: false, away_only: body.scope === 'workspace' || body.scope === 'all', created_at: ts }; c.bindings.push(b); }
+      for (const k of ['when', 'content', 'reports', 'away_only']) if (body[k] !== undefined) b[k] = body[k];
+      result = structuredClone(b);
+    }
+    else if (/^\/notify\/bindings\/[^/]+$/.test(path) && method === 'DELETE') { const id = path.split('/').at(-1); for (const c of state.channels) c.bindings = c.bindings.filter(b => b.id !== id); result = null; }
+    else if (path === '/notify/share' && method === 'POST') result = { ok: true, channel: state.channels.find(c => c.id === body.channel)?.name ?? '' };
     else { state.unexpected.push(`${method} ${path}`); return route.fulfill({ status: 501, json: { error: `Missing fixture: ${method} ${path}` } }); }
     if (delay) await nap(delay);
     try { if (text !== undefined) await route.fulfill({ contentType: 'text/plain', body: text }); else await route.fulfill({ json: result }); } catch (error) { if (!/closed|disposed/i.test(error.message)) throw error; }
@@ -363,6 +397,142 @@ await scenario('Failed routine save retains edited task and prevents a run', asy
   } finally { await context.close(); }
 });
 
+await scenario('A failing voice-settings request is not repeated in a loop', async () => {
+  const { page, state, context } = await fixture({ initialFailures: { 'GET /voice': 100000 } });
+  try {
+    await page.locator('textarea').first().waitFor(); await nap(1200); const n = calls(state, 'GET', '/voice').length;
+    assert(n >= 1 && n <= 2, `The microphone asks for the settings once when it appears; got ${n} requests in a second.`); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('Routine keeps its policies for provider failures, overlapping runs and unattended questions', async () => {
+  const { page, state, context } = await fixture({ section: 'routines', routinesTab: 'routines' });
+  try {
+    await page.locator('[data-routine="routine-a"]').click(); const zone = page.locator('.rt-form .hint.zone'); await zone.waitFor();
+    assert.match(await zone.innerText(), /time: Asia\/Tbilisi \(UTC\+4\)/, 'The schedule hint names the zone the times are read in.');
+    assert.equal(await page.locator('.zone-switch').count(), 0, 'The browser is in the same zone: nothing to switch.');
+    const retries = page.locator('.rt-form button.switch.retries'); assert.equal(await retries.getAttribute('aria-pressed'), 'true', 'Retries are on until the owner turns them off.');
+    assert.equal(await page.getByLabel('skip the run', { exact: true }).isChecked(), true, 'A routine saved before the policies appeared opens with the defaults.');
+    assert.equal(await page.getByLabel('wait for the answer in Inbox', { exact: true }).isChecked(), true);
+    assert.equal(await page.locator('.draft-notice').count(), 0, 'Defaults alone do not make the form look edited.');
+    // the overlap rule follows the trigger until the owner chooses against it: a webhook brings its own data each time
+    const skip = page.getByLabel('skip the run', { exact: true }); const side = page.getByLabel('start next to it', { exact: true });
+    await page.locator('.rt-form input[name="trig"][value="webhook"]').check(); assert.equal(await side.isChecked(), true, 'A webhook routine starts runs side by side by default.');
+    await page.locator('.rt-form input[name="trig"][value="schedule"]').check(); assert.equal(await skip.isChecked(), true, 'Back on a schedule the next turn is skipped again.');
+    assert.equal(await page.locator('.draft-notice').count(), 0, 'Trying a trigger and putting it back leaves no unsaved draft.');
+    await side.check(); await page.locator('.rt-form input[name="trig"][value="event"]').check(); await page.locator('.rt-form input[name="trig"][value="schedule"]').check();
+    assert.equal(await side.isChecked(), true, 'A rule the owner chose against the default stays as chosen.'); await skip.check();
+    await retries.click(); await page.getByLabel('start next to it', { exact: true }).check(); await page.getByLabel('refuse and go on', { exact: true }).check();
+    await page.getByRole('button', { name: 'Save', exact: true }).click(); await waitCalls(state, 'PUT', '/routines/routine-a', 1);
+    const body = calls(state, 'PUT', '/routines/routine-a')[0].body; assert.equal(body.retries, false); assert.equal(body.overlap, 'parallel'); assert.equal(body.on_question, 'deny'); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('Schedules kept in another time zone offer the zone of this browser', async () => {
+  const { page, state, context } = await fixture({ section: 'routines', routinesTab: 'routines', zone: 'Europe/Berlin', zoneOffset: 60 });
+  try {
+    await page.locator('[data-routine="routine-a"]').click(); const zone = page.locator('.rt-form .hint.zone'); await zone.waitFor();
+    assert.match(await zone.innerText(), /time: Europe\/Berlin \(UTC\+1\)/); assert.equal(calls(state, 'PUT', '/settings').length, 0, 'A zone the owner has set is never replaced silently.');
+    await page.getByRole('button', { name: 'switch to Asia/Tbilisi', exact: true }).click(); await waitCalls(state, 'PUT', '/settings', 1);
+    assert.deepEqual(calls(state, 'PUT', '/settings')[0].body, { timezone: 'Asia/Tbilisi' });
+    await page.getByText('time: Asia/Tbilisi (UTC+4)').waitFor(); assert.equal(await page.locator('.zone-switch').count(), 0); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('First visit stores the time zone of the owner while no schedule depends on the server clock', async () => {
+  const { page, state, context } = await fixture({ section: 'routines', routinesTab: 'routines', zone: null, zoneOffset: 0, owner: true, routine: { trigger: { kind: 'manual', cron: '0 9 * * 1-5', event: '', contains: '' } } });
+  try {
+    await waitCalls(state, 'PUT', '/settings', 1); assert.deepEqual(calls(state, 'PUT', '/settings')[0].body, { timezone: 'Asia/Tbilisi' });
+    await page.locator('[data-routine="routine-a"]').click(); await page.locator('.rt-form input[name="trig"][value="schedule"]').check(); await page.getByText('time: Asia/Tbilisi (UTC+4)').waitFor(); await nap(300);
+    assert.equal(calls(state, 'PUT', '/settings').length, 1, 'The zone is stored once.'); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('Working schedules stay on the server clock until the owner switches the zone', async () => {
+  for (const owner of [true, false]) {
+    // owner: a schedule is already working; not owner: an automated browser with nothing scheduled
+    const { page, state, context } = await fixture({ section: 'routines', routinesTab: 'routines', zone: null, zoneOffset: 0, owner, routine: owner ? {} : { enabled: false } });
+    try {
+      await page.locator('[data-routine="routine-a"]').click(); const zone = page.locator('.rt-form .hint.zone'); await zone.waitFor(); await nap(400);
+      assert.match(await zone.innerText(), /server time \(UTC\+0\)/); assert.equal(calls(state, 'PUT', '/settings').length, 0, owner ? 'A working schedule must not move by itself.' : 'An automated browser never names the zone.');
+      if (owner) { await page.getByRole('button', { name: 'switch to Asia/Tbilisi', exact: true }).click(); await waitCalls(state, 'PUT', '/settings', 1); await page.getByText('time: Asia/Tbilisi (UTC+4)').waitFor(); }
+      safe(state);
+    } finally { await context.close(); }
+  }
+});
+
+await scenario('Run history tells a retry from the first attempt and when the next retry starts', async () => {
+  const run = { routine: 'routine-a', routine_name: 'Review each morning', agent: 'agent-a', agent_name: 'Frontend reviewer', project: 'east', trigger: 'schedule', cost_usd: 0, session: null, summary: null, reason: null };
+  const runs = [
+    { ...run, id: 'run-wait', status: 'failed', started_at: ts - 240, ended_at: ts - 180, reason: 'the provider is overloaded (503)', kind: 'provider', attempt: 0, retry_at: ts + 120 },
+    { ...run, id: 'run-again', status: 'done', started_at: ts - 3000, ended_at: ts - 2900, summary: 'Reviewed the changes.', attempt: 2, retry_of: 'run-first', cost_usd: 0.4 },
+    { ...run, id: 'run-skip', status: 'skipped', started_at: ts - 7200, ended_at: ts - 7200, reason: 'the previous run is still going', kind: 'overlap', attempt: 0 },
+  ];
+  const { page, state, context } = await fixture({ section: 'routines', routinesTab: 'routines', runs });
+  try {
+    await page.locator('[data-routine="routine-a"]').click(); const waiting = page.locator('[data-run="run-wait"]'); await waiting.waitFor();
+    const at = new RegExp(`retry at \\d{1,2}:${String(new Date((ts + 120) * 1000).getMinutes()).padStart(2, '0')}`);
+    assert.match(await waiting.innerText(), at, 'A failed run that will be repeated says when.'); assert(!(await waiting.innerText()).includes('retry 0'));
+    assert.equal(/retry at \d{1,2}:\d{2}\s?[AP]M/.test(await waiting.innerText()), /[AP]M/.test(await waiting.locator('.when').innerText()), 'The retry time is written in the same clock as the start time.');
+    assert((await page.locator('[data-run="run-again"]').innerText()).includes('retry 2'), 'A repeated run is marked with its attempt number.');
+    const skipped = await page.locator('[data-run="run-skip"]').innerText(); assert(skipped.includes('skipped') && skipped.includes('the previous run is still going'), 'A skipped run keeps its reason in the history.');
+    await page.locator('.rt-top .seg').getByRole('button', { name: 'Runs', exact: true }).click(); await page.locator('[data-run="run-wait"]').waitFor();
+    assert.match(await page.locator('[data-run="run-wait"]').innerText(), at, 'The common list of runs shows the same.'); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('Agent card sends only the fields the owner changed', async () => {
+  const { page, state, context } = await fixture({ section: 'routines' });
+  try {
+    await page.locator('[data-agent="agent-a"]').click(); const name = page.locator('.rt-form input').first(); await name.fill('Careful reviewer');
+    // a run adds a memory line while the card is open with unsaved edits
+    state.agents[0].memory = 'Learned during a run.'; const n = calls(state, 'GET', '/agents').length; await waitCalls(state, 'GET', '/agents', n + 1);
+    await page.getByRole('button', { name: 'Save', exact: true }).click(); await waitCalls(state, 'PUT', '/agents/agent-a', 1);
+    assert.deepEqual(calls(state, 'PUT', '/agents/agent-a')[0].body, { name: 'Careful reviewer' }, 'Fields the owner did not touch stay out of the request.');
+    assert.equal(state.agents[0].memory, 'Learned during a run.', 'The memory written by the run survives the save.'); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('Skill proposed by an agent waits for the owner and is accepted with one button', async () => {
+  const { page, state, context } = await fixture({ section: 'routines', routinesTab: 'skills' });
+  try {
+    state.skills.push({ name: 'check-links', description: 'Check links before publishing', body: 'Open every link.', source: 'agent:agent-a', created_at: ts, updated_at: ts });
+    const n = calls(state, 'GET', '/skills').length; await waitCalls(state, 'GET', '/skills', n + 1); await page.locator('button[data-skill="check-links"]').click();
+    const notice = page.locator('.draft-notice.proposal'); await notice.waitFor(); assert.match(await notice.innerText(), /Proposed by the agent “Frontend reviewer”\. Until it is accepted, it works only in that agent’s own tasks/, 'The notice names the agent that proposed the skill.');
+    await page.locator('button[data-skill="review-ux"]').click(); assert.equal(await page.locator('.draft-notice.proposal').count(), 0, 'The owner’s own skill has nothing to accept.');
+    await page.locator('button[data-skill="check-links"]').click(); await page.getByRole('button', { name: 'Accept the skill', exact: true }).click();
+    await waitCalls(state, 'POST', '/skills/check-links/accept', 1); await notice.waitFor({ state: 'detached' });
+    assert.equal(state.skills.find(k => k.name === 'check-links').source, 'user'); assert.equal(calls(state, 'POST', '/skills/check-links/accept').length, 1); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('Webhook address is replaced only after a confirmation', async () => {
+  const { page, state, context } = await fixture({ section: 'routines', routinesTab: 'routines' });
+  try {
+    state.routines[0].trigger = { kind: 'webhook', cron: '', event: '', contains: '' }; const n = calls(state, 'GET', '/routines').length; await waitCalls(state, 'GET', '/routines', n + 1);
+    await page.locator('[data-routine="routine-a"]').click(); const hook = page.locator('.rt-form .hook'); await hook.waitFor(); assert.match(await hook.innerText(), /\/agents\/api\/hooks\/fixture$/);
+    let answer = false; page.on('dialog', d => (answer ? d.accept() : d.dismiss()));
+    await page.getByRole('button', { name: 'new address', exact: true }).click(); await nap(250);
+    assert.equal(calls(state, 'POST', '/routines/routine-a/token').length, 0, 'A declined confirmation leaves the address as it was.');
+    answer = true; await page.getByRole('button', { name: 'new address', exact: true }).click(); await waitCalls(state, 'POST', '/routines/routine-a/token', 1);
+    await page.getByText(/\/agents\/api\/hooks\/rotated$/).waitFor(); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('Toast with a long error word stays inside a phone screen', async () => {
+  // an error text may carry a URL or a metric name longer than the toast is wide (the owner's phone is 412 px)
+  const { page, state, context } = await fixture({ section: 'routines', routinesTab: 'routines', width: 412, height: 915, touch: true });
+  try {
+    await page.locator('[data-routine="routine-a"]').click(); await page.locator('.rt-form textarea').first().fill('Changed task');
+    state.failureText = 'core 502: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count_per_model_per_day_for_project — limit: 0';
+    state.failures.set('PUT /routines/routine-a', 1); await page.getByRole('button', { name: 'Save', exact: true }).click();
+    const toast = page.locator('.toast.bad').filter({ hasText: 'generativelanguage' }); await toast.waitFor();
+    const box = await toast.evaluate(el => { const r = el.getBoundingClientRect(); const t = el.lastElementChild.getBoundingClientRect(); return { view: innerWidth, toast: [r.left, r.right], text: [t.left, t.right] }; });
+    assert(box.toast[0] >= 0 && box.toast[1] <= box.view, `The toast is inside the screen: ${JSON.stringify(box)}`);
+    assert(box.text[1] <= box.toast[1] + .5, `Its text is inside the toast: ${JSON.stringify(box)}`); safe(state);
+  } finally { await context.close(); }
+});
+
 await scenario('MCP workspace change disables stale writes and ignores older response', async () => {
   const { page, state, context } = await fixture({ settingsTab: 'mcp' });
   try {
@@ -573,6 +743,188 @@ await scenario('Narrow Code cards use separate Files and Git previews with reach
     await back.click(); await pane.getByRole('tab', { name: 'Git', exact: true }).click(); await pane.locator('.git .nmb').first().click();
     const diffBack = pane.locator('.diff button.back'); await diffBack.waitFor(); assert(await diffBack.isVisible()); await shot(page, 'narrow-card-git');
     const gitMetrics = await metrics(page, '.card:first-child'); assert.equal(gitMetrics.clipped.length, 0, JSON.stringify(gitMetrics.clipped)); safe(state);
+  } finally { await context.close(); }
+});
+
+// ---------- notification channels (docs/agents-ux.md §9.12) ----------
+
+const tgChannel = { id: 'ch_tg', kind: 'telegram', name: 'Личный', enabled: true, bot: '@stand_bot', chat_title: 'Alex', chat_linked: true, protect: true, buttons: false, slack_channel: '', host: '', tail: '', internal: false, signed: false, created_at: ts, files: true, bindings: [], sent_today: 0, last: null };
+// a checked item carries its mark in the name (generated content counts), so the label is matched from its start
+const menuItem = (page, label) => { const name = new RegExp('^' + label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')); return page.getByRole('menu').getByRole('menuitem', { name }).or(page.getByRole('menu').getByRole('menuitemcheckbox', { name })); };
+const fitsWidth = page => page.evaluate(() => ({ page: document.documentElement.scrollWidth <= innerWidth + 1, wide: [...document.querySelectorAll('.ntf-card, .ntf-card *, .ntf-dlg, .ntf-dlg *')].filter(el => { const r = el.getBoundingClientRect(); return r.width > 0 && (r.right > innerWidth + 1 || r.left < -1); }).map(el => el.className).slice(0, 5) }));
+
+await scenario('Channels: a Telegram channel is made by a token and a code, and the token is not shown again', async () => {
+  const { page, state, context } = await fixture({ section: 'settings', settingsTab: 'notify' });
+  try {
+    const card = page.locator('.ntf-card'); await card.getByText('No channels yet.').waitFor();
+    await card.getByRole('button', { name: 'Channel', exact: true }).click(); await menuItem(page, 'Telegram').click();
+    const form = card.locator('.ntf-new'); const token = form.getByLabel('Bot token');
+    assert.equal(await token.getAttribute('type'), 'password', 'A token is typed into a password field.');
+    assert(await form.getByRole('button', { name: 'Save and check' }).isDisabled(), 'No chat — nothing to save.');
+    await token.fill('7312345678:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw-x'); await form.getByRole('button', { name: 'Check the token' }).click();
+    await form.getByText('/start 483920').waitFor(); await form.locator('.ntf-bot').getByText('@stand_bot').waitFor();
+    assert.deepEqual(calls(state, 'POST', '/notify/telegram/begin').at(-1).body, { token: '7312345678:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw-x' });
+    await form.getByRole('button', { name: 'Find the chat' }).click(); await form.getByText('The code has not arrived yet.', { exact: false }).waitFor();
+    state.tgFound = true; await form.getByRole('button', { name: 'Find the chat' }).click();
+    await form.getByText('chat found: "Alex" (private)', { exact: false }).waitFor();
+    assert.equal(await form.getByLabel('Name', { exact: true }).inputValue(), 'Alex', 'The channel is named after the chat unless the owner says otherwise.');
+    assert(await form.getByLabel('Forbid forwarding from the chat').isChecked(), 'Forwarding is forbidden unless switched off.');
+    assert(!(await form.getByLabel('"Allow / Deny" buttons').isChecked()), 'Buttons are off unless switched on.');
+    await form.getByLabel('"Allow / Deny" buttons').check(); await form.getByText('Only a button press is accepted', { exact: false }).waitFor();
+    await form.getByRole('button', { name: 'Save and check' }).click();
+    const row = card.locator('.ntf-ch'); await row.getByText('@stand_bot → Alex').waitFor();
+    const made = calls(state, 'POST', '/notify/channels').at(-1).body;
+    assert.deepEqual({ kind: made.kind, pending: made.pending, protect: made.protect, buttons: made.buttons, name: made.name, origin: made.origin }, { kind: 'telegram', pending: 'tg_fixture', protect: true, buttons: true, name: 'Alex', origin });
+    assert.equal(made.token, undefined, 'The token went with the handshake; the channel is made by the handshake id.');
+    await waitCalls(state, 'POST', '/notify/channels/ch_1/test', 1); await page.getByText('Test message sent to "Alex"').waitFor();
+    await row.getByText('no bindings — the channel is silent').waitFor();
+    assert(!(await page.locator('body').innerText()).includes('AAHdq'), 'The token is nowhere on the page after saving.');
+    await shot(page, 'channels-telegram'); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('Channels: a webhook shows its signing key once; switch, check, journal, replace and delete', async () => {
+  const { page, state, context } = await fixture({ section: 'settings', settingsTab: 'notify' });
+  try {
+    const card = page.locator('.ntf-card');
+    await card.getByRole('button', { name: 'Channel', exact: true }).click(); await menuItem(page, 'Webhook (n8n, Mattermost, your script)').click();
+    const form = card.locator('.ntf-new'); await form.getByLabel('Webhook address').fill('https://n8n.fixture.invalid/webhook/agents-secret-path');
+    await form.getByLabel('Name', { exact: true }).fill('n8n'); await form.getByLabel('An address inside the stand or the tailnet').check();
+    assert(await form.getByLabel('Sign the body').isChecked());
+    await form.getByRole('button', { name: 'Save and check' }).click();
+    const key = card.locator('.ntf-key'); await key.getByText('f'.repeat(64)).waitFor();
+    const made = calls(state, 'POST', '/notify/channels').at(-1).body;
+    assert.deepEqual({ kind: made.kind, url: made.url, internal: made.internal, signed: made.signed, name: made.name }, { kind: 'webhook', url: 'https://n8n.fixture.invalid/webhook/agents-secret-path', internal: true, signed: true, name: 'n8n' });
+    const row = card.locator('.ntf-ch'); await row.getByText('fixture.invalid · …path').waitFor();
+    assert(!(await row.innerText()).includes('agents-secret'), 'The address is not shown: the host and a tail only.');
+    await key.getByRole('button', { name: 'Cancel' }).click(); assert.equal(await key.count(), 0, 'The key is shown once.');
+    // the switch stops the channel, the bindings stay
+    await row.getByRole('button', { name: 'Channel is on' }).click(); await waitCalls(state, 'PUT', '/notify/channels/ch_1', 1);
+    assert.deepEqual(calls(state, 'PUT', '/notify/channels/ch_1').at(-1).body, { enabled: false });
+    await row.locator('.ntf-switch[aria-pressed="false"]').waitFor();
+    // a failed check is told with the service's own words and stays on the card
+    state.testError = '403 Forbidden: the receiver refused'; await row.getByRole('button', { name: 'Check', exact: true }).click();
+    await page.getByText('Not sent: 403 Forbidden: the receiver refused').waitFor(); await row.getByText('last one failed: 403 Forbidden: the receiver refused').waitFor();
+    state.notifyLog = [{ at: ts, status: 'failed', event: 'test', title: 'AgentVerse OS', error: '403 Forbidden: the receiver refused', tries: 1, files: 0 }, { at: ts - 60, status: 'sent', event: 'report', title: 'east · Review the interface', error: null, tries: 2, files: 2 }];
+    await row.getByRole('button', { name: 'journal' }).click();
+    const log = row.locator('.ntf-log-row'); await log.nth(1).getByText('agent report · files: 2').waitFor(); await log.nth(1).getByText('delivered · attempts: 2').waitFor(); await log.first().getByText('not delivered').waitFor();
+    // a secret is replaced, never read back
+    await row.getByRole('button', { name: 'Channel actions' }).click(); await menuItem(page, 'Replace the address').click();
+    const replace = row.locator('.ntf-edit input'); assert.equal(await replace.getAttribute('type'), 'password'); assert.equal(await replace.inputValue(), '', 'The kept address is not put into the field.');
+    await replace.fill('https://n8n.fixture.invalid/webhook/new-path'); await row.locator('.ntf-edit').getByRole('button', { name: 'Save' }).click();
+    await waitCalls(state, 'PUT', '/notify/channels/ch_1', 2); assert.deepEqual(calls(state, 'PUT', '/notify/channels/ch_1').at(-1).body, { url: 'https://n8n.fixture.invalid/webhook/new-path' });
+    await row.getByText('fixture.invalid · …path').waitFor();
+    await row.getByRole('button', { name: 'Channel actions' }).click(); await menuItem(page, 'Rename').click();
+    await row.locator('.ntf-edit input').fill('Automation'); await row.locator('.ntf-edit input').press('Enter'); await row.getByText('Automation').waitFor();
+    // "tell about the stand" is a binding of its own kind
+    await row.getByRole('button', { name: 'Channel actions' }).click(); await menuItem(page, 'Tell about the stand (spending limit, memory)').click();
+    await row.getByText('all workspaces (the stand)').waitFor();
+    assert.deepEqual((({ channel, scope, away_only }) => ({ channel, scope, away_only }))(calls(state, 'POST', '/notify/bindings').at(-1).body), { channel: 'ch_1', scope: 'all', away_only: false });
+    await row.getByRole('button', { name: 'Remove the binding' }).click(); await row.getByText('no bindings — the channel is silent').waitFor();
+    // deleting asks first
+    let accept = false; page.on('dialog', d => (accept ? d.accept() : d.dismiss()));
+    await row.getByRole('button', { name: 'Channel actions' }).click(); await menuItem(page, 'Delete the channel').click();
+    await nap(150); assert.equal(calls(state, 'DELETE', '/notify/channels/ch_1').length, 0, 'A dismissed question deletes nothing.');
+    accept = true; await row.getByRole('button', { name: 'Channel actions' }).click(); await menuItem(page, 'Delete the channel').click();
+    await card.getByText('No channels yet.').waitFor(); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('A conversation reports to a channel: choices are saved at once and the header says where it reports', async () => {
+  const { page, state, context } = await fixture({ view: 'thread', width: 1920, height: 1080, channels: [tgChannel] });
+  try {
+    const more = page.locator('.thread-menu'); await more.waitFor();
+    assert.equal(await page.locator('.thread-notify').count(), 0); assert(!(await more.evaluate(el => el.classList.contains('ntf-on'))));
+    await more.click(); await menuItem(page, 'Report to a channel…').click();
+    const dlg = page.getByRole('dialog', { name: 'Report to a channel' }); await dlg.getByText('Conversation "Review the interface" · east').waitFor();
+    const row = dlg.locator('.ntf-row'); const when = row.getByLabel('When');
+    assert.equal(await when.inputValue(), 'off'); assert.equal(await row.locator('input[type="radio"]').count(), 0, 'Nothing to choose until the channel is bound.');
+    await when.selectOption('once'); await waitCalls(state, 'POST', '/notify/bindings', 1);
+    const first = calls(state, 'POST', '/notify/bindings').at(-1).body;
+    assert.deepEqual({ channel: first.channel, scope: first.scope, project: first.project, session: first.session, when: first.when, content: first.content, origin: first.origin }, { channel: 'ch_tg', scope: 'session', project: 'east', session: 'code-a', when: 'once', content: 'fact', origin });
+    assert(await row.getByLabel('the fact only').isChecked(), 'Only the fact leaves the stand unless the owner says otherwise.');
+    assert(!(await row.getByLabel('the agent may send reports and files itself').isChecked()));
+    assert.equal(await dlg.getByText('The text leaves the stand', { exact: false }).count(), 0);
+    await row.getByLabel('the whole result').check(); await waitCalls(state, 'POST', '/notify/bindings', 2); await dlg.getByText('The text leaves the stand', { exact: false }).waitFor();
+    await row.getByLabel('the agent may send reports and files itself').check(); await waitCalls(state, 'POST', '/notify/bindings', 3);
+    const last = calls(state, 'POST', '/notify/bindings').at(-1).body; assert.deepEqual({ when: last.when, content: last.content, reports: last.reports }, { when: 'once', content: 'full', reports: true });
+    await dlg.getByRole('button', { name: 'Done' }).click();
+    await page.locator('.thread-notify').getByText('Telegram · Личный · once · reports').waitFor();
+    assert(await more.evaluate(el => el.classList.contains('ntf-on')), 'The dot on the menu button marks a conversation that reports.');
+    await more.click(); assert.equal(await menuItem(page, 'Report to a channel…').getAttribute('aria-checked'), 'true'); await page.keyboard.press('Escape');
+    // the turn has ended elsewhere: the service took the "once" binding away and said so through the hub
+    state.channels[0].bindings = []; await page.evaluate(() => window.__frontendFixture.emit({ kind: 'notify' }));
+    await page.locator('.thread-notify').waitFor({ state: 'detached' }); assert(!(await more.evaluate(el => el.classList.contains('ntf-on'))));
+    // "after every turn", then off again
+    await more.click(); await menuItem(page, 'Report to a channel…').click(); await when.selectOption('always'); await page.locator('.ntf-row.on').waitFor();
+    const bound = state.channels[0].bindings[0].id;
+    await when.selectOption('off'); await waitCalls(state, 'DELETE', `/notify/bindings/${bound}`, 1);
+    assert.equal(state.channels[0].bindings.length, 0); await page.locator('.ntf-row.on').waitFor({ state: 'detached' });
+    await shot(page, 'channels-bind-dialog'); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('A workspace and a routine are bound from their own places', async () => {
+  const { page, state, context } = await fixture({ view: 'thread', channels: [tgChannel] });
+  try {
+    // the "+" menu of a workspace
+    await page.locator('.panel .ws button[aria-label*="east"]').first().click();
+    await menuItem(page, 'Workspace notifications…').click();
+    const dlg = page.getByRole('dialog', { name: 'Report to a channel' }); await dlg.getByText('Workspace east — all its conversations').waitFor();
+    const row = dlg.locator('.ntf-row'); await row.getByLabel('When').selectOption('on'); await waitCalls(state, 'POST', '/notify/bindings', 1);
+    assert(await row.getByLabel('only when I am away from the screen').isChecked(), 'A workspace-wide binding waits for the owner to be away unless told otherwise.');
+    assert.equal(await row.getByLabel('the agent may send reports and files itself').count(), 0, 'Reports belong to a conversation or a routine.');
+    await row.getByLabel('only when I am away from the screen').uncheck(); await waitCalls(state, 'POST', '/notify/bindings', 2);
+    assert.equal(calls(state, 'POST', '/notify/bindings').at(-1).body.away_only, false);
+    await dlg.getByRole('button', { name: 'Set up channels' }).click();
+    // the dialog led to Settings → Notifications, where the binding is listed
+    await page.locator('.ntf-card .ntf-ch').getByText('workspace east').waitFor();
+    // a routine: "where to" in its form
+    await nav(page, 'Agents'); await page.waitForLoadState('networkidle');
+    await page.getByRole('tab', { name: /Routines/ }).or(page.getByRole('button', { name: /^Routines/ })).first().click();
+    await page.locator('.rt-item').filter({ hasText: 'Review each morning' }).first().click();
+    const where = page.locator('.rt-where'); await where.getByText('device').waitFor();
+    await where.getByRole('button', { name: 'Channels…' }).click();
+    await dlg.getByText('Routine "Review each morning"').waitFor(); await dlg.getByText('When to report is decided by the routine', { exact: false }).waitFor();
+    await dlg.locator('.ntf-row').getByLabel('When').selectOption('on'); await waitCalls(state, 'POST', '/notify/bindings', 3);
+    const b = calls(state, 'POST', '/notify/bindings').at(-1).body; assert.deepEqual({ scope: b.scope, routine: b.routine, project: b.project }, { scope: 'routine', routine: 'routine-a', project: '' });
+    await dlg.locator('.ntf-row').getByLabel('the agent may send reports and files itself').check(); await waitCalls(state, 'POST', '/notify/bindings', 4);
+    await dlg.getByRole('button', { name: 'Done' }).click();
+    await where.getByText('device · Telegram · Личный · reports').waitFor(); safe(state);
+  } finally { await context.close(); }
+});
+
+await scenario('Phone: names and errors that are not ours wrap inside the channels card and the dialog', async () => {
+  const word = 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count_'.repeat(2);
+  const long = { ...structuredClone(tgChannel), name: 'Канал-с-очень-длинным-названием-без-единого-пробела-в-нём-0123456789', chat_title: `Группа_${word}`, last: { at: ts, status: 'failed', error: `403 ${word}`, event: 'done' },
+    bindings: [{ id: 'nb_1', channel: 'ch_tg', scope: 'session', project: 'east', session: 'code-a', routine: '', when: 'once', content: 'full', reports: true, away_only: false, created_at: ts }] };
+  const { page, state, context } = await fixture({ section: 'settings', settingsTab: 'notify', width: 412, height: 915, touch: true, lang: 'ru', channels: [long] });
+  try {
+    state.notifyLog = [{ at: ts, status: 'failed', event: 'done', title: `east · ${word}`, error: `403 ${word}`, tries: 5, files: 0 }];
+    const row = page.locator('.ntf-ch'); await row.getByText('последнее не доставлено', { exact: false }).waitFor();
+    await row.getByRole('button', { name: 'журнал' }).click(); await row.locator('.ntf-log-row').waitFor();
+    assert(await row.locator('.ntf-ch-name b').evaluate(b => b.getClientRects().length === 1), 'The kind of a channel stays in one line next to a long name.');
+    let fit = await fitsWidth(page); assert(fit.page, 'The page must not scroll sideways.'); assert.deepEqual(fit.wide, [], 'Nothing in the card may reach past the screen.');
+    await shot(page, 'channels-phone-long-words');
+    // the form of a new channel with an error of the service in it
+    await page.locator('.ntf-card').getByRole('button', { name: 'Канал', exact: true }).click(); await menuItem(page, 'Telegram').click();
+    state.failures.set('POST /notify/telegram/begin', 1); state.failureText = `Telegram не принял токен: ${word}`;
+    await page.locator('.ntf-new').getByLabel('Токен бота').fill('7312345678:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw-x'); await page.locator('.ntf-new').getByRole('button', { name: 'Проверить токен' }).click();
+    await page.locator('.ntf-new .ntf-err').waitFor();
+    fit = await fitsWidth(page); assert(fit.page && !fit.wide.length, `The refusal must wrap: ${JSON.stringify(fit.wide)}`);
+    await page.locator('.ntf-new').scrollIntoViewIfNeeded(); await shot(page, 'channels-phone-form');
+    state.failureText = undefined;
+    // the dialog of a conversation whose title is one long word
+    state.sessions[0].title = `Сессия_${word}`; state.workspaces.projects[0].sessions[0].title = `Сессия_${word}`;
+    await page.evaluate(() => window.__frontendFixture.emit({ kind: 'notify' }));
+    await page.locator('.tabbar').getByRole('button', { name: 'Работа', exact: true }).or(page.locator('.tabbar button').first()).first().click();
+    await page.locator('.thread-menu').click(); await menuItem(page, 'Сообщать в канал…').click();
+    const dlg = page.getByRole('dialog', { name: 'Сообщать в канал' }); await dlg.locator('.ntf-row.on').waitFor();
+    fit = await fitsWidth(page); assert(fit.page && !fit.wide.length, `The dialog must stay inside the screen: ${JSON.stringify(fit.wide)}`);
+    await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('.ntf-dlg')).opacity) > .99);
+    assert(await page.locator('.ntf-card .ntf-ch-name b, .ntf-dlg .ntf-name b').evaluateAll(list => list.every(b => b.getClientRects().length === 1)), 'The kind of a channel stays in one line next to a long name.');
+    const box = await dlg.boundingBox(); assert(box.x >= 0 && box.x + box.width <= 412 + 1 && box.y >= 0 && box.y + box.height <= 915 + 1, 'The whole dialog is on the screen.');
+    await shot(page, 'channels-phone-dialog'); safe(state);
   } finally { await context.close(); }
 });
 

@@ -10,7 +10,7 @@ services:
     - APP_URL=${APP_PROTOCOL:-http}://${APP_DOMAIN}
     - APP_KEY=${TWOFAUTH_APP_KEY}
     - TRUSTED_PROXIES=172.18.0.0/16
-    image: 2fauth/2fauth:8.0.2
+    image: 2fauth/2fauth:9.0.1
     networks:
       appnet:
         aliases:

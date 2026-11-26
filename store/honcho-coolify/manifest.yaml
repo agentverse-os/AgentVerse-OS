@@ -1,0 +1,92 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/honcho-coolify
+description: Honcho is a developer tool to build personalized AI agents with production-ready memory, dialectic reasoning, and stateful dialogue.
+endpoint:
+  port: 8000
+  service: api
+env:
+  LLM_OPENAI_API_KEY: ''
+  LOG_LEVEL: INFO
+  POSTGRES_DB: ''
+  POSTGRES_USER: ''
+  SERVICE_PASSWORD_POSTGRES:
+    generate: password
+  SERVICE_URL_API_8000: https://${APP_DOMAIN}
+  SERVICE_USER_POSTGRES:
+    generate: password
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.svg
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: honcho-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: LOG_LEVEL
+  hint: 'по умолчанию: INFO'
+  label: log level
+  options: null
+  required: false
+  type: text
+- env: LLM_OPENAI_API_KEY
+  hint: null
+  label: llm openai api key
+  options: null
+  required: false
+  type: password
+- env: POSTGRES_USER
+  hint: null
+  label: postgres user
+  options: null
+  required: false
+  type: text
+- env: POSTGRES_DB
+  hint: null
+  label: postgres db
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- memory
+- llm
+- agents
+- rag
+- postgres
+- pgvector
+- redis
+title: Honcho
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://honcho.dev/docs/v3/contributing/self-hosting
+  tags:
+  - ai
+  - memory
+  - llm
+  - agents
+  - rag
+  - postgres
+  - pgvector
+  - redis
+  template: honcho.yaml
+website: https://honcho.dev/docs/v3/contributing/self-hosting

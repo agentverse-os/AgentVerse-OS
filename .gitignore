@@ -16,3 +16,6 @@ dist/
 __pycache__/
 # e2e screenshots are run artifacts
 desktop/e2e/shots/
+# e2e: the parts of a parallel run and its logs (agents/e2e/run_parallel.sh)
+/agents/e2e/parts/
+/agents/e2e/e2e_part.py

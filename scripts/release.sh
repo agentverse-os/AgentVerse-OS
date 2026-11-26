@@ -27,6 +27,8 @@ if [[ $BUILD -eq 1 ]]; then
   # agentd before cloudd: cloudd embeds its binary (build.rs). An error in any build stops the release — otherwise an old binary would go into
   # the package.
   (cd "$ROOT/agentd" && cargo build --release >/tmp/agentd-build.log 2>&1 || { grep -E "^error" -A8 /tmp/agentd-build.log; echo "сборка agentd не удалась"; exit 1; }) && echo "agentd собран" || exit 1
+  # the static build for owner's servers (ADR-008): any x86_64 Linux regardless of its glibc; `rustup target add x86_64-unknown-linux-musl` once
+  (cd "$ROOT/agentd" && cargo build --release --target x86_64-unknown-linux-musl >/tmp/agentd-musl-build.log 2>&1 || { grep -E "^error" -A8 /tmp/agentd-musl-build.log; echo "сборка agentd под musl не удалась (rustup target add x86_64-unknown-linux-musl?)"; exit 1; }) && echo "agentd (musl) собран"
   # the "Agents" service (ADR-006, stage 2): the agents/ui web app → embedded into cloudos-agents → embedded into
   # cloudd
   (cd "$ROOT/agents/ui" && npm run build >/tmp/agents-ui-build.log 2>&1 || { tail -20 /tmp/agents-ui-build.log; echo "сборка agents/ui не удалась"; exit 1; }) && echo "agents/ui собран" || exit 1

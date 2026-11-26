@@ -9,11 +9,12 @@ services:
     - PUID=1000
     - PGID=1000
     - TZ=Etc/CET
-    image: linuxserver/sqlitebrowser:3.13.1@sha256:1b1e81f0af222af3353a4c8d3c4737264a1816a43e4410819430335fa099b1da
+    image: linuxserver/sqlitebrowser:3.13.1@sha256:5a7f74ac3878b14b71891caff746e4c3413fafa51dadd2e1dd9a5157dea59452
     networks:
       appnet:
         aliases:
         - sqlitebrowser_app_1
     restart: on-failure
+    shm_size: 1gb
     volumes:
     - ${APP_DATA_DIR}/data/config:/config

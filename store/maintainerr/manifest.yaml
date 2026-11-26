@@ -40,6 +40,6 @@ upstream:
   - media
   - utilities
   source: https://github.com/Maintainerr/Maintainerr
-  tipi_version: 101
-  version: 3.25.0
+  tipi_version: 116
+  version: 3.32.0
 website: https://github.com/Maintainerr/Maintainerr

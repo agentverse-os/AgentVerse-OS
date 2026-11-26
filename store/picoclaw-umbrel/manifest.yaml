@@ -10,11 +10,11 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/picoclaw/5.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -44,10 +44,14 @@ upstream:
   categories:
   - ai
   release_notes: |-
+    This update adds support for new storage management and configuration options being introduced with umbrelOS 2.0.
+
+    Previous PicoClaw 0.3.1 release notes:
+
     This release adds the NEAR AI Cloud provider, configurable channel settings, and support for configured remote cron commands.
     It improves provider/model error handling, native search handling, gateway startup reporting, and Brave/web search diagnostics. It also fixes Evolution heartbeat and file-lock handling, Telegram forum topics, Gemini thought signatures, media and WebSocket cleanup paths, and hardens inbound media/web fetch handling.
     Full release notes can be found at https://github.com/sipeed/picoclaw/releases/tag/v0.3.1
   source: https://github.com/sipeed/picoclaw
-  version: 0.3.1
+  version: 0.3.1-patch.1
   website: https://picoclaw.io
 website: https://picoclaw.io

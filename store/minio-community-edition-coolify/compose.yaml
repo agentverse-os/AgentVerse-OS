@@ -20,7 +20,7 @@ services:
       - ready
       - local
       timeout: 20s
-    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    image: pgsty/silo:RELEASE.2026-10-15T00-00-00Z
     networks:
       appnet:
         aliases:

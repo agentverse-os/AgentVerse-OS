@@ -10,10 +10,10 @@ endpoint:
   service: server
 env: {}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/libreoffice/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,20 +43,14 @@ upstream:
   categories:
   - files
   release_notes: |-
-    Key highlights in this release include:
-      - New page number wizard in Writer's Insert menu for easy one-step insertion of page numbers in headers/footers
-      - Improved paragraph style dropdown in Writer's Formatting toolbar
-      - Enhanced citation handling and bibliography features in Writer
-      - New Accessibility sidebar in Writer for easier document accessibility checks
-      - Improved table editing and change tracking in Writer
-      - New drawing styles for shapes and comments in Calc
-      - Enhanced number format support and sheet management in Calc
-      - Improved spell checking and proofreading options
-      - and much much more!
+    This update brings LibreOffice from 7.6 to 25.8, covering four major releases of new features, improved Microsoft Office compatibility, and performance and security fixes.
 
+    LibreOffice now streams to your browser with a new, smoother web desktop, and it opens over HTTPS. It now starts on a desktop with launchers for Writer, Calc, Impress and the other apps. Your documents and settings are kept.
 
-    A full list of new features and improvements can be found at https://wiki.documentfoundation.org/ReleaseNotes/7.6.
+    After this update LibreOffice may show a one-time "personal settings are locked" message. Choose Yes to continue. This also fixes the message that used to show after every restart.
+
+    Full release notes are available at https://wiki.documentfoundation.org/ReleaseNotes/25.8
   source: https://www.libreoffice.org/about-us/source-code/
-  version: 7.6.7
+  version: 25.8.7
   website: https://www.libreoffice.org/
 website: https://www.libreoffice.org/

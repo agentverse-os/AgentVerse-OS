@@ -41,7 +41,7 @@ services:
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
       WEB_DOMAIN: ${APP_DOMAIN}
-    image: lscr.io/linuxserver/mastodon:4.7.0
+    image: lscr.io/linuxserver/mastodon:4.7.5
     labels:
       traefik.http.services.{{RUNTIPI_APP_ID}}.loadbalancer.server.scheme: https
       traefik.http.services.{{RUNTIPI_APP_ID}}.loadbalancer.serverstransport: insecuretransport@file

@@ -47,6 +47,10 @@ export interface ComponentContainer { name: string; image: string; image_id: str
 export interface ComponentInfo { project: string; title: string; containers: ComponentContainer[]; config_files: string[]; working_dir?: string | null; env_file?: string | null; updatable: boolean; note?: string | null }
 export interface UpdatesView { system: SystemUpdateInfo; apps: AppUpdateInfo[]; components: ComponentInfo[]; catalog: { importing: boolean; manifests: number; last_import?: Record<string, unknown> | null } }
 export interface Event { at: string; kind: string; subject: string; message: string }
+/** An owner's server with agentd outside the workspaces (ADR-008). agentd_version — the build fingerprint of agentd on the server, core_agentd_version — of the one embedded in the core; install — the install command, only in the answer to creation or to a re-issued code. */
+/** Memory guard (ADR-009): the watch over workspaces that stall at their memory limit. */
+export interface PressureConfig { enabled: boolean; action: 'kill' | 'notify'; full_pct: number; hold_secs: number; tight_pct: number; long_turn_hours: number; projects: Record<string, { action?: string; full_pct?: number; hold_secs?: number; long_turn_hours?: number }> }
+export interface HostView { name: string; note: string; addr: string; port: number; user: string; home: string; arch: string; os: string; hostname: string; agentd_version: string; status: 'new' | 'registered' | 'online' | 'offline' | 'disabled'; created_at: string; registered_at?: string | null; last_seen?: string | null; last_error?: string | null; core_agentd_version: string; disabled: boolean; uninstall: string; llm_url?: string | null; llm: string | null; install?: string }
 
 export class OfflineError extends Error { constructor() { super(t('api.offline')); } }
 
@@ -115,6 +119,17 @@ export const api = {
   appSnapshots: (name: string) => call<RestorePoint[]>('GET', `/apps/${name}/snapshots`),
   appRestore: (name: string, snap: string) => call<AppView>('POST', `/apps/${name}/restore/${encodeURIComponent(snap)}`),
   events: () => call<Event[]>('GET', '/events'),
+  // owner's servers (ADR-008): records, a one-time install code, a probe of /v1/health, agentd update on the server
+  pressure: () => call<PressureConfig>('GET', '/system/pressure'),
+  /** A partial update: top-level keys replace the current ones, `projects` entries are upserted, `null` removes one. */
+  pressurePut: (patch: Record<string, unknown>) => call<PressureConfig>('PUT', '/system/pressure', patch),
+  hosts: () => call<HostView[]>('GET', '/hosts'),
+  hostAdd: (name: string, note = '') => call<HostView>('POST', '/hosts', { name, note }),
+  hostRemove: (name: string) => call<void>('DELETE', `/hosts/${encodeURIComponent(name)}`),
+  hostEdit: (name: string, patch: { enabled?: boolean; note?: string; llm_url?: string }) => call<HostView>('PATCH', `/hosts/${encodeURIComponent(name)}`, patch),
+  hostCode: (name: string) => call<HostView>('POST', `/hosts/${encodeURIComponent(name)}/code`),
+  hostProbe: (name: string) => call<HostView>('POST', `/hosts/${encodeURIComponent(name)}/probe`),
+  hostUpdate: (name: string) => call<Record<string, unknown>>('POST', `/hosts/${encodeURIComponent(name)}/update`),
   projects: () => call<ProjectView[]>('GET', '/projects'),
   // Agent Runtime (ADR-006): workspace terminals via cloudos-agentd; the stream is the ptyWsUrl
   // WebSocket

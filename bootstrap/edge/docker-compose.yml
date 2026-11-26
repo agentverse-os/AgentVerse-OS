@@ -1,6 +1,8 @@
 # Edge Caddy (the bootstrap set). The whole configuration is loaded by cloudd through the Admin API (POST /load) —
-# the Caddyfile here is only the starter: admin on 0.0.0.0:2019 (published on the host's 127.0.0.1) and nothing
-# else. cloudd joins the app networks and coder-net to this container itself at install/start. docker compose up -d
+# the Caddyfile here is only the starter: the admin API on a unix socket in /run/cloudos-edge and nothing else. That
+# directory is shared with the host: cloudd and the "Agents" service listen on sockets there, so nothing of the control
+# plane sits on a docker network where app containers could call it (ADR-010). cloudd joins the app networks and
+# coder-net to this container itself at install/start. docker compose up -d
 services:
   caddy:
     image: caddy:2
@@ -12,9 +14,8 @@ services:
       - "8444:8444"                 # Coder (route: port)
       - "8445:8445"                 # "Agents" as a separate app — its own origin for the PWA install (CLOUDD_AGENTS_PORT)
       - "8450-8499:8450-8499"       # route: port apps (CLOUDD_APP_PORT_MIN..MAX)
-      - "127.0.0.1:2019:2019"       # the Admin API — only for cloudd on the host
     extra_hosts:
-      - "host.docker.internal:host-gateway"   # the cloudd upstream on the host
+      - "host.docker.internal:host-gateway"   # the host, for app routes that point there
     networks:
       - default
       - coder-net
@@ -23,6 +24,7 @@ services:
       - caddy-data:/data
       - caddy-config:/config
       - /var/run/tailscale:/var/run/tailscale   # certificates for <box>.<tailnet>.ts.net from tailscaled (Tailscale); without Tailscale the directory is empty
+      - /run/cloudos-edge:/run/cloudos-edge     # sockets shared with the host: the Caddy admin API and the cloudd / "Agents" upstreams (ADR-010)
 networks:
   coder-net:
     external: true

@@ -30,7 +30,7 @@ services:
       - -f
       - http://127.0.0.1:80/status.php
       timeout: 10s
-    image: lscr.io/linuxserver/nextcloud:latest
+    image: lscr.io/linuxserver/nextcloud:35.0.3
     networks:
       appnet:
         aliases:

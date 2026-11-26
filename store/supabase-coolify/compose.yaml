@@ -150,6 +150,10 @@ configs:
       ALTER table "supabase_functions".hooks OWNER TO supabase_functions_admin;
       ALTER function "supabase_functions".http_request() OWNER TO supabase_functions_admin;
       GRANT supabase_functions_admin TO postgres;
+      -- http_request() is SECURITY DEFINER and runs as supabase_functions_admin. Serializing
+      -- NEW/OLD can touch objects in the extensions schema (PostGIS geometry reads
+      -- extensions.spatial_ref_sys), so the role needs USAGE on it.
+      GRANT USAGE ON SCHEMA extensions TO supabase_functions_admin;
       -- Remove unused supabase_pg_net_admin role
       DO
       $$
@@ -246,11 +250,9 @@ configs:
        ALTER USER supabase_storage_admin WITH PASSWORD :'pgpass';
   supabase-db-inline-7:
     content: |
-      \set jwt_secret `echo "$JWT_SECRET"`
       \set jwt_exp `echo "$JWT_EXP"`
       \set db_name `echo "${POSTGRES_DB:-postgres}"`
 
-      ALTER DATABASE :db_name SET "app.settings.jwt_secret" TO :'jwt_secret';
       ALTER DATABASE :db_name SET "app.settings.jwt_exp" TO :'jwt_exp';
   supabase-db-inline-8:
     content: |
@@ -260,6 +262,83 @@ configs:
       alter schema _analytics owner to :pguser;
       \c postgres
   supabase-edge-functions-inline-10:
+    content: |
+      const CHECK_INTERVAL_MS = 1_000
+      const PRESSURE_THRESHOLD = 0.8
+      const CLEANUP_TIMEOUT_MS = 1_000
+      const RETRY_INTERVAL_MS = 5_000
+
+      function parseBytes(value: string, minimum: number): number {
+        const bytes = Number(value)
+        if (!/^\d+$/.test(value) || !Number.isSafeInteger(bytes) || bytes < minimum) {
+          throw new Error('Invalid cgroup memory value')
+        }
+        return bytes
+      }
+
+      export function startMemoryPressureLoop(): void {
+        let errorReported = false
+        let activeReported = false
+
+        const tick = async () => {
+          let delay = CHECK_INTERVAL_MS
+          try {
+            const max = (await Deno.readTextFile('/sys/fs/cgroup/memory.max')).trim()
+            if (max === 'max') {
+              console.warn('Memory pressure monitor disabled: a finite memory limit is required')
+              return
+            }
+            const current = (await Deno.readTextFile('/sys/fs/cgroup/memory.current')).trim()
+            const stat = await Deno.readTextFile('/sys/fs/cgroup/memory.stat')
+            const limitBytes = parseBytes(max, 1)
+            const currentBytes = parseBytes(current, 0)
+            const inactiveFileBytes = parseBytes(stat.match(/^inactive_file[ \t]+(\S+)[ \t]*$/m)?.[1] ?? '', 0)
+            // Exclude inactive file cache that the kernel can reclaim under pressure.
+            const workingSetBytes = Math.max(0, currentBytes - inactiveFileBytes)
+            // Logged once so operators (and test-container-logs.sh) can confirm monitoring is on.
+            if (!activeReported) {
+              console.log(`Memory pressure monitor active (limit ${limitBytes} bytes)`)
+              activeReported = true
+            }
+
+            if (workingSetBytes / limitBytes >= PRESSURE_THRESHOLD) {
+              delay = RETRY_INTERVAL_MS
+              const acknowledged = await EdgeRuntime.userWorkers.tryCleanupIdleWorkers(CLEANUP_TIMEOUT_MS)
+              EdgeRuntime.miCollect()
+              if (acknowledged > 0) {
+                console.warn(
+                  `Memory pressure: working set ${workingSetBytes} / ${limitBytes} bytes before cleanup; ` +
+                    `${acknowledged} worker(s) acknowledged retirement`
+                )
+              }
+            }
+            errorReported = false
+          } catch (error) {
+            if (error instanceof Deno.errors.NotFound || error instanceof Deno.errors.PermissionDenied) {
+              console.warn(`Memory pressure monitor disabled: ${error}`)
+              return
+            }
+            delay = RETRY_INTERVAL_MS
+            if (!errorReported) {
+              console.warn(`Memory pressure monitor failed; retrying: ${error}`)
+              errorReported = true
+            }
+          }
+          // Schedule only after this cycle finishes: no overlapping work or queued ticks.
+          setTimeout(() => void tick(), delay)
+        }
+
+        setTimeout(() => void tick(), CHECK_INTERVAL_MS)
+      }
+  supabase-edge-functions-inline-11:
+    content: |
+      {
+        "imports": {
+          "@supabase/functions-js": "jsr:@supabase/functions-js@^2",
+          "@supabase/server": "npm:@supabase/server@^1"
+        }
+      }
+  supabase-edge-functions-inline-12:
     content: |
       // Follow this setup guide to integrate the Deno language server with your editor:
       // https://deno.land/manual/getting_started/setup_your_environment
@@ -276,165 +355,51 @@ configs:
       // curl 'http://localhost:<KONG_HTTP_PORT>/functions/v1/hello' \
       //   --header 'Authorization: Bearer <anon/service_role API key>'
   supabase-edge-functions-inline-9:
+    content: "import * as jose from 'jsr:@panva/jose@6'\nimport { startMemoryPressureLoop } from './memory-pressure.ts'\n\nconsole.log('main function started')\nstartMemoryPressureLoop()\n\naddEventListener('unhandledrejection', (ev) => {\n  // Without preventDefault(), a floating rejection destroys the main worker and the process exits.\n  // Sync throws inside timer callbacks are still fatal; wrap them in try/catch.\n  ev.preventDefault()\n  console.error('unhandled promise rejection in main worker', ev.reason)\n})\n\nconst MAX_WORKER_RETRIES = 3\n\nconst JWT_SECRET = Deno.env.get('JWT_SECRET')\nconst SUPABASE_JWKS = parseJwks(Deno.env.get('SUPABASE_JWKS'))\nconst LOCAL_JWKS = SUPABASE_JWKS ? jose.createLocalJWKSet(SUPABASE_JWKS) : null\nconst VERIFY_JWT = Deno.env.get('VERIFY_JWT') === 'true'\n\ntype AuthFailure = {\n  code: RequestErrors\n  message?: string\n}\n\ntype FunctionFailure = {\n  code: RequestErrors\n  message: string\n  status: number\n}\n\nexport enum RequestErrors {\n  InvalidLegacyJWT = 'UNAUTHORIZED_LEGACY_JWT',\n  InvalidAsymmetricJWT = 'UNAUTHORIZED_ASYMMETRIC_JWT',\n  InvalidTokenFormat = 'UNAUTHORIZED_INVALID_JWT_FORMAT',\n  UnsupportedTokenAlgorithm = 'UNAUTHORIZED_UNSUPPORTED_TOKEN_ALGORITHM',\n  MissingAuthHeader = 'UNAUTHORIZED_NO_AUTH_HEADER',\n  NotFound = 'NOT_FOUND',\n  BootError = 'BOOT_ERROR',\n  EdgeFunctionError = 'EDGE_FUNCTION_ERROR',\n  IdleTimeout = 'IDLE_TIMEOUT',\n  WorkerResourceLimit = 'WORKER_RESOURCE_LIMIT',\n  WorkerError = 'WORKER_ERROR',\n  InvalidResponseStatusCode = 'INVALID_RESPONSE_STATUS_CODE',\n}\n\n// Errors from this router stay readable from browsers, as on the platform.\n// Function responses keep the function's own CORS headers.\nconst ERROR_CORS_HEADERS = {\n  'Access-Control-Allow-Origin': '*',\n  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey',\n  'Access-Control-Expose-Headers': 'sb-error-code',\n}\n\nfunction getFunctionErrorResponse({ code, message, status }: FunctionFailure): Response {\n  return Response.json(\n    { code, message },\n    {\n      status,\n      headers: {\n        ...ERROR_CORS_HEADERS,\n        'sb-error-code': code,\n      },\n    }\n  )\n}\n\nfunction onError(e: unknown): Response {\n  const ref = crypto.randomUUID()\n  console.error(`unhandled error in request handler (ref: ${ref})`, e)\n  return getFunctionErrorResponse({\n    code: RequestErrors.BootError,\n    message: `Internal Server Error (ref: ${ref})`,\n    status: 503,\n  })\n}\n\nfunction handleWorkerResponse(response: Response): Response {\n  if (response.status < 500) return response\n\n  const headers = new Headers(response.headers)\n  headers.set('sb-error-code', RequestErrors.EdgeFunctionError)\n\n  const exposedHeaders = (headers.get('Access-Control-Expose-Headers') ?? '')\n    .split(',')\n    .map((name) => name.trim())\n    .filter(Boolean)\n  if (!exposedHeaders.some((name) => name.toLowerCase() === 'sb-error-code')) {\n    exposedHeaders.push('sb-error-code')\n  }\n  headers.set('Access-Control-Expose-Headers', exposedHeaders.join(', '))\n\n  return new Response(response.body, {\n    status: response.status,\n    statusText: response.statusText,\n    headers,\n  })\n}\n\nfunction resolveRuntimeError(e: unknown): FunctionFailure {\n  // These error classes are supplied by Edge Runtime, rather than stock Deno.\n  if (e instanceof Deno.errors.InvalidWorkerCreation) {\n    return {\n      code: RequestErrors.BootError,\n      message: 'Function failed to start (please check logs)',\n      status: 503,\n    }\n  }\n  if (e instanceof Deno.errors.WorkerRequestCancelled) {\n    return {\n      code: RequestErrors.WorkerResourceLimit,\n      message: 'Function failed due to not having enough compute resources (please check logs)',\n      status: 546,\n    }\n  }\n  if (e instanceof Deno.errors.WorkerRequestIdleTimeout) {\n    return {\n      code: RequestErrors.IdleTimeout,\n      message: 'Request idle timeout limit (150s) reached',\n      status: 504,\n    }\n  }\n  // No dedicated runtime error class exists for invalid response statuses.\n  // The Response constructor throws directly here or inside the user worker.\n  if (\n    (e instanceof RangeError || e instanceof Deno.errors.InvalidWorkerResponse) &&\n    e.message.includes('is not equal to 101 and outside the range [200, 599]')\n  ) {\n    return {\n      code: RequestErrors.InvalidResponseStatusCode,\n      message: 'Function returned an invalid HTTP status code (please check logs)',\n      status: 500,\n    }\n  }\n  if (\n    e instanceof Deno.errors.WorkerAlreadyRetired ||\n    e instanceof Deno.errors.InvalidWorkerResponse\n  ) {\n    return {\n      code: RequestErrors.WorkerError,\n      message: 'Function exited due to an error (please check logs)',\n      status: 500,\n    }\n  }\n  return { code: RequestErrors.EdgeFunctionError, message: 'Internal Server Error', status: 500 }\n}\n\n// NOTE:(kallebysantos) We don't check for valid keys but just the bare array parsing,\n// let this for 'jose' lib verification\nexport function parseJwks(raw: string | undefined): jose.JSONWebKeySet | null {\n  if (!raw) return null\n  try {\n    const parsed = JSON.parse(raw)\n    if (parsed?.keys && Array.isArray(parsed.keys)) {\n      return parsed as jose.JSONWebKeySet\n    }\n    return null\n  } catch {\n    return null\n  }\n}\n\n/**\n * Extract JWT token from 'Authorization' header or fallback to 'sb-api-key' compatibility\n *\n * Parses the Authorization header to extract the Bearer token.\n * Expects format: \"Bearer <token>\"\n *\n * @param req - The HTTP request object\n * @returns The JWT token string or an authentication failure\n */\nfunction extractBearerToken(authHeader: string | null): string | null {\n  const tokenParts = (authHeader ?? '').trim().split(/\\s+/)\n  const [bearer, token] = tokenParts\n  if (bearer.toLowerCase() !== 'bearer' || tokenParts.length !== 2 || !token) {\n    return null\n  }\n  return token\n}\n\nfunction getAuthToken(req: Request): string | AuthFailure {\n  const authHeader = req.headers.get('authorization')\n  const sbApiKeyCompatibilityToken = req.headers.get('sb-api-key')\n\n  if (!authHeader && !sbApiKeyCompatibilityToken) {\n    return {\n      code: RequestErrors.MissingAuthHeader,\n      message: 'Missing authorization header',\n    }\n  }\n\n  // NOTE:(kallebysantos) Compatibility mode is triggered when all conditions match:\n  // - API proxy mints a temp token\n  // - Original bearer is not present or is ApiKey\n  const bearerToken = extractBearerToken(authHeader)\n  const token = !bearerToken || bearerToken.startsWith('sb_')\n    ? sbApiKeyCompatibilityToken\n    : bearerToken\n\n  if (!token) {\n    return {\n      code: RequestErrors.InvalidTokenFormat,\n      message: 'Invalid JWT format',\n    }\n  }\n\n  return token\n}\n\nfunction getAuthErrorResponse({ code, message = 'Invalid JWT' }: AuthFailure) {\n  return Response.json(\n    {\n      code,\n      message,\n      // DEPRECATED: Retained for backward compatibility.\n      msg: message,\n    },\n    {\n      status: 401,\n      headers: {\n        ...ERROR_CORS_HEADERS,\n        'sb-error-code': code,\n      },\n    }\n  )\n}\n\nasync function isValidLegacyJWT(jwt: string): Promise<AuthFailure | null> {\n  if (!JWT_SECRET) {\n    console.error('JWT_SECRET not available for HS256 token verification')\n    return { code: RequestErrors.InvalidLegacyJWT }\n  }\n\n  const encoder = new TextEncoder();\n  const secretKey = encoder.encode(JWT_SECRET);\n\n  try {\n    await jose.jwtVerify(jwt, secretKey);\n  } catch (e) {\n    console.error('Symmetric Legacy JWT verification error', e);\n    return { code: RequestErrors.InvalidLegacyJWT }\n  }\n  return null\n}\n\nasync function isValidJWT(jwt: string): Promise<AuthFailure | null> {\n  if (!LOCAL_JWKS) {\n    console.error('JWKS not available for ES256/RS256 token verification')\n    return { code: RequestErrors.InvalidAsymmetricJWT }\n  }\n\n  try {\n    await jose.jwtVerify(jwt, LOCAL_JWKS);\n  } catch (e) {\n    console.error('Asymmetric JWT verification error', e);\n    return { code: RequestErrors.InvalidAsymmetricJWT }\n  }\n\n  return null\n}\n\n/**\n * Verify JWT token, handling both legacy (HS256) and newer (ES256/RS256) algorithms\n * \n * This function automatically detects the algorithm used in the token and applies\n * the appropriate verification method:\n * - HS256: Uses JWT_SECRET (symmetric key)\n * - ES256/RS256: Uses JWKS endpoint (asymmetric public keys)\n * \n * This fix ensures compatibility with both legacy tokens and newer asymmetric tokens,\n * resolving the \"Key for the ES256 algorithm must be of type CryptoKey\" error.\n * \n * @param jwt - The JWT token string to verify\n * @returns Authentication failure details, or null when verification succeeds\n */\nasync function isValidHybridJWT(jwt: string): Promise<AuthFailure | null> {\n  let jwtAlgorithm: string | undefined\n  try {\n    jwtAlgorithm = jose.decodeProtectedHeader(jwt).alg\n  } catch (e) {\n    console.error('JWT format error', e)\n    return {\n      code: RequestErrors.InvalidTokenFormat,\n      message: 'Invalid JWT format',\n    }\n  }\n\n  if (typeof jwtAlgorithm !== 'string' || !jwtAlgorithm) {\n    return {\n      code: RequestErrors.InvalidTokenFormat,\n      message: 'Invalid JWT format',\n    }\n  }\n\n  if (jwtAlgorithm === 'HS256') {\n    console.log(`Legacy token type detected, attempting ${jwtAlgorithm} verification.`)\n\n    return await isValidLegacyJWT(jwt)\n  }\n\n  if (jwtAlgorithm === 'ES256' || jwtAlgorithm === 'RS256') {\n    return await isValidJWT(jwt)\n  }\n\n  return {\n    code: RequestErrors.UnsupportedTokenAlgorithm,\n    message: `Unsupported JWT algorithm ${jwtAlgorithm}`,\n  }\n}\n\nDeno.serve({ onError }, async (req: Request) => {\n  if (req.method !== 'OPTIONS' && VERIFY_JWT) {\n    const token = getAuthToken(req)\n    if (typeof token !== 'string') {\n      return getAuthErrorResponse(token)\n    }\n    const authFailure = await isValidHybridJWT(token)\n    if (authFailure) {\n      return getAuthErrorResponse(authFailure)\n    }\n  }\n\n  const url = new URL(req.url)\n  const { pathname } = url\n  const path_parts = pathname.split('/')\n  const service_name = path_parts[1]\n\n  if (!service_name || service_name === '') {\n    return getFunctionErrorResponse({\n      code: RequestErrors.NotFound,\n      message: 'Requested function was not found',\n      status: 404,\n    })\n  }\n\n  const servicePath = `/home/deno/functions/${service_name}`\n  console.error(`serving the request with ${servicePath}`)\n\n  try {\n    const serviceInfo = await Deno.stat(servicePath)\n    if (!serviceInfo.isDirectory) {\n      return getFunctionErrorResponse({\n        code: RequestErrors.NotFound,\n        message: 'Requested function was not found',\n        status: 404,\n      })\n    }\n  } catch (e) {\n    if (e instanceof Deno.errors.NotFound) {\n      return getFunctionErrorResponse({\n        code: RequestErrors.NotFound,\n        message: 'Requested function was not found',\n        status: 404,\n      })\n    }\n    console.error(e)\n    return getFunctionErrorResponse({\n      code: RequestErrors.BootError,\n      message: 'Function failed to start (please check logs)',\n      status: 503,\n    })\n  }\n\n  const memoryLimitMb = 256\n  // Keep the wall clock above the 150s request idle timeout configured in Compose.\n  const workerTimeoutMs = 400_000\n  const requestAbsentTimeoutMs = 60_000\n  const noModuleCache = false\n  // Using a common Import Map for all functions \n  // to use a scope 'deno.json' it must be dinamically resolved base on the 'service_name'\n  const importMapPath = `/home/deno/functions/deno.jsonc`\n  // SUPABASE_FUNCTION_SLUG is listed after the container env snapshot so\n  // nothing in it can shadow the value, and it is per-request because only this\n  // worker knows which function the request resolved to.\n  const envVarsObj = { ...Deno.env.toObject(), SUPABASE_FUNCTION_SLUG: service_name }\n  const envVars = Object.keys(envVarsObj).map((k) => [k, envVarsObj[k]])\n\n  const callWorker = async (req: Request, retriesLeft = MAX_WORKER_RETRIES): Promise<Response> => {\n    // Preserve the body before fetch() can consume it, even on a failed attempt.\n    // Must run before `new Request(req)` below, which takes over the body.\n    // The unread retry branch can buffer the entire body in main-worker memory,\n    // even when the first attempt succeeds.\n    const retryReq = retriesLeft > 0 ? req.clone() : null\n\n    try {\n      const worker = await EdgeRuntime.userWorkers.create({\n        servicePath,\n        memoryLimitMb,\n        workerTimeoutMs,\n        context: { supervisor: { requestAbsentTimeoutMs } },\n        noModuleCache,\n        importMapPath,\n        envVars,\n      })\n      // Gateway-minted internal JWT is for this router only; never expose it to user functions.\n      const userReq = new Request(req)\n      userReq.headers.delete('sb-api-key')\n      EdgeRuntime.applySupabaseTag(req, userReq)\n      return handleWorkerResponse(await worker.fetch(userReq))\n    } catch (e) {\n      // Retirement rejects before dispatch, so user code has not run yet.\n      if (e instanceof Deno.errors.WorkerAlreadyRetired && retryReq) {\n        console.warn(`${service_name}: worker retired before dispatch; retrying (${retriesLeft} left)`)\n        // Request.clone() does not copy the tag that connects streaming to the client.\n        EdgeRuntime.applySupabaseTag(req, retryReq)\n        return await callWorker(retryReq, retriesLeft - 1)\n      }\n\n      console.error(e)\n      return getFunctionErrorResponse(resolveRuntimeError(e))\n    }\n  }\n\n  return await callWorker(req)\n})\n"
+  supabase-kong-inline-13:
     content: |
-      import * as jose from 'https://deno.land/x/jose@v4.14.4/index.ts'
-
-      console.log('main function started')
-
-      const JWT_SECRET = Deno.env.get('JWT_SECRET')
-      const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
-      const VERIFY_JWT = Deno.env.get('VERIFY_JWT') === 'true'
-
-      // Create JWKS for ES256/RS256 tokens (newer tokens)
-      let SUPABASE_JWT_KEYS: ReturnType<typeof jose.createRemoteJWKSet> | null = null
-      if (SUPABASE_URL) {
-        try {
-          SUPABASE_JWT_KEYS = jose.createRemoteJWKSet(
-            new URL('/auth/v1/.well-known/jwks.json', SUPABASE_URL)
-          )
-        } catch (e) {
-          console.error('Failed to fetch JWKS from SUPABASE_URL:', e)
-        }
-      }
-
-      function getAuthToken(req: Request) {
-        const authHeader = req.headers.get('authorization')
-        if (!authHeader) {
-          throw new Error('Missing authorization header')
-        }
-        const [bearer, token] = authHeader.split(' ')
-        if (bearer !== 'Bearer') {
-          throw new Error(`Auth header is not 'Bearer {token}'`)
-        }
-        return token
-      }
-
-      async function isValidLegacyJWT(jwt: string): Promise<boolean> {
-        if (!JWT_SECRET) {
-          console.error('JWT_SECRET not available for HS256 token verification')
-          return false
-        }
-
-        const encoder = new TextEncoder();
-        const secretKey = encoder.encode(JWT_SECRET)
-
-        try {
-          await jose.jwtVerify(jwt, secretKey);
-        } catch (e) {
-          console.error('Symmetric Legacy JWT verification error', e);
-          return false;
-        }
-        return true;
-      }
-
-      async function isValidJWT(jwt: string): Promise<boolean> {
-        if (!SUPABASE_JWT_KEYS) {
-          console.error('JWKS not available for ES256/RS256 token verification')
-          return false
-        }
-
-        try {
-          await jose.jwtVerify(jwt, SUPABASE_JWT_KEYS)
-        } catch (e) {
-          console.error('Asymmetric JWT verification error', e);
-          return false
-        }
-
-        return true;
-      }
-
-      async function isValidHybridJWT(jwt: string): Promise<boolean> {
-        const { alg: jwtAlgorithm } = jose.decodeProtectedHeader(jwt)
-
-        if (jwtAlgorithm === 'HS256') {
-          console.log(`Legacy token type detected, attempting ${jwtAlgorithm} verification.`)
-
-          return await isValidLegacyJWT(jwt)
-        }
-
-        if (jwtAlgorithm === 'ES256' || jwtAlgorithm === 'RS256') {
-          return await isValidJWT(jwt)
-        }
-
-        return false;
-      }
-
-      Deno.serve(async (req: Request) => {
-        if (req.method !== 'OPTIONS' && VERIFY_JWT) {
-          try {
-            const token = getAuthToken(req)
-            const isValidJWT = await isValidHybridJWT(token);
-
-            if (!isValidJWT) {
-              return new Response(JSON.stringify({ msg: 'Invalid JWT' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-              })
-            }
-          } catch (e) {
-            console.error(e)
-            return new Response(JSON.stringify({ msg: e.toString() }), {
-              status: 401,
-              headers: { 'Content-Type': 'application/json' },
-            })
-          }
-        }
-
-        const url = new URL(req.url)
-        const { pathname } = url
-        const path_parts = pathname.split('/')
-        const service_name = path_parts[1]
-
-        if (!service_name || service_name === '') {
-          const error = { msg: 'missing function name in request' }
-          return new Response(JSON.stringify(error), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
-
-        const servicePath = `/home/deno/functions/${service_name}`
-        console.error(`serving the request with ${servicePath}`)
-
-        const memoryLimitMb = 150
-        const workerTimeoutMs = 1 * 60 * 1000
-        const noModuleCache = false
-        const importMapPath = null
-        const envVarsObj = Deno.env.toObject()
-        const envVars = Object.keys(envVarsObj).map((k) => [k, envVarsObj[k]])
-
-        try {
-          const worker = await EdgeRuntime.userWorkers.create({
-            servicePath,
-            memoryLimitMb,
-            workerTimeoutMs,
-            noModuleCache,
-            importMapPath,
-            envVars,
-          })
-          return await worker.fetch(req)
-        } catch (e) {
-          const error = { msg: e.toString() }
-          return new Response(JSON.stringify(error), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
-      })
-  supabase-kong-inline-11:
-    content: |
-      #!/bin/bash
+      #!/bin/sh
       # Custom entrypoint for Kong that builds Lua expressions for request-transformer
       # and performs environment variable substitution in the declarative config.
 
+      # Build Lua expressions for translating opaque API keys to asymmetric JWTs.
+      # When opaque keys are not configured (empty env vars), expressions fall through
+      # to legacy-only behavior - just passing apikey as-is.
+      #
+      # Full expression logic (when opaque keys are configured):
+      #   1. If Authorization header exists and is NOT an sb_ key -> pass through (user session JWT)
+      #   2. If apikey matches secret key -> set service_role asymmetric JWT internal "API key"
+      #   3. If apikey matches publishable key -> set anon asymmetric JWT internal "API key"
+      #   4. Fallback: pass apikey as-is (legacy HS256 JWT)
+
       if [ -n "$SUPABASE_SECRET_KEY" ] && [ -n "$SUPABASE_PUBLISHABLE_KEY" ]; then
+          # Opaque keys configured -> full translation expressions
           export LUA_AUTH_EXPR="\$((headers.authorization ~= nil and headers.authorization:sub(1, 10) ~= 'Bearer sb_' and headers.authorization) or (headers.apikey == '$SUPABASE_SECRET_KEY' and 'Bearer $SERVICE_ROLE_KEY_ASYMMETRIC') or (headers.apikey == '$SUPABASE_PUBLISHABLE_KEY' and 'Bearer $ANON_KEY_ASYMMETRIC') or headers.apikey)"
+
+          # Realtime WebSocket: reads from query_params.apikey (supabase-js sends apikey
+          # via query string), outputs to x-api-key header which Realtime checks first.
           export LUA_RT_WS_EXPR="\$((query_params.apikey == '$SUPABASE_SECRET_KEY' and '$SERVICE_ROLE_KEY_ASYMMETRIC') or (query_params.apikey == '$SUPABASE_PUBLISHABLE_KEY' and '$ANON_KEY_ASYMMETRIC') or query_params.apikey)"
+
+          # Functions: translate opaque sb_ keys to the pre-signed internal asymmetric
+          # JWT and emit it as a raw `sb-api-key` header (no Bearer prefix), leaving
+          # Authorization untouched. The key is read from the apikey header or an
+          # Authorization `Bearer sb_...` fallback (header only, matching platform
+          # behavior. On no match the expression yields nil (rendered as an empty
+          # header) which the route's post-function then strips.
+          export LUA_FUNCTIONS_EXPR="\$((headers.apikey == '$SUPABASE_SECRET_KEY' and '$SERVICE_ROLE_KEY_ASYMMETRIC') or (headers.apikey == '$SUPABASE_PUBLISHABLE_KEY' and '$ANON_KEY_ASYMMETRIC') or (headers.authorization == 'Bearer $SUPABASE_SECRET_KEY' and '$SERVICE_ROLE_KEY_ASYMMETRIC') or (headers.authorization == 'Bearer $SUPABASE_PUBLISHABLE_KEY' and '$ANON_KEY_ASYMMETRIC') or nil)"
       else
+          # Legacy API keys, not sb_ API keys -> pass apikey through unchanged
           export LUA_AUTH_EXPR="\$((headers.authorization ~= nil and headers.authorization:sub(1, 10) ~= 'Bearer sb_' and headers.authorization) or headers.apikey)"
           export LUA_RT_WS_EXPR="\$(query_params.apikey)"
+
+          # Functions: no opaque keys configured -> never set sb-api-key (the empty
+          # value is stripped by the route's post-function).
+          export LUA_FUNCTIONS_EXPR="\$(nil)"
       fi
 
+      # Substitute environment variables in the Kong declarative config.
+      # Uses awk instead of eval/echo to preserve YAML quoting (eval strips double
+      # quotes, breaking "Header: value" patterns that YAML parses as mappings).
       awk '{
         result = ""
         rest = $0
@@ -450,10 +415,11 @@ configs:
         print result rest
       }' /home/kong/temp.yml > "$KONG_DECLARATIVE_CONFIG"
 
+      # Remove empty key-auth credentials (unconfigured opaque keys)
       sed -i '/^[[:space:]]*- key:[[:space:]]*$/d' "$KONG_DECLARATIVE_CONFIG"
 
       exec /entrypoint.sh kong docker-start
-  supabase-kong-inline-12:
+  supabase-kong-inline-14:
     content: |
       _format_version: '2.1'
       _transform: true
@@ -485,18 +451,17 @@ configs:
       ### Dashboard credentials
       ###
       basicauth_credentials:
-      - consumer: DASHBOARD
-        username: '$DASHBOARD_USERNAME'
-        password: '$DASHBOARD_PASSWORD'
-
+        - consumer: DASHBOARD
+          username: '$DASHBOARD_USERNAME'
+          password: '$DASHBOARD_PASSWORD'
 
       ###
       ### API Routes
       ###
       services:
-
         ## Open Auth routes
         - name: auth-v1-open
+          _comment: 'Auth: /auth/v1/verify* -> http://supabase-auth:9999/verify*'
           url: http://supabase-auth:9999/verify
           routes:
             - name: auth-v1-open
@@ -506,6 +471,7 @@ configs:
           plugins:
             - name: cors
         - name: auth-v1-open-callback
+          _comment: 'Auth: /auth/v1/callback* -> http://supabase-auth:9999/callback*'
           url: http://supabase-auth:9999/callback
           routes:
             - name: auth-v1-open-callback
@@ -515,6 +481,7 @@ configs:
           plugins:
             - name: cors
         - name: auth-v1-open-authorize
+          _comment: 'Auth: /auth/v1/authorize* -> http://supabase-auth:9999/authorize*'
           url: http://supabase-auth:9999/authorize
           routes:
             - name: auth-v1-open-authorize
@@ -533,6 +500,26 @@ configs:
                 - /auth/v1/.well-known/jwks.json
           plugins:
             - name: cors
+        - name: auth-v1-open-well-known-oauth
+          _comment: 'Auth: /auth/v1/.well-known/oauth-authorization-server -> http://supabase-auth:9999/.well-known/oauth-authorization-server'
+          url: http://supabase-auth:9999/.well-known/oauth-authorization-server
+          routes:
+            - name: auth-v1-open-well-known-oauth
+              strip_path: true
+              paths:
+                - /auth/v1/.well-known/oauth-authorization-server
+          plugins:
+            - name: cors
+        - name: auth-v1-open-well-known-openid
+          _comment: 'Auth: /auth/v1/.well-known/openid-configuration -> http://supabase-auth:9999/.well-known/openid-configuration'
+          url: http://supabase-auth:9999/.well-known/openid-configuration
+          routes:
+            - name: auth-v1-open-well-known-openid
+              strip_path: true
+              paths:
+                - /auth/v1/.well-known/openid-configuration
+          plugins:
+            - name: cors
 
         - name: auth-v1-open-sso-acs
           url: "http://supabase-auth:9999/sso/saml/acs"
@@ -540,7 +527,7 @@ configs:
             - name: auth-v1-open-sso-acs
               strip_path: true
               paths:
-              - /sso/saml/acs
+              - /auth/v1/sso/saml/acs
           plugins:
             - name: cors
 
@@ -550,13 +537,13 @@ configs:
             - name: auth-v1-open-sso-metadata
               strip_path: true
               paths:
-              - /sso/saml/metadata
+              - /auth/v1/sso/saml/metadata
           plugins:
             - name: cors
 
         ## Secure Auth routes
         - name: auth-v1
-          _comment: 'GoTrue: /auth/v1/* -> http://supabase-auth:9999/*'
+          _comment: 'Auth: /auth/v1/* -> http://supabase-auth:9999/*'
           url: http://supabase-auth:9999/
           routes:
             - name: auth-v1-all
@@ -583,7 +570,34 @@ configs:
                   - admin
                   - anon
 
-        ## Secure REST routes
+        ## OpenAPI root - admin only
+        - name: rest-v1-openapi
+          _comment: 'PostgREST OpenAPI root: /rest/v1/ -> <http://supabase-rest:3000/> (admin only). See <https://github.com/orgs/supabase/discussions/42949>'
+          url: http://supabase-rest:3000/
+          routes:
+            - name: rest-v1-openapi-root
+              strip_path: true
+              expression: 'http.path == "/rest/v1/"'
+          plugins:
+            - name: cors
+            - name: key-auth
+              config:
+                hide_credentials: false
+            - name: request-transformer
+              config:
+                add:
+                  headers:
+                    - "Authorization: $LUA_AUTH_EXPR"
+                replace:
+                  headers:
+                    - "Authorization: $LUA_AUTH_EXPR"
+            - name: acl
+              config:
+                hide_groups_header: true
+                allow:
+                  - admin
+
+        ## Secure PostgREST routes
         - name: rest-v1
           _comment: 'PostgREST: /rest/v1/* -> http://supabase-rest:3000/*'
           url: http://supabase-rest:3000/
@@ -634,7 +648,6 @@ configs:
                     - "Authorization: $LUA_AUTH_EXPR"
                 replace:
                   headers:
-                    - "Content-Profile: graphql_public"
                     - "Authorization: $LUA_AUTH_EXPR"
             - name: acl
               config:
@@ -661,17 +674,50 @@ configs:
             - name: request-transformer
               config:
                 add:
-                  querystring:
-                    - "apikey: $LUA_RT_WS_EXPR"
+                  headers:
+                    - "x-api-key:$LUA_RT_WS_EXPR"
                 replace:
                   querystring:
-                    - "apikey: $LUA_RT_WS_EXPR"
+                    - "apikey:$LUA_RT_WS_EXPR"
             - name: acl
               config:
                 hide_groups_header: true
                 allow:
                   - admin
                   - anon
+
+        # Block access to /realtime/v1/api/openapi
+        - name: realtime-v1-rest-openapi
+          _comment: 'Realtime: /realtime/v1/api/openapi/* -> http://realtime:4000/api/openapi/* (blocked)'
+          url: http://realtime-dev:4000/api/openapi
+          protocol: http
+          routes:
+            - name: realtime-v1-rest-openapi
+              strip_path: true
+              paths:
+                - /realtime/v1/api/openapi
+          plugins:
+            - name: request-termination
+              config:
+                status_code: 403
+                message: "Access is forbidden."
+
+        # Block access to /realtime/v1/api/tenants
+        - name: realtime-v1-rest-tenants
+          _comment: 'Realtime: /realtime/v1/api/tenants/* -> http://realtime:4000/api/tenants/* (blocked)'
+          url: http://realtime-dev:4000/api/tenants
+          protocol: http
+          routes:
+            - name: realtime-v1-rest-tenants
+              strip_path: true
+              paths:
+                - /realtime/v1/api/tenants
+          plugins:
+            - name: request-termination
+              config:
+                status_code: 403
+                message: "Access is forbidden."
+
         - name: realtime-v1-rest
           _comment: 'Realtime: /realtime/v1/api/* -> http://realtime:4000/api/*'
           url: http://realtime-dev:4000/api
@@ -701,8 +747,15 @@ configs:
                   - admin
                   - anon
 
-        ## Storage API endpoint
+        ## Storage API endpoint (with Authorization header transformation).
         ## No key-auth - S3 protocol requests don't carry an apikey header.
+        ##
+        ## The request-transformer translates opaque API keys to asymmetric JWTs
+        ## and passes through existing Authorization headers (user JWTs, AWS SigV4).
+        ## When no Authorization or apikey header is present (S3 presigned URLs),
+        ## the Lua expression evaluates to nil which Kong renders as empty string.
+        ## The post-function strips this empty header so Storage's S3 signature
+        ## verification falls through to query-parameter parsing.
         - name: storage-v1
           _comment: 'Storage: /storage/v1/* -> http://supabase-storage:5000/*'
           connect_timeout: $KONG_STORAGE_CONNECT_TIMEOUT
@@ -718,6 +771,14 @@ configs:
               response_buffering: $KONG_STORAGE_RESPONSE_BUFFERING
           plugins:
             - name: cors
+            - name: request-transformer
+              config:
+                add:
+                  headers:
+                    - "Authorization: $LUA_AUTH_EXPR"
+                replace:
+                  headers:
+                    - "Authorization: $LUA_AUTH_EXPR"
             - name: post-function
               config:
                 access:
@@ -728,44 +789,92 @@ configs:
                     end
 
         ## Edge Functions routes
+        ##
+        ## Functions header handling: opaque sb_ keys are translated to the pre-signed
+        ## internal asymmetric JWT and injected as a raw `sb-api-key` header (no
+        ## `Bearer` prefix), while `Authorization` is left untouched so user-session
+        ## JWTs and legacy bearers flow through to the runtime.
+        ##
+        ## No `key-auth`: Functions is a passthrough that does NOT validate keys. Kong
+        ## cannot reject an invalid key while still letting unauthenticated requests
+        ## through (key-auth's `anonymous` fallback accepts missing AND invalid keys
+        ## alike), so unknown/invalid keys simply pass to the runtime, which handles
+        ## verify_jwt itself.
+        ##
+        ## The request-transformer strips any client-supplied `sb-api-key` (anti-spoof)
+        ## and re-adds the translated value; on no match the Lua expression yields nil
+        ## (an empty header) which the post-function then removes.
+        ##
+        ## No `cors`: functions handle CORS themselves, as on the platform. Preflights
+        ## reach the function and its responses pass through unchanged.
         - name: functions-v1
           _comment: 'Edge Functions: /functions/v1/* -> http://supabase-edge-functions:9000/*'
           url: http://supabase-edge-functions:9000/
-          read_timeout: 150000
+          # Limit inactivity between reads, leaving 10s for the runtime's 150s idle timeout.
+          read_timeout: 160000
           routes:
             - name: functions-v1-all
               strip_path: true
               paths:
                 - /functions/v1/
           plugins:
-            - name: cors
+            - name: request-transformer
+              config:
+                remove:
+                  headers:
+                    - "sb-api-key"
+                add:
+                  headers:
+                    - "sb-api-key:$LUA_FUNCTIONS_EXPR"
+            - name: post-function
+              config:
+                access:
+                  - |
+                    local v = kong.request.get_header("sb-api-key")
+                    if v == nil or v == "" or v:find("^%s*$") then
+                      kong.service.request.clear_header("sb-api-key")
+                    end
 
         ## OAuth 2.0 Authorization Server Metadata (RFC 8414)
         - name: well-known-oauth
-          _comment: 'Auth: /.well-known/oauth-authorization-server -> http://supabase-auth:9999/.well-known/oauth-authorization-server'
+          _comment: 'Auth: /.well-known/oauth-authorization-server/auth/v1 -> http://supabase-auth:9999/.well-known/oauth-authorization-server'
           url: http://supabase-auth:9999/.well-known/oauth-authorization-server
           routes:
             - name: well-known-oauth
               strip_path: true
               paths:
-                - /.well-known/oauth-authorization-server
+                - /.well-known/oauth-authorization-server/auth/v1
           plugins:
             - name: cors
 
         ## Analytics routes
         ## Not used - Studio and Vector talk directly to analytics via Docker networking.
+        ## If external access is needed, add routes with key-auth matching Logflare's x-api-key auth.
+        # - name: analytics-v1-api
+        #   _comment: 'Analytics: /analytics/v1/api/endpoints/* -> http://logflare:4000/api/endpoints/*'
+        #   url: http://supabase-analytics:4000/api/endpoints
+        #   routes:
+        #     - name: analytics-v1-api
+        #       strip_path: true
+        #       paths:
+        #         - /analytics/v1/api/endpoints/
         # - name: analytics-v1
         #   _comment: 'Analytics: /analytics/v1/* -> http://logflare:4000/*'
         #   url: http://supabase-analytics:4000/
         #   routes:
-        #     - name: analytics-v1-all
+        #     - name: dashboard-v1-all
         #       strip_path: true
         #       paths:
-        #         - /analytics/v1/
+        #         - /analytics/v1
+        #   plugins:
+        #     - name: cors
+        #     - name: basic-auth
+        #       config:
+        #         hide_credentials: true
 
         ## Secure Database routes
         - name: meta
-          _comment: 'pg-meta: /pg/* -> http://supabase-meta:8080/*'
+          _comment: 'pg-meta: /pg/* -> http://pg-meta:8080/*'
           url: http://supabase-meta:8080/
           routes:
             - name: meta-all
@@ -826,7 +935,7 @@ configs:
 
         ## Protected Dashboard - catch all remaining routes
         - name: dashboard
-          _comment: 'Studio: /* -> http://studio:3000/*'
+          _comment: 'Studio: /* -> http://supabase-studio:3000/*'
           url: http://supabase-studio:3000/
           routes:
             - name: dashboard-all
@@ -838,7 +947,7 @@ configs:
             - name: basic-auth
               config:
                 hide_credentials: true
-  supabase-supavisor-inline-13:
+  supabase-supavisor-inline-15:
     content: |
       {:ok, _} = Application.ensure_all_started(:supavisor)
       {:ok, version} =
@@ -848,7 +957,7 @@ configs:
           end
       params = %{
           "external_id" => System.get_env("POOLER_TENANT_ID"),
-          "db_host" => System.get_env("POSTGRES_HOSTNAME"),
+          "db_host" => System.get_env("POSTGRES_HOST") || "supabase-db",
           "db_port" => System.get_env("POSTGRES_PORT") |> String.to_integer(),
           "db_database" => System.get_env("POSTGRES_DB"),
           "require_user" => false,
@@ -872,7 +981,7 @@ configs:
       else
         {:ok, _} = Supavisor.Tenants.create_tenant(params)
       end
-  supabase-vector-inline-14:
+  supabase-vector-inline-16:
     content: |
       api:
         enabled: true
@@ -881,6 +990,9 @@ configs:
       sources:
         docker_host:
           type: docker_logs
+          # Only collect logs of this stack. Other Supabase stacks on the same server have their own Vector.
+          include_labels:
+            - 'com.docker.compose.project=${COOLIFY_RESOURCE_UUID?COOLIFY_RESOURCE_UUID is required}'
           exclude_containers:
             - supabase-vector
 
@@ -909,7 +1021,7 @@ configs:
             kong: 'contains(string!(.appname), "supabase-kong")'
             auth: 'contains(string!(.appname), "supabase-auth")'
             rest: 'contains(string!(.appname), "supabase-rest")'
-            realtime: 'contains(string!(.appname), "supabase-realtime")'
+            realtime: 'contains(string!(.appname), "realtime-dev")'
             storage: 'contains(string!(.appname), "supabase-storage")'
             functions: 'contains(string!(.appname), "supabase-edge-functions")'
             db: 'contains(string!(.appname), "supabase-db")'
@@ -1163,7 +1275,7 @@ services:
       - imgproxy
       - health
       timeout: 5s
-    image: darthsim/imgproxy:v3.30.1
+    image: darthsim/imgproxy:v4.0.21
     networks:
       appnet:
         aliases:
@@ -1179,11 +1291,12 @@ services:
       supabase-minio:
         condition: service_healthy
     entrypoint:
+    - /bin/sh
     - /entrypoint.sh
     environment:
     - MINIO_ROOT_USER=${SERVICE_USER_MINIO}
     - MINIO_ROOT_PASSWORD=${SERVICE_PASSWORD_MINIO}
-    image: minio/mc
+    image: pgsty/silo:RELEASE.2026-10-15T00-00-00Z
     networks:
       appnet:
         aliases:
@@ -1191,8 +1304,6 @@ services:
     restart: no
     volumes: []
   realtime-dev:
-    command: |
-      sh -c "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server"
     depends_on:
       supabase-analytics:
         condition: service_healthy
@@ -1206,9 +1317,9 @@ services:
     - DB_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
     - DB_NAME=${POSTGRES_DB:-postgres}
     - DB_AFTER_CONNECT_QUERY=SET search_path TO _realtime
-    - DB_ENC_KEY=supabaserealtime
+    - DB_ENC_KEY=${REALTIME_DB_ENC_KEY:-supabaserealtime}
     - API_JWT_SECRET=${SERVICE_PASSWORD_JWT}
-    - SECRET_KEY_BASE=${SECRET_PASSWORD_REALTIME}
+    - SECRET_KEY_BASE=${SERVICE_PASSWORD_64_REALTIME}
     - METRICS_JWT_SECRET=${SERVICE_PASSWORD_JWT}
     - ERL_AFLAGS=-proto_dist inet_tcp
     - DNS_NODES=''
@@ -1220,7 +1331,7 @@ services:
     - JANITOR_INTERVAL=60000
     - DISABLE_HEALTHCHECK_LOGGING=true
     healthcheck:
-      interval: 5s
+      interval: 30s
       retries: 3
       start_period: 10s
       test:
@@ -1234,7 +1345,7 @@ services:
       - 'Authorization: Bearer ${SERVICE_SUPABASEANON_KEY}'
       - http://127.0.0.1:4000/api/tenants/realtime-dev/health
       timeout: 5s
-    image: supabase/realtime:v2.76.5
+    image: supabase/realtime:v2.148.3
     networks:
       appnet:
         aliases:
@@ -1262,12 +1373,16 @@ services:
     healthcheck:
       interval: 5s
       retries: 10
+      start_period: 30s
       test:
       - CMD
       - curl
+      - -sSfL
+      - -o
+      - /dev/null
       - http://127.0.0.1:4000/health
       timeout: 5s
-    image: supabase/logflare:1.31.2
+    image: supabase/logflare:1.50.15
     networks:
       appnet:
         aliases:
@@ -1282,7 +1397,7 @@ services:
     environment:
     - GOTRUE_API_HOST=0.0.0.0
     - GOTRUE_API_PORT=9999
-    - API_EXTERNAL_URL=${API_EXTERNAL_URL:-http://supabase-kong:8000}
+    - API_EXTERNAL_URL=${API_EXTERNAL_URL:-${SERVICE_URL_SUPABASEKONG}/auth/v1}
     - GOTRUE_DB_DRIVER=postgres
     - GOTRUE_DB_DATABASE_URL=postgres://supabase_auth_admin:${SERVICE_PASSWORD_POSTGRES}@${POSTGRES_HOSTNAME:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
     - GOTRUE_SITE_URL=${GOTRUE_SITE_URL:-${SERVICE_URL_SUPABASEKONG}}
@@ -1293,6 +1408,7 @@ services:
     - GOTRUE_JWT_DEFAULT_GROUP_NAME=authenticated
     - GOTRUE_JWT_EXP=${JWT_EXPIRY:-3600}
     - GOTRUE_JWT_SECRET=${SERVICE_PASSWORD_JWT}
+    - GOTRUE_JWT_ISSUER=${API_EXTERNAL_URL:-${SERVICE_URL_SUPABASEKONG}/auth/v1}
     - GOTRUE_EXTERNAL_EMAIL_ENABLED=${ENABLE_EMAIL_SIGNUP:-true}
     - GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED=${ENABLE_ANONYMOUS_USERS:-false}
     - GOTRUE_MAILER_AUTOCONFIRM=${ENABLE_EMAIL_AUTOCONFIRM:-false}
@@ -1329,7 +1445,7 @@ services:
       - --spider
       - http://127.0.0.1:9999/health
       timeout: 5s
-    image: supabase/gotrue:v2.186.0
+    image: supabase/gotrue:v2.197.0
     networks:
       appnet:
         aliases:
@@ -1368,14 +1484,13 @@ services:
     - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
     - PGDATABASE=${POSTGRES_DB:-postgres}
     - POSTGRES_DB=${POSTGRES_DB:-postgres}
-    - JWT_SECRET=${SERVICE_PASSWORD_JWT}
     - JWT_EXP=${JWT_EXPIRY:-3600}
     healthcheck:
       interval: 5s
       retries: 10
       test: pg_isready -U postgres -h 127.0.0.1
       timeout: 5s
-    image: supabase/postgres:15.8.1.085
+    image: supabase/postgres:17.6.1.136
     networks:
       appnet:
         aliases:
@@ -1387,15 +1502,21 @@ services:
   supabase-edge-functions:
     command:
     - start
+    - --user-worker-request-idle-timeout
+    - '150000'
     - --main-service
     - /home/deno/functions/main
     configs:
     - source: supabase-edge-functions-inline-9
       target: /home/deno/functions/main/index.ts
     - source: supabase-edge-functions-inline-10
+      target: /home/deno/functions/main/memory-pressure.ts
+    - source: supabase-edge-functions-inline-11
+      target: /home/deno/functions/deno.jsonc
+    - source: supabase-edge-functions-inline-12
       target: /home/deno/functions/hello/index.ts
     depends_on:
-      supabase-analytics:
+      supabase-kong:
         condition: service_healthy
     environment:
     - JWT_SECRET=${SERVICE_PASSWORD_JWT}
@@ -1403,17 +1524,19 @@ services:
     - SUPABASE_PUBLIC_URL=${SERVICE_URL_SUPABASEKONG}
     - SUPABASE_ANON_KEY=${SERVICE_SUPABASEANON_KEY}
     - SUPABASE_SERVICE_ROLE_KEY=${SERVICE_SUPABASESERVICE_KEY}
+    - SUPABASE_PUBLISHABLE_KEYS={"default":"${SUPABASE_PUBLISHABLE_KEY:-}"}
+    - SUPABASE_SECRET_KEYS={"default":"${SUPABASE_SECRET_KEY:-}"}
     - SUPABASE_DB_URL=postgresql://postgres:${SERVICE_PASSWORD_POSTGRES}@${POSTGRES_HOSTNAME:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
     - VERIFY_JWT=${FUNCTIONS_VERIFY_JWT:-false}
     healthcheck:
       interval: 5s
       retries: 3
       test:
-      - CMD
-      - echo
-      - Edge Functions is healthy
+      - CMD-SHELL
+      - timeout 1 bash -c '</dev/tcp/127.0.0.1/9000'
       timeout: 5s
-    image: supabase/edge-runtime:v1.71.2
+    image: supabase/edge-runtime:v1.77.9
+    mem_limit: ${FUNCTIONS_MEMORY_LIMIT:-2g}
     networks:
       appnet:
         aliases:
@@ -1424,22 +1547,26 @@ services:
     - deno-cache:/root/.cache/deno
   supabase-kong:
     configs:
-    - source: supabase-kong-inline-11
+    - source: supabase-kong-inline-13
       target: /home/kong/kong-entrypoint.sh
-    - source: supabase-kong-inline-12
+    - source: supabase-kong-inline-14
       target: /home/kong/temp.yml
     depends_on:
       supabase-analytics:
         condition: service_healthy
-    entrypoint: /home/kong/kong-entrypoint.sh
+    entrypoint:
+    - /bin/sh
+    - /home/kong/kong-entrypoint.sh
     environment:
     - SERVICE_URL_SUPABASEKONG_8000=${SERVICE_URL_SUPABASEKONG_8000}
     - KONG_PORT_MAPS=443:8000
     - JWT_SECRET=${SERVICE_PASSWORD_JWT}
     - KONG_DATABASE=off
     - KONG_DECLARATIVE_CONFIG=/usr/local/kong/kong.yml
+    - KONG_ROUTER_FLAVOR=expressions
     - KONG_DNS_ORDER=LAST,A,CNAME
     - KONG_DNS_NOT_FOUND_TTL=1
+    - KONG_DNS_VALID_TTL=5
     - KONG_PLUGINS=request-transformer,cors,key-auth,acl,basic-auth,request-termination,ip-restriction,post-function
     - KONG_NGINX_PROXY_PROXY_BUFFER_SIZE=160k
     - KONG_NGINX_PROXY_PROXY_BUFFERS=64 160k
@@ -1465,7 +1592,7 @@ services:
       - kong
       - health
       timeout: 5s
-    image: kong/kong:3.9.1
+    image: kong/kong:3.9.3
     networks:
       appnet:
         aliases:
@@ -1483,10 +1610,10 @@ services:
     - PG_META_DB_HOST=${POSTGRES_HOSTNAME:-supabase-db}
     - PG_META_DB_PORT=${POSTGRES_PORT:-5432}
     - PG_META_DB_NAME=${POSTGRES_DB:-postgres}
-    - PG_META_DB_USER=supabase_admin
+    - PG_META_DB_USER=postgres
     - PG_META_DB_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
     - CRYPTO_KEY=${SERVICE_PASSWORD_PGMETACRYPTO}
-    image: supabase/postgres-meta:v0.95.2
+    image: supabase/postgres-meta:v0.100.0
     networks:
       appnet:
         aliases:
@@ -1506,7 +1633,7 @@ services:
       - ready
       - local
       timeout: 20s
-    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    image: pgsty/silo:RELEASE.2026-10-15T00-00-00Z
     networks:
       appnet:
         aliases:
@@ -1523,15 +1650,24 @@ services:
         condition: service_healthy
     environment:
     - PGRST_DB_URI=postgres://authenticator:${SERVICE_PASSWORD_POSTGRES}@${POSTGRES_HOSTNAME:-supabase-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-    - PGRST_DB_SCHEMAS=${PGRST_DB_SCHEMAS:-public,storage,graphql_public}
+    - PGRST_DB_SCHEMAS=${PGRST_DB_SCHEMAS:-public,graphql_public}
     - PGRST_DB_MAX_ROWS=${PGRST_DB_MAX_ROWS:-1000}
     - PGRST_DB_EXTRA_SEARCH_PATH=${PGRST_DB_EXTRA_SEARCH_PATH:-public}
     - PGRST_DB_ANON_ROLE=anon
+    - PGRST_ADMIN_SERVER_PORT=3001
+    - PGRST_ADMIN_SERVER_HOST=localhost
     - PGRST_JWT_SECRET=${SERVICE_PASSWORD_JWT}
     - PGRST_DB_USE_LEGACY_GUCS=false
-    - PGRST_APP_SETTINGS_JWT_SECRET=${SERVICE_PASSWORD_JWT}
     - PGRST_APP_SETTINGS_JWT_EXP=${JWT_EXPIRY:-3600}
-    image: postgrest/postgrest:v14.6
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test:
+      - CMD
+      - postgrest
+      - --ready
+      timeout: 5s
+    image: postgrest/postgrest:v14.18
     networks:
       appnet:
         aliases:
@@ -1576,9 +1712,12 @@ services:
     - PGRST_JWT_SECRET=${SERVICE_PASSWORD_JWT}
     - STORAGE_PUBLIC_URL=${SERVICE_URL_SUPABASEKONG}
     - TENANT_ID=${STORAGE_TENANT_ID:-storage-single-tenant}
+    - S3_PROTOCOL_ACCESS_KEY_ID=${SERVICE_HEX_32_S3PROTOCOLACCESSKEYID}
+    - S3_PROTOCOL_ACCESS_KEY_SECRET=${SERVICE_HEX_64_S3PROTOCOLACCESSKEYSECRET}
     healthcheck:
       interval: 5s
       retries: 3
+      start_period: 10s
       test:
       - CMD
       - wget
@@ -1587,7 +1726,7 @@ services:
       - --spider
       - http://127.0.0.1:5000/status
       timeout: 5s
-    image: supabase/storage-api:v1.44.2
+    image: supabase/storage-api:v1.89.12
     networks:
       appnet:
         aliases:
@@ -1606,7 +1745,8 @@ services:
     - POSTGRES_HOST=${POSTGRES_HOST:-supabase-db}
     - POSTGRES_PORT=${POSTGRES_PORT:-5432}
     - POSTGRES_DB=${POSTGRES_DB:-postgres}
-    - PGRST_DB_SCHEMAS=${PGRST_DB_SCHEMAS:-public,storage,graphql_public}
+    - POSTGRES_USER_READ_WRITE=postgres
+    - PGRST_DB_SCHEMAS=${PGRST_DB_SCHEMAS:-public,graphql_public}
     - PGRST_DB_MAX_ROWS=${PGRST_DB_MAX_ROWS:-1000}
     - PGRST_DB_EXTRA_SEARCH_PATH=${PGRST_DB_EXTRA_SEARCH_PATH:-public}
     - DEFAULT_ORGANIZATION_NAME=${STUDIO_DEFAULT_ORGANIZATION:-Default Organization}
@@ -1617,27 +1757,29 @@ services:
     - SUPABASE_SERVICE_KEY=${SERVICE_SUPABASESERVICE_KEY}
     - AUTH_JWT_SECRET=${SERVICE_PASSWORD_JWT}
     - PG_META_CRYPTO_KEY=${SERVICE_PASSWORD_PGMETACRYPTO}
+    - SUPABASE_PUBLISHABLE_KEY=${SUPABASE_PUBLISHABLE_KEY:-}
+    - SUPABASE_SECRET_KEY=${SUPABASE_SECRET_KEY:-}
     - LOGFLARE_API_KEY=${SERVICE_PASSWORD_LOGFLARE}
     - LOGFLARE_PUBLIC_ACCESS_TOKEN=${SERVICE_PASSWORD_LOGFLARE}
     - LOGFLARE_PRIVATE_ACCESS_TOKEN=${SERVICE_PASSWORD_LOGFLAREPRIVATE}
     - LOGFLARE_URL=http://supabase-analytics:4000
     - NEXT_PUBLIC_SUPABASE_URL=${SERVICE_URL_SUPABASEKONG}
     - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SERVICE_SUPABASEANON_KEY}
-    - NEXT_PUBLIC_ENABLE_LOGS=true
-    - NEXT_ANALYTICS_BACKEND_PROVIDER=postgres
+    - ENABLED_FEATURES_LOGS_ALL=true
     - OPENAI_API_KEY=${OPENAI_API_KEY}
     - SNIPPETS_MANAGEMENT_FOLDER=/app/snippets
     - EDGE_FUNCTIONS_MANAGEMENT_FOLDER=/app/edge-functions
     healthcheck:
       interval: 5s
       retries: 3
+      start_period: 20s
       test:
       - CMD
       - node
       - -e
       - fetch('http://127.0.0.1:3000/api/platform/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})
-      timeout: 5s
-    image: supabase/studio:2026.03.16-sha-5528817
+      timeout: 10s
+    image: supabase/studio:2026.11.02-sha-a05e7ec
     networks:
       appnet:
         aliases:
@@ -1658,7 +1800,7 @@ services:
       fi
       /app/bin/migrate && /app/bin/supavisor eval "$$(cat /etc/pooler/pooler.exs)" && /app/bin/server
     configs:
-    - source: supabase-supavisor-inline-13
+    - source: supabase-supavisor-inline-15
       target: /etc/pooler/pooler.exs
     depends_on:
       supabase-analytics:
@@ -1672,7 +1814,7 @@ services:
     - POOLER_MAX_CLIENT_CONN=${POOLER_MAX_CLIENT_CONN:-100}
     - PORT=4000
     - POSTGRES_PORT=${POSTGRES_PORT:-5432}
-    - POSTGRES_HOSTNAME=${POSTGRES_HOSTNAME:-supabase-db}
+    - POSTGRES_HOST=${POSTGRES_HOSTNAME:-supabase-db}
     - POSTGRES_DB=${POSTGRES_DB:-postgres}
     - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
     - DATABASE_URL=ecto://supabase_admin:${SERVICE_PASSWORD_POSTGRES}@${POSTGRES_HOSTNAME:-supabase-db}:${POSTGRES_PORT:-5432}/_supabase
@@ -1687,7 +1829,7 @@ services:
     - GLOBAL_DOWNSTREAM_CERT_PATH=/etc/ssl/server.crt
     - GLOBAL_DOWNSTREAM_KEY_PATH=/etc/ssl/server.key
     healthcheck:
-      interval: 5s
+      interval: 10s
       retries: 10
       start_period: 30s
       test:
@@ -1698,7 +1840,7 @@ services:
       - /dev/null
       - http://127.0.0.1:4000/api/health
       timeout: 5s
-    image: supabase/supavisor:2.7.4
+    image: supabase/supavisor:2.9.13
     networks:
       appnet:
         aliases:
@@ -1710,7 +1852,7 @@ services:
     - --config
     - /etc/vector/vector.yml
     configs:
-    - source: supabase-vector-inline-14
+    - source: supabase-vector-inline-16
       target: /etc/vector/vector.yml
     environment:
     - LOGFLARE_PUBLIC_ACCESS_TOKEN=${SERVICE_PASSWORD_LOGFLARE}

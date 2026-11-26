@@ -12,9 +12,9 @@ env:
   APP_PASSWORD:
     generate: password
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/pi-hole/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pi-hole/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/pi-hole/3.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/pi-hole/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pi-hole/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/pi-hole/3.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -46,12 +46,14 @@ upstream:
   release_notes: |-
     ⚠️ If you have set up your router to use Pi-hole as its only DNS server, umbrelOS may be unable to resolve domain names during the update, preventing it from downloading the update files. To avoid issues, temporarily set a backup DNS server (e.g., 1.1.1.1) on your router before updating— or configure a permanent fallback DNS to prevent future issues.
 
-    This update includes a Docker image fix for Pi-hole security advisory GHSA-h8w9-qx2v-wrww.
+    This update includes security fixes for the DNS engine, web interface, configuration handling, and debug logs.
 
-    It also moves Pi-hole's logrotate file to the standard /etc/logrotate.d/pihole location.
+    Improvements include faster regex filtering, lower idle CPU usage, more reliable DNSSEC resolution, and fixes for web interface freezes and concurrent configuration changes.
 
-    Full release notes can be found at https://github.com/pi-hole/docker-pi-hole/releases/tag/2026.07.2
+    If you use custom regex filters or web access-control rules, review the upstream behavior changes: some regex expressions match differently, and IPv6-only access rules no longer admit IPv4 clients.
+
+    Full release notes can be found at https://github.com/pi-hole/docker-pi-hole/releases/tag/2026.11.0
   source: https://github.com/pi-hole/docker-pi-hole
-  version: 2026.07.2
+  version: 2026.11.0
   website: https://pi-hole.net
 website: https://pi-hole.net

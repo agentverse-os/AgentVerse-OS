@@ -16,7 +16,7 @@ services:
       VIKUNJA_DATABASE_USER: tipi
       VIKUNJA_SERVICE_JWTSECRET: ${VIKUNJA_SERVICE_SECRET}
       VIKUNJA_SERVICE_PUBLICURL: ${APP_PROTOCOL:-http}://${APP_DOMAIN}/
-    image: vikunja/vikunja:2.5.0
+    image: vikunja/vikunja:2.8.0
     networks:
       appnet:
         aliases:

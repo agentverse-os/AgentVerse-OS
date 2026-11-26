@@ -22,7 +22,7 @@ services:
       - --spider
       - http://127.0.0.1:3000
       timeout: 20s
-    image: docuseal/docuseal:latest
+    image: docuseal/docuseal:3.3.6
     networks:
       appnet:
         aliases:
@@ -42,14 +42,14 @@ services:
       - CMD-SHELL
       - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       timeout: 20s
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     networks:
       appnet:
         aliases:
         - docuseal-with-postgres-coolify_postgresql_1
     restart: unless-stopped
     volumes:
-    - postgresql-data:/var/lib/postgresql/data
+    - postgresql-data:/var/lib/postgresql
 volumes:
   docuseal-data:
     driver: local

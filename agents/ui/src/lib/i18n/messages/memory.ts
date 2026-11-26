@@ -1,0 +1,58 @@
+import { defineMessages } from '../define';
+
+// Workspace memory watch (ADR-009, docs/agents-ux.md §4.13): the label in the workplaces tree, the "Inbox" cards about an ended
+// process and a workspace standing at its limit, the card about a command that has been running for hours
+export default defineMessages({
+  en: {
+    'mem.tight': 'tight', 'mem.stalled': 'stalled',
+    'mem.tip': '{used} of {limit} · stalled on memory {pct}%', 'mem.tipTop': 'largest process: {cmd}, {rss}',
+    'mem.gib': '{n} GiB', 'mem.mib': '{n} MiB', 'mem.secs': '{n} s', 'mem.mins': '{n} min', 'mem.hours': '{n} h',
+    'mem.title': 'memory', 'mem.killed': 'Process ended', 'mem.killedManual': 'Process ended by the button', 'mem.oom': 'Ended by the system: out of memory', 'mem.standing': 'Workspace stands at its memory limit',
+    'mem.proc': '{cmd} — held {rss}, ran {age}', 'mem.procOom': '{cmd} — {rss}', 'mem.procUnknown': 'the process was not identified', 'mem.largest': 'Largest process: {cmd} — {rss}',
+    'mem.stood': 'The workspace stood at the {limit} limit for {secs}, stalled {pct}%.', 'mem.standsNow': 'Stalled {pct}% for {secs} already, limit {limit}.', 'mem.limitOnly': 'Workspace limit {limit}.',
+    'mem.session': 'Conversation: “{title}”.',
+    'mem.noteNotify': 'Mode: only report — nothing was ended.', 'mem.noteSmall': 'Nothing to end: no process holds a tenth of the limit.', 'mem.noteRate': 'Three processes were ended within the hour — only reports from now on.', 'mem.noteHost': 'The workspace is not at its own limit: the host itself is short of memory, nothing was ended.',
+    'mem.openSession': 'Open conversation', 'mem.limit': 'Memory limit…', 'mem.hide': 'hide', 'mem.kill': 'End process', 'mem.killConfirm': 'End the largest process of {project}? Its unsaved work will be lost.', 'mem.killDone': '{project}: process ended — {cmd}',
+    'long.title': 'command running for {time}', 'long.noTool': 'the turn has produced no events since {when}', 'long.open': 'Open', 'long.interrupt': 'Interrupt turn', 'long.mute': 'do not remind', 'long.interrupted': '{title}: turn interrupted',
+    'push.kindMemory': 'memory and long commands (a process ended, a workspace at its limit, a command running for hours)',
+  },
+  ru: {
+    'mem.tight': 'тесно', 'mem.stalled': 'пробуксовка',
+    'mem.tip': '{used} из {limit} · простой из-за памяти {pct} %', 'mem.tipTop': 'крупнейший процесс: {cmd}, {rss}',
+    'mem.gib': '{n} ГиБ', 'mem.mib': '{n} МиБ', 'mem.secs': '{n} с', 'mem.mins': '{n} мин', 'mem.hours': '{n} ч',
+    'mem.title': 'память', 'mem.killed': 'Завершён процесс', 'mem.killedManual': 'Процесс завершён по кнопке', 'mem.oom': 'Завершён системой: не хватило памяти', 'mem.standing': 'Workspace стоит у лимита памяти',
+    'mem.proc': '{cmd} — занимал {rss}, работал {age}', 'mem.procOom': '{cmd} — {rss}', 'mem.procUnknown': 'процесс не определён', 'mem.largest': 'Крупнейший процесс: {cmd} — {rss}',
+    'mem.stood': 'Workspace {secs} стоял у лимита {limit}, простой {pct} %.', 'mem.standsNow': 'Простой {pct} % уже {secs}, лимит {limit}.', 'mem.limitOnly': 'Лимит workspace {limit}.',
+    'mem.session': 'Беседа: «{title}».',
+    'mem.noteNotify': 'Режим «только сообщать» — ничего не завершено.', 'mem.noteSmall': 'Завершать нечего: ни один процесс не занимает десятой части лимита.', 'mem.noteRate': 'За час уже завершено три процесса — дальше только сообщения.', 'mem.noteHost': 'Workspace не у своего лимита: памяти не хватает самому хосту, ничего не завершено.',
+    'mem.openSession': 'Открыть беседу', 'mem.limit': 'Лимит памяти…', 'mem.hide': 'скрыть', 'mem.kill': 'Завершить процесс', 'mem.killConfirm': 'Завершить крупнейший процесс в {project}? Его несохранённая работа пропадёт.', 'mem.killDone': '{project}: процесс завершён — {cmd}',
+    'long.title': 'команда идёт {time}', 'long.noTool': 'ход без событий с {when}', 'long.open': 'Открыть', 'long.interrupt': 'Прервать ход', 'long.mute': 'не напоминать', 'long.interrupted': '{title}: ход прерван',
+    'push.kindMemory': 'память и долгие команды (завершён процесс, workspace у лимита, команда идёт часами)',
+  },
+  uk: {
+    'mem.tight': 'тісно', 'mem.stalled': 'пробуксовка',
+    'mem.tip': '{used} із {limit} · простій через пам\'ять {pct} %', 'mem.tipTop': 'найбільший процес: {cmd}, {rss}',
+    'mem.gib': '{n} ГіБ', 'mem.mib': '{n} МіБ', 'mem.secs': '{n} с', 'mem.mins': '{n} хв', 'mem.hours': '{n} год',
+    'mem.title': 'пам\'ять', 'mem.killed': 'Завершено процес', 'mem.killedManual': 'Процес завершено кнопкою', 'mem.oom': 'Завершено системою: забракло пам\'яті', 'mem.standing': 'Workspace стоїть біля ліміту пам\'яті',
+    'mem.proc': '{cmd} — займав {rss}, працював {age}', 'mem.procOom': '{cmd} — {rss}', 'mem.procUnknown': 'процес не визначено', 'mem.largest': 'Найбільший процес: {cmd} — {rss}',
+    'mem.stood': 'Workspace {secs} стояв біля ліміту {limit}, простій {pct} %.', 'mem.standsNow': 'Простій {pct} % уже {secs}, ліміт {limit}.', 'mem.limitOnly': 'Ліміт workspace {limit}.',
+    'mem.session': 'Бесіда: «{title}».',
+    'mem.noteNotify': 'Режим «лише повідомляти» — нічого не завершено.', 'mem.noteSmall': 'Завершувати нічого: жоден процес не займає десятої частини ліміту.', 'mem.noteRate': 'За годину вже завершено три процеси — далі лише повідомлення.', 'mem.noteHost': 'Workspace не біля свого ліміту: пам\'яті бракує самому хосту, нічого не завершено.',
+    'mem.openSession': 'Відкрити бесіду', 'mem.limit': 'Ліміт пам\'яті…', 'mem.hide': 'сховати', 'mem.kill': 'Завершити процес', 'mem.killConfirm': 'Завершити найбільший процес у {project}? Його незбережена робота зникне.', 'mem.killDone': '{project}: процес завершено — {cmd}',
+    'long.title': 'команда триває {time}', 'long.noTool': 'хід без подій з {when}', 'long.open': 'Відкрити', 'long.interrupt': 'Перервати хід', 'long.mute': 'не нагадувати', 'long.interrupted': '{title}: хід перервано',
+    'push.kindMemory': 'пам\'ять і довгі команди (завершено процес, workspace біля ліміту, команда триває годинами)',
+  },
+  es: {
+    'mem.tight': 'justo', 'mem.stalled': 'atascado',
+    'mem.tip': '{used} de {limit} · parado por memoria {pct} %', 'mem.tipTop': 'proceso más grande: {cmd}, {rss}',
+    'mem.gib': '{n} GiB', 'mem.mib': '{n} MiB', 'mem.secs': '{n} s', 'mem.mins': '{n} min', 'mem.hours': '{n} h',
+    'mem.title': 'memoria', 'mem.killed': 'Proceso terminado', 'mem.killedManual': 'Proceso terminado con el botón', 'mem.oom': 'Terminado por el sistema: sin memoria', 'mem.standing': 'El workspace está en su límite de memoria',
+    'mem.proc': '{cmd} — ocupaba {rss}, funcionó {age}', 'mem.procOom': '{cmd} — {rss}', 'mem.procUnknown': 'no se identificó el proceso', 'mem.largest': 'Proceso más grande: {cmd} — {rss}',
+    'mem.stood': 'El workspace estuvo {secs} en el límite de {limit}, parado {pct} %.', 'mem.standsNow': 'Parado {pct} % desde hace {secs}, límite {limit}.', 'mem.limitOnly': 'Límite del workspace {limit}.',
+    'mem.session': 'Conversación: «{title}».',
+    'mem.noteNotify': 'Modo «solo avisar»: no se terminó nada.', 'mem.noteSmall': 'Nada que terminar: ningún proceso ocupa una décima parte del límite.', 'mem.noteRate': 'Ya se terminaron tres procesos en una hora: desde ahora solo avisos.', 'mem.noteHost': 'El workspace no está en su propio límite: al host le falta memoria, no se terminó nada.',
+    'mem.openSession': 'Abrir conversación', 'mem.limit': 'Límite de memoria…', 'mem.hide': 'ocultar', 'mem.kill': 'Terminar proceso', 'mem.killConfirm': '¿Terminar el proceso más grande de {project}? Se perderá su trabajo sin guardar.', 'mem.killDone': '{project}: proceso terminado — {cmd}',
+    'long.title': 'el comando lleva {time}', 'long.noTool': 'el turno no produce eventos desde {when}', 'long.open': 'Abrir', 'long.interrupt': 'Interrumpir turno', 'long.mute': 'no recordar', 'long.interrupted': '{title}: turno interrumpido',
+    'push.kindMemory': 'memoria y comandos largos (un proceso terminado, un workspace en su límite, un comando que lleva horas)',
+  },
+});

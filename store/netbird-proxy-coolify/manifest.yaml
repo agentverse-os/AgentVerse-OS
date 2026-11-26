@@ -1,0 +1,90 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/netbird-proxy-coolify
+description: NetBird reverse proxy. Expose services of your NetBird network to the internet, with automatic TLS certificates.
+endpoint:
+  port: 80
+  service: netbird-proxy
+env:
+  NB_PROXY_ACME_CERTIFICATES: 'true'
+  NB_PROXY_ALLOW_INSECURE: 'false'
+  NB_PROXY_LOG_LEVEL: info
+  NB_PROXY_MANAGEMENT_ADDRESS: https://api.netbird.io:443
+  NB_PROXY_PRIVATE: 'true'
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: netbird-proxy-coolify
+notes:
+- 'порт 80:80 (netbird-proxy) не публикуется: доступ только через edge/gate'
+- 'порт 443:443 (netbird-proxy) не публикуется: доступ только через edge/gate'
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: NB_PROXY_MANAGEMENT_ADDRESS
+  hint: 'по умолчанию: https://api.netbird.io:443'
+  label: nb proxy management address
+  options: null
+  required: false
+  type: text
+- env: NB_PROXY_PRIVATE
+  hint: 'по умолчанию: true'
+  label: nb proxy private
+  options: null
+  required: false
+  type: text
+- env: NB_PROXY_ACME_CERTIFICATES
+  hint: 'по умолчанию: true'
+  label: nb proxy acme certificates
+  options: null
+  required: false
+  type: text
+- env: NB_PROXY_ALLOW_INSECURE
+  hint: 'по умолчанию: false'
+  label: nb proxy allow insecure
+  options: null
+  required: false
+  type: text
+- env: NB_PROXY_LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: nb proxy log level
+  options: null
+  required: false
+  type: text
+tags:
+- wireguard
+- reverse-proxy
+- vpn
+- zero-trust-network-access
+- open source
+title: Netbird Proxy
+type: app
+upstream:
+  categories:
+  - vpn
+  source: https://docs.netbird.io/selfhosted/migration/enable-reverse-proxy
+  tags:
+  - wireguard
+  - reverse-proxy
+  - vpn
+  - zero-trust-network-access
+  - open source
+  template: netbird-proxy.yaml
+website: https://docs.netbird.io/selfhosted/migration/enable-reverse-proxy

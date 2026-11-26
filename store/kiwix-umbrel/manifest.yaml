@@ -11,10 +11,10 @@ endpoint:
 env:
   UMBREL_ROOT: ${APP_DATA_DIR}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/4.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/kiwix/4.webp
 health: null
 hooks: {}
 host_docker_socket: false
@@ -43,8 +43,8 @@ upstream:
   author: Kiwix
   categories:
   - files
-  release_notes: null
+  release_notes: Fixed an issue that could prevent you from installing or reinstalling Kiwix. If a previous installation failed, please try again.
   source: https://github.com/kiwix/kiwix-tools
-  version: 3.8.2
+  version: 3.8.2-patch.2
   website: https://kiwix.org
 website: https://kiwix.org

@@ -1,0 +1,83 @@
+# Imported from the coolify catalog by `cloudd store import coolify`; manual edits will be overwritten —
+# for a hand-maintained version set `origin: manual`. Compose and metadata are upstream, the contract (route/endpoint/env/data) is ours.
+auth: own
+compose: ./compose.yaml
+data:
+- tank/apps/docling-coolify
+description: Convert documents (PDF, DOCX, PPTX, images, HTML) to Markdown, JSON, and more using AI-powered document processing.
+endpoint:
+  port: 5001
+  service: docling-serve
+env:
+  DOCLING_NUM_THREADS: '4'
+  DOCLING_SERVE_ENABLE_UI: 'true'
+  DOCLING_SERVE_LOG_LEVEL: WARNING
+  SERVICE_URL_DOCLING_5001: https://${APP_DOMAIN}
+gallery: []
+health: null
+hooks: {}
+host_docker_socket: false
+icon: ./logo.png
+login:
+  mode: app
+  note: null
+  password: null
+  path: null
+  user: null
+name: docling-coolify
+notes: []
+origin: coolify
+provides: []
+readme: null
+requires: []
+route:
+  mode: port
+  open: iframe
+schema: 1
+settings:
+- env: DOCLING_SERVE_ENABLE_UI
+  hint: 'по умолчанию: true'
+  label: docling serve enable ui
+  options: null
+  required: false
+  type: text
+- env: DOCLING_SERVE_LOG_LEVEL
+  hint: 'по умолчанию: WARNING'
+  label: docling serve log level
+  options: null
+  required: false
+  type: text
+- env: DOCLING_NUM_THREADS
+  hint: 'по умолчанию: 4'
+  label: docling num threads
+  options: null
+  required: false
+  type: text
+tags:
+- ai
+- document
+- pdf
+- ocr
+- markdown
+- extraction
+- ibm
+- rag
+- nlp
+title: Docling
+type: app
+upstream:
+  categories:
+  - ai
+  source: https://github.com/DS4SD/docling-serve
+  tags:
+  - ai
+  - document
+  - pdf
+  - ocr
+  - markdown
+  - extraction
+  - ibm
+  - rag
+  - nlp
+  template: docling.yaml
+website: https://github.com/DS4SD/docling-serve

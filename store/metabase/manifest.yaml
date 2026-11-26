@@ -40,6 +40,6 @@ upstream:
   - data
   - utilities
   source: https://github.com/metabase/metabase
-  tipi_version: 112
-  version: v0.63.15
+  tipi_version: 132
+  version: v0.65.4
 website: https://github.com/metabase/metabase

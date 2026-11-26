@@ -31,9 +31,9 @@ login:
   user: null
 name: bitcoind
 notes:
-- 'порт 8332→8332 (bitcoind) не публикуется: доступ только через edge/gate'
-- 'порт 28332→28332 (bitcoind) не публикуется: доступ только через edge/gate'
-- 'порт 28333→28333 (bitcoind) не публикуется: доступ только через edge/gate'
+- 'порт 8332:8332/tcp (bitcoind) не публикуется: доступ только через edge/gate'
+- 'порт 28332:28332/tcp (bitcoind) не публикуется: доступ только через edge/gate'
+- 'порт 28333:28333/tcp (bitcoind) не публикуется: доступ только через edge/gate'
 origin: runtipi
 provides: []
 readme: ./description.md
@@ -125,6 +125,6 @@ upstream:
   categories:
   - finance
   source: https://github.com/lncm/docker-bitcoind
-  tipi_version: 11
+  tipi_version: 12
   version: '28.0'
 website: https://github.com/lncm/docker-bitcoind

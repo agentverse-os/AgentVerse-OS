@@ -33,7 +33,7 @@ services:
       test:
       - CMD-SHELL
       - wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/api/status || exit 1
-    image: infisical/infisical:v0.154.6
+    image: infisical/infisical:v0.167.10
     networks:
       appnet:
         aliases:

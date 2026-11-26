@@ -55,6 +55,6 @@ upstream:
   categories:
   - data
   source: https://github.com/TandoorRecipes/recipes
-  tipi_version: 76
-  version: 2.6.13
+  tipi_version: 84
+  version: 2.7.3
 website: https://github.com/TandoorRecipes/recipes

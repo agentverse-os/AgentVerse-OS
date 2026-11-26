@@ -4,7 +4,7 @@
   // or tiles, the action menu as a bottom sheet, the editor full screen.
   import { api } from './api';
   import Dropdown from './Dropdown.svelte';
-  import { device, NAV_H } from './device.svelte';
+  import { device } from './device.svelte';
   import { fade, fly } from 'svelte/transition';
   import { t, fmt } from './i18n.svelte';
   let { root: initialRoot = 'apps', path: initialPath = '' }: { root?: string; path?: string } = $props();
@@ -93,7 +93,7 @@
   }
   function runItem(it: SheetItem) { sheet = null; setTimeout(it.run, 30); }
   function popStyle(s: { x?: number; y?: number }) {
-    if (device.phone || s.x === undefined || s.y === undefined) return `bottom: ${NAV_H}px`;
+    if (device.phone || s.x === undefined || s.y === undefined) return 'bottom: calc(var(--m-nav-b) + env(safe-area-inset-bottom, 0px)); right: var(--m-nav-r)';
     const w = 260, h = 240; const x = Math.min(s.x, innerWidth - w - 8), y = Math.min(s.y, innerHeight - h - 8);
     return `left:${x}px; top:${y}px; right:auto; bottom:auto; width:${w}px`;
   }
@@ -269,7 +269,7 @@
   .editor textarea { flex: 1; min-height: 50vh; width: 100%; font: .85rem/1.45 ui-monospace, Menlo, Consolas, monospace; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px; resize: vertical; }
   .split.with-editor .list th:nth-child(3), .split.with-editor .list td:nth-child(3) { display: none; } /* next to the editor the table is narrow — without the date column */
   .split.with-editor .list td { white-space: normal; }
-  @media (max-width: 900px) { .split.with-editor { grid-template-columns: 1fr; } .list th:nth-child(3), .list td:nth-child(3) { display: none; } }
+  @container win (max-width: 820px) { .split.with-editor { grid-template-columns: 1fr; } .list th:nth-child(3), .list td:nth-child(3) { display: none; } }
   /* tiles */
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; align-content: start; overflow: auto; }
   .tile { position: relative; border-radius: var(--r); }

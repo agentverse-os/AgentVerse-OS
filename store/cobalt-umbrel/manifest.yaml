@@ -11,11 +11,11 @@ endpoint:
 env:
   DEVICE_DOMAIN_NAME: ${EDGE_HOST}
 gallery:
-- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/1.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/2.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/3.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/4.jpg
-- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/5.jpg
+- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/1.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/2.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/3.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/4.webp
+- https://getumbrel.github.io/umbrel-apps-gallery/cobalt/5.webp
 health: null
 hooks: {}
 host_docker_socket: false

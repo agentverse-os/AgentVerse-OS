@@ -32,7 +32,7 @@ services:
       TZ: ${TZ}
       UserNameHash: ${LUBELOGGER_USERNAME_HASH}
       UserPasswordHash: ${LUBELOGGER_PASSWORD_HASH}
-    image: ghcr.io/hargata/lubelogger:v1.7.1
+    image: ghcr.io/hargata/lubelogger:v1.7.4
     networks:
       appnet:
         aliases:

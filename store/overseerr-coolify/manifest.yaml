@@ -4,11 +4,12 @@ auth: own
 compose: ./compose.yaml
 data:
 - tank/apps/overseerr-coolify
-description: Overseerr is a request management and media discovery tool built to work with your existing Plex ecosystem.
+description: Seerr (formerly Overseerr) is a request management and media discovery tool for Jellyfin, Plex, and Emby.
 endpoint:
   port: 5055
   service: overseerr
 env:
+  LOG_LEVEL: info
   SERVICE_URL_OVERSEERR_5055: https://${APP_DOMAIN}
 gallery: []
 health: null
@@ -31,24 +32,36 @@ route:
   mode: port
   open: iframe
 schema: 1
-settings: []
+settings:
+- env: LOG_LEVEL
+  hint: 'по умолчанию: info'
+  label: log level
+  options: null
+  required: false
+  type: text
 tags:
 - media
 - request
 - plex
+- jellyfin
+- emby
 - sonarr
 - radarr
+- seerr
 title: Overseerr
 type: app
 upstream:
   categories:
   - media
-  source: https://docs.overseerr.dev/getting-started/installation#docker
+  source: https://docs.seerr.dev/getting-started/docker
   tags:
   - media
   - request
   - plex
+  - jellyfin
+  - emby
   - sonarr
   - radarr
+  - seerr
   template: overseerr.yaml
-website: https://docs.overseerr.dev/getting-started/installation#docker
+website: https://docs.seerr.dev/getting-started/docker

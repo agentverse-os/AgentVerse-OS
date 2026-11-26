@@ -40,6 +40,6 @@ upstream:
   - media
   - utilities
   source: https://github.com/Prowlarr/Prowlarr/
-  tipi_version: 37
-  version: 2.5.2
+  tipi_version: 41
+  version: 2.7.0
 website: https://github.com/Prowlarr/Prowlarr/

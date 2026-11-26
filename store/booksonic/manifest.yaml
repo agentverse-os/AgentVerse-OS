@@ -40,6 +40,6 @@ upstream:
   - books
   - media
   source: https://github.com/popeen/Booksonic-Air
-  tipi_version: 8
+  tipi_version: 9
   version: 2201.1.0
 website: https://github.com/popeen/Booksonic-Air
