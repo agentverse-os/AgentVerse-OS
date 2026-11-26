@@ -36,10 +36,9 @@ open on a laptop, a tablet or a phone, the workspace and its agents stay on the 
 
 ## The film
 
-<p align="center">
-  <a href="assets/promo/agentverse-os-promo.mp4"><img src="assets/shots/promo-poster.webp" alt="The end card of the film with a play button: the Agents app on a monitor, the Desktop on a laptop, a conversation on a phone. 2 minutes 28 seconds, with sound" width="100%"></a>
-</p>
-<p align="center"><sub>▶ <a href="assets/promo/agentverse-os-promo.mp4"><b>Watch the film</b></a> — MP4, 2 min 28 s, 20 MB, English voice-over and music. One day with one workspace: a container for every project instead of a folder, the same desktop on a monitor, a laptop and a phone, six agent engines, voice, several subscriptions in one pool, the Store, and a server that stays closed to the internet. The picture is the real UI; every name and number in it is invented.</sub></p>
+https://github.com/user-attachments/assets/99eb4548-0192-4025-8c59-8d96265905f0
+
+<p align="center"><sub>2 min 28 s, English voice-over and music — turn the sound on. One day with one workspace: a container for every project instead of a folder, the same desktop on a monitor, a laptop and a phone, six agent engines, voice, several subscriptions in one pool, the Store, and a server that stays closed to the internet. The picture is the real UI; every name and number in it is invented. <a href="assets/promo/agentverse-os-promo.mp4">Full quality</a>: 1080p, 60 fps, 20 MB (download).</sub></p>
 
 ## In ten frames
 
